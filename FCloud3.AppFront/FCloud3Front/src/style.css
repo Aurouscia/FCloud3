@@ -1,0 +1,96 @@
+*{
+  margin: 0px;
+  padding: 0px;
+}
+
+.main {
+  margin: auto;
+  margin-top: 70px;
+  padding-bottom: 200px;
+  width: 100%;
+  max-width: 1000px;
+  overflow-x: auto;
+}
+.main>* {
+  margin-left: 20px;
+  margin-right: 20px;
+  overflow: auto;
+}
+
+table td {
+  padding: 5px;
+  background-color: #eee;
+  text-align: center;
+}
+table th{
+  background-color: cornflowerblue;
+  color:white;
+}
+table tr.noneBackground td{
+  background:none;
+}
+
+
+input {
+  font-size: unset;
+  margin: 5px;
+  border: 1px solid #aaa
+}
+select {
+  font-size: unset;
+  border: 1px solid #ccc;
+  margin: 5px;
+}
+
+button {
+  background-color: cornflowerblue;
+  color: white;
+  padding: 5px;
+  margin: 2px;
+  border-radius: 2px;
+  border: none;
+  font-size: unset;
+  margin-bottom: 2px;
+}
+button.confirm {
+  background-color: cornflowerblue;
+  color: white;
+  border: none;
+  padding: 5px;
+}
+button.queryAdjust{
+  border: none;
+  background: none;
+  color:white;
+  margin: 0px;
+}
+button:hover {
+  cursor: pointer;
+}
+
+.section{
+  margin: 10px;
+  padding: 5px;
+  border-bottom: 1px solid #ccc;
+}
+.section>h2{
+  font-size: 16px;
+  color: #666;
+  letter-spacing: 0.1em;
+  font-weight: normal;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 20px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #aaa;
+  color: #666;
+  letter-spacing: 0.1em;
+  font-weight: normal;
+}
+
+
+@media (prefers-color-scheme: light) {
+}

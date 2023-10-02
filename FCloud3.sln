@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1.Infrastructure", "1.Infrastructure", "{C5668509-3178-4C88-926B-011963AD6D5F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.App", "4.App", "{762122AF-0FFD-4976-97FE-28CAC535C11D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.Repositories", "2.Repositories", "{C5B6AEA0-A45D-4D11-9D08-9CA5ED4E67AF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.Services", "3.Services", "{693DB33E-A6E4-4E3F-86CA-6977FA2C8AEA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Utils", "FCloud3.Utils\FCloud3.Utils.csproj", "{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.App", "FCloud3.App\FCloud3.App.csproj", "{1049640B-2A2F-45AE-88DC-8332425A7841}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Repos", "FCloud3.Repos\FCloud3.Repos.csproj", "{9F657855-4A73-4D3D-9174-D0F8C6D0113D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Services", "FCloud3.Services\FCloud3.Services.csproj", "{A3A4A698-94BC-4473-BFDD-EF752059637F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1049640B-2A2F-45AE-88DC-8332425A7841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1049640B-2A2F-45AE-88DC-8332425A7841}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1049640B-2A2F-45AE-88DC-8332425A7841}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1049640B-2A2F-45AE-88DC-8332425A7841}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F657855-4A73-4D3D-9174-D0F8C6D0113D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F657855-4A73-4D3D-9174-D0F8C6D0113D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F657855-4A73-4D3D-9174-D0F8C6D0113D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F657855-4A73-4D3D-9174-D0F8C6D0113D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3A4A698-94BC-4473-BFDD-EF752059637F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3A4A698-94BC-4473-BFDD-EF752059637F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3A4A698-94BC-4473-BFDD-EF752059637F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3A4A698-94BC-4473-BFDD-EF752059637F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2} = {C5668509-3178-4C88-926B-011963AD6D5F}
+		{1049640B-2A2F-45AE-88DC-8332425A7841} = {762122AF-0FFD-4976-97FE-28CAC535C11D}
+		{9F657855-4A73-4D3D-9174-D0F8C6D0113D} = {C5B6AEA0-A45D-4D11-9D08-9CA5ED4E67AF}
+		{A3A4A698-94BC-4473-BFDD-EF752059637F} = {693DB33E-A6E4-4E3F-86CA-6977FA2C8AEA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F7861C67-D850-476A-A2A5-64450D45439D}
+	EndGlobalSection
+EndGlobal
