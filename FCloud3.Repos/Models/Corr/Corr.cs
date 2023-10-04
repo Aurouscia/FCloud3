@@ -12,7 +12,8 @@ namespace FCloud3.Repos.Models.Corr
         public int Id { get; set; }
         public int A { get; set; }
         public int B { get; set; }
-        public int Weight { get; set; }
+        public int Order { get; set; }
+        public CorrType CorrType { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
@@ -21,10 +22,13 @@ namespace FCloud3.Repos.Models.Corr
     }
     public enum CorrType
     {
-        User_UserGroup = 10,
-        User_Follow_User = 11,
+        UserGroup_User = 10,
+        UserFollowed_User = 11,
 
-        WikiItem_WikiGroup = 20
+        WikiItem_WikiDir = 20,
+        WikiTextPara_WikiItem = 21,
+        WikiFilePara_WikiItem = 22,
+        WikiTablePara_WikiItem = 23
     }
     public class CorrRepo : RepoBase<Corr>
     {

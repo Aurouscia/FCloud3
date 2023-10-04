@@ -10,6 +10,11 @@
         <RouterLink to="/HomePage">主页</RouterLink>
       </div>
     </div>
+    <div class="topbar-item">
+      <div>
+        <RouterLink to="/Wiki/EditInfo">词条测试</RouterLink>
+      </div>
+    </div>
   </div>
   <div class="right">
     <div class="topbar-item">
@@ -32,7 +37,8 @@
   top:0px;
   left:0px;
   height: 50px;
-  width: 100vw;
+  width: calc(100vw - 20px);
+  padding-right: 20px;
   overflow: visible;
   display: flex;
   justify-content: space-between;
@@ -40,6 +46,7 @@
   white-space: nowrap;
   background-color: white;
   box-shadow: 0px 2px 5px #aaa;
+  z-index: 1000;
 }
 .left{
   display: flex;

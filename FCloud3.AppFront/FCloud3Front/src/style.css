@@ -6,14 +6,11 @@
 .main {
   margin: auto;
   margin-top: 70px;
-  padding-bottom: 200px;
   width: 100%;
   max-width: 1000px;
   overflow-x: auto;
 }
 .main>* {
-  margin-left: 20px;
-  margin-right: 20px;
   overflow: auto;
 }
 

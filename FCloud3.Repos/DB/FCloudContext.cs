@@ -14,6 +14,7 @@ namespace FCloud3.Repos.DB
 
         public DbSet<User> Users { get; set; }
         public DbSet<WikiItem> WikiItems { get; set; }
+        public DbSet<WikiTextPara> WikiTextParas { get; set; }
         public DbSet<Corr> Corrs { get; set; }
     }
 }

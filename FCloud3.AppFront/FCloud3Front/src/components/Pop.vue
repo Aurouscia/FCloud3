@@ -76,6 +76,7 @@ defineExpose({ show })
     margin: 0px;
     color:white;
     word-break: break-all;
+    z-index: 10000;
 }
 .success{
     background-color: #339933;

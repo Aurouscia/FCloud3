@@ -28,11 +28,11 @@ namespace FCloud3.Repos
                 errmsg = $"试图向数据库加入空{nameof(T)}对象";
                 return false;
             }
-            if(TryAddCheck(item, out errmsg))
+            if(!TryAddCheck(item, out errmsg))
                 return false;
             item.Created = DateTime.Now;
             _context.Add(item);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
             return true;
         }
 
@@ -52,7 +52,25 @@ namespace FCloud3.Repos
                 return false;
             item.Updated = DateTime.Now;
             _context.Update(item);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
+            return true;
+        }
+        public virtual bool TryEditRange(List<T> items,out string? errmsg)
+        {
+            errmsg = null;
+            foreach(var item in items)
+            {
+                if (item is null)
+                {
+                    errmsg = $"试图向数据库更新空{nameof(T)}对象";
+                    return false;
+                }
+                if (!TryEditCheck(item, out errmsg))
+                    return false;
+                item.Updated = DateTime.Now;
+                _context.Update(item);
+            }
+            _context.SaveChanges();
             return true;
         }
 
@@ -72,7 +90,7 @@ namespace FCloud3.Repos
                 return false;
             item.Deleted = true;
             _context.Update(item);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
             return true;
         }
     }

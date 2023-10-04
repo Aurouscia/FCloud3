@@ -8,43 +8,78 @@ using System.Threading.Tasks;
 
 namespace FCloud3.Services.Wiki
 {
-    public class WikiService
+    public class WikiItemService
     {
         private readonly WikiItemRepo _wikiRepo;
-        private readonly CorrRepo _corrRepo;
         public const int maxWikiTitleLength = 30;
-        public WikiService(WikiItemRepo wikiRepo, CorrRepo corrRepo)
+        public WikiItemService(WikiItemRepo wikiRepo)
         {
             _wikiRepo = wikiRepo;
-            _corrRepo = corrRepo;
         }
-        public bool TryAdd(int creator,string? title, out string? errmsg)
+        public static bool BasicInfoCheck(WikiItem w, out string? errmsg)
         {
-            if(string.IsNullOrEmpty(title))
+            errmsg = null;
+            if (string.IsNullOrEmpty(w.Title))
             {
                 errmsg = "标题不能为空";
                 return false;
             }
-            if (title.Length > maxWikiTitleLength)
+            if (w.Title.Length > maxWikiTitleLength)
             {
                 errmsg = $"标题不能超过{maxWikiTitleLength}字";
                 return false;
             }
+            return true;
+        }
+
+        public WikiItem? GetById(int id)
+        {
+            return _wikiRepo.GetById(id);
+        }
+
+        public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId,int count=int.MaxValue)
+        {
+            return _wikiRepo.GetWikiParaDisplays(wikiId, 0, count);
+        } 
+
+        public List<WikiParaDisplay>? InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
+        {
+            if (!_wikiRepo.InsertPara(wikiId, afterOrder, type, out errmsg))
+                return null;
+            return GetWikiParaDisplays(wikiId);
+        }
+
+        public List<WikiParaDisplay>? SetParaOrders(int wikiId, List<int> orderedParaIds,out string? errmsg)
+        {
+            if (!_wikiRepo.SetParaOrders(wikiId, orderedParaIds, out errmsg))
+                return null;
+            return GetWikiParaDisplays(wikiId);
+        }
+
+        public bool TryAdd(int creator,string? title, out string? errmsg)
+        {
             WikiItem w = new()
             {
                 CreatorUserId = creator,
                 OwnerUserId = creator,
                 Title = title
             };
-            if (!_wikiRepo.TryAdd(w,out errmsg))
-            {
+            if (!BasicInfoCheck(w, out errmsg))
                 return false;
-            }
+            if (!_wikiRepo.TryAdd(w,out errmsg))
+                return false;
             return true;
         }
-        public bool TryEdit()
+        public bool TryEdit(int id, string? title, out string? errmsg)
         {
-            throw new NotImplementedException();
+            WikiItem w = _wikiRepo.GetById(id) ?? throw new Exception("找不到指定id的wiki");
+            w.Title = title;
+            if (!BasicInfoCheck(w, out errmsg))
+                return false;
+            if (!_wikiRepo.TryEdit(w, out errmsg))
+                return false;
+            return true;
         }
+
     }
 }

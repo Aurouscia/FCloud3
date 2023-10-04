@@ -1,3 +1,3 @@
 export function getTimeStamp(){
-    return +Date()/1000
+    return (new Date()).getTime()/1000
 }

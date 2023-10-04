@@ -5,6 +5,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import { addIdentities } from './pages/Identities/routes'
 import NotFound from './pages/notFound.vue';
 import { addHomePage } from './pages/Home/routes';
+import { addWiki } from './pages/Wiki/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -17,6 +18,7 @@ const router = createRouter({
 })
 addIdentities(router)
 addHomePage(router)
+addWiki(router)
 
 
 createApp(App).use(router).mount('#app')

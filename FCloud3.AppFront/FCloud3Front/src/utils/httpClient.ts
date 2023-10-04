@@ -41,7 +41,7 @@ export class HttpClient{
     }
     async send(apiInfo:Api,data?:object,
         pop?:(msg:string,type:boxType)=>void,
-        successMsg:string="操作成功"
+        successMsg?:string
         ): Promise<ApiResponse>
         {
         var resp:ApiResponse;
@@ -57,7 +57,7 @@ export class HttpClient{
         if(pop){
             if(!resp.success){
                 pop(resp.errmsg,"failed")
-            }else{
+            }else if(successMsg){
                 pop(successMsg,"success")
             }
         }
