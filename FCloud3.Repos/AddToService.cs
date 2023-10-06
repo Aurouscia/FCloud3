@@ -4,7 +4,8 @@ using FCloud3.Repos.DB;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Repos.Models.Identities;
 using FCloud3.Repos.Models.Wiki;
-using FCloud3.Repos.Models.Corr;
+using FCloud3.Repos.Models.Cor;
+using FCloud3.Repos.Models.TextSec;
 
 namespace FCloud3.Repos
 {
@@ -19,8 +20,10 @@ namespace FCloud3.Repos
             //注意：DBContext对象 线程不安全
 
             services.AddScoped<UserRepo>();
-            services.AddScoped<WikiItemRepo>();
+
             services.AddScoped<CorrRepo>();
+            services.AddScoped<WikiItemRepo>();
+            services.AddScoped<TextSectionRepo>();
 
             return services;
         }

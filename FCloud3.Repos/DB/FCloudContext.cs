@@ -1,5 +1,6 @@
-﻿using FCloud3.Repos.Models.Corr;
+﻿using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.Identities;
+using FCloud3.Repos.Models.TextSec;
 using FCloud3.Repos.Models.Wiki;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ namespace FCloud3.Repos.DB
 
         public DbSet<User> Users { get; set; }
         public DbSet<WikiItem> WikiItems { get; set; }
-        public DbSet<WikiTextPara> WikiTextParas { get; set; }
+        public DbSet<TextSection> TextSections { get; set; }
         public DbSet<Corr> Corrs { get; set; }
     }
 }

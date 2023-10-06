@@ -1,4 +1,4 @@
-﻿using FCloud3.Repos.Models.Corr;
+﻿using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.Wiki;
 using System;
 using System.Collections.Generic;

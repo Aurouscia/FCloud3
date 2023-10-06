@@ -1,5 +1,6 @@
 ﻿using FCloud3.Repos.DB;
-using FCloud3.Repos.Models.Corr;
+using FCloud3.Repos.Models.Cor;
+using FCloud3.Repos.Models.TextSec;
 
 namespace FCloud3.Repos.Models.Wiki
 {
@@ -17,16 +18,16 @@ namespace FCloud3.Repos.Models.Wiki
     public class WikiItemRepo : RepoBase<WikiItem>
     {
         private readonly CorrRepo _corrRepo;
-        private readonly WikiTextParaRepo _textParaRepo;
+        private readonly TextSectionRepo _textSectionRepo;
         private readonly List<CorrType> wikiParaTypes;
-        public WikiItemRepo(FCloudContext context, CorrRepo corrRepo, WikiTextParaRepo textParaRepo) : base(context)
+        public WikiItemRepo(FCloudContext context, CorrRepo corrRepo, TextSectionRepo textSectionRepo) : base(context)
         {
             _corrRepo = corrRepo;
-            _textParaRepo = textParaRepo;
+            _textSectionRepo = textSectionRepo;
             wikiParaTypes = WikiParaTypeUtil.WikiParaCorrTypes;
         }
 
-        public List<Corr.Corr> GetWikiParaCorrs(int wikiId, int start = 0, int count = int.MaxValue)
+        public List<Corr> GetWikiParaCorrs(int wikiId, int start = 0, int count = int.MaxValue)
         {
             var corrs = _context.Corrs
                 .Where(x => x.B == wikiId)
@@ -43,9 +44,9 @@ namespace FCloud3.Repos.Models.Wiki
             var corrs = GetWikiParaCorrs(wikiId, start, count);
             EnsureParaOrderDense(corrs);
 
-            List<WikiTextParaMeta> textParas = _textParaRepo.GetMetaRangeByParaCorr(corrs);
+            List<TextSectionMeta> textParas = _textSectionRepo.GetMetaRangeByParaCorr(corrs);
 
-            List<KeyValuePair<Corr.Corr ,IWikiPara>> paras = corrs.ConvertAll(x =>
+            List<KeyValuePair<Corr ,IWikiPara>> paras = corrs.ConvertAll(x =>
             {
                 WikiParaType type = x.CorrType.ToWikiPara();
                 IWikiPara? para = null;
@@ -58,7 +59,7 @@ namespace FCloud3.Repos.Models.Wiki
                     //throw new NotImplementedException();
                 }
                 para ??= new WikiParaPlaceholder(type);
-                return new KeyValuePair<Corr.Corr, IWikiPara>(x,para);
+                return new KeyValuePair<Corr, IWikiPara>(x,para);
             });
 
             List<WikiParaDisplay> res = paras.ToDisplaySimpleList();
@@ -70,7 +71,7 @@ namespace FCloud3.Repos.Models.Wiki
             EnsureParaOrderDense(itsParas);
             var moveBackwards = itsParas.FindAll(x=>x.Order > afterOrder);
             moveBackwards.ForEach(x => x.Order++);
-            Corr.Corr newPara = new()
+            Corr newPara = new()
             {
                 B = wikiId,
                 CorrType = type.ToCorrType(),
@@ -90,7 +91,7 @@ namespace FCloud3.Repos.Models.Wiki
             var itsParas = GetWikiParaCorrs(wikiId);
             EnsureParaOrderDense(itsParas);
 
-            List<Corr.Corr> orderedParaCorrs = new(itsParas.Count); 
+            List<Corr> orderedParaCorrs = new(itsParas.Count); 
             foreach(int id in OrderedParaIds)
             {
                 var p = itsParas.Find(x=>x.Id==id) ?? throw new Exception("在重设顺序时找不到指定id段落");
@@ -102,12 +103,12 @@ namespace FCloud3.Repos.Models.Wiki
             return true;
         }
 
-        private static void EnsureParaOrderDense(List<Corr.Corr> corrs)
+        private static void EnsureParaOrderDense(List<Corr> corrs)
         {
             corrs.Sort((x, y) => x.Order - y.Order);
             ResetOrder(corrs);
         }
-        private static void ResetOrder(List<Corr.Corr> corrs)
+        private static void ResetOrder(List<Corr> corrs)
         {
             for (int i = 0; i < corrs.Count; i++)
                 corrs[i].Order = i;

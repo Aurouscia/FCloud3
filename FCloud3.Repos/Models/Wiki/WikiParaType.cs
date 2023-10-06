@@ -1,4 +1,4 @@
-﻿using FCloud3.Repos.Models.Corr;
+﻿using FCloud3.Repos.Models.Cor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,23 +20,23 @@ namespace FCloud3.Repos.Models.Wiki
             {
                 return new()
                 {
-                    CorrType.WikiTextPara_WikiItem,
-                    CorrType.WikiFilePara_WikiItem,
-                    CorrType.WikiTablePara_WikiItem
+                    CorrType.TextSection_WikiItem,
+                    CorrType.FileItem_WikiItem,
+                    CorrType.TableItem_WikiItem
                 };
             }
         } 
         public static WikiParaType ToWikiPara(this CorrType corr)
         {
-            if(corr == CorrType.WikiTextPara_WikiItem)
+            if(corr == CorrType.TextSection_WikiItem)
             {
                 return WikiParaType.Text;
             }
-            else if(corr == CorrType.WikiFilePara_WikiItem)
+            else if(corr == CorrType.FileItem_WikiItem)
             {
                 return WikiParaType.File;
             }
-            else if(corr == CorrType.WikiTablePara_WikiItem)
+            else if(corr == CorrType.TableItem_WikiItem)
             {
                 return WikiParaType.Table;
             }
@@ -46,15 +46,15 @@ namespace FCloud3.Repos.Models.Wiki
         {
             if (para == WikiParaType.Text)
             {
-                return CorrType.WikiTextPara_WikiItem;
+                return CorrType.TextSection_WikiItem;
             }
             else if (para == WikiParaType.File)
             {
-                return CorrType.WikiFilePara_WikiItem;
+                return CorrType.FileItem_WikiItem;
             }
             else if (para == WikiParaType.Table)
             {
-                return CorrType.WikiTablePara_WikiItem;
+                return CorrType.TableItem_WikiItem;
             }
             throw new NotImplementedException();
         }

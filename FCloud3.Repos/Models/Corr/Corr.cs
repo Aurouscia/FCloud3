@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos.Models.Corr
+namespace FCloud3.Repos.Models.Cor
 {
     public class Corr : IDbModel
     {
@@ -26,9 +26,9 @@ namespace FCloud3.Repos.Models.Corr
         UserFollowed_User = 11,
 
         WikiItem_WikiDir = 20,
-        WikiTextPara_WikiItem = 21,
-        WikiFilePara_WikiItem = 22,
-        WikiTablePara_WikiItem = 23
+        TextSection_WikiItem = 21,
+        FileItem_WikiItem = 22,
+        TableItem_WikiItem = 23
     }
     public class CorrRepo : RepoBase<Corr>
     {
