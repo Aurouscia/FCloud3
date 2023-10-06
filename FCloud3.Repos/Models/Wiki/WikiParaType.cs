@@ -13,8 +13,19 @@ namespace FCloud3.Repos.Models.Wiki
         File = 1,
         Table = 2 
     }
-    public static class WikiParaTypeConverter
+    public static class WikiParaTypeUtil
     {
+        public static List<CorrType> WikiParaCorrTypes {
+            get
+            {
+                return new()
+                {
+                    CorrType.WikiTextPara_WikiItem,
+                    CorrType.WikiFilePara_WikiItem,
+                    CorrType.WikiTablePara_WikiItem
+                };
+            }
+        } 
         public static WikiParaType ToWikiPara(this CorrType corr)
         {
             if(corr == CorrType.WikiTextPara_WikiItem)

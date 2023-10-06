@@ -127,7 +127,6 @@ onMounted(async()=>{
 
 <template>
     <div class="paras" ref="parasDiv">
-        {{ paras.map(x=>x.Id) }}
         <div v-for="p in paras" :key="p.Id" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <div class="paraTitle">

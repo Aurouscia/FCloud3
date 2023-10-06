@@ -11,11 +11,14 @@ provide('pop', pop)
 const httpClient = new HttpClient()
 provide('http', httpClient)
 provide('userInfo', new IdentityInfoProvider(httpClient))
+
+const displayTopbar = ref<boolean>(true);
+provide('hideTopbar',()=>{displayTopbar.value=false})
 </script>
 
 <template>
   <Pop ref="pop"></Pop>
-  <Topbar></Topbar>
+  <Topbar v-if="displayTopbar"></Topbar>
   <div class="main">
     <RouterView></RouterView>
   </div>

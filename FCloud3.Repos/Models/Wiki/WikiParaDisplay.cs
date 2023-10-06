@@ -16,20 +16,17 @@ namespace FCloud3.Repos.Models.Wiki
     }
     public static class WikiParaDisplayListConverter
     {
-        //有点问题，待优化
-        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<IWikiPara> para, List<Corr.Corr> corrs)
+        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<Corr.Corr, IWikiPara>> para)
         {
-            List<WikiParaDisplay> paras = new();
-            for(int i = 0; i < para.Count; i++)
+            return para.ConvertAll(x =>
             {
-                WikiParaDisplay display = para[i].ToDisplaySimple();
-                display.Order = i;
-                var c = corrs.Find(x => x.CorrType.ToWikiPara() == display.Type && x.Order == display.Order) 
-                    ?? throw new Exception("未知错误");
-                display.Id = c.Id;
-                paras.Add(display);
-            }
-            return paras;
+                Corr.Corr paraCorr = x.Key;
+                IWikiPara paraEntity = x.Value;
+                WikiParaDisplay display = paraEntity.ToDisplaySimple();
+                display.Order = paraCorr.Order;
+                display.Id = paraCorr.Id;
+                return display;
+            });
         }
     }
     public class WikiParaPlaceholder : IWikiPara

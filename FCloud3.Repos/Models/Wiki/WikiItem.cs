@@ -17,16 +17,13 @@ namespace FCloud3.Repos.Models.Wiki
     public class WikiItemRepo : RepoBase<WikiItem>
     {
         private readonly CorrRepo _corrRepo;
+        private readonly WikiTextParaRepo _textParaRepo;
         private readonly List<CorrType> wikiParaTypes;
-        public WikiItemRepo(FCloudContext context, CorrRepo corrRepo) : base(context)
+        public WikiItemRepo(FCloudContext context, CorrRepo corrRepo, WikiTextParaRepo textParaRepo) : base(context)
         {
             _corrRepo = corrRepo;
-            wikiParaTypes = new List<CorrType>
-            { 
-                CorrType.WikiTextPara_WikiItem,
-                CorrType.WikiFilePara_WikiItem,
-                CorrType.WikiTablePara_WikiItem
-            };
+            _textParaRepo = textParaRepo;
+            wikiParaTypes = WikiParaTypeUtil.WikiParaCorrTypes;
         }
 
         public List<Corr.Corr> GetWikiParaCorrs(int wikiId, int start = 0, int count = int.MaxValue)
@@ -44,39 +41,33 @@ namespace FCloud3.Repos.Models.Wiki
         public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId,int start = 0, int count = int.MaxValue)
         {
             var corrs = GetWikiParaCorrs(wikiId, start, count);
-            EnsureParaOrder(corrs);
+            EnsureParaOrderDense(corrs);
 
-            var textParaIds = corrs
-                .Where(x => x.CorrType.ToWikiPara() == WikiParaType.Text)
-                .Select(x=>x.A).ToList();
-            List<WikiTextParaMeta> textParas = _context.WikiTextParas
-                .Where(x =>textParaIds.Contains(x.Id))
-                .GetMetaData()
-                .ToList();
+            List<WikiTextParaMeta> textParas = _textParaRepo.GetMetaRangeByParaCorr(corrs);
 
-            List<IWikiPara> paras = corrs.ConvertAll(x =>
+            List<KeyValuePair<Corr.Corr ,IWikiPara>> paras = corrs.ConvertAll(x =>
             {
                 WikiParaType type = x.CorrType.ToWikiPara();
-                IWikiPara? para;
+                IWikiPara? para = null;
                 if (type == WikiParaType.Text)
                 {
-                    para = textParas.Find(p => p.Id == x.A);
+                    para = textParas.Find(p => p.MatchedCorr(x));
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    //throw new NotImplementedException();
                 }
                 para ??= new WikiParaPlaceholder(type);
-                return para;
+                return new KeyValuePair<Corr.Corr, IWikiPara>(x,para);
             });
 
-            List<WikiParaDisplay> res = paras.ToDisplaySimpleList(corrs);
+            List<WikiParaDisplay> res = paras.ToDisplaySimpleList();
             return res;
         }
         public bool InsertPara(int wikiId,int afterOrder, WikiParaType type, out string? errmsg)
         {
             var itsParas = GetWikiParaCorrs(wikiId);
-            EnsureParaOrder(itsParas);
+            EnsureParaOrderDense(itsParas);
             var moveBackwards = itsParas.FindAll(x=>x.Order > afterOrder);
             moveBackwards.ForEach(x => x.Order++);
             Corr.Corr newPara = new()
@@ -88,7 +79,7 @@ namespace FCloud3.Repos.Models.Wiki
             if (!_corrRepo.TryAdd(newPara, out errmsg))
                 return false;
             itsParas.Add(newPara);
-            EnsureParaOrder(itsParas);
+            EnsureParaOrderDense(itsParas);
             if (!_corrRepo.TryEditRange(itsParas, out errmsg))
                 return false;
             return true;
@@ -97,7 +88,7 @@ namespace FCloud3.Repos.Models.Wiki
         public bool SetParaOrders(int wikiId,List<int> OrderedParaIds, out string? errmsg)
         {
             var itsParas = GetWikiParaCorrs(wikiId);
-            EnsureParaOrder(itsParas);
+            EnsureParaOrderDense(itsParas);
 
             List<Corr.Corr> orderedParaCorrs = new(itsParas.Count); 
             foreach(int id in OrderedParaIds)
@@ -111,7 +102,7 @@ namespace FCloud3.Repos.Models.Wiki
             return true;
         }
 
-        private static void EnsureParaOrder(List<Corr.Corr> corrs)
+        private static void EnsureParaOrderDense(List<Corr.Corr> corrs)
         {
             corrs.Sort((x, y) => x.Order - y.Order);
             ResetOrder(corrs);

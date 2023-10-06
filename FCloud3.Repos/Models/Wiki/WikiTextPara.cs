@@ -1,14 +1,9 @@
 ﻿using FCloud3.Repos.DB;
 using FCloud3.Repos.Models.Corr;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FCloud3.Repos.Models.Wiki
 {
-    public class WikiTextPara : IDbModel, IWikiPara
+    public class WikiTextPara : IDbModel, IWikiPara, ICorrable
     {
         public int Id { get;set; }
         public string? Title { get; set; }
@@ -40,8 +35,55 @@ namespace FCloud3.Repos.Models.Wiki
                 Type = WikiParaType.Text
             };
         }
+        public bool MatchedCorr(Corr.Corr corr)
+        {
+            if(corr.CorrType == Corr.CorrType.WikiTextPara_WikiItem)
+            {
+                if (corr.A == this.Id)
+                    return true;
+            }
+            return false;
+        }
     }
-    public class WikiTextParaMeta: IWikiPara
+
+    public class WikiTextParaRepo : RepoBase<WikiTextPara>
+    {
+        public WikiTextParaRepo(FCloudContext context) : base(context)
+        {
+        }
+
+        public WikiTextPara? GetByParaCorr(Corr.Corr paraCorr)
+        {
+            if (paraCorr.CorrType.ToWikiPara() != WikiParaType.Text)
+                return null;
+            return Existing.Where(x => x.Id == paraCorr.A).FirstOrDefault();
+        }
+        public List<WikiTextPara> GetRangeByParaCorr(List<Corr.Corr> paraCorrs)
+        {
+            var textParaIds = paraCorrs
+                .Where(x => x.CorrType.ToWikiPara() == WikiParaType.Text)
+                .Select(x => x.A)
+                .ToList();
+            return Existing.Where(x => textParaIds.Contains(x.Id)).ToList();
+        }
+
+        public WikiTextParaMeta? GetMetaByParaCorr(Corr.Corr paraCorr)
+        {
+            if (paraCorr.CorrType.ToWikiPara() != WikiParaType.Text)
+                return null;
+            return Existing.Where(x => x.Id == paraCorr.A).GetMetaData().FirstOrDefault();
+        }
+        public List<WikiTextParaMeta> GetMetaRangeByParaCorr(List<Corr.Corr> paraCorrs)
+        {
+            var textParaIds = paraCorrs
+                .Where(x => x.CorrType.ToWikiPara() == WikiParaType.Text)
+                .Select(x => x.A)
+                .ToList();
+            return Existing.Where(x => textParaIds.Contains(x.Id)).GetMetaData().ToList();
+        }
+    }
+
+    public class WikiTextParaMeta: IWikiPara, ICorrable
     {
         public int Id { get; set; }
         public string? Title { get; set; }
@@ -51,6 +93,16 @@ namespace FCloud3.Repos.Models.Wiki
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+
+        public bool MatchedCorr(Corr.Corr corr)
+        {
+            if (corr.CorrType == Corr.CorrType.WikiTextPara_WikiItem)
+            {
+                if (corr.A == this.Id)
+                    return true;
+            }
+            return false;
+        }
 
         public WikiParaDisplay ToDisplay()
         {
