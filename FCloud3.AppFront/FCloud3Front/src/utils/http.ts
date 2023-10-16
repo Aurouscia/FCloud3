@@ -96,7 +96,10 @@ export const Http = {
                 return res;
             }
             var errmsg = "与服务器通讯出错";
-            if(resp.status>=401 && resp.status<500){
+            if(resp.status==401){
+                errmsg = "请先登录"
+            }
+            else if(resp.status>=401 && resp.status<500){
                 errmsg = "没有权限";
             }
             return{

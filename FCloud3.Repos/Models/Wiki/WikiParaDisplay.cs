@@ -12,7 +12,11 @@ namespace FCloud3.Repos.Models.Wiki
         /// <summary>
         /// 指该段落与本词条对应的corr的Id
         /// </summary>
-        public int Id { get; set; }
+        public int CorrId { get; set; }
+        /// <summary>
+        /// 指该段落代表的文本段/文件/表格的Id
+        /// </summary>
+        public int UnderlyingId { get; set; }
         public string? Title { get; set; }
         public string? Content { get; set; }
         /// <summary>
@@ -20,10 +24,11 @@ namespace FCloud3.Repos.Models.Wiki
         /// </summary>
         public int Order { get; set; }
         public WikiParaType Type { get; set; }
-        public WikiParaDisplay(Corr corr, string? title,string? content,WikiParaType type)
+        public WikiParaDisplay(Corr corr, int underlyingId, string? title,string? content,WikiParaType type)
         {
-            Id = corr.Id;
+            CorrId = corr.Id;
             Order = corr.Order;
+            UnderlyingId = underlyingId;
             Title = title;
             Content = content;
             Type = type;
@@ -52,12 +57,12 @@ namespace FCloud3.Repos.Models.Wiki
 
         public WikiParaDisplay ToDisplay(Corr corr)
         {
-            return new WikiParaDisplay(corr,"新段落","",Type);
+            return new WikiParaDisplay(corr,0 ,"新段落","",Type);
         }
 
         public WikiParaDisplay ToDisplaySimple(Corr corr)
         {
-            return new WikiParaDisplay(corr, "新段落", "", Type);
+            return new WikiParaDisplay(corr,0, "新段落", "", Type);
         }
     }
 }

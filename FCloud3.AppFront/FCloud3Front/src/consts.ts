@@ -11,6 +11,11 @@ interface configModel{
             insertPara:Api,
             setParaOrders:Api
         }
+        textSection:{
+            createForCorr:Api,
+            edit:Api,
+            editExe:Api
+        }
         identities:{
             login:Api,
             identityTest:Api,
@@ -63,6 +68,20 @@ export const config:configModel = {
             },
             setParaOrders:{
                 reletiveUrl:"/api/WikiItem/SetParaOrders",
+                type:"postRaw"
+            }
+        },
+        textSection:{
+            createForCorr:{
+                reletiveUrl:"/api/TextSection/CreateForCorr",
+                type:"postForm"
+            },
+            edit:{
+                reletiveUrl:"/api/TextSection/Edit",
+                type:"postForm"
+            },
+            editExe:{
+                reletiveUrl:"/api/TextSection/EditExe",
                 type:"postRaw"
             }
         }

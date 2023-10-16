@@ -1,6 +1,7 @@
 ﻿using FCloud3.Repos.DB;
 using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.Wiki;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Models.TextSec
 {
@@ -18,11 +19,11 @@ namespace FCloud3.Repos.Models.TextSec
 
         public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
         {
-            return new WikiParaDisplay(corrWithCurrentWiki,Title,Content,WikiParaType.Text);
+            return new WikiParaDisplay(corrWithCurrentWiki, Id,Title,Content,WikiParaType.Text);
         }
         public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
         {
-            return new WikiParaDisplay(corrWithCurrentWiki, Title, ContentBrief, WikiParaType.Text);
+            return new WikiParaDisplay(corrWithCurrentWiki, Id,Title, ContentBrief, WikiParaType.Text);
         }
         public bool MatchedCorr(Corr corr)
         {
@@ -32,6 +33,12 @@ namespace FCloud3.Repos.Models.TextSec
                     return true;
             }
             return false;
+        }
+        public static string? Brief(string? content)
+        {
+            if(content is not null)
+                return content[..20];
+            return null;
         }
     }
 
@@ -70,6 +77,36 @@ namespace FCloud3.Repos.Models.TextSec
                 .ToList();
             return Existing.Where(x => textParaIds.Contains(x.Id)).GetMetaData().ToList();
         }
+
+        public bool TryChangeTitle(int id,string newTitle,out string? errmsg)
+        {
+            errmsg = null;
+            int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Title, newTitle));
+            if (changed == 1)
+                return true;
+            else
+            {
+                errmsg = "修改标题失败";
+                return false;
+            }
+        }
+
+        public bool TryChangeContent(int id,string newContent,out string? errmsg)
+        {
+            errmsg = null;
+            int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Content, newContent));
+
+            string? brief = TextSection.Brief(newContent);
+            Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.ContentBrief, brief));
+
+            if (changed == 1)
+                return true;
+            else
+            {
+                errmsg = "修改标题失败";
+                return false;
+            }
+        }
     }
 
     public class TextSectionMeta : IWikiPara, ICorrable
@@ -95,12 +132,12 @@ namespace FCloud3.Repos.Models.TextSec
 
         public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
         {
-            return new WikiParaDisplay(corrWithCurrentWiki, Title, ContentBrief, WikiParaType.Text);
+            return new WikiParaDisplay(corrWithCurrentWiki, Id, Title, ContentBrief, WikiParaType.Text);
         }
 
         public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
         {
-            return new WikiParaDisplay(corrWithCurrentWiki, Title, ContentBrief, WikiParaType.Text);
+            return new WikiParaDisplay(corrWithCurrentWiki, Id, Title, ContentBrief, WikiParaType.Text);
         }
     }
     public static class TextSectionParaMetaQuerier

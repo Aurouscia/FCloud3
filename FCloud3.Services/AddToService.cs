@@ -1,5 +1,6 @@
 ﻿using FCloud3.Services.Identities;
 using FCloud3.Services.Wiki;
+using FCloud3.Services.TextSec;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FCloud3.Services
@@ -10,6 +11,7 @@ namespace FCloud3.Services
         {
             services.AddScoped<UserService>();
             services.AddScoped<WikiItemService>();
+            services.AddScoped<TextSectionService>();
             return services;
         }
     }

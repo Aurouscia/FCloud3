@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { inject, onMounted, ref,Ref} from 'vue';
-import { wikiParaSimple} from '../../models/wiki/wikiParaSimple'
+import { inject, onMounted, onUnmounted, ref,Ref} from 'vue';
+import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { wikiParaType} from '../../models/wiki/wikiParaTypes'
 import { HttpClient,ApiResponse } from '../../utils/httpClient';
 import { config } from '../../consts';
 import { MouseDragListener } from '../../utils/mouseDrag';
 import Pop from '../../components/Pop.vue';
+import Functions from '../../components/Functions.vue';
+import { useRouter } from 'vue-router';
 
-const paras = ref<Array<wikiParaSimple>>([])
+const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
 const paraYSpace = 130;
 var httpClient:HttpClient;
 var pop:Ref<InstanceType<typeof Pop>>;
+const router = useRouter();
 
 const props = {
     wikiId:4
@@ -26,7 +29,7 @@ function posY2order(posY:number){
 function CalculatePosY(){
     paras.value.forEach((p) => {
         if(!p.isMoveing){
-            p.posY = order2PosY(p.displayOrder);
+            p.posY = order2PosY(p.displayOrder||0);
         }
     });
 }
@@ -62,12 +65,12 @@ async function endMoving(){
         p.posY = pposY;
         p.isMoveing = false;
         others.forEach(x=>{
-            x.Order = x.displayOrder;
+            x.Order = x.displayOrder||0;
         })
         CalculatePosY();
         moving = false;
 
-        const list = paras.value.map(x=>{return{Id:x.Id,Order:x.Order}})
+        const list = paras.value.map(x=>{return{Id:x.CorrId,Order:x.Order}})
         list.sort((x,y)=>{
             return x.Order-y.Order
         })
@@ -90,6 +93,21 @@ async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
     })
     refresh(resp);
 }
+async function EnterEdit(corrId:number)
+{
+    const target = paras.value.find(x=>x.CorrId == corrId);
+    if(!target){return;}
+    if(target.UnderlyingId && target.UnderlyingId>0){
+        router.push(`/EditTextSection/${target.UnderlyingId}`);
+        return;
+    }
+    const resp = await httpClient.send(config.api.textSection.createForCorr,{corrId:corrId},pop.value.show);
+    if(resp.success){
+        const newlyCreatedId = resp.data.CreatedId as number;
+        router.push(`/EditTextSection/${newlyCreatedId}`);
+        return;
+    }
+}
 
 async function Load(){
     const resp = await httpClient.send(config.api.wikiItem.loadSimple,{id:props.wikiId},pop.value.show)
@@ -97,7 +115,7 @@ async function Load(){
 }
 async function refresh(resp:ApiResponse) {
     if(resp.success){
-        paras.value = resp.data as Array<wikiParaSimple>;
+        paras.value = resp.data as Array<WikiPara>;
         paras.value.forEach(x=>x.displayOrder=x.Order);
         spaces.value = new Array<number>(paras.value.length+1)
     }
@@ -106,13 +124,14 @@ async function refresh(resp:ApiResponse) {
 
 var offsetY = 0;
 var moving:boolean = false;
+var disposeListeners:()=>void|undefined;
 onMounted(async()=>{
     httpClient = inject('http') as HttpClient;
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     await Load();
 
     const mouse = new MouseDragListener();
-    mouse.startListen(
+    disposeListeners = mouse.startListen(
         (_,y)=>{
             offsetY = y;
             CalculateOrderForMoving();
@@ -123,11 +142,14 @@ onMounted(async()=>{
         ()=>moving
     );
 })
+onUnmounted(()=>{
+    disposeListeners();
+})
 </script>
 
 <template>
     <div class="paras" ref="parasDiv">
-        <div v-for="p in paras" :key="p.Id" class="para" :style="{top:p.posY+'px'}"
+        <div v-for="p in paras" :key="p.CorrId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <div class="paraTitle">
                 <h2>{{ p.Title }}</h2>
@@ -135,9 +157,13 @@ onMounted(async()=>{
                  class="dragY" src="../../assets/dragY.svg"/>
             </div>
             <div class="paraContent">{{ p.Content }}</div>
-            <div>ID:{{ p.Id }}</div>
-            <div>Order:{{ p.displayOrder }}</div>
-            <div>{{ p.isMoveing }}</div>
+            <div class="paraBottom">
+                <Functions>
+                    <button @click="EnterEdit(p.CorrId)">编辑</button>
+                    <button>指定已有</button>
+                    <button>移除</button>
+                </Functions>
+            </div>
         </div>
         <div v-for="_,idx in spaces">
             <div class="btnsBetweenPara">
@@ -164,6 +190,14 @@ onMounted(async()=>{
     top: 12px;
     opacity: 0;
     transition: 0.2s;
+}
+@media screen and (max-width:800px) {
+    .btnsBetweenPara button{
+        z-index: 800;
+        position: relative;
+        top: 12px;
+        opacity: 1;
+    }
 }
 
 .btnsBetweenPara:hover button{
@@ -200,7 +234,8 @@ onMounted(async()=>{
 .paraContent{
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis
+    text-overflow: ellipsis;
+    height: 2em;
 }
 
 .paraTitle{
@@ -208,10 +243,16 @@ onMounted(async()=>{
     justify-content: space-between;
     align-items: center;
 }
+.paraBottom{
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    height: 30px
+}
 .dragY{
-    width: 30px;
+    width: 44px;
     height: 30px;
     object-fit: contain;
     cursor: pointer;
 }
-</style>
+</style>../../models/wiki/wikiPara

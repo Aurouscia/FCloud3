@@ -38,42 +38,59 @@ export class MouseDragListener{
 
     startListen(update:(x:number, y:number)=>void,
         finish:(x:number, y:number)=>void,
-        working:()=>boolean=()=>{return true})
+        working:()=>boolean=()=>{return true}):()=>void
     {
-        window.addEventListener("mousedown",(e:MouseEvent)=>{
+        const mousedown = (e:MouseEvent)=>{
             this.start(e.clientX,e.clientY);
             e.preventDefault();
-        })
-        window.addEventListener("mouseup",(e:MouseEvent)=>{
+        }
+        const mouseup = (e:MouseEvent)=>{
             this.end(e.clientX,e.clientY,finish)
             e.preventDefault();
-        });
-        window.addEventListener("mousemove",(e:MouseEvent)=>{
+        }
+        const mousemove = (e:MouseEvent)=>{
             this.move(e.clientX,e.clientY,update)
             e.preventDefault();
-        });
+        }
+        window.addEventListener("mousedown",mousedown);
+        window.addEventListener("mouseup",mouseup);
+        window.addEventListener("mousemove",mousemove);
 
+        
         var cacheX:number;
         var cacheY:number;
-        window.addEventListener("touchstart",(e:TouchEvent)=>{
+        const touchstart = (e:TouchEvent)=>{
             if(working()){
                 this.start(e.touches[0].clientX,e.touches[0].clientY);
                 e.preventDefault();
             }
-        },{passive:false});
-        window.addEventListener("touchend",(e:TouchEvent)=>{
+        }
+        const touchend = (e:TouchEvent)=>{
             if(working()){
                 this.end(cacheX,cacheY,finish);
                 e.preventDefault();
             }
-        },{passive:false});
-        window.addEventListener("touchmove",(e:TouchEvent)=>{
+        }
+        const touchmove = (e:TouchEvent)=>{
             if(working()){
                 this.move(e.touches[0].clientX,e.touches[0].clientY,update);
                 cacheX = e.touches[0].clientX;
                 cacheY = e.touches[0].clientY;
                 e.preventDefault();
             }
-        },{passive:false});
+        }
+        window.addEventListener("touchstart",touchstart,{passive:false});
+        window.addEventListener("touchend",touchend,{passive:false});
+        window.addEventListener("touchmove",touchmove,{passive:false});
+
+        return ()=>{
+            window.removeEventListener("mousedown",mousedown);
+            window.removeEventListener("mouseup",mouseup);
+            window.removeEventListener("mousemove",mousemove);
+            window.removeEventListener("touchstart",touchstart);
+            window.removeEventListener("touchend",touchend);
+            window.removeEventListener("touchmove",touchmove);
+            console.log("已清除排序用监听器")
+        }
     }
 }

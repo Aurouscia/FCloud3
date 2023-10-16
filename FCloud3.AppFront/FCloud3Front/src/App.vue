@@ -4,6 +4,7 @@ import { HttpClient } from './utils/httpClient';
 import { IdentityInfoProvider } from './utils/userInfo';
 import Pop from './components/Pop.vue';
 import Topbar from './components/Topbar.vue';
+import { useRouter } from 'vue-router';
 
 const pop = ref<InstanceType<typeof Pop> | null>(null);
 provide('pop', pop)
@@ -14,6 +15,11 @@ provide('userInfo', new IdentityInfoProvider(httpClient))
 
 const displayTopbar = ref<boolean>(true);
 provide('hideTopbar',()=>{displayTopbar.value=false})
+
+const router = useRouter();
+router.afterEach(()=>{
+  displayTopbar.value = true;
+})
 </script>
 
 <template>

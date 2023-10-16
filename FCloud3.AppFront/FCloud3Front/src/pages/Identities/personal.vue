@@ -17,7 +17,7 @@ async function editUserInfo(){
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     httpClient = inject('http') as HttpClient;
-    const resp:ApiResponse = await httpClient.send(config.api.identities.edit)
+    const resp:ApiResponse = await httpClient.send(config.api.identities.edit,undefined,pop.value.show)
     if(resp.success){
         user.value = resp.data;
     }

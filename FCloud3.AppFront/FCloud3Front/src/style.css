@@ -6,9 +6,11 @@
 .main {
   margin: auto;
   margin-top: 70px;
-  width: 100%;
+  width: calc(100% - 40px);
   max-width: 1000px;
   overflow-x: auto;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .main>* {
   overflow: auto;

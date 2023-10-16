@@ -12,7 +12,7 @@
     </div>
     <div class="topbar-item">
       <div>
-        <RouterLink to="/Wiki/EditText/32">词条测试</RouterLink>
+        <RouterLink to="/EditTextSection/1">词条测试</RouterLink>
       </div>
     </div>
   </div>

@@ -1,22 +1,46 @@
 <script setup lang="ts">
-import {ref, watch, onMounted, inject} from 'vue'
+import {ref, Ref, onMounted, inject} from 'vue'
+import Pop from '../../components/Pop.vue';
+import {TextSection} from '../../models/textSection/textSection'
+import { HttpClient } from '../../utils/httpClient';
+import { config } from '../../consts';
 
 const props = defineProps<{id:string}>()
 const previewOn = ref<boolean>(true);
+var httpClient:HttpClient;
+var pop:Ref<InstanceType<typeof Pop>>;
 
-const content = ref<string>();
-const contentLines = ref<Array<string>>([]);
-watch(content,(newVal,_)=>{
-    if(newVal){
-        contentLines.value = newVal.split('\n');
+const data = ref<TextSection>({
+    Id:1,
+    Content:"",
+    Title:""
+});
+
+async function replaceTitle() {
+    const val = data.value.Title;
+    if(!val || val==""){
+        pop.value.show("段落标题不可为空","failed");
+        return;
     }
-    else{
-        contentLines.value = [];
+    httpClient.send(config.api.textSection.editExe,{
+        Id:data.value.Id,
+        Title:data.value.Title
+    },pop.value.show,"修改段落标题成功")
+}
+
+async function init(){
+    const resp = await httpClient.send(config.api.textSection.edit,{id:props.id},pop.value.show);
+    if(resp.success){
+        data.value = resp.data;
     }
-})
-onMounted(()=>{
+}
+onMounted(async()=>{
+    pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
+    httpClient = inject('http') as HttpClient;
     const hideTopbar = inject('hideTopbar') as ()=>void;
     hideTopbar();
+
+    await init();
 })
 </script>
 
@@ -26,6 +50,7 @@ onMounted(()=>{
         <button @click="previewOn=!previewOn">
             {{ previewOn?"预览开":"预览关" }}
         </button>
+        <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
     </div>
     <div>
         <button @click="()=>{}">
@@ -33,15 +58,12 @@ onMounted(()=>{
         </button>
     </div>
 </div>
-<div class="background">
+<div v-if="data" class="background">
     <div class="preview" v-show="previewOn">
-        <div v-for="l in contentLines">
-            {{ l }}
-        </div>
+        {{ data.Content }}
     </div>
     <div class="write" :class="{writeNoPreview:!previewOn}">
-        <textarea v-model="content" placeholder="请输入内容">
-            {{ props.id }}
+        <textarea v-model="data.Content" placeholder="请输入内容">
         </textarea>
     </div>
 </div>
