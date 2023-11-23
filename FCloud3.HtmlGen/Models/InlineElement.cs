@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FCloud3.HtmlGen.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,30 @@ namespace FCloud3.HtmlGen.Models
 {
     public abstract class InlineElement:Element
     {
+    }
+    public class ElementCollectionWithStyle : InlineElement
+    {
+        public HtmlInlineRule? Rule { get; }
+        public ElementCollection Children { get; }
+        public ElementCollectionWithStyle(HtmlInlineRule? rule = null)
+        {
+            Rule = rule;
+            Children = new();
+        }
+        public void Add(Element element)
+        {
+            Children.Add(element);
+        }
+        public void AddRange(IEnumerable<Element> elements)
+        {
+            Children.AddRange(elements);
+        }
+        public override string ToHtml()
+        {
+            if (Rule is null)
+                return Children.ToHtml();
+            return $"{Rule.PutLeft}{Children.ToHtml()}{Rule.PutRight}";
+        }
     }
     public class LineElement : Element
     {
@@ -28,10 +53,9 @@ namespace FCloud3.HtmlGen.Models
         {
             Content = content.Trim();
         }
-
         public override string ToHtml()
         {
-            return Content;
+                return Content;
         }
     }
 }

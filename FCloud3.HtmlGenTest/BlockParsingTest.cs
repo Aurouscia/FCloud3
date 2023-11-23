@@ -1,5 +1,7 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +30,19 @@ namespace FCloud3.HtmlGenTest
             };
             _options = options;
         }
+        [TestMethod]
+        [DataRow(
+            "\n123\n\r456\n789",3)]
+        [DataRow(
+            "\n12{{3\n45}}6\n789",2)]
+        [DataRow(
+            "\n12{{3\n\r456\n78}}9", 1)]
+        public void LineSplitTest(string content,int answer)
+        {
+            var res = LineSplitter.Split(content);
+            Assert.AreEqual(res.Count, answer);
+        }
+
         [TestMethod]
         [DataRow(
             "#哈喽大家好\r\n我是sb，大sb\n-哼哼唧唧\n- 哼哼唧唧\n \t \n",

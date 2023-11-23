@@ -4,7 +4,7 @@ using FCloud3.HtmlGen.Models;
 namespace FCloud3.HtmlGenTest
 {
     [TestClass]
-    public class HtmlTemplateTest
+    public class TemplateSourceTest
     {
         [TestMethod]
         [DataRow("<h1>{{名称}}</h1><p>{{介绍}}</p>{{备注}}","名称,介绍,备注")]
@@ -43,11 +43,11 @@ namespace FCloud3.HtmlGenTest
         {
             HtmlTemplate template = new()
             {
-                Name = "",
+                Name = "模板名称",
                 Source = source,
             };
-            var valuesDic = values.Split(',').ToDictionary(x => x.Split(':')[0], x => x.Split(':')[1]);
-            TemplateElement element = new(template,valuesDic);
+            var valuesDic = values.Split(',').ToDictionary(x => x.Split(':')[0], x => new ElementCollection(new TextElement(x.Split(':')[1])));
+            TemplateElement element = new(template,valuesDic,new());
             string result = element.ToHtml();
             Assert.AreEqual(answer, result);
         }

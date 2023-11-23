@@ -16,10 +16,7 @@ namespace FCloud3.HtmlGen.Models
         private readonly string _message;
         public ErrorElement(string? msg)
         {
-            if (string.IsNullOrEmpty(msg))
-                _message = "[该段解析错误]";
-            else
-                _message = msg;
+            _message = "[[该段解析错误]]"+msg;
         } 
         public override string ToHtml()
         {
@@ -33,10 +30,19 @@ namespace FCloud3.HtmlGen.Models
         {
             this.Add(onlyItem);
         }
+        public ElementCollection(params Element[] items)
+        {
+            this.AddRange(items);
+        }
         public ElementCollection() { }
-        public string ToHtml()
+        public virtual string ToHtml()
         {
             return string.Concat(this.ConvertAll(x => x.ToHtml()));
+        }
+
+        public static implicit operator ElementCollection(Element element)
+        {
+            return new ElementCollection(element);
         }
     }
 }
