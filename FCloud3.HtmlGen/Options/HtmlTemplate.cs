@@ -12,7 +12,7 @@ namespace FCloud3.HtmlGen.Options
         public string? Name { get; set; }
         public string? Source { get; set; }
 
-        public const string SlotGettingRegex = @"(?<=\{\{)[\u4E00-\u9FA5A-Za-z0-9_]+?(?=\}\})";
+        public const string SlotGettingRegex = @"(?<=\[\[)[\u4E00-\u9FA5A-Za-z0-9_]+?(?=\]\])";
         public List<string> GetSlots()
         {
             List<string> slots = new();
@@ -31,7 +31,7 @@ namespace FCloud3.HtmlGen.Options
         }
         public static string Fill(string code,string slot, string value)
         {
-            string match = "{{" + slot + "}}";
+            string match = "[[" + slot + "]]";
             return code.Replace(match,value);
         }
     }

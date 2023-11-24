@@ -34,28 +34,16 @@ namespace FCloud3.HtmlGen.Models
             return $"{Rule.PutLeft}{Children.ToHtml()}{Rule.PutRight}";
         }
     }
-    public class LineElement : Element
-    {
-        public ElementCollection Content { get; } 
-        public LineElement(ElementCollection content)
-        {
-            Content = content;
-        }
-        public override string ToHtml()
-        {
-            return $"<p>{Content.ToHtml()}</p>";
-        }
-    }
     public class TextElement:InlineElement
     {
         public string Content { get; }
         public TextElement(string content)
         {
-            Content = content.Trim();
+            Content = content;
         }
         public override string ToHtml()
         {
-                return Content;
+            return Content;
         }
     }
 }

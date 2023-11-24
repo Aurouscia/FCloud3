@@ -17,18 +17,17 @@ namespace FCloud3.HtmlGenTest
 
         public BlockParsingTest()
         {
-            HtmlGenOptions options = new()
-            {
-                InlineRules = new(),
-                Templates = new(),
-                TypedBlockRules = new()
+            HtmlGenOptionsProvider optionsProvider = new(
+                templates: new(),
+                inlineRules: new(),
+                blockRules: new()
                 {
-                    new(){
-                        Mark = "-",PutLeft="<div q>",PutRight="</div>"
-                    }
+                    new HtmlTypedBlockRule(
+                        "-","<div q>","</div>","引用"
+                    )
                 }
-            };
-            _options = options;
+            );
+            _options = optionsProvider.GetOptions();
         }
         [TestMethod]
         [DataRow(
@@ -63,6 +62,23 @@ namespace FCloud3.HtmlGenTest
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题2",
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
         public void ParseTest(string content, string answer)
+        {
+            MasterParser parser = new(_options);
+            string html = parser.Run(content);
+            Assert.AreEqual(answer, html);
+        }
+
+        [TestMethod]
+        [DataRow(
+            "|名称|年龄|\r\n|Au|20|\t\n|旋头|38|",
+            "<table><tr><td>名称</td><td>年龄</td></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td>38</td></tr></table>")]
+        [DataRow(
+            "|名称|年龄|\r\n|Au|20|\t\n|旋头|",
+            "<table><tr><td>名称</td><td>年龄</td></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td></td></tr></table>")]
+        [DataRow(
+            "|名称|年龄|\n|---|---|\n|Au|20|\n|旋头|38|",
+            "<table><tr><th>名称</th><th>年龄</th></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td>38</td></tr></table>")]
+        public void MiniTableTest(string content, string answer)
         {
             MasterParser parser = new(_options);
             string html = parser.Run(content);

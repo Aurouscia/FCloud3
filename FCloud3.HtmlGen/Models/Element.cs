@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FCloud3.HtmlGen.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace FCloud3.HtmlGen.Models
         } 
         public override string ToHtml()
         {
-            return $"<b>{_message}</b>";
+            return ErrMsg.Inline(_message);
         }
     }
 
@@ -31,6 +32,10 @@ namespace FCloud3.HtmlGen.Models
             this.Add(onlyItem);
         }
         public ElementCollection(params Element[] items)
+        {
+            this.AddRange(items);
+        }
+        public ElementCollection(IEnumerable<Element> items)
         {
             this.AddRange(items);
         }

@@ -7,10 +7,10 @@ namespace FCloud3.HtmlGenTest
     public class TemplateSourceTest
     {
         [TestMethod]
-        [DataRow("<h1>{{名称}}</h1><p>{{介绍}}</p>{{备注}}","名称,介绍,备注")]
-        [DataRow("{{第一段}}{{第二段}}{{第三段}}!", "第一段,第二段,第三段")]
-        [DataRow("<{{%错误空}}><{{正确空}}>{{ 错误空2}}", "正确空")]
-        [DataRow("{{AA}}-{{BB}}-{{AA}}-{{CC}}-{{D D}}", "AA,BB,CC")]
+        [DataRow("<h1>[[名称]]</h1><p>[[介绍]]</p>[[备注]]","名称,介绍,备注")]
+        [DataRow("[[第一段]][[第二段]][[第三段]]!", "第一段,第二段,第三段")]
+        [DataRow("<[[%错误空]]><[[正确空]]>[[ 错误空2]]", "正确空")]
+        [DataRow("[[AA]]-[[BB]]-[[AA]]-[[CC]]-[[D D]]", "AA,BB,CC")]
         public void GettingSlots(string source,string answer)
         {
             HtmlTemplate template = new()
@@ -25,17 +25,17 @@ namespace FCloud3.HtmlGenTest
 
         [TestMethod]
         [DataRow(
-            "<h1>{{名称}}</h1>",
+            "<h1>[[名称]]</h1>",
             "名称:哼唧",
             "<h1>哼唧</h1>"
             )]
         [DataRow(
-            "<h1>{{名称}}</h1><p>{{介绍}}</p>{{备注}}",
+            "<h1>[[名称]]</h1><p>[[介绍]]</p>[[备注]]",
             "名称:哼唧,介绍:世界上最可爱的哼唧,备注:数据截至昨天",
             "<h1>哼唧</h1><p>世界上最可爱的哼唧</p>数据截至昨天"
             )]
         [DataRow(
-            "<div>{{AA}}</div><p>{{BB}}</p>{{CC}}{{AA}}",
+            "<div>[[AA]]</div><p>[[BB]]</p>[[CC]][[AA]]",
             "AA:哼唧,BB:咪咕,CC:噜噜",
             "<div>哼唧</div><p>咪咕</p>噜噜哼唧"
             )]

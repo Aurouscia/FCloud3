@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
-    public class InlineParser
+    public interface IInlineParser
+    {
+        public ElementCollection Run(string input, bool mayContainTemplateCall = true);
+        public LineElement RunForLine(string input);
+    }
+    public class InlineParser:IInlineParser
     {
         private readonly HtmlGenOptions _options;
         private readonly Lazy<TemplateParser> _templateParser;

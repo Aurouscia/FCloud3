@@ -15,22 +15,24 @@ namespace FCloud3.HtmlGenTest
         private readonly HtmlGenOptions _options;
         public TemplateParsingTest()
         {
-            _options = new()
-            {
-                Templates = new()
+            HtmlGenOptionsProvider provider = new(
+                templates: new()
                 {
                     new()
                     {
                         Name = "重点强调",
-                        Source = "<b>!!{{文字}}!!</b>"
+                        Source = "<b>!![[文字]]!!</b>"
                     },
                     new()
                     {
                         Name = "名称信息",
-                        Source = "<div><b>{{中文名}}</b><i>{{英文名}}</i></div>"
+                        Source = "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>"
                     }
-                }
-            };
+                },
+                inlineRules:new(),
+                blockRules:new()
+            );
+            _options = provider.GetOptions();
         }
         [TestMethod]
         [DataRow(

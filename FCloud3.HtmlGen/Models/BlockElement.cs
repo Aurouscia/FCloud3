@@ -7,20 +7,28 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Models
 {
-    public abstract class BlockElement : Element
+    public class BlockElement : Element
     {
-        public abstract override string ToHtml();
+        public ElementCollection Content { get; }
+        public BlockElement(ElementCollection content)
+        {
+            Content = content;
+        }
+
+        public override string ToHtml()
+        {
+            return Content.ToHtml();
+        }
     }
     public class TitledBlockElement : BlockElement
     {
-        public string Title { get; set; }
-        public int Level { get; set; }
-        public ElementCollection Content { get; set; }
-        public TitledBlockElement(string title, int level, ElementCollection content)
+        public string Title { get; }
+        public int Level { get; }
+        
+        public TitledBlockElement(string title, int level, ElementCollection content):base(content)
         {
             Title = title;
             Level = level;
-            Content = content;
         }
 
         public override string ToHtml()
@@ -28,21 +36,57 @@ namespace FCloud3.HtmlGen.Models
             return $"<h{Level}>{Title}</h{Level}><div class=\"indent\">{Content.ToHtml()}</div>";
         }
     }
-    public class TypedBlockElement : BlockElement
-    {
-        public HtmlTypedBlockRule? Rule { get; set; }
-        public ElementCollection Content { get; set; }
-        public TypedBlockElement(HtmlTypedBlockRule? rule, ElementCollection content)
-        {
-            Rule = rule;
-            Content = content;
-        }
 
+
+    public class TypedBlockElement: BlockElement
+    {
+        public IHtmlBlockRule? GenByRule { get; }
+        public TypedBlockElement(ElementCollection content, IHtmlBlockRule? genByRule):base(content)
+        {
+            GenByRule = genByRule;
+        }
         public override string ToHtml()
         {
-            if(Rule is not null)
-                return $"{Rule.PutLeft}{Content.ToHtml()}{Rule.PutRight}";
-            return Content.ToHtml();
+            if(GenByRule is not null)
+                return $"{GenByRule.PutLeft}{base.ToHtml()}{GenByRule.PutRight}";
+            return base.ToHtml();
+        }
+    }
+
+
+    public class LineElement : BlockElement
+    {
+        public LineElement(ElementCollection content) : base(content)
+        {
+        }
+        public override string ToHtml()
+        {
+            return $"<p>{base.ToHtml()}</p>";
+        }
+    }
+
+    public class TableRowElement : BlockElement
+    {
+        public TableRowElement(ElementCollection content):base(content)
+        {
+        }
+        public override string ToHtml()
+        {
+            return $"<tr>{base.ToHtml()}</tr>";
+        }
+    }
+    public class TableCellElement : BlockElement
+    {
+        public bool IsHead { get; }
+        public TableCellElement(ElementCollection content,bool isHead = false):base(content)
+        {
+            IsHead = isHead;
+        }
+        public override string ToHtml()
+        {
+            if(!IsHead)
+                return $"<td>{base.ToHtml()}</td>";
+            return $"<th>{base.ToHtml()}</th>";
         }
     }
 }

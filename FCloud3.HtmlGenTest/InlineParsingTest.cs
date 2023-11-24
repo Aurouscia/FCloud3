@@ -35,15 +35,13 @@ namespace FCloud3.HtmlGenTest
                         PutRight = "</b>",
                     }
                 };
-            inlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
 
-            HtmlGenOptions options = new()
-            {
-                InlineRules = inlineRules,
-                Templates = new(),
-                TypedBlockRules = new()
-            };
-            _options = options;
+            HtmlGenOptionsProvider optionsProvider = new(
+                templates: new(),
+                inlineRules: inlineRules,
+                blockRules: new()
+            );
+            _options = optionsProvider.GetOptions();
         }
 
         [TestMethod]

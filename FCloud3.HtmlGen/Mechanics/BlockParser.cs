@@ -1,6 +1,7 @@
 ﻿using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Util;
+using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -145,7 +146,11 @@ namespace FCloud3.HtmlGen.Mechanics
         }
     }
 
-    public class TypedBlockParser
+    public interface ITypedBlockParser
+    {
+        public ElementCollection Run(List<string> inputLines);
+    }
+    public class TypedBlockParser:ITypedBlockParser
     {
         private readonly HtmlGenOptions _options;
         private readonly InlineParser _inlineParser;
@@ -156,14 +161,17 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public ElementCollection Run(List<string> inputLines)
         {
+            if (inputLines.Count == 0)
+                return new();
             List<LineWithType> lines = inputLines.ConvertAll(x => new LineWithType(x,_options.TypedBlockRules));
             return Run(lines);
         }
         private ElementCollection Run(List<LineWithType> lines)
         {
             ElementCollection res = new();
-            if (lines.All(x => x.Type is null))
+            if (lines.All(x => x.Rule is null))
             {
+                //每一行都没有块规则调用
                 foreach (var line in lines)
                 {
                     res.Add(_inlineParser.RunForLine(line.PureContent));
@@ -171,42 +179,44 @@ namespace FCloud3.HtmlGen.Mechanics
                 return res;
             }
 
-            HtmlTypedBlockRule? tracking = null;
+            var emptyRule = new HtmlEmptyBlockRule();
+            IHtmlBlockRule tracking = emptyRule;
             List<LineWithType> generating = new();
             foreach(var l in lines)
             {
-                if (l.Type != tracking)
+                var ruleOfthisLine = l.Rule ?? emptyRule;
+                if (ruleOfthisLine != tracking)
                 {
                     if (generating.Count > 0)
                     {
-                        var generated = Run(generating.Select(x=>x.PureContent).ToList());
-                        TypedBlockElement element = new(tracking,generated);
+                        var pureLines = generating.Select(x => x.PureContent).ToList();
+                        TypedBlockElement element = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
                         res.Add(element);
                         generating.Clear();
                     }
-                    tracking = l.Type;
+                    tracking = ruleOfthisLine;
                 }
                 generating.Add(l);
             }
             if (generating.Count > 0)
             {
-                var generated = Run(generating.Select(x => x.PureContent).ToList());
-                TypedBlockElement element = new(tracking, generated);
+                var pureLines = generating.Select(x => x.PureContent).ToList();
+                TypedBlockElement element = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
                 res.Add(element);
             }
             return res;
         }
         public class LineWithType
         {
-            public HtmlTypedBlockRule? Type { get; }
+            public IHtmlBlockRule? Rule { get; }
             public string PureContent { get; }
-            public LineWithType(string line,List<HtmlTypedBlockRule> allTypes)
+            public LineWithType(string line,List<IHtmlBlockRule> allTypes)
             {
-                this.Type = allTypes.FirstOrDefault(t => line.StartsWith(t.Mark));
-                if (Type is null)
+                this.Rule = allTypes.FirstOrDefault(t => t.LineMatched(line));
+                if (Rule is null)
                     PureContent = line;
                 else
-                    PureContent = line.Substring(Type.Mark.Length);
+                    PureContent = Rule.GetPureContentOf(line);
             }
         }
     }
