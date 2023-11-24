@@ -38,10 +38,10 @@ namespace FCloud3.HtmlGen.Models
     }
 
 
-    public class TypedBlockElement: BlockElement
+    public class RuledBlockElement: BlockElement
     {
         public IHtmlBlockRule? GenByRule { get; }
-        public TypedBlockElement(ElementCollection content, IHtmlBlockRule? genByRule):base(content)
+        public RuledBlockElement(ElementCollection content, IHtmlBlockRule? genByRule):base(content)
         {
             GenByRule = genByRule;
         }

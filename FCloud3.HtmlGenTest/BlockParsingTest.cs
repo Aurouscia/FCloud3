@@ -22,7 +22,7 @@ namespace FCloud3.HtmlGenTest
                 inlineRules: new(),
                 blockRules: new()
                 {
-                    new HtmlTypedBlockRule(
+                    new HtmlPrefixBlockRule(
                         "-","<div q>","</div>","引用"
                     )
                 }

@@ -40,7 +40,7 @@ namespace FCloud3.HtmlGen.Options
         /// <param name="inlineParser">行内解析器</param>
         /// <param name="blockParser">块解析器</param>
         /// <returns>按本规则解析得的块元素</returns>
-        public TypedBlockElement MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,ITypedBlockParser blockParser);
+        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
     }
 
     /// <summary>
@@ -58,13 +58,13 @@ namespace FCloud3.HtmlGen.Options
         {
             return false;
         }
-        public TypedBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, ITypedBlockParser blockParser)
+        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //可以确定lines是没有块标记的，直接分别解析每行
             var resContent = lines.ToList().ConvertAll(inlineParser.RunForLine);
             var res = new ElementCollection(resContent);
-            //构造Rule为空的TypedBlockElement
-            return new TypedBlockElement(res,genByRule:null);
+            //构造Rule为空的RuledBlockElement
+            return new RuledBlockElement(res,genByRule:null);
         }
         public override bool Equals(object? obj)
         {
@@ -79,20 +79,20 @@ namespace FCloud3.HtmlGen.Options
     /// <summary>
     /// 表示在每一行前加了标记的块规则，例如"-"和">"
     /// </summary>
-    public class HtmlTypedBlockRule : IHtmlBlockRule
+    public class HtmlPrefixBlockRule : IHtmlBlockRule
     {
         public string Mark { get; }
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Name { get; }
-        public HtmlTypedBlockRule()
+        public HtmlPrefixBlockRule()
         {
             Mark = string.Empty;
             PutLeft = string.Empty; 
             PutRight = string.Empty;
             Name = string.Empty;
         }
-        public HtmlTypedBlockRule(string mark, string putLeft, string putRight, string name)
+        public HtmlPrefixBlockRule(string mark, string putLeft, string putRight, string name)
         {
             Mark = mark;
             PutLeft = putLeft;
@@ -110,18 +110,18 @@ namespace FCloud3.HtmlGen.Options
                 return line.Substring(Mark.Length).Trim();
             return line;
         }
-        public TypedBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, ITypedBlockParser blockParser)
+        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //lines仅去除了本规则的块标记，不清楚里面是否有第二层块标记，需要调用blockParser得到内容ElementCollection
             var resContent = blockParser.Run(lines.ToList());
-            //构造Rule为本规则的TypedBlockElement
-            return new TypedBlockElement(resContent,genByRule:this);
+            //构造Rule为本规则的RuledBlockElement
+            return new RuledBlockElement(resContent,genByRule:this);
         }
         
 
         public override bool Equals(object? obj)
         {
-            if (obj is HtmlTypedBlockRule rule)
+            if (obj is HtmlPrefixBlockRule rule)
                 return rule.Mark == this.Mark;
             return false;
         }
@@ -153,7 +153,7 @@ namespace FCloud3.HtmlGen.Options
                 return line.Substring(1,line.Length-2).Trim();
             return line;
         }
-        public TypedBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, ITypedBlockParser blockParser)
+        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             ElementCollection rows = new();
 
@@ -179,7 +179,7 @@ namespace FCloud3.HtmlGen.Options
                     rowCells.Add(new TableCellElement(new(),isHead));
                 rows.Add(new TableRowElement(rowCells));
             }
-            return new TypedBlockElement(rows, genByRule: this);
+            return new RuledBlockElement(rows, genByRule: this);
         }
         public override bool Equals(object? obj)
         {

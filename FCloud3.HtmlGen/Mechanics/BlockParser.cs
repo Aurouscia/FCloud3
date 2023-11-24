@@ -41,11 +41,11 @@ namespace FCloud3.HtmlGen.Mechanics
     public class TitledBlockParser
     {
         private readonly HtmlGenOptions _options;
-        private readonly TypedBlockParser _typedParser;
+        private readonly RuledBlockParser _ruledBlockParser;
         public TitledBlockParser(HtmlGenOptions options)
         {
             _options = options;
-            _typedParser = new TypedBlockParser(options);
+            _ruledBlockParser = new RuledBlockParser(options);
         }
         public ElementCollection Run(List<string> inputLines)
         {
@@ -56,8 +56,8 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (lines.All(x => x.Level == 0))
             {
-                ElementCollection typed = _typedParser.Run(lines.Select(x => x.PureContent).ToList());
-                return typed;
+                ElementCollection ruled = _ruledBlockParser.Run(lines.Select(x => x.PureContent).ToList());
+                return ruled;
             }
             int targetLevel = lines.Where(x => x.Level != 0).Select(x => x.Level).Min();
 
@@ -77,8 +77,8 @@ namespace FCloud3.HtmlGen.Mechanics
                     }
                     else
                     {
-                        ElementCollection typed = _typedParser.Run(generating.Select(x => x.PureContent).ToList());
-                        res.AddRange(typed);
+                        ElementCollection ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                        res.AddRange(ruled);
                     }
                     generating.Clear();
                     title = l.PureContent;
@@ -96,8 +96,8 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             else
             {
-                ElementCollection typed = _typedParser.Run(generating.Select(x => x.PureContent).ToList());
-                res.AddRange(typed);
+                ElementCollection ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                res.AddRange(ruled);
             }
             return res;
         }
@@ -146,15 +146,15 @@ namespace FCloud3.HtmlGen.Mechanics
         }
     }
 
-    public interface ITypedBlockParser
+    public interface IRuledBlockParser
     {
         public ElementCollection Run(List<string> inputLines);
     }
-    public class TypedBlockParser:ITypedBlockParser
+    public class RuledBlockParser:IRuledBlockParser
     {
         private readonly HtmlGenOptions _options;
         private readonly InlineParser _inlineParser;
-        public TypedBlockParser(HtmlGenOptions options)
+        public RuledBlockParser(HtmlGenOptions options)
         {
             _options = options;
             _inlineParser = new(options);
@@ -163,10 +163,10 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (inputLines.Count == 0)
                 return new();
-            List<LineWithType> lines = inputLines.ConvertAll(x => new LineWithType(x,_options.TypedBlockRules));
+            List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_options.BlockRules));
             return Run(lines);
         }
-        private ElementCollection Run(List<LineWithType> lines)
+        private ElementCollection Run(List<LineWithRule> lines)
         {
             ElementCollection res = new();
             if (lines.All(x => x.Rule is null))
@@ -181,7 +181,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
             var emptyRule = new HtmlEmptyBlockRule();
             IHtmlBlockRule tracking = emptyRule;
-            List<LineWithType> generating = new();
+            List<LineWithRule> generating = new();
             foreach(var l in lines)
             {
                 var ruleOfthisLine = l.Rule ?? emptyRule;
@@ -190,7 +190,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (generating.Count > 0)
                     {
                         var pureLines = generating.Select(x => x.PureContent).ToList();
-                        TypedBlockElement element = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
+                        RuledBlockElement element = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
                         res.Add(element);
                         generating.Clear();
                     }
@@ -201,18 +201,18 @@ namespace FCloud3.HtmlGen.Mechanics
             if (generating.Count > 0)
             {
                 var pureLines = generating.Select(x => x.PureContent).ToList();
-                TypedBlockElement element = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
+                RuledBlockElement element = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
                 res.Add(element);
             }
             return res;
         }
-        public class LineWithType
+        public class LineWithRule
         {
             public IHtmlBlockRule? Rule { get; }
             public string PureContent { get; }
-            public LineWithType(string line,List<IHtmlBlockRule> allTypes)
+            public LineWithRule(string line,List<IHtmlBlockRule> allRules)
             {
-                this.Rule = allTypes.FirstOrDefault(t => t.LineMatched(line));
+                this.Rule = allRules.FirstOrDefault(t => t.LineMatched(line));
                 if (Rule is null)
                     PureContent = line;
                 else
