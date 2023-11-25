@@ -37,31 +37,36 @@ namespace FCloud3.HtmlGenTest
         [TestMethod]
         [DataRow(
             "123{{456}789}000",
-            "123,{456}789,000")]
+            "123,{{456}789},000")]
         [DataRow(
             "AA{{1}2}BB{{3}4}CC",
-            "AA,{1}2,BB,{3}4,CC")]
+            "AA,{{1}2},BB,{{3}4},CC")]
         [DataRow(
             "{{1}2}BB{{3}4}CC",
-            ",{1}2,BB,{3}4,CC")]
+            ",{{1}2},BB,{{3}4},CC")]
         [DataRow(
             "AA{{1}2}BB{{3}4}",
-            "AA,{1}2,BB,{3}4,")]
+            "AA,{{1}2},BB,{{3}4},")]
         [DataRow(
             "AA{{1}2}{{3}4}CC",
-            "AA,{1}2,,{3}4,CC")]
+            "AA,{{1}2},,{{3}4},CC")]
         [DataRow(
             "{{1}2}{{3}4}",
-            ",{1}2,,{3}4,")]
+            ",{{1}2},,{{3}4},")]
         [DataRow(
             "123{{45{MM}6}789}000",
-            "123,{45{MM}6}789,000")]
-        [DataRow("ABC","ABC")]
+            "123,{{45{MM}6}789},000")]
+        [DataRow(
+            "ABC",
+            "ABC")]
+        [DataRow(
+            "123{aaa}456",
+            "123,{aaa},456")]
         public void CallSplit(string input, string answer)
         {
             var res = TemplateParser.SplitByCalls(input);
             var answers = answer.Split(',');
-            var result = res.OrderedFrags.ConvertAll(x => x.Content);
+            var result = res.Frags.ConvertAll(x => x.Content);
             CollectionAssert.AreEqual(answers, result);
         }
 

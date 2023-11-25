@@ -36,6 +36,16 @@ namespace FCloud3.HtmlGen.Models
             }
             return code;
         }
+        public static bool IsValidTemplateCall(string thingLikeCall)
+        {
+            thingLikeCall = thingLikeCall.Trim();
+            if (thingLikeCall.Length < 5)
+                return false;
+            if(!thingLikeCall.StartsWith(Consts.tplt_L) || !thingLikeCall.EndsWith(Consts.tplt_R))
+                return false;
+            string insideBrace = thingLikeCall.Substring(1, thingLikeCall.Length - 2);
+            return insideBrace.TrimStart().StartsWith(Consts.tplt_L) && insideBrace.Contains(Consts.tplt_R);
+        }
     }
 
     public class TemplateSlotInfoCache:Dictionary<string, List<string>>

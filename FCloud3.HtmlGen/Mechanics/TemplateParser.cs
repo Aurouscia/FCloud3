@@ -25,7 +25,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public ElementCollection Run(string input)
         {
             SplittedByCalls splitted = SplitByCalls(input);
-            var frags = splitted.OrderedFrags;
+            var frags = splitted.Frags;
             ElementCollection res = new();
             foreach(var f in frags)
             {
@@ -43,6 +43,8 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             try
             {
+                templateCallSource = templateCallSource.Trim();
+                templateCallSource = templateCallSource[1..^1];
                 ExtractCallName(templateCallSource, out string templateName, out string valueStr);
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
@@ -114,14 +116,10 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public class SplittedByCalls
         {
-            private List<string> Plains { get; }
-            private List<string> Calls { get; }
-            public List<SplittedFrag> OrderedFrags { get; }
+            public List<SplittedFrag> Frags { get; }
             public SplittedByCalls(string input)
             {
-                OrderedFrags = new();
-                Plains = new();
-                Calls = new();
+                Frags = new();
                 input = input.Trim();
                 if (string.IsNullOrEmpty(input))
                     return;
@@ -129,8 +127,9 @@ namespace FCloud3.HtmlGen.Mechanics
                 int layer = 0;
                 bool isInPlain = true;
 
-                foreach (var c in input)
+                for (int i = 0; i < input.Length; i++)
                 {
+                    char c = input[i];
                     if (c == Consts.tplt_L)
                         layer++;
                     else if (c == Consts.tplt_R)
@@ -140,8 +139,9 @@ namespace FCloud3.HtmlGen.Mechanics
                         if (layer >= 1)
                         {
                             isInPlain = false;
-                            this.Plains.Add(sb.ToString());
+                            this.Frags.Add(new(sb.ToString(),true));
                             sb.Clear();
+                            sb.Append(c);
                         }
                         else
                         {
@@ -153,7 +153,8 @@ namespace FCloud3.HtmlGen.Mechanics
                         if (layer == 0)
                         {
                             isInPlain = true;
-                            this.Calls.Add(sb.ToString());
+                            sb.Append(c);
+                            this.Frags.Add(new(sb.ToString(), false));
                             sb.Clear();
                         }
                         else
@@ -164,21 +165,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 }
                 if (layer != 0)
                     throw new Exception("本段内有未闭合'{'与'}'");
-                this.Plains.Add(sb.ToString());
-
-                while (Plains.Count > 0 || Calls.Count > 0)
-                {
-                    if (Plains.Count > 0)
-                    {
-                        this.OrderedFrags.Add(new(Plains[0], true));
-                        Plains.RemoveAt(0);
-                    }
-                    if (Calls.Count > 0)
-                    {
-                        this.OrderedFrags.Add(new(Calls[0], false));
-                        Calls.RemoveAt(0);
-                    }
-                }
+                this.Frags.Add(new(sb.ToString(), true));
             }
             public class SplittedFrag
             {
@@ -187,7 +174,15 @@ namespace FCloud3.HtmlGen.Mechanics
                 public SplittedFrag(string content, bool isPlain)
                 {
                     Content = content;
-                    IsPlain = isPlain;
+                    if (!isPlain)
+                    {
+                        if (TemplateElement.IsValidTemplateCall(content))
+                            IsPlain = false;
+                        else
+                            IsPlain = true;
+                    }
+                    else
+                        IsPlain = isPlain;
                 }
             }
         }

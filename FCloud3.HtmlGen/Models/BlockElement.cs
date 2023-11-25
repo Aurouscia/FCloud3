@@ -48,7 +48,7 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             if(GenByRule is not null)
-                return $"{GenByRule.PutLeft}{base.ToHtml()}{GenByRule.PutRight}";
+                return GenByRule.Apply(Content);
             return base.ToHtml();
         }
     }

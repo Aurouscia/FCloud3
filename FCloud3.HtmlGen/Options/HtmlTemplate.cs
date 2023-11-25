@@ -31,7 +31,7 @@ namespace FCloud3.HtmlGen.Options
         }
         public static string Fill(string code,string slot, string value)
         {
-            string match = "[[" + slot + "]]";
+            string match = $"[[{slot}]]";
             return code.Replace(match,value);
         }
     }

@@ -67,10 +67,7 @@ namespace FCloud3.HtmlGen.Options
         }
         public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            var res = new RuledInlineElement(this);
-            var anchor = new AnchorElement(span.Trim(), span.Trim());
-            res.Add(anchor);
-            return res;
+            return new AnchorElement(span.Trim(), span.Trim());
         }
     }
     public class HtmlManualTextedAnchorRule : IHtmlInlineRule
@@ -92,13 +89,10 @@ namespace FCloud3.HtmlGen.Options
 
         public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            var res = new RuledInlineElement(this);
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
                 throw new Exception($"{Name}解析异常");
-            var anchor = new AnchorElement(parts[0].Trim(), parts[1].Trim());
-            res.Add(anchor);
-            return res;
+            return new AnchorElement(parts[0].Trim(), parts[1].Trim());
         }
     }
 }

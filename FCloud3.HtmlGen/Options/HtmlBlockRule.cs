@@ -14,13 +14,11 @@ namespace FCloud3.HtmlGen.Options
     public interface IHtmlBlockRule
     {
         /// <summary>
-        /// 该块的输出左标记
+        /// 定义规则最后应该如何应用
         /// </summary>
-        public string PutLeft { get; }
-        /// <summary>
-        /// 该块的输出右标记
-        /// </summary>
-        public string PutRight { get; }
+        /// <param name="htmlable"></param>
+        /// <returns></returns>
+        public string Apply(ElementCollection content);
         /// <summary>
         /// 检测某行是否属于该类型的块
         /// </summary>
@@ -48,8 +46,10 @@ namespace FCloud3.HtmlGen.Options
     /// </summary>
     public class HtmlEmptyBlockRule : IHtmlBlockRule
     {
-        public string PutLeft => string.Empty;
-        public string PutRight => string.Empty;
+        public string Apply(ElementCollection content)
+        {
+            return content.ToHtml();
+        }
         public string GetPureContentOf(string line)
         {
             return line;
@@ -100,6 +100,11 @@ namespace FCloud3.HtmlGen.Options
             Name = name;
         }
 
+        public string Apply(ElementCollection content)
+        {
+            return $"{PutLeft}{content.ToHtml()}{PutRight}";
+        }
+
         public bool LineMatched(string line) 
         {
             return line.StartsWith(Mark);
@@ -142,6 +147,11 @@ namespace FCloud3.HtmlGen.Options
 
         public string PutLeft => "<table>";
         public string PutRight => "</table>";
+
+        public string Apply(ElementCollection content)
+        {
+            return $"{PutLeft}{content.ToHtml()}{PutRight}";
+        }
 
         public bool LineMatched(string line)
         {
