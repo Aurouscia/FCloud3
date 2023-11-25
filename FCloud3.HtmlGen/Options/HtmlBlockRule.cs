@@ -77,7 +77,7 @@ namespace FCloud3.HtmlGen.Options
     }
 
     /// <summary>
-    /// 表示在每一行前加了标记的块规则，例如"-"和">"
+    /// 表示在块的每一行前都加了标记的块规则，例如">"
     /// </summary>
     public class HtmlPrefixBlockRule : IHtmlBlockRule
     {
@@ -85,13 +85,6 @@ namespace FCloud3.HtmlGen.Options
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Name { get; }
-        public HtmlPrefixBlockRule()
-        {
-            Mark = string.Empty;
-            PutLeft = string.Empty; 
-            PutRight = string.Empty;
-            Name = string.Empty;
-        }
         public HtmlPrefixBlockRule(string mark, string putLeft, string putRight, string name)
         {
             Mark = mark;
@@ -105,17 +98,17 @@ namespace FCloud3.HtmlGen.Options
             return $"{PutLeft}{content.ToHtml()}{PutRight}";
         }
 
-        public bool LineMatched(string line) 
+        public virtual bool LineMatched(string line) 
         {
-            return line.StartsWith(Mark);
+            return line.Trim().StartsWith(Mark);
         }
         public string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(Mark.Length).Trim();
+                return line.Trim().Substring(Mark.Length).Trim();
             return line;
         }
-        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public virtual RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //lines仅去除了本规则的块标记，不清楚里面是否有第二层块标记，需要调用blockParser得到内容ElementCollection
             var resContent = blockParser.Run(lines.ToList());
@@ -135,6 +128,83 @@ namespace FCloud3.HtmlGen.Options
             return Mark.GetHashCode();
         }
     }
+
+    /// <summary>
+    /// 表示每一行前加了"-"的列表
+    /// </summary>
+    public class HtmlListBlockRule:HtmlPrefixBlockRule
+    {
+        public HtmlListBlockRule()
+            : base("-","<ul>","</ul>","列表")
+        {
+        }
+        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        {
+            var items = new ElementCollection();
+            foreach (var line in lines)
+            {
+                ListItemElement item = new(inlineParser.Run(line));
+                items.Add(item);
+            }
+            return new(items,this);
+        }
+        public override bool LineMatched(string line)
+        {
+            if (!base.LineMatched(line))
+                return false;
+            line = line.Trim();
+            if (line.StartsWith("---"))
+                return false;
+            return true;
+        }
+        public class ListItemElement : SimpleBlockElement
+        {
+            public ListItemElement(ElementCollection content) 
+                : base(content, "<li>","</li>")
+            {
+            }
+        }
+    }
+
+    /// <summary>
+    /// 表示一个分隔线，一行内只有"---"
+    /// </summary>
+    public class HtmlSepBlockRule: IHtmlBlockRule
+    {
+        public const char aLineOfChar = '-';
+        public string Apply(ElementCollection content)
+        {
+            return content.ToHtml();
+        }
+
+        public string GetPureContentOf(string line)
+        {
+            return string.Empty;
+        }
+
+        public bool LineMatched(string line)
+        {
+            line = line.Trim();
+            if (line.Length >= 3 && line.All(c => c == aLineOfChar))
+                return true;
+            return false;
+        }
+
+        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        {
+            var res = new ElementCollection();
+            lines.ToList().ForEach(x => res.Add(new SepElement()));
+            return new RuledBlockElement(res,this);
+        }
+        public class SepElement:BlockElement
+        {
+            public SepElement() : base(new()) { }
+            public override string ToHtml()
+            {
+                return "<div class=\"sep\"></div>";
+            }
+        }
+    }
     /// <summary>
     /// 表示一个迷你表格，例子：
     /// |姓名|年龄|
@@ -145,12 +215,9 @@ namespace FCloud3.HtmlGen.Options
     {
         public const char tableSep = '|';
 
-        public string PutLeft => "<table>";
-        public string PutRight => "</table>";
-
         public string Apply(ElementCollection content)
         {
-            return $"{PutLeft}{content.ToHtml()}{PutRight}";
+            return $"<table>{content.ToHtml()}</table>";
         }
 
         public bool LineMatched(string line)
@@ -198,6 +265,44 @@ namespace FCloud3.HtmlGen.Options
         public override int GetHashCode()
         {
             return nameof(HtmlMiniTableBlockRule).GetHashCode();
+        }
+
+        public class TableRowElement : SimpleBlockElement
+        {
+            public TableRowElement(ElementCollection content)
+                : base(content, "<tr>", "</tr>")
+            {
+            }
+        }
+        public class TableCellElement : BlockElement
+        {
+            public bool IsHead { get; }
+            public TableCellElement(ElementCollection content, bool isHead = false) : base(content)
+            {
+                IsHead = isHead;
+            }
+            public override string ToHtml()
+            {
+                if (!IsHead)
+                    return $"<td>{base.ToHtml()}</td>";
+                return $"<th>{base.ToHtml()}</th>";
+            }
+        }
+    }
+
+    /// <summary>
+    /// 系统提供的特殊块规则实例
+    /// </summary>
+    public static class InternalBlockRules
+    {
+        public static List<IHtmlBlockRule> GetInstances()
+        {
+            return new List<IHtmlBlockRule>()
+            {
+                new HtmlListBlockRule(),
+                new HtmlSepBlockRule(),
+                new HtmlMiniTableBlockRule()
+            };
         }
     }
 }

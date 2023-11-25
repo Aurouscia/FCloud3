@@ -36,8 +36,6 @@ namespace FCloud3.HtmlGen.Models
             return $"<h{Level}>{Title}</h{Level}><div class=\"indent\">{Content.ToHtml()}</div>";
         }
     }
-
-
     public class RuledBlockElement: BlockElement
     {
         public IHtmlBlockRule? GenByRule { get; }
@@ -52,41 +50,18 @@ namespace FCloud3.HtmlGen.Models
             return base.ToHtml();
         }
     }
-
-
-    public class LineElement : BlockElement
+    public class SimpleBlockElement : BlockElement
     {
-        public LineElement(ElementCollection content) : base(content)
+        public string PutLeft { get; }
+        public string PutRight { get; }
+        public SimpleBlockElement(ElementCollection content, string putLeft, string putRight):base(content)
         {
+            PutLeft = putLeft;
+            PutRight = putRight;
         }
         public override string ToHtml()
         {
-            return $"<p>{base.ToHtml()}</p>";
-        }
-    }
-
-    public class TableRowElement : BlockElement
-    {
-        public TableRowElement(ElementCollection content):base(content)
-        {
-        }
-        public override string ToHtml()
-        {
-            return $"<tr>{base.ToHtml()}</tr>";
-        }
-    }
-    public class TableCellElement : BlockElement
-    {
-        public bool IsHead { get; }
-        public TableCellElement(ElementCollection content,bool isHead = false):base(content)
-        {
-            IsHead = isHead;
-        }
-        public override string ToHtml()
-        {
-            if(!IsHead)
-                return $"<td>{base.ToHtml()}</td>";
-            return $"<th>{base.ToHtml()}</th>";
+            return $"{PutLeft}{base.ToHtml()}{PutRight}";
         }
     }
 }

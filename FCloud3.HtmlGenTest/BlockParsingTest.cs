@@ -19,11 +19,11 @@ namespace FCloud3.HtmlGenTest
         {
             HtmlGenOptionsProvider optionsProvider = new(
                 templates: new(),
-                inlineRules: new(),
-                blockRules: new()
+                customInlineRules: new(),
+                customBlockRules: new()
                 {
                     new HtmlPrefixBlockRule(
-                        "-","<div q>","</div>","引用"
+                        ">","<div q>","</div>","引用"
                     )
                 },
                 x => null
@@ -45,13 +45,13 @@ namespace FCloud3.HtmlGenTest
 
         [TestMethod]
         [DataRow(
-            "#哈喽大家好\r\n我是sb，大sb\n-哼哼唧唧\n- 哼哼唧唧\n \t \n",
+            "#哈喽大家好\r\n我是sb，大sb\n>哼哼唧唧\n> 哼哼唧唧\n \t \n",
             "<h1>哈喽大家好</h1><div class=\"indent\"><p>我是sb，大sb</p><div q><p>哼哼唧唧</p><p>哼哼唧唧</p></div></div>")]
         [DataRow(
-            "#哈喽大家好\r\n我是sb，大sb\n-哼哼唧唧\n- 哼哼唧唧\n#大家再见 \t \n",
+            "#哈喽大家好\r\n我是sb，大sb\n>哼哼唧唧\n> 哼哼唧唧\n#大家再见 \t \n",
             "<h1>哈喽大家好</h1><div class=\"indent\"><p>我是sb，大sb</p><div q><p>哼哼唧唧</p><p>哼哼唧唧</p></div></div><h1>大家再见</h1><div class=\"indent\"></div>")]
         [DataRow(
-            "#哈喽大家好\r\n我是sb，大sb\n-哼哼唧唧1\n--哼哼唧唧2\n-哼哼唧唧3",
+            "#哈喽大家好\r\n我是sb，大sb\n>哼哼唧唧1\n>>哼哼唧唧2\n>哼哼唧唧3",
             "<h1>哈喽大家好</h1><div class=\"indent\"><p>我是sb，大sb</p><div q><p>哼哼唧唧1</p><div q><p>哼哼唧唧2</p></div><p>哼哼唧唧3</p></div></div>")]
         [DataRow(
             "内容1\n#一级标题\t\n 内容2\r\n ##二级标题1\n内容3\n##二级标题2",
@@ -80,6 +80,30 @@ namespace FCloud3.HtmlGenTest
             "|名称|年龄|\n|---|---|\n|Au|20|\n|旋头|38|",
             "<table><tr><th>名称</th><th>年龄</th></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td>38</td></tr></table>")]
         public void MiniTableTest(string content, string answer)
+        {
+            MasterParser parser = new(_options);
+            string html = parser.Run(content);
+            Assert.AreEqual(answer, html);
+        }
+
+        [TestMethod]
+        [DataRow(
+            "以下是获奖人员名单：\n-Au先生\n- hcm先生\n-兔兔子小姐\r\n让我们用热烈掌声祝贺他们！",
+            "<p>以下是获奖人员名单：</p><ul><li>Au先生</li><li>hcm先生</li><li>兔兔子小姐</li></ul><p>让我们用热烈掌声祝贺他们！</p>")]
+        public void ListTest(string content,string answer)
+        {
+            MasterParser parser = new(_options);
+            string html = parser.Run(content);
+            Assert.AreEqual(answer, html);
+        }
+        [TestMethod]
+        [DataRow(
+            "AAA\nBBB\n---\nCCC\nDDD",
+            "<p>AAA</p><p>BBB</p><div class=\"sep\"></div><p>CCC</p><p>DDD</p>")]
+        [DataRow(
+            "AAA\nBBB\n------\n----\nCCC\nDDD",
+            "<p>AAA</p><p>BBB</p><div class=\"sep\"></div><div class=\"sep\"></div><p>CCC</p><p>DDD</p>")]
+        public void SepTest(string content, string answer)
         {
             MasterParser parser = new(_options);
             string html = parser.Run(content);

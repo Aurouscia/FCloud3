@@ -37,9 +37,9 @@ namespace FCloud3.HtmlGenTest
                         Source = "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>"
                     }
                 },
-                inlineRules:new(),
-                blockRules:new(),
-                implants: GenLinkForWiki
+                customInlineRules:new(),
+                customBlockRules:new(),
+                implantsHandler: GenLinkForWiki
             );
             _options = provider.GetOptions();
         }

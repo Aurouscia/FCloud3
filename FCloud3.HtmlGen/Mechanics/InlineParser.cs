@@ -12,7 +12,7 @@ namespace FCloud3.HtmlGen.Mechanics
     public interface IInlineParser
     {
         public ElementCollection Run(string input, bool mayContainTemplateCall = true);
-        public LineElement RunForLine(string input);
+        public BlockElement RunForLine(string input);
         public InlineElement SplitByMarks(string input, InlineMarkList marks, IHtmlInlineRule? rule = null);
     }
     public class InlineParser:IInlineParser
@@ -42,7 +42,7 @@ namespace FCloud3.HtmlGen.Mechanics
             }
         }
 
-        public LineElement RunForLine(string input)
+        public BlockElement RunForLine(string input)
         {
             ElementCollection lineContent = Run(input);
             LineElement line = new(lineContent);
@@ -155,6 +155,14 @@ namespace FCloud3.HtmlGen.Mechanics
             else
                 res.Add(rightSplitted);
             return res;
+        }
+
+        public class LineElement : SimpleBlockElement
+        {
+            public LineElement(ElementCollection content)
+                : base(content, "<p>", "</p>")
+            {
+            }
         }
     }
     public class InlineMark

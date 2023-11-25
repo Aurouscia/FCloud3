@@ -34,8 +34,8 @@ namespace FCloud3.HtmlGenTest
 
             HtmlGenOptionsProvider optionsProvider = new(
                 templates: new(),
-                inlineRules: inlineRules,
-                blockRules: new(),
+                customInlineRules: inlineRules,
+                customBlockRules: new(),
                 x=>null
             );
             _options = optionsProvider.GetOptions();

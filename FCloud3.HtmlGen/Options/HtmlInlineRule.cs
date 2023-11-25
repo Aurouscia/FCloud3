@@ -95,4 +95,16 @@ namespace FCloud3.HtmlGen.Options
             return new AnchorElement(parts[0].Trim(), parts[1].Trim());
         }
     }
+
+    public static class InternalInlineRules
+    {
+        public static List<IHtmlInlineRule> GetInstances()
+        {
+            return new()
+            {
+                new HtmlManualAnchorRule(),
+                new HtmlManualTextedAnchorRule()
+            };
+        }
+    }
 }

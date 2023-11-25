@@ -31,19 +31,19 @@ namespace FCloud3.HtmlGen.Options
         private readonly HtmlGenOptions _options;
         public HtmlGenOptionsProvider(
             List<HtmlTemplate> templates,
-            List<HtmlInlineRule> inlineRules,
-            List<HtmlPrefixBlockRule> blockRules,
-            Func<string,string?> implants)
+            List<HtmlInlineRule> customInlineRules,
+            List<HtmlPrefixBlockRule> customBlockRules,
+            Func<string,string?> implantsHandler)
         {
             _options = new();
+
+            _options.BlockRules.AddRange(InternalBlockRules.GetInstances());
+            _options.InlineRules.AddRange(InternalInlineRules.GetInstances());
+
             _options.Templates.AddRange(templates);
-            _options.Implants = implants;
-            _options.InlineRules.AddRange(inlineRules);
-            _options.BlockRules.AddRange(blockRules);
-            
-            _options.InlineRules.Add(new HtmlManualAnchorRule());
-            _options.InlineRules.Add(new HtmlManualTextedAnchorRule());
-            _options.BlockRules.Add(new HtmlMiniTableBlockRule());
+            _options.Implants = implantsHandler;
+            _options.InlineRules.AddRange(customInlineRules);
+            _options.BlockRules.AddRange(customBlockRules);
 
             _options.InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
         }
