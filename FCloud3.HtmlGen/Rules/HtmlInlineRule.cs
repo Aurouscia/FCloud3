@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.HtmlGen.Options
+namespace FCloud3.HtmlGen.Rules
 {
     /// <summary>
     /// 表示一个行内规则，用户通过某种方式在行内标记出一块呈现特殊效果的区域

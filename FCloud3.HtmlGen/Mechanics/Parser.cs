@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
-    public class MasterParser
+    public class Parser
     {
         private readonly HtmlGenOptions _options;
         private readonly BlockParser _blockParser;
 
-        public MasterParser(HtmlGenOptions options)
+        public Parser(HtmlGenOptions options)
         {
             _options = options;
             _blockParser = new(options);

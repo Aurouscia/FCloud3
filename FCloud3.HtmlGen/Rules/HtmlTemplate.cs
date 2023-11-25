@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace FCloud3.HtmlGen.Options
+namespace FCloud3.HtmlGen.Rules
 {
     public class HtmlTemplate
     {
