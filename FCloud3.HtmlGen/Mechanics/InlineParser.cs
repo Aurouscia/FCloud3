@@ -13,17 +13,16 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         public ElementCollection Run(string input, bool mayContainTemplateCall = true);
         public LineElement RunForLine(string input);
+        public InlineElement SplitByMarks(string input, InlineMarkList marks, IHtmlInlineRule? rule = null);
     }
     public class InlineParser:IInlineParser
     {
         private readonly HtmlGenOptions _options;
         private readonly Lazy<TemplateParser> _templateParser;
-        private List<InlineMark> _marks;
         public InlineParser(HtmlGenOptions options) 
         {
             _options = options;
             _templateParser = new(() => new(options));
-            _marks = new();
         }
 
         public ElementCollection Run(string input,bool mayContainTemplateCall = true)
@@ -32,8 +31,10 @@ namespace FCloud3.HtmlGen.Mechanics
             {
                 if (mayContainTemplateCall)
                     return _templateParser.Value.Run(input);
-                _marks = MakeMarks(input);
-                return SplitByMarks(input);
+                var marks = MakeMarks(input);
+                if (marks.Count == 0)
+                    return new TextElement(input);
+                return SplitByMarks(input,marks);
             }
             catch(Exception ex)
             {
@@ -48,10 +49,10 @@ namespace FCloud3.HtmlGen.Mechanics
             return line;
         }
 
-        public List<InlineMark> MakeMarks(string input)
+        public InlineMarkList MakeMarks(string input)
         {
             int pointer = 0;
-            List<InlineMark> res = new();
+            InlineMarkList res = new();
             foreach(var r in _options.InlineRules)
             {
                 //对于每个行内规则
@@ -110,7 +111,9 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (noMoreForThisRule)
                         break;
                     InlineMark m = new(r, left, right);
-                    res.Add(m);
+                    string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
+                    if(r.FulFill(span))
+                        res.Add(m);
 
                     pointer = right + 1;
                     if (pointer >= input.Length - 1)
@@ -120,56 +123,74 @@ namespace FCloud3.HtmlGen.Mechanics
             return res;
         }
 
-        public ElementCollectionWithStyle SplitByMarks(string input, int offset = 0, HtmlInlineRule? rule = null)
+        public InlineElement SplitByMarks(string input, InlineMarkList marks, IHtmlInlineRule? rule = null)
         {
-            var res = new ElementCollectionWithStyle(rule);
-            var first = _marks
-                .Where(x=>x.LeftIndex-offset >= 0 && x.RightIndex-offset<= input.Length)
+            var first = marks
+                .Where(x=>x.LeftIndex >= 0 && x.RightIndex<= input.Length)
                 .MinBy(x => x.LeftIndex);
-            if (first is null) 
-            {
-                res.Add(new TextElement(input));
+
+            var res = new RuledInlineElement(rule);
+            if (first is null) {
+                var text = new TextElement(input);
+                if (rule is null)
+                    return text;
+                res.Add(text);
                 return res;
             }
-            int middleStartIndex = first.LeftIndex - offset + first.LeftMarkLength;
-            int rightStartIndex = first.LeftIndex - offset + first.TotalLength;
-            string left = input.Substring(0, first.LeftIndex - offset);
+
+            int middleStartIndex = first.LeftIndex + first.LeftMarkLength;
+            int rightStartIndex = first.LeftIndex  + first.TotalLength;
+            string left = input.Substring(0, first.LeftIndex);
             string middle = input.Substring(middleStartIndex, first.ContentLength);
             string right = input.Substring(rightStartIndex);
 
             if (!string.IsNullOrEmpty(left))
                 res.Add(new TextElement(left));
-            var middleSplitted = SplitByMarks(middle, middleStartIndex,first.Rule);
+            var middleSplitted = first.Rule.MakeElementFromSpan(middle, new(marks,middleStartIndex), this);
             res.Add(middleSplitted);
-            var rightSplitted = SplitByMarks(right, rightStartIndex);
-            res.AddRange(rightSplitted.Children);
+
+            var rightSplitted = SplitByMarks(right,new(marks,rightStartIndex));
+            if (rightSplitted is RuledInlineElement ruled)
+                res.AddRange(ruled.Content);
+            else
+                res.Add(rightSplitted);
             return res;
         }
-
-        public class InlineMark
+    }
+    public class InlineMark
+    {
+        public int LeftIndex { get; }
+        public int RightIndex { get; }
+        public int LeftMarkLength => Rule.MarkLeft.Length;
+        public int RightMarkLength => Rule.MarkRight.Length;
+        public int ContentLength => RightIndex - LeftIndex - LeftMarkLength;
+        public int TotalLength => ContentLength + LeftMarkLength + RightMarkLength;
+        public IHtmlInlineRule Rule { get; }
+        public InlineMark(IHtmlInlineRule rule, int leftIndex, int rightIndex)
         {
-            public int LeftIndex { get; }
-            public int RightIndex { get; }
-            public int LeftMarkLength { get; }
-            public int RightMarkLength { get; }
-            public int ContentLength { get; }
-            public int TotalLength { get; }
-            public HtmlInlineRule Rule { get; }
-            public InlineMark(HtmlInlineRule rule,int leftIndex, int rightIndex)
-            {
-                Rule = rule;
-                LeftIndex = leftIndex;
-                RightIndex = rightIndex;
-                LeftMarkLength = rule.MarkLeft.Length;
-                RightMarkLength = rule.MarkRight.Length;
-                ContentLength = RightIndex - LeftIndex - LeftMarkLength;
-                TotalLength = ContentLength + LeftMarkLength + RightMarkLength;
-            }
-            public bool OccupiedAt(int index)
-            {
-                return (index >= LeftIndex && index < LeftIndex + Rule.MarkLeft.Length)
-                    || (index >= RightIndex && index < RightIndex + Rule.MarkRight.Length);
-            }
+            Rule = rule;
+            LeftIndex = leftIndex;
+            RightIndex = rightIndex;
+        }
+        public bool OccupiedAt(int index)
+        {
+            return (index >= LeftIndex && index < LeftIndex + Rule.MarkLeft.Length)
+                || (index >= RightIndex && index < RightIndex + Rule.MarkRight.Length);
+        }
+        public InlineMark(InlineMark original,int offset)
+        {
+            Rule = original.Rule;
+            LeftIndex = original.LeftIndex - offset;
+            RightIndex = original.RightIndex - offset;
+        }
+    }
+    public class InlineMarkList : List<InlineMark>
+    {
+        public InlineMarkList() { }
+        public InlineMarkList(InlineMarkList original,int offset)
+        {
+            var res = original.ConvertAll(x => new InlineMark(x, offset));
+            this.AddRange(res);
         }
     }
 }

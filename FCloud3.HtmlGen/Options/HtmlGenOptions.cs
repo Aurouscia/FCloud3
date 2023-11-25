@@ -9,7 +9,7 @@ namespace FCloud3.HtmlGen.Options
     public class HtmlGenOptions
     {
         public List<HtmlTemplate> Templates { get; }
-        public List<HtmlInlineRule> InlineRules { get; }
+        public List<IHtmlInlineRule> InlineRules { get; }
         public List<IHtmlBlockRule> BlockRules { get;}
 
         public HtmlGenOptions()
@@ -35,8 +35,11 @@ namespace FCloud3.HtmlGen.Options
             _options.InlineRules.AddRange(inlineRules);
             _options.BlockRules.AddRange(blockRules);
 
-            _options.InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
+            _options.InlineRules.Add(new HtmlManualAnchorRule());
+            _options.InlineRules.Add(new HtmlManualTextedAnchorRule());
             _options.BlockRules.Add(new HtmlMiniTableBlockRule());
+
+            _options.InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
         }
         public HtmlGenOptions GetOptions()
         {

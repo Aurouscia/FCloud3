@@ -18,22 +18,18 @@ namespace FCloud3.HtmlGenTest
         {
             List<HtmlInlineRule> inlineRules = new()
                 {
-                    new()
-                    {
-                        Name = "斜体",
-                        MarkLeft = "*",
-                        MarkRight = "*",
-                        PutLeft = "<i>",
-                        PutRight = "</i>",
-                    },
-                    new()
-                    {
-                        Name = "粗体",
-                        MarkLeft = "**",
-                        MarkRight = "**",
-                        PutLeft = "<b>",
-                        PutRight = "</b>",
-                    }
+                    new(
+                        name : "斜体",
+                        markLeft : "*",
+                        markRight : "*",
+                        putLeft : "<i>",
+                        putRight : "</i>"),
+                    new(
+                        name : "粗体",
+                        markLeft : "**",
+                        markRight : "**",
+                        putLeft : "<b>",
+                        putRight : "</b>")
                 };
 
             HtmlGenOptionsProvider optionsProvider = new(
@@ -63,6 +59,9 @@ namespace FCloud3.HtmlGenTest
         [DataRow("1*2*34*5*6", "1<i>2</i>34<i>5</i>6")]
         [DataRow("1*2**34**5*6", "1<i>2<b>34</b>5</i>6")]
         [DataRow("1**2*34*5**6", "1<b>2<i>34</i>5</b>6")]
+        [DataRow("1[/234]5", "1<a href=\"/234\">/234</a>5")]
+        [DataRow("1[/2*3*4]5","1<a href=\"/2*3*4\">/2*3*4</a>5")]
+        [DataRow("1[哼唧](/234)5", "1<a href=\"/234\">哼唧</a>5")]
         public void Parse(string input,string answer)
         {
             InlineParser parser = new(_options);

@@ -10,28 +10,28 @@ namespace FCloud3.HtmlGen.Models
     public abstract class InlineElement:Element
     {
     }
-    public class ElementCollectionWithStyle : InlineElement
+    public class RuledInlineElement : InlineElement
     {
-        public HtmlInlineRule? Rule { get; }
-        public ElementCollection Children { get; }
-        public ElementCollectionWithStyle(HtmlInlineRule? rule = null)
+        public IHtmlInlineRule? Rule { get; }
+        public ElementCollection Content { get; }
+        public RuledInlineElement(IHtmlInlineRule? rule = null)
         {
             Rule = rule;
-            Children = new();
+            Content = new();
         }
         public void Add(Element element)
         {
-            Children.Add(element);
+            Content.Add(element);
         }
         public void AddRange(IEnumerable<Element> elements)
         {
-            Children.AddRange(elements);
+            Content.AddRange(elements);
         }
         public override string ToHtml()
         {
             if (Rule is null)
-                return Children.ToHtml();
-            return $"{Rule.PutLeft}{Children.ToHtml()}{Rule.PutRight}";
+                return Content.ToHtml();
+            return $"{Rule.PutLeft}{Content.ToHtml()}{Rule.PutRight}";
         }
     }
     public class TextElement:InlineElement
@@ -44,6 +44,18 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             return Content;
+        }
+    }
+    public class AnchorElement : TextElement
+    {
+        public string Href { get; }
+        public AnchorElement(string content, string href) : base(content)
+        {
+            Href = href;
+        }
+        public override string ToHtml()
+        {
+            return $"<a href=\"{Href}\">{Content}</a>";
         }
     }
 }
