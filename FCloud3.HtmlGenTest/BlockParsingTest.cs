@@ -25,7 +25,8 @@ namespace FCloud3.HtmlGenTest
                     new HtmlPrefixBlockRule(
                         "-","<div q>","</div>","引用"
                     )
-                }
+                },
+                x => null
             );
             _options = optionsProvider.GetOptions();
         }

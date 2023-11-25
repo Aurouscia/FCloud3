@@ -29,10 +29,18 @@ namespace FCloud3.HtmlGen.Mechanics
             ElementCollection res = new();
             foreach(var f in frags)
             {
-                if (f.IsPlain)
-                    res.AddRange(_inlineParser.Value.Run(f.Content,mayContainTemplateCall:false));
+                if (f.Type == SplittedByCalls.FragTypes.Plain)
+                    res.AddRange(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
+                else if (f.Type == SplittedByCalls.FragTypes.Template)
+                    res.Add(ParseSingleCall(f.PureContent));
                 else
-                    res.Add(ParseSingleCall(f.Content));
+                {
+                    string? implantRes = _options.Implants(f.PureContent);
+                    if (implantRes is null)
+                        res.Add(new ErrorElement($"不存在的内插：{f.Content}"));
+                    else
+                        res.Add(new TextElement(implantRes));
+                }
             }
             return res;
         }
@@ -43,8 +51,6 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             try
             {
-                templateCallSource = templateCallSource.Trim();
-                templateCallSource = templateCallSource[1..^1];
                 ExtractCallName(templateCallSource, out string templateName, out string valueStr);
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
@@ -139,7 +145,7 @@ namespace FCloud3.HtmlGen.Mechanics
                         if (layer >= 1)
                         {
                             isInPlain = false;
-                            this.Frags.Add(new(sb.ToString(),true));
+                            this.Frags.Add(new(sb.ToString(),false));
                             sb.Clear();
                             sb.Append(c);
                         }
@@ -154,7 +160,7 @@ namespace FCloud3.HtmlGen.Mechanics
                         {
                             isInPlain = true;
                             sb.Append(c);
-                            this.Frags.Add(new(sb.ToString(), false));
+                            this.Frags.Add(new(sb.ToString(), true));
                             sb.Clear();
                         }
                         else
@@ -165,25 +171,38 @@ namespace FCloud3.HtmlGen.Mechanics
                 }
                 if (layer != 0)
                     throw new Exception("本段内有未闭合'{'与'}'");
-                this.Frags.Add(new(sb.ToString(), true));
+                this.Frags.Add(new(sb.ToString(), false));
             }
             public class SplittedFrag
             {
                 public string Content { get; }
-                public bool IsPlain { get; }
-                public SplittedFrag(string content, bool isPlain)
+                public string PureContent { get
+                    {
+                        if (Type == FragTypes.Plain || Content.Length<2)
+                            return Content;
+                        else
+                            return Content[1..^1];
+                    } }
+                public FragTypes Type { get; }
+                public SplittedFrag(string content, bool hasBrace)
                 {
                     Content = content;
-                    if (!isPlain)
+                    if (hasBrace)
                     {
                         if (TemplateElement.IsValidTemplateCall(content))
-                            IsPlain = false;
+                            Type = FragTypes.Template;
                         else
-                            IsPlain = true;
+                            Type = FragTypes.Implant;
                     }
                     else
-                        IsPlain = isPlain;
+                        Type = FragTypes.Plain;
                 }
+            }
+            public enum FragTypes
+            {
+                Plain = 0,
+                Implant = 1,
+                Template = 2
             }
         }
     }

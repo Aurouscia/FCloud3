@@ -13,6 +13,14 @@ namespace FCloud3.HtmlGenTest
     public class TemplateParsingTest
     {
         private readonly HtmlGenOptions _options;
+        public string? GenLinkForWiki(string name)
+        {
+            if (name == "哼哼")
+                return "<a href=\"/w/114514\">恶臭</a>";
+            if (name == "efg")
+                return "<a href=\"/w/666\">efg666</a>";
+            return null;
+        }
         public TemplateParsingTest()
         {
             HtmlGenOptionsProvider provider = new(
@@ -30,7 +38,8 @@ namespace FCloud3.HtmlGenTest
                     }
                 },
                 inlineRules:new(),
-                blockRules:new()
+                blockRules:new(),
+                implants: GenLinkForWiki
             );
             _options = provider.GetOptions();
         }
@@ -99,6 +108,23 @@ namespace FCloud3.HtmlGenTest
             "{{名称信息}\n中文名::充电宝\n&&英文名：：Power Baby}",
             "<div><b>充电宝</b><i>Power Baby</i></div>")]
         public void ParseTemplate(string input, string answer)
+        {
+            TemplateParser parser = new(_options);
+            string output = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output);
+        }
+
+        [TestMethod]
+        [DataRow(
+            "123{efg}456",
+            "123<a href=\"/w/666\">efg666</a>456")]
+        [DataRow(
+            "123{哼哼}456",
+            "123<a href=\"/w/114514\">恶臭</a>456")]
+        [DataRow(
+            "{{名称信息}\n中文名::充电宝\n&&英文名：：Power{哼哼}Baby}",
+            "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]
+        public void ParseImplant(string input,string answer)
         {
             TemplateParser parser = new(_options);
             string output = parser.Run(input).ToHtml();
