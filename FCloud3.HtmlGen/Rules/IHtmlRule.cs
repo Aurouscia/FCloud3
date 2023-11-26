@@ -8,7 +8,8 @@ namespace FCloud3.HtmlGen.Rules
 {
     public interface IHtmlRule
     {
-        public string GetPreCommons();
-        public string GetPostCommons();
+        public string GetStyles();
+        public string GetPreScripts();
+        public string GetPostScripts();
     }
 }

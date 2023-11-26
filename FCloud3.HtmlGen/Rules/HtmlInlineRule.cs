@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Models;
+using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 表示一个行内规则，用户通过某种方式在行内标记出一块呈现特殊效果的区域
     /// </summary>
-    public interface IHtmlInlineRule
+    public interface IHtmlInlineRule : IHtmlRule
     {
         public string Name { get; }
         public string MarkLeft { get; }
@@ -26,59 +27,78 @@ namespace FCloud3.HtmlGen.Rules
         public bool FulFill(string span);
         public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
     }
-    public class HtmlInlineRule:IHtmlInlineRule
+
+    public abstract class HtmlInlineRule:IHtmlInlineRule
     {
         public string Name { get; }
         public string MarkLeft { get; }
         public string MarkRight { get; }
         public string PutLeft { get; }
         public string PutRight { get; }
+        public string Style { get; }
 
-        public HtmlInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name)
+        public HtmlInlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="")
         {
             MarkLeft = markLeft;
             MarkRight = markRight;
             PutLeft = putLeft;
             PutRight = putRight;
+            Style = style;
             Name = name;
         }
-        public bool FulFill(string span)
-        {
-            return true;
-        }
+        public abstract bool FulFill(string span);
+        public abstract InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
+        public virtual string GetStyles() => Style;
+        public virtual string GetPreScripts()=>string.Empty;
+        public virtual string GetPostScripts()=>string.Empty;
 
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override bool Equals(object? obj)
+        {
+            if (obj is HtmlInlineRule otherRule)
+                if (otherRule.MarkLeft == this.MarkLeft && otherRule.MarkRight == this.MarkRight)
+                    return true;
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            return $"{MarkLeft}{MarkRight}".GetHashCode();
+        }
+    }
+
+    public class HtmlCustomInlineRule : HtmlInlineRule
+    {
+        public HtmlCustomInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name="",string style = "")
+            : base(markLeft, markRight, putLeft, putRight, style, name) { }
+        public override bool FulFill(string span) => true;
+
+        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             return inlineParser.SplitByMarks(span,marks,this);
         }
     }
-    public class HtmlManualAnchorRule : IHtmlInlineRule
-    {
-        public string Name => "手动链接";
-        public string MarkLeft => "[";
-        public string MarkRight => "]";
-        public string PutLeft => string.Empty;
-        public string PutRight => string.Empty;
 
-        public bool FulFill(string span)
+    public class HtmlManualAnchorRule : HtmlInlineRule
+    {
+        public HtmlManualAnchorRule()
+            : base("[", "]", "", "", "", "手动链接") { }
+
+        public override bool FulFill(string span)
         {
             string trimmed = span.Trim();
             return trimmed.StartsWith("http") || trimmed.StartsWith("/");
         }
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+
+        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             return new AnchorElement(span.Trim(), span.Trim());
         }
     }
-    public class HtmlManualTextedAnchorRule : IHtmlInlineRule
+    public class HtmlManualTextedAnchorRule : HtmlInlineRule
     {
-        public string Name => "带文字的手动链接";
-        public string MarkLeft => "[";
-        public string MarkRight => ")";
-        public string PutLeft => string.Empty;
-        public string PutRight => string.Empty;
         private const string partsSep = "](";
-        public bool FulFill(string span)
+        public HtmlManualTextedAnchorRule()
+            : base("[", ")", "", "", "", "带文字的手动链接") { }
+        public override bool FulFill(string span)
         {
             string trimmed = span.Trim();
             string[] parts = trimmed.Split(partsSep);
@@ -87,7 +107,7 @@ namespace FCloud3.HtmlGen.Rules
             return (parts[1].StartsWith("http") || parts[1].StartsWith("/"));
         }
 
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
@@ -103,7 +123,11 @@ namespace FCloud3.HtmlGen.Rules
             return new()
             {
                 new HtmlManualAnchorRule(),
-                new HtmlManualTextedAnchorRule()
+                new HtmlManualTextedAnchorRule(),
+                new HtmlCustomInlineRule("*","*","<i>","</i>","斜体"),
+                new HtmlCustomInlineRule("**","**","<b>","</b>","粗体"),
+                new HtmlCustomInlineRule("***","***","<u>","</u>","下划线"),
+                new HtmlCustomInlineRule("****","****","<s>","</s>","删除线")
             };
         }
     }

@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Data;
 using System.Text;
@@ -178,6 +179,11 @@ namespace FCloud3.HtmlGen.Mechanics
                 }
                 return res;
             }
+            lines.ForEach(x =>
+            {
+                if (x.Rule is not null)
+                    _options.ReportUsage(x.Rule);
+            });
 
             var emptyRule = new HtmlEmptyBlockRule();
             IHtmlBlockRule tracking = emptyRule;

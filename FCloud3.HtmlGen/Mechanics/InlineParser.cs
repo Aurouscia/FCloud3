@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +35,10 @@ namespace FCloud3.HtmlGen.Mechanics
                 var marks = MakeMarks(input);
                 if (marks.Count == 0)
                     return new TextElement(input);
+                marks.ForEach(x =>
+                {
+                    _options.ReportUsage(x.Rule);
+                });
                 return SplitByMarks(input,marks);
             }
             catch(Exception ex)

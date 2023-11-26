@@ -20,6 +20,14 @@ namespace FCloud3.HtmlGen.Options
             Implants = x => null;
             InlineRules = new();
             BlockRules = new();
+            UsedRulesLog = new();
+        }
+
+        public List<IHtmlRule> UsedRulesLog { get; }
+        public void ReportUsage(IHtmlRule rule)
+        {
+            if(!UsedRulesLog.Contains(rule))
+                UsedRulesLog.Add(rule);
         }
     }
 
@@ -32,14 +40,14 @@ namespace FCloud3.HtmlGen.Options
         private readonly HtmlGenOptions _options;
         public HtmlGenOptionsProvider(
             List<HtmlTemplate> templates,
-            List<HtmlInlineRule> customInlineRules,
+            List<HtmlCustomInlineRule> customInlineRules,
             List<HtmlPrefixBlockRule> customBlockRules,
             Func<string,string?> implantsHandler)
         {
             _options = new();
 
-            _options.BlockRules.AddRange(InternalBlockRules.GetInstances());
-            _options.InlineRules.AddRange(InternalInlineRules.GetInstances());
+            _options.BlockRules.AddRange(InternalBlockRules.GetInstances().Except(customBlockRules));
+            _options.InlineRules.AddRange(InternalInlineRules.GetInstances().Except(customInlineRules));
 
             _options.Templates.AddRange(templates);
             _options.Implants = implantsHandler;
@@ -51,31 +59,6 @@ namespace FCloud3.HtmlGen.Options
         public HtmlGenOptions GetOptions()
         {
             return _options;
-        }
-    }
-
-    public class HtmlGenOptionsDefaultProvider : HtmlGenOptionsProvider
-    {
-        public HtmlGenOptionsDefaultProvider() 
-            : base(new(), GetDefaultInlineRules(), GetDefaultBlockRules(),(x)=>null)
-        {
-        }
-        public static List<HtmlInlineRule> GetDefaultInlineRules()
-        {
-            return new()
-            {
-                new("*","*","<i>","</i>","斜体"),
-                new("**","**","<b>","</b>","粗体"),
-                new("***","***","<u>","</u>","下划线"),
-                new("****","****","<s>","</s>","删除线")
-            };
-        }
-        public static List<HtmlPrefixBlockRule> GetDefaultBlockRules()
-        {
-            return new()
-            {
-                new(">","<div class=\"quote\">","</div>","引用")
-            };
         }
     }
 }

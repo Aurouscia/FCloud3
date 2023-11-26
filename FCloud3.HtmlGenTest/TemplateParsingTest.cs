@@ -26,16 +26,8 @@ namespace FCloud3.HtmlGenTest
             HtmlGenOptionsProvider provider = new(
                 templates: new()
                 {
-                    new()
-                    {
-                        Name = "重点强调",
-                        Source = "<b>!![[文字]]!!</b>"
-                    },
-                    new()
-                    {
-                        Name = "名称信息",
-                        Source = "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>"
-                    }
+                    new("重点强调","<b>!![[文字]]!!</b>"),
+                    new("名称信息", "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>")
                 },
                 customInlineRules:new(),
                 customBlockRules:new(),

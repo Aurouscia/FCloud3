@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace FCloud3.HtmlGenTest
 
         public InlineParsingTest()
         {
-            List<HtmlInlineRule> inlineRules = new()
+            List<HtmlCustomInlineRule> inlineRules = new()
                 {
                     new(
                         name : "斜体",

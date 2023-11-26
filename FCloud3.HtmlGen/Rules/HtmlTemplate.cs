@@ -7,10 +7,21 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Rules
 {
-    public class HtmlTemplate
+    public class HtmlTemplate : IHtmlRule
     {
-        public string? Name { get; set; }
-        public string? Source { get; set; }
+        public string Name { get;}
+        public string Source { get; }
+        public string PreCommons { get; }
+        public string PostCommons { get; }
+        public string Styles { get; }
+        public HtmlTemplate(string name, string source,string styles="", string preScripts = "", string postScripts = "")
+        {
+            Name = name;
+            Source = source;
+            Styles = styles;
+            PreCommons = preScripts;
+            PostCommons = postScripts;
+        }
 
         public const string SlotGettingRegex = @"(?<=\[\[)[\u4E00-\u9FA5A-Za-z0-9_]+?(?=\]\])";
         public List<string> GetSlots()
@@ -34,5 +45,9 @@ namespace FCloud3.HtmlGen.Rules
             string match = $"[[{slot}]]";
             return code.Replace(match,value);
         }
+
+        public string GetPreScripts() => PreCommons;
+        public string GetPostScripts() => PostCommons;
+        public string GetStyles() => Styles;
     }
 }

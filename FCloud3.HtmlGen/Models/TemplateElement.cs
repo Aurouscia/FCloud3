@@ -1,4 +1,5 @@
 ﻿using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
@@ -28,11 +29,21 @@ namespace FCloud3.HtmlGen.Models
             List<string> slots = _slotInfoCache.Get(_template);
             if (slots is null)
                 return code;
-            foreach(var slotName in slots)
+            if (_values.Count == 1 && _values.ContainsKey(string.Empty) && slots.Count >= 1)
             {
-                _ = _values.TryGetValue(slotName, out ElementCollection? value);
+                //省略参数名的简写形式
+                _ = _values.TryGetValue(string.Empty, out ElementCollection? value);
                 value ??= new();
-                code = HtmlTemplate.Fill(code, slotName, value.ToHtml());
+                code = HtmlTemplate.Fill(code, slots[0], value.ToHtml());
+            }
+            else
+            {
+                foreach (var slotName in slots)
+                {
+                    _ = _values.TryGetValue(slotName, out ElementCollection? value);
+                    value ??= new();
+                    code = HtmlTemplate.Fill(code, slotName, value.ToHtml());
+                }
             }
             return code;
         }

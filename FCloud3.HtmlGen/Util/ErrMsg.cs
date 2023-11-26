@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Util
 {
-    public class ErrMsg
+    internal class ErrMsg
     {
         public static string Inline(string errmsg)
         {

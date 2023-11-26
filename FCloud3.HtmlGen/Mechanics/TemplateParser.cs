@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Text;
 
@@ -32,7 +33,11 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (f.Type == SplittedByCalls.FragTypes.Plain)
                     res.AddRange(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
                 else if (f.Type == SplittedByCalls.FragTypes.Template)
-                    res.Add(ParseSingleCall(f.PureContent));
+                {
+                    res.Add(ParseSingleCall(f.PureContent,out HtmlTemplate? detected));
+                    if(detected is not null)
+                        _options.ReportUsage(detected);
+                }
                 else
                 {
                     string? implantRes = _options.Implants(f.PureContent);
@@ -47,7 +52,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
         private static readonly string[] valuesSep = new string[] { "&&" };
         private static readonly string[] keyValueSep = new string[] { "::", "：：" };
-        public Element ParseSingleCall(string templateCallSource)
+        public Element ParseSingleCall(string templateCallSource,out HtmlTemplate? detected)
         {
             try
             {
@@ -55,6 +60,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
                 var template = _options.Templates.Find(x => x.Name == templateName);
+                detected = template;
                 if (template is null)
                     throw new Exception($"找不到指定模板:({templateName})");
 
@@ -85,6 +91,7 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             catch (Exception e)
             {
+                detected = null;
                 return new ErrorElement(e.Message);
             }
         }
