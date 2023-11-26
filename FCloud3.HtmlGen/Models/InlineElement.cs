@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +41,7 @@ namespace FCloud3.HtmlGen.Models
         public string Content { get; }
         public TextElement(string content)
         {
-            Content = content.Trim();
+            Content = Escape.HideEscapeMark(content.Trim());
         }
         public override string ToHtml()
         {

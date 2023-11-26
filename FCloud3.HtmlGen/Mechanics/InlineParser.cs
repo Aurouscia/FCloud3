@@ -72,17 +72,21 @@ namespace FCloud3.HtmlGen.Mechanics
                     bool noMoreForThisRule = false;
                     int left;
                     while(true){
+                        //试图找到最靠左的左规则
                         left = input.IndexOf(r.MarkLeft, pointer);
                         if (left == -1 || left >= input.Length - 1)
                         {
                             noMoreForThisRule = true;//规则不存在或者已经被找完了，可以结束本规则的搜索了
                             break;
                         }
+                        //检查该左规则是否被escape
+                        if (left > 0 && input[left - 1] == '\\')
+                            pointer = left + 1;
                         //检查该位置是否被占
-                        if (res.Any(x => x.OccupiedAt(left)))
+                        else if (res.Any(x => x.OccupiedAt(left)))
                             pointer = left + 1;//如果被占了，那就从下一个开始找
                         else
-                            break;//如果没被占用，那left就是正确的左标记索引
+                            break;//如果没被escape，也没被占用，那left就是正确的左标记索引
                         if (pointer >= input.Length - 1)
                         {
                             noMoreForThisRule = true;
@@ -102,8 +106,11 @@ namespace FCloud3.HtmlGen.Mechanics
                             noMoreForThisRule = true;
                             break;
                         }
+                        //检查该右规则是否被escape
+                        if (input[right - 1] == '\\')
+                            pointer = left + 1;
                         //检查该位置是否被占
-                        if (res.Any(x => x.OccupiedAt(right)))
+                        else if (res.Any(x => x.OccupiedAt(right)))
                             pointer = right + 1;//如果被占了，那就从下一个开始找
                         else
                             break;//如果没被占用，那right就是正确的右标记索引
@@ -117,8 +124,13 @@ namespace FCloud3.HtmlGen.Mechanics
                         break;
                     InlineMark m = new(r, left, right);
                     string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
-                    if(r.FulFill(span))
+                    if (r.FulFill(span))
+                    {
                         res.Add(m);
+                        //如果规则是一次性的，那就不找了
+                        if (r.IsSingleUse)
+                            break;
+                    }
 
                     pointer = right + 1;
                     if (pointer >= input.Length - 1)

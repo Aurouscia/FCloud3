@@ -110,18 +110,22 @@ namespace FCloud3.HtmlGen.Mechanics
             public LineWithTitleLevel(string line)
             {
                 Level = 0;
-                PureContent = string.Empty;
                 foreach(var t in TitleMark.OrderedTitleMarks)
                 {
                     if (line.StartsWith(t.Value))
                     {
-                        this.Level = t.Key;
-                        this.PureContent = line.Replace(t.Value, string.Empty).Trim();
-                        break;
+                        string pureContent = line[t.Value.Length..];
+                        if (pureContent.Contains(Consts.titleLevelMark))
+                            break;
+                        else
+                        {
+                            this.Level = t.Key;
+                            this.PureContent = pureContent;
+                            return;
+                        }
                     }
                 }
-                if(Level==0)
-                    PureContent = line;
+                PureContent = line;
             }
         }
         public static class TitleMark

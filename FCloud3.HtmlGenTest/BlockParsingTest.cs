@@ -62,6 +62,9 @@ namespace FCloud3.HtmlGenTest
         [DataRow(
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题2",
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
+        [DataRow(
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题#2",//看起来像是标题，但其实不是标题的东西
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p>##二级标题#2</p></div></div>")]
         public void ParseTest(string content, string answer)
         {
             Parser parser = new(_options);

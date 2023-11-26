@@ -139,7 +139,8 @@ namespace FCloud3.HtmlGen.Rules
                 new HtmlCustomInlineRule("*","*","<i>","</i>","斜体"),
                 new HtmlCustomInlineRule("**","**","<b>","</b>","粗体"),
                 new HtmlCustomInlineRule("***","***","<u>","</u>","下划线"),
-                new HtmlCustomInlineRule("****","****","<s>","</s>","删除线")
+                new HtmlCustomInlineRule("****","****","<s>","</s>","删除线"),
+                new HtmlCustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black}"),
             };
         }
     }
