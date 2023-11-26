@@ -36,8 +36,9 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Style { get; }
+        public bool IsSingleUse { get; }
 
-        public HtmlInlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="")
+        public HtmlInlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="",bool isSingleUse = false)
         {
             MarkLeft = markLeft;
             MarkRight = markRight;
@@ -45,13 +46,16 @@ namespace FCloud3.HtmlGen.Rules
             PutRight = putRight;
             Style = style;
             Name = name;
+            IsSingleUse = isSingleUse;
         }
         public abstract bool FulFill(string span);
-        public abstract InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts()=>string.Empty;
         public virtual string GetPostScripts()=>string.Empty;
-
+        public virtual InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        {
+            return inlineParser.SplitByMarks(span, marks, this);
+        }
         public override bool Equals(object? obj)
         {
             if (obj is HtmlInlineRule otherRule)
@@ -64,19 +68,27 @@ namespace FCloud3.HtmlGen.Rules
             return $"{MarkLeft}{MarkRight}".GetHashCode();
         }
     }
-
     public class HtmlCustomInlineRule : HtmlInlineRule
     {
         public HtmlCustomInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name="",string style = "")
             : base(markLeft, markRight, putLeft, putRight, style, name) { }
         public override bool FulFill(string span) => true;
-
+    }
+    public class HtmlLiteralInlineRule : HtmlInlineRule
+    {
+        public Func<string> GetReplacement { get; }
+        public HtmlLiteralInlineRule(string target,Func<string> getReplacement) 
+            : base(markLeft:target, markRight:"", putLeft:"", putRight:"", "", "",
+                  isSingleUse:true)
+        {
+            GetReplacement = getReplacement;
+        }
         public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            return inlineParser.SplitByMarks(span,marks,this);
+            return new TextElement(GetReplacement());
         }
+        public override bool FulFill(string span)=>true;
     }
-
     public class HtmlManualAnchorRule : HtmlInlineRule
     {
         public HtmlManualAnchorRule()

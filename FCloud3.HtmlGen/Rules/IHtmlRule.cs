@@ -11,5 +11,6 @@ namespace FCloud3.HtmlGen.Rules
         public string GetStyles();
         public string GetPreScripts();
         public string GetPostScripts();
+        public bool IsSingleUse { get; }
     }
 }

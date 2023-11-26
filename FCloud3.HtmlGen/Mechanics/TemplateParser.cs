@@ -40,7 +40,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 }
                 else
                 {
-                    string? implantRes = _options.Implants(f.PureContent);
+                    string? implantRes = _options.ImplantsHandleOptions.HandleImplant(f.PureContent);
                     if (implantRes is null)
                         res.Add(new ErrorElement($"不存在的内插：{f.Content}"));
                     else

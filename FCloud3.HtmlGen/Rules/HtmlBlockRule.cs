@@ -51,12 +51,14 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Style { get; }
-        public HtmlBlockRule(string putLeft="",string putRight="", string style = "",string name="")
+        public bool IsSingleUse { get; }
+        public HtmlBlockRule(string putLeft="",string putRight="", string style = "",string name="",bool isSingleUse = false)
         {
             Style = style;
             PutLeft = putLeft;
             PutRight = putRight;
             Name = name;
+            IsSingleUse = isSingleUse;
         }
         public virtual string Apply(ElementCollection content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
         public abstract bool LineMatched(string line);

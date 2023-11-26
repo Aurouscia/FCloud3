@@ -23,17 +23,17 @@ namespace FCloud3.HtmlGenTest
         }
         public TemplateParsingTest()
         {
-            HtmlGenOptionsProvider provider = new(
+            HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new()
                 {
                     new("重点强调","<b>!![[文字]]!!</b>"),
                     new("名称信息", "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>")
                 },
-                customInlineRules:new(),
-                customBlockRules:new(),
-                implantsHandler: GenLinkForWiki
+                customInlineRules: new(),
+                customBlockRules: new(),
+                implantsHandleOptions: new(GenLinkForWiki)
             );
-            _options = provider.GetOptions();
+            _options = optionsBuilder.GetOptions();
         }
         [TestMethod]
         [DataRow(

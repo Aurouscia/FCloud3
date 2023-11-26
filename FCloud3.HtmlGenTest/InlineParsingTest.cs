@@ -33,13 +33,12 @@ namespace FCloud3.HtmlGenTest
                         putRight : "</b>")
                 };
 
-            HtmlGenOptionsProvider optionsProvider = new(
+            HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new(),
                 customInlineRules: inlineRules,
-                customBlockRules: new(),
-                x=>null
+                customBlockRules: new()
             );
-            _options = optionsProvider.GetOptions();
+            _options = optionsBuilder.GetOptions();
         }
 
         [TestMethod]

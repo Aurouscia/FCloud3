@@ -14,6 +14,8 @@ namespace FCloud3.HtmlGen.Rules
         public string PreCommons { get; }
         public string PostCommons { get; }
         public string Styles { get; }
+        public bool IsSingleUse => false;
+
         public HtmlTemplate(string name, string source,string styles="", string preScripts = "", string postScripts = "")
         {
             Name = name;

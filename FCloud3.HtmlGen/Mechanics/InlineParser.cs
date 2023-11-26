@@ -92,7 +92,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (noMoreForThisRule)
                         break;
 
-                    pointer = left + 1;
+                    pointer = left + r.MarkLeft.Length;
                     int right;
                     while (true)
                     {

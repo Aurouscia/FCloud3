@@ -18,7 +18,7 @@ namespace FCloud3.HtmlGenTest
 
         public BlockParsingTest()
         {
-            HtmlGenOptionsProvider optionsProvider = new(
+            HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new(),
                 customInlineRules: new(),
                 customBlockRules: new()
@@ -26,10 +26,9 @@ namespace FCloud3.HtmlGenTest
                     new HtmlPrefixBlockRule(
                         ">","<div q>","</div>","引用"
                     )
-                },
-                x => null
+                }
             );
-            _options = optionsProvider.GetOptions();
+            _options = optionsBuilder.GetOptions();
         }
         [TestMethod]
         [DataRow(

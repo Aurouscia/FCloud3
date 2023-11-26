@@ -32,7 +32,8 @@ namespace FCloud3.HtmlGen.Mechanics
         public string RunMutiple(List<string?> inputs)
         {
             List<string> res = inputs.ConvertAll(x=>Run(x,false));
-            return $"{Styles()}{PreScripts()}{string.Concat(res)}{PostScripts()}";
+            throw new NotImplementedException();
+            //return $"{Styles()}{PreScripts()}{string.Concat(res)}{PostScripts()}";
         }
         public string Styles()
         {

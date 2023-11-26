@@ -15,7 +15,7 @@ namespace FCloud3.HtmlGenTest
         private readonly HtmlGenOptions _options;
         public CommonPartTest()
         {
-            HtmlGenOptionsProvider optionsProvider = new(
+            HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new()
                 {
                     new HtmlTemplate("打招呼","<div class=\"hello\">[[内容]]</div>",".hello{font-size:large}"),
@@ -32,10 +32,9 @@ namespace FCloud3.HtmlGenTest
                     new HtmlPrefixBlockRule(
                         ">","<div class=\"quote\">","</div>","引用",".quote{font-size:small}"
                     )
-                },
-                implantsHandler:x => null
+                }
             );
-            _options = optionsProvider.GetOptions();
+            _options = optionsBuilder.GetOptions();
         }
 
         [TestMethod]
