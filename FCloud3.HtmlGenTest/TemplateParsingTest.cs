@@ -29,8 +29,8 @@ namespace FCloud3.HtmlGenTest
                     new("重点强调","<b>!![[文字]]!!</b>"),
                     new("名称信息", "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>")
                 },
-                customInlineRules: new(),
-                customBlockRules: new(),
+                extraInlineRules: new(),
+                extraBlockRules: new(),
                 implantsHandleOptions: new(GenLinkForWiki)
             );
             _options = optionsBuilder.GetOptions();

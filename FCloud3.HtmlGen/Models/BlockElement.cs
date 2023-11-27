@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Models
 {
-    public class BlockElement : Element
+    public abstract class BlockElement : Element
     {
         public ElementCollection Content { get; }
         public BlockElement(ElementCollection content)
@@ -23,10 +23,10 @@ namespace FCloud3.HtmlGen.Models
     }
     public class TitledBlockElement : BlockElement
     {
-        public string Title { get; }
+        public ElementCollection Title { get; }
         public int Level { get; }
         
-        public TitledBlockElement(string title, int level, ElementCollection content):base(content)
+        public TitledBlockElement(ElementCollection title, int level, ElementCollection content):base(content)
         {
             Title = title;
             Level = level;
@@ -34,7 +34,7 @@ namespace FCloud3.HtmlGen.Models
 
         public override string ToHtml()
         {
-            return $"<h{Level}>{Title}</h{Level}><div class=\"indent\">{Content.ToHtml()}</div>";
+            return $"<h{Level}>{Title.ToHtml()}</h{Level}><div class=\"indent\">{Content.ToHtml()}</div>";
         }
     }
     public class RuledBlockElement: BlockElement

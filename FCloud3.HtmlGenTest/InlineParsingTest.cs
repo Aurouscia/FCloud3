@@ -17,26 +17,10 @@ namespace FCloud3.HtmlGenTest
 
         public InlineParsingTest()
         {
-            List<HtmlCustomInlineRule> inlineRules = new()
-                {
-                    new(
-                        name : "斜体",
-                        markLeft : "*",
-                        markRight : "*",
-                        putLeft : "<i>",
-                        putRight : "</i>"),
-                    new(
-                        name : "粗体",
-                        markLeft : "**",
-                        markRight : "**",
-                        putLeft : "<b>",
-                        putRight : "</b>")
-                };
-
             HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new(),
-                customInlineRules: inlineRules,
-                customBlockRules: new()
+                extraInlineRules: new(),
+                extraBlockRules: new()
             );
             _options = optionsBuilder.GetOptions();
         }
@@ -67,6 +51,11 @@ namespace FCloud3.HtmlGenTest
         [DataRow("1\\[/234\\]5", "1[/234]5")]
         [DataRow("1[/2*3*4]5","1<a href=\"/2*3*4\">/2*3*4</a>5")]
         [DataRow("1[哼唧](/234)5", "1<a href=\"/234\">哼唧</a>5")]
+        [DataRow("小王 \\bd 小李 \\bd 小张", "小王<span class=\"bordered\">小李</span>小张")]
+        [DataRow("小王 #255,0,0\\@小李# 小张", "小王<span class=\"coloredText\" style=\"color:rgb(255,0,0)\">小李</span>小张")]
+        [DataRow("小王 #255,0,0# 小张", "小王<span class=\"coloredBlock\" style=\"color:rgb(255,0,0)\">cbk</span>小张")]
+        [DataRow("小王 #ffff00\\@小李# 小张", "小王<span class=\"coloredText\" style=\"color:ffff00\">小李</span>小张")]
+        [DataRow("小王 #ffff00# 小张", "小王<span class=\"coloredBlock\" style=\"color:ffff00\">cbk</span>小张")]
         public void Parse(string input,string answer)
         {
             InlineParser parser = new(_options);

@@ -43,10 +43,13 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly HtmlGenOptions _options;
         private readonly RuledBlockParser _ruledBlockParser;
+        private readonly InlineParser _inlineParser;
+
         public TitledBlockParser(HtmlGenOptions options)
         {
             _options = options;
             _ruledBlockParser = new RuledBlockParser(options);
+            _inlineParser = new InlineParser(options);
         }
         public ElementCollection Run(List<string> inputLines)
         {
@@ -55,11 +58,13 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private ElementCollection Run(List<LineWithTitleLevel> lines)
         {
+            //为每一行标记其标题（如果有）的等级
             if (lines.All(x => x.Level == 0))
             {
                 ElementCollection ruled = _ruledBlockParser.Run(lines.Select(x => x.PureContent).ToList());
                 return ruled;
             }
+            //从标题等级最高（数字最小）开始找
             int targetLevel = lines.Where(x => x.Level != 0).Select(x => x.Level).Min();
 
             ElementCollection res = new();
@@ -68,12 +73,15 @@ namespace FCloud3.HtmlGen.Mechanics
             string? title = null;
             foreach (var l in lines)
             {
+                //遇到目标等级标题的行
                 if (targetLevel == l.Level)
                 {
-                    if (title is not null)
+                    //将其之前的部分纳入上一个同级标题麾下
+                    if (!string.IsNullOrEmpty(title))
                     {
                         ElementCollection generated = Run(generating);
-                        TitledBlockElement titledBlock = new(title, targetLevel, generated);
+                        ElementCollection titleParsed = _inlineParser.Run(title);
+                        TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
                         res.Add(titledBlock);
                     }
                     else
@@ -89,10 +97,11 @@ namespace FCloud3.HtmlGen.Mechanics
                     generating.Add(l);
                 }
             }
-            if (title is not null)
+            if (!string.IsNullOrEmpty(title))
             {
                 ElementCollection generated = Run(generating);
-                TitledBlockElement titledBlock = new(title, targetLevel, generated);
+                ElementCollection titleParsed = _inlineParser.Run(title);
+                TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
                 res.Add(titledBlock);
             }
             else
@@ -105,7 +114,13 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public class LineWithTitleLevel
         {
+            /// <summary>
+            /// 标题等级（有几个井号）
+            /// </summary>
             public int Level { get; }
+            /// <summary>
+            /// 纯内容（如果有开头井号就去掉，没有就是原字符串）
+            /// </summary>
             public string PureContent { get; }
             public LineWithTitleLevel(string line)
             {
@@ -114,7 +129,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     if (line.StartsWith(t.Value))
                     {
-                        string pureContent = line[t.Value.Length..];
+                        string pureContent = line[t.Value.Length..].Trim();
                         if (pureContent.Contains(Consts.titleLevelMark))
                             break;
                         else
@@ -168,7 +183,7 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (inputLines.Count == 0)
                 return new();
-            List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_options.BlockRules));
+            List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_options.BlockParsingOptions.BlockRules));
             return Run(lines);
         }
         private ElementCollection Run(List<LineWithRule> lines)

@@ -58,7 +58,7 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             int pointer = 0;
             InlineMarkList res = new();
-            foreach(var r in _options.InlineRules)
+            foreach(var r in _options.InlineParsingOptions.InlineRules)
             {
                 //对于每个行内规则
                 if (!input.Contains(r.MarkLeft) || !input.Contains(r.MarkRight))

@@ -21,13 +21,13 @@ namespace FCloud3.HtmlGenTest
                     new HtmlTemplate("打招呼","<div class=\"hello\">[[内容]]</div>",".hello{font-size:large}"),
                     new HtmlTemplate("哼唧","<div class=\"hj\">[[内容]]</div>",".hj{color:gray}","console.log('哼唧')")
                 },
-                customInlineRules: new()
+                extraInlineRules: new()
                 {
                     new HtmlCustomInlineRule(
                             "\\red","\\red","<span class=\"red\">","</span>","红色字体",".red{color:red}"
                         )
                 },
-                customBlockRules: new()
+                extraBlockRules: new()
                 {
                     new HtmlPrefixBlockRule(
                         ">","<div class=\"quote\">","</div>","引用",".quote{font-size:small}"

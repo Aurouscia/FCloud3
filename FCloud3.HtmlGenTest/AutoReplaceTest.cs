@@ -29,8 +29,8 @@ namespace FCloud3.HtmlGenTest
         {
             HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new(),
-                customInlineRules: new(),
-                customBlockRules: new(),
+                extraInlineRules: new(),
+                extraBlockRules: new(),
                 autoReplaceOptions: new(wikis.Select(x=>x.Key).ToList(),MakeUrlForWiki)
             );
             _options = optionsBuilder.GetOptions();

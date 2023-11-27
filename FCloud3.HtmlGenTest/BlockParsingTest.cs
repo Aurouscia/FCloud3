@@ -20,8 +20,8 @@ namespace FCloud3.HtmlGenTest
         {
             HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new(),
-                customInlineRules: new(),
-                customBlockRules: new()
+                extraInlineRules: new(),
+                extraBlockRules: new()
                 {
                     new HtmlPrefixBlockRule(
                         ">","<div q>","</div>","引用"
@@ -65,6 +65,21 @@ namespace FCloud3.HtmlGenTest
         [DataRow(
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题#2",//看起来像是标题，但其实不是标题的东西
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p>##二级标题#2</p></div></div>")]
+        [DataRow(
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n#red#",//看起来像是标题，但其实不是标题的东西
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p><span class=\"coloredBlock\" style=\"color:red\">cbk</span></p></div></div>")]
+        [DataRow(
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题2\n哼唧哼",
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题2</h2><div class=\"indent\"><p>哼唧哼</p></div></div>")]
+        [DataRow(
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##\n哼唧哼",//用仅有##的行来脱离上一个同级标题
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><p>哼唧哼</p></div>")]
+        [DataRow(
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n#\n哼唧哼",//用仅有#的行来脱离上一个同级标题
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div></div><p>哼唧哼</p>")]
+        [DataRow(
+            "内容1\n#一级*标*题\t\n 内容2\r\n ##二级**标**题1\n内容3\n##二级标题2",
+            "<p>内容1</p><h1>一级<i>标</i>题</h1><div class=\"indent\"><p>内容2</p><h2>二级<b>标</b>题1</h2><div class=\"indent\"><p>内容3</p></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
         public void ParseTest(string content, string answer)
         {
             Parser parser = new(_options);

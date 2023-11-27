@@ -12,7 +12,7 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 块规则，表示用户用某种方法为行做了标记(LineMatched)，并希望相邻的同规则行成为一个块
     /// </summary>
-    public interface IHtmlBlockRule : IHtmlRule
+    public interface IHtmlBlockRule : IHtmlRule,IEquatable<IHtmlBlockRule>
     {
         /// <summary>
         /// 定义规则最后应该如何应用
@@ -40,9 +40,6 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="blockParser">块解析器</param>
         /// <returns>按本规则解析得的块元素</returns>
         public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
-
-        public bool Equals(object obj);
-        public int GetHashCode();
     }
 
     public abstract class HtmlBlockRule : IHtmlBlockRule
@@ -67,6 +64,7 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
+        public abstract bool Equals(IHtmlBlockRule? other);
     }
 
     /// <summary>
@@ -96,11 +94,15 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool Equals(object? obj)
         {
-            return (obj is HtmlEmptyBlockRule);
+            return Equals(obj as IHtmlBlockRule);
         }
         public override int GetHashCode()
         {
             return nameof(HtmlEmptyBlockRule).GetHashCode();
+        }
+        public override bool Equals(IHtmlBlockRule? other)
+        {
+            return other is HtmlEmptyBlockRule;
         }
     }
 
@@ -137,13 +139,17 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool Equals(object? obj)
         {
-            if (obj is HtmlPrefixBlockRule rule)
-                return rule.Mark == this.Mark;
-            return false;
+            return Equals(obj as IHtmlBlockRule);
         }
         public override int GetHashCode()
         {
             return Mark.GetHashCode();
+        }
+        public override bool Equals(IHtmlBlockRule? other)
+        {
+            if (other is HtmlPrefixBlockRule rule)
+                return rule.Mark == this.Mark;
+            return false;
         }
     }
 
@@ -226,6 +232,19 @@ namespace FCloud3.HtmlGen.Rules
                 return $"<div class=\"{htmlClassName}\"></div>";
             }
         }
+
+        public override bool Equals(IHtmlBlockRule? other)
+        {
+            return other is HtmlSepBlockRule;
+        }
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as IHtmlBlockRule);
+        }
+        public override int GetHashCode()
+        {
+            return nameof(HtmlSepBlockRule).GetHashCode();
+        }
     }
     /// <summary>
     /// 表示一个迷你表格，例子：
@@ -279,11 +298,15 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool Equals(object? obj)
         {
-            return (obj is HtmlMiniTableBlockRule);
+            return Equals(obj as IHtmlBlockRule);
         }
         public override int GetHashCode()
         {
             return nameof(HtmlMiniTableBlockRule).GetHashCode();
+        }
+        public override bool Equals(IHtmlBlockRule? other)
+        {
+            return (other is HtmlMiniTableBlockRule);
         }
 
         public class TableRowElement : SimpleBlockElement

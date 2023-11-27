@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Rules
 {
-    public class HtmlTemplate : IHtmlRule
+    public class HtmlTemplate : IHtmlRule, IEquatable<HtmlTemplate>
     {
         public string Name { get;}
         public string Source { get; }
@@ -51,5 +51,22 @@ namespace FCloud3.HtmlGen.Rules
         public string GetPreScripts() => PreCommons;
         public string GetPostScripts() => PostCommons;
         public string GetStyles() => Styles;
+
+        public bool Equals(HtmlTemplate? other)
+        {
+            if(other == null) 
+                return false;
+            return other.Name == this.Name;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as HtmlTemplate);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
     }
 }

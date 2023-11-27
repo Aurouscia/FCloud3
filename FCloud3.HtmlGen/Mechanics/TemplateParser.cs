@@ -59,7 +59,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 ExtractCallName(templateCallSource, out string templateName, out string valueStr);
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
-                var template = _options.Templates.Find(x => x.Name == templateName);
+                var template = _options.TemplateParsingOptions.Templates.Find(x => x.Name == templateName);
                 detected = template;
                 if (template is null)
                     throw new Exception($"找不到指定模板:({templateName})");
