@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import { inject, onMounted, ref,Ref } from 'vue';
-import { HttpClient,ApiResponse } from '../../utils/httpClient';
-import { config } from '../../consts';
 import Pop from '../../components/Pop.vue';
 import {User} from '../../models/identities/user';
+import { Api } from '../../utils/api';
 
 const user = ref<User>();
-var httpClient:HttpClient;
+var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
 
 async function editUserInfo(){
-    await httpClient.send(config.api.identities.editExe,user.value,
-        pop.value.show,"修改成功");
+    if(user.value){
+        if(user.value.Name){
+            await api.identites.editExe(user.value,pop.value.show);
+        }
+        else{
+            pop.value.show("请填写用户名","failed");
+        }
+    }
 }
 
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
-    httpClient = inject('http') as HttpClient;
-    const resp:ApiResponse = await httpClient.send(config.api.identities.edit,undefined,pop.value.show)
-    if(resp.success){
-        user.value = resp.data;
+    api = inject('api') as Api;
+    const userInfo = await api.identites.edit(pop.value.show)
+    if(userInfo){
+        user.value = userInfo;
     }
 })
 </script>

@@ -2,20 +2,22 @@
 import { inject, onMounted, onUnmounted, ref,Ref} from 'vue';
 import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { wikiParaType} from '../../models/wiki/wikiParaTypes'
-import { HttpClient,ApiResponse } from '../../utils/httpClient';
-import { config } from '../../consts';
 import { MouseDragListener } from '../../utils/mouseDrag';
 import Pop from '../../components/Pop.vue';
 import Functions from '../../components/Functions.vue';
 import { useRouter } from 'vue-router';
+import { Api } from '../../utils/api';
+import addIconSrc from '../../assets/add.png';
+import dragYIconSrc from '../../assets/dragY.svg';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
 const paraYSpace = 130;
-var httpClient:HttpClient;
+var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>;
 const router = useRouter();
 
+//临时测试用
 const props = {
     wikiId:4
 }
@@ -26,14 +28,14 @@ function order2PosY(order:number){
 function posY2order(posY:number){
     return Math.round((posY-30)/paraYSpace);
 }
-function CalculatePosY(){
+function calculatePosY(){
     paras.value.forEach((p) => {
         if(!p.isMoveing){
             p.posY = order2PosY(p.displayOrder||0);
         }
     });
 }
-function CalculateOrderForMoving(){
+function calculateOrderForMoving(){
     const p = paras.value.find(x=>x.isMoveing);
     const others = paras.value.filter(x=>!x.isMoveing);
     if(p){
@@ -51,9 +53,10 @@ function CalculateOrderForMoving(){
             }
         })
         p.posY = pposY;
-        CalculatePosY();
+        calculatePosY();
     }
 }
+var originalOrder:string;
 async function endMoving(){
     const p = paras.value.find(x=>x.isMoveing);
     const others = paras.value.filter(x=>!x.isMoveing);
@@ -67,29 +70,31 @@ async function endMoving(){
         others.forEach(x=>{
             x.Order = x.displayOrder||0;
         })
-        CalculatePosY();
+        calculatePosY();
         moving = false;
-
         const list = paras.value.map(x=>{return{Id:x.CorrId,Order:x.Order}})
         list.sort((x,y)=>{
             return x.Order-y.Order
         })
         const ids = list.map(x=>x.Id);
-        const resp = await httpClient.send(config.api.wikiItem.setParaOrders,{
-            Id:props.wikiId,
-            OrderedParaIds:ids
-        },pop.value.show)
-        setTimeout(()=>{
-            refresh(resp);
-        },500)
+        const newOrder = JSON.stringify(ids);
+        if(!originalOrder || newOrder!=originalOrder){
+            originalOrder = newOrder;
+            const resp = await api.wiki.setParaOrders({
+                id:props.wikiId,
+                orderedParaIds:ids
+            },pop.value.show)
+            setTimeout(()=>{
+                refresh(resp);
+            },500)
+        }
     }
 }
-
 async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
-    const resp = await httpClient.send(config.api.wikiItem.insertPara,{
+    const resp = await api.wiki.insertPara({
         id:props.wikiId,
         afterOrder,
-        type:type
+        type
     })
     refresh(resp);
 }
@@ -101,32 +106,33 @@ async function EnterEdit(corrId:number)
         router.push(`/EditTextSection/${target.UnderlyingId}`);
         return;
     }
-    const resp = await httpClient.send(config.api.textSection.createForCorr,{corrId:corrId},pop.value.show);
-    if(resp.success){
-        const newlyCreatedId = resp.data.CreatedId as number;
+    const resp = await api.textSection.createForCorr({corrId:corrId},pop.value.show);
+    if(resp){
+        const newlyCreatedId = resp.CreatedId;
         router.push(`/EditTextSection/${newlyCreatedId}`);
         return;
     }
 }
 
 async function Load(){
-    const resp = await httpClient.send(config.api.wikiItem.loadSimple,{id:props.wikiId},pop.value.show)
+    const resp = await api.wiki.loadSimple(props.wikiId,pop.value.show);
+    originalOrder = JSON.stringify(resp?.map(x=>x.CorrId))
     refresh(resp);
 }
-async function refresh(resp:ApiResponse) {
-    if(resp.success){
-        paras.value = resp.data as Array<WikiPara>;
+async function refresh(p:WikiPara[]|undefined) {
+    if(p){
+        paras.value = p;
         paras.value.forEach(x=>x.displayOrder=x.Order);
         spaces.value = new Array<number>(paras.value.length+1)
     }
-    CalculatePosY();
+    calculatePosY();
 }
 
 var offsetY = 0;
 var moving:boolean = false;
 var disposeListeners:()=>void|undefined;
 onMounted(async()=>{
-    httpClient = inject('http') as HttpClient;
+    api = inject('api') as Api;
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     await Load();
 
@@ -134,7 +140,7 @@ onMounted(async()=>{
     disposeListeners = mouse.startListen(
         (_,y)=>{
             offsetY = y;
-            CalculateOrderForMoving();
+            calculateOrderForMoving();
         },
         (_, __)=>{
             endMoving();
@@ -154,11 +160,11 @@ onUnmounted(()=>{
             <div class="paraTitle">
                 <h2>{{ p.Title }}</h2>
                 <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
-                 class="dragY" src="../../assets/dragY.svg"/>
+                 class="dragY" :src="dragYIconSrc"/>
             </div>
             <div class="paraContent">{{ p.Content }}</div>
             <div class="paraBottom">
-                <Functions>
+                <Functions x-align="right">
                     <button @click="EnterEdit(p.CorrId)">编辑</button>
                     <button>指定已有</button>
                     <button>移除</button>
@@ -167,11 +173,11 @@ onUnmounted(()=>{
         </div>
         <div v-for="_,idx in spaces">
             <div class="btnsBetweenPara">
-                <div>
-                    <button @click="InsertPara(0,idx - 1)">+文本</button>
-                    <button @click="InsertPara(1,idx - 1)">+文件</button>
-                    <button @click="InsertPara(2,idx - 1)">+表格</button>
-                </div>
+                <Functions :img-src="addIconSrc">
+                    <button @click="InsertPara(0,idx - 1)">文本</button>
+                    <button @click="InsertPara(1,idx - 1)">文件</button>
+                    <button @click="InsertPara(2,idx - 1)">表格</button>
+                </Functions>
             </div>
         </div>
     </div>
@@ -180,37 +186,17 @@ onUnmounted(()=>{
 <style scoped>
 .btnsBetweenPara{
     display: flex;
-    height: 50px;
-    margin-bottom: 80px;
+    height: 60px;
+    margin-bottom: 70px;
     justify-content:center;
-}
-.btnsBetweenPara button{
-    z-index: 800;
-    position: relative;
-    top: 12px;
-    opacity: 0;
-    transition: 0.2s;
-}
-@media screen and (max-width:800px) {
-    .btnsBetweenPara button{
-        z-index: 800;
-        position: relative;
-        top: 12px;
-        opacity: 1;
-    }
-}
-
-.btnsBetweenPara:hover button{
-    z-index: 800;
-    position: relative;
-    top: 12px;
-    opacity: 1;
+    align-items: center;
 }
 
 .paras {
     min-width: 100%;
     max-width: 600px;
     min-height:1000px;
+    padding-bottom: 300px;
     position: relative;
     background-color: white;
 }

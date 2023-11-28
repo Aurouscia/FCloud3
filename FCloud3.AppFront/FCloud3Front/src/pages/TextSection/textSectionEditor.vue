@@ -2,16 +2,16 @@
 import {ref, Ref, onMounted, inject} from 'vue'
 import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
-import { HttpClient } from '../../utils/httpClient';
-import { config } from '../../consts';
+import { Api } from '../../utils/api';
 
 const props = defineProps<{id:string}>()
+var textSecId:number = Number(props.id);
 const previewOn = ref<boolean>(true);
-var httpClient:HttpClient;
+var api:Api
 var pop:Ref<InstanceType<typeof Pop>>;
 
 const data = ref<TextSection>({
-    Id:1,
+    Id:textSecId,
     Content:"",
     Title:""
 });
@@ -22,21 +22,17 @@ async function replaceTitle() {
         pop.value.show("段落标题不可为空","failed");
         return;
     }
-    httpClient.send(config.api.textSection.editExe,{
-        Id:data.value.Id,
-        Title:data.value.Title
-    },pop.value.show,"修改段落标题成功")
+    api.textSection.editExe(data.value,pop.value.show)
 }
 
 async function init(){
-    const resp = await httpClient.send(config.api.textSection.edit,{id:props.id},pop.value.show);
-    if(resp.success){
-        data.value = resp.data;
-    }
+    const resp = await api.textSection.edit(textSecId,pop.value.show);
+    if(resp){
+        data.value = resp;}
 }
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
-    httpClient = inject('http') as HttpClient;
+    api = inject('api') as Api;
     const hideTopbar = inject('hideTopbar') as ()=>void;
     hideTopbar();
 

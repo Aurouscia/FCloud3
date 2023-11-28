@@ -1,5 +1,4 @@
-import { config } from "../consts"
-import { HttpClient } from "./httpClient"
+import { Api } from "./api"
 
 export interface IdentityInfo{
     Name:string
@@ -16,28 +15,27 @@ const defaultValue = {
 export class IdentityInfoProvider{
     cache:IdentityInfo = defaultValue;
     update:number = 0;
-    http:HttpClient;
-    constructor(http:HttpClient){
-        this.http = http;
+    api:Api
+    constructor(api:Api){
+        this.api = api;
     }
     public async getIdentityInfo():Promise<IdentityInfo> {
         const now:number = new Date().getTime();
         if(now - this.update < 600000){
             return this.cache;
         }
-        const res = await this.http.send(config.api.identities.identityTest)
-        if (res.success) {
-            try{
-                const data:IdentityInfo = res.data as IdentityInfo;
-                this.update=new Date().getTime();
-                this.cache = data;
-                console.log("获取身份信息为:",data)
-                return data;
-            }
-            catch{}
+        const res = await this.api.identites.identityTest()
+        if (res) {
+            const data: IdentityInfo = res;
+            this.update = new Date().getTime();
+            this.cache = data;
+            console.log("获取身份信息为:", data)
+            return data;
         }
-        this.update =  new Date().getTime();
-        this.cache = defaultValue;
+        else{
+            this.update =  new Date().getTime();
+            this.cache = defaultValue;
+        }
         return this.cache;
     }
     public clearCache(){

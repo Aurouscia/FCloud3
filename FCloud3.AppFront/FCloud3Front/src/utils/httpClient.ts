@@ -1,5 +1,5 @@
 import { Http,ApiResponse,FileType } from "./http";
-import {boxType} from '../components/Pop.vue'
+import { popDelegate} from '../components/Pop.vue'
 
 export type RequestType = "get"|"postForm"|"postRaw";
 export interface Api{
@@ -30,8 +30,24 @@ export class HttpClient{
         }
         return headers;
     }
-    get(resource:string): Promise<ApiResponse>{
-        return Http.get(resource,this.getHeaders());
+    get(resource:string,data?:any): Promise<ApiResponse>{
+        if(!data)
+            return Http.get(resource,this.getHeaders());
+        else{
+            var safeCounter = 0;
+            var q = "?"
+            for(const key in data){
+                q = q+key;
+                q = q+"=";
+                q = q+String(data[key]);
+                q = q+"&";
+                safeCounter++;
+                if(safeCounter>6){
+                    break;
+                }
+            }
+            return Http.get(resource+q,this.getHeaders());
+        }
     }
     postAsJson(resource:string,data:object): Promise<ApiResponse>{
         return Http.postAsJson(resource,data,this.getHeaders())
@@ -40,13 +56,13 @@ export class HttpClient{
         return Http.postAsForm(resource,data,this.getHeaders())
     }
     async send(apiInfo:Api,data?:object,
-        pop?:(msg:string,type:boxType)=>void,
+        pop?:popDelegate,
         successMsg?:string
         ): Promise<ApiResponse>
         {
         var resp:ApiResponse;
         if(apiInfo.type=="get"){
-            resp = await this.get(apiInfo.reletiveUrl)
+            resp = await this.get(apiInfo.reletiveUrl,data)
         }else if(apiInfo.type=="postForm"){
             resp = await this.postAsForm(apiInfo.reletiveUrl,data||{});
         }else if(apiInfo.type=="postRaw"){

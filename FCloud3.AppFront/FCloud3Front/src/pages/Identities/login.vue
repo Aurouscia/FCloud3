@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { inject, onMounted, ref,Ref } from 'vue';
-import { HttpClient,ApiResponse } from '../../utils/httpClient';
+import { HttpClient} from '../../utils/httpClient';
 import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
-import { config } from '../../consts';
 import Pop from '../../components/Pop.vue';
+import { Api } from '../../utils/api';
 
 const userName = ref<string>("")
 const password = ref<string>("")
 var identityInfoProvider:IdentityInfoProvider;
 const identityInfo = ref<IdentityInfo|undefined>()
 var httpClient:HttpClient;
+var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
 async function Login(){
-    const resp:ApiResponse = await httpClient.send(config.api.identities.login,{
+    const token = await api.identites.login({
         userName:userName.value,
         password:password.value
-    },pop.value.show,"成功登录")
-    if(resp.success){
-        httpClient.setToken(resp.data["token"]);
+    },pop.value.show)
+    if(token){
+        httpClient.setToken(token);
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
             identityInfo.value = await identityInfoProvider.getIdentityInfo();
@@ -35,6 +36,7 @@ async function Logout() {
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
+    api = inject('api') as Api;
     identityInfoProvider = inject('userInfo') as IdentityInfoProvider
     identityInfo.value = await identityInfoProvider.getIdentityInfo();
 })

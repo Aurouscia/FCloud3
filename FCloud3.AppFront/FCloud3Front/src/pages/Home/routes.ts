@@ -8,6 +8,10 @@ export function addHomePage(r:Router){
 
 const routes = [
     {
+        path:"/",
+        component:home
+    },
+    {
         path:"/HomePage",
         component:home
     },

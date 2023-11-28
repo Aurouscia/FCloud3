@@ -3,17 +3,18 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 
 const rightDefault = -200;
 const height = 70;
-export type boxType = "success"|"failed"|"warning"|"info"
+export type boxTypes = "success"|"failed"|"warning"|"info"
+export type popDelegate = (msg:string,type:boxTypes)=>void;
 
 interface msgBox {
     right: number,
     msg: string,
     created:number,
-    type:boxType
+    type:boxTypes
 }
 const boxes = ref<msgBox[]>([])
 
-function show(msg: string,type: boxType) {
+function show(msg: string,type: boxTypes) {
     const newBox:msgBox = {
         right: rightDefault,
         msg: msg,
@@ -59,7 +60,9 @@ defineExpose({ show })
         width: (-rightDefault) + 'px',
         top: height*index + 100 + 'px'
          }" :class="box.type">
-        {{ box.msg }}
+         <div>
+            {{ box.msg }}
+        </div>
     </div>
 </template>
 
@@ -75,8 +78,12 @@ defineExpose({ show })
     transition: 0.5s;
     margin: 0px;
     color:white;
-    word-break: break-all;
-    z-index: 10000;
+    z-index: 1000000;
+}
+.box div{
+    max-width: 180px;
+    color:white;
+    word-break: break-all;;
 }
 .success{
     background-color: #339933;
@@ -88,7 +95,7 @@ defineExpose({ show })
     background-color: #cccccc;
 }
 .warning{
-    background-color: #ffff00;
+    background-color: orange;
     color:black;
 }
 </style>
