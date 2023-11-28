@@ -19,7 +19,7 @@ namespace FCloud3.HtmlGen.Rules
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public string Apply(ElementCollection content);
+        public string Apply(IHtmlable content);
         /// <summary>
         /// 检测某行是否属于该类型的块
         /// </summary>
@@ -39,7 +39,7 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="inlineParser">行内解析器</param>
         /// <param name="blockParser">块解析器</param>
         /// <returns>按本规则解析得的块元素</returns>
-        public RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
+        public IHtmlable MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
     }
 
     public abstract class HtmlBlockRule : IHtmlBlockRule
@@ -57,10 +57,10 @@ namespace FCloud3.HtmlGen.Rules
             Name = name;
             IsSingleUse = isSingleUse;
         }
-        public virtual string Apply(ElementCollection content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
+        public virtual string Apply(IHtmlable content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
         public abstract bool LineMatched(string line);
         public abstract string GetPureContentOf(string line);
-        public abstract RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser);
+        public abstract IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser);
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
@@ -72,7 +72,7 @@ namespace FCloud3.HtmlGen.Rules
     /// </summary>
     public class HtmlEmptyBlockRule : HtmlBlockRule
     {
-        public override string Apply(ElementCollection content)
+        public override string Apply(IHtmlable content)
         {
             return content.ToHtml();
         }
@@ -84,13 +84,14 @@ namespace FCloud3.HtmlGen.Rules
         {
             return false;
         }
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //可以确定lines是没有块标记的，直接分别解析每行
             var resContent = lines.ToList().ConvertAll(inlineParser.RunForLine);
-            var res = new ElementCollection(resContent);
-            //构造Rule为空的RuledBlockElement
-            return new RuledBlockElement(res,genByRule:null);
+            if (resContent.Count == 1)
+                return resContent[0];
+            else
+                return new ElementCollection(resContent);
         }
         public override bool Equals(object? obj)
         {
@@ -128,7 +129,7 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Trim().Substring(Mark.Length).Trim();
             return line;
         }
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //lines仅去除了本规则的块标记，不清楚里面是否有第二层块标记，需要调用blockParser得到内容ElementCollection
             var resContent = blockParser.Run(lines.ToList());
@@ -183,7 +184,7 @@ namespace FCloud3.HtmlGen.Rules
         }
         public class ListItemElement : SimpleBlockElement
         {
-            public ListItemElement(ElementCollection content) 
+            public ListItemElement(IHtmlable content) 
                 : base(content, "<li>","</li>")
             {
             }
@@ -199,7 +200,7 @@ namespace FCloud3.HtmlGen.Rules
         public const char aLineOfChar = '-';
         public const string style = $".{SepElement.htmlClassName}:{{background-color:gray;height:2px;}}";
         public HtmlSepBlockRule() : base(style: style) { }
-        public override string Apply(ElementCollection content)
+        public override string Apply(IHtmlable content)
         {
             return content.ToHtml();
         }
@@ -217,16 +218,16 @@ namespace FCloud3.HtmlGen.Rules
             return false;
         }
 
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             var res = new ElementCollection();
             lines.ToList().ForEach(x => res.Add(new SepElement()));
-            return new RuledBlockElement(res,this);
+            return res;
         }
         public class SepElement:BlockElement
         {
             public const string htmlClassName = "sep";
-            public SepElement() : base(new()) { }
+            public SepElement() : base() { }
             public override string ToHtml()
             {
                 return $"<div class=\"{htmlClassName}\"></div>";
@@ -268,7 +269,7 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Substring(1,line.Length-2).Trim();
             return line;
         }
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             ElementCollection rows = new();
 
@@ -291,7 +292,7 @@ namespace FCloud3.HtmlGen.Rules
                 }
                 int left = width - rowCells.Count;
                 for (int i = 0; i < left; i++)
-                    rowCells.Add(new TableCellElement(new(),isHead));
+                    rowCells.Add(new TableCellElement(null,isHead));
                 rows.Add(new TableRowElement(rowCells));
             }
             return new RuledBlockElement(rows, genByRule: this);
@@ -311,7 +312,7 @@ namespace FCloud3.HtmlGen.Rules
 
         public class TableRowElement : SimpleBlockElement
         {
-            public TableRowElement(ElementCollection content)
+            public TableRowElement(IHtmlable content)
                 : base(content, "<tr>", "</tr>")
             {
             }
@@ -319,7 +320,7 @@ namespace FCloud3.HtmlGen.Rules
         public class TableCellElement : BlockElement
         {
             public bool IsHead { get; }
-            public TableCellElement(ElementCollection content, bool isHead = false) : base(content)
+            public TableCellElement(IHtmlable? content, bool isHead = false) : base(content)
             {
                 IsHead = isHead;
             }

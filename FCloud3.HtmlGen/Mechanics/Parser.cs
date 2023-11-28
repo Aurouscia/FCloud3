@@ -23,7 +23,7 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
-            ElementCollection result = _blockParser.Run(input);
+            IHtmlable result = _blockParser.Run(input);
             if (!putCommon)
                 return result.ToHtml();
             else

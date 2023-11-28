@@ -21,12 +21,12 @@ namespace FCloud3.HtmlGen.Mechanics
             _options = options;
         }
 
-        public ElementCollection Run(string input, bool enforceBlock = true)
+        public IHtmlable Run(string input, bool enforceBlock = true)
         {
             var lines = LineSplitter.Split(input);
 
             if (lines.Count == 0)
-                return new();
+                return new EmptyElement();
             if (lines.Count == 1)
             {
                 if (enforceBlock)
@@ -51,17 +51,17 @@ namespace FCloud3.HtmlGen.Mechanics
             _ruledBlockParser = new RuledBlockParser(options);
             _inlineParser = new InlineParser(options);
         }
-        public ElementCollection Run(List<string> inputLines)
+        public IHtmlable Run(List<string> inputLines)
         {
             List<LineWithTitleLevel> lines = inputLines.ConvertAll(x => new LineWithTitleLevel(x));
             return Run(lines);
         }
-        private ElementCollection Run(List<LineWithTitleLevel> lines)
+        private IHtmlable Run(List<LineWithTitleLevel> lines)
         {
             //为每一行标记其标题（如果有）的等级
             if (lines.All(x => x.Level == 0))
             {
-                ElementCollection ruled = _ruledBlockParser.Run(lines.Select(x => x.PureContent).ToList());
+                IHtmlable ruled = _ruledBlockParser.Run(lines.Select(x => x.PureContent).ToList());
                 return ruled;
             }
             //从标题等级最高（数字最小）开始找
@@ -79,15 +79,15 @@ namespace FCloud3.HtmlGen.Mechanics
                     //将其之前的部分纳入上一个同级标题麾下
                     if (!string.IsNullOrEmpty(title))
                     {
-                        ElementCollection generated = Run(generating);
-                        ElementCollection titleParsed = _inlineParser.Run(title);
+                        IHtmlable generated = Run(generating);
+                        IHtmlable titleParsed = _inlineParser.Run(title);
                         TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
                         res.Add(titledBlock);
                     }
                     else
                     {
-                        ElementCollection ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
-                        res.AddRange(ruled);
+                        IHtmlable ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                        res.AddFlat(ruled);
                     }
                     generating.Clear();
                     title = l.PureContent;
@@ -99,17 +99,17 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             if (!string.IsNullOrEmpty(title))
             {
-                ElementCollection generated = Run(generating);
-                ElementCollection titleParsed = _inlineParser.Run(title);
+                IHtmlable generated = Run(generating);
+                IHtmlable titleParsed = _inlineParser.Run(title);
                 TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
                 res.Add(titledBlock);
             }
             else
             {
-                ElementCollection ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
-                res.AddRange(ruled);
+                IHtmlable ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                res.AddFlat(ruled);
             }
-            return res;
+            return res.Simplify();
         }
 
         public class LineWithTitleLevel
@@ -168,7 +168,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
     public interface IRuledBlockParser
     {
-        public ElementCollection Run(List<string> inputLines);
+        public IHtmlable Run(List<string> inputLines);
     }
     public class RuledBlockParser:IRuledBlockParser
     {
@@ -179,14 +179,14 @@ namespace FCloud3.HtmlGen.Mechanics
             _options = options;
             _inlineParser = new(options);
         }
-        public ElementCollection Run(List<string> inputLines)
+        public IHtmlable Run(List<string> inputLines)
         {
             if (inputLines.Count == 0)
-                return new();
+                return new EmptyElement();
             List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_options.BlockParsingOptions.BlockRules));
             return Run(lines);
         }
-        private ElementCollection Run(List<LineWithRule> lines)
+        private IHtmlable Run(List<LineWithRule> lines)
         {
             ElementCollection res = new();
             if (lines.All(x => x.Rule is null))
@@ -196,7 +196,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     res.Add(_inlineParser.RunForLine(line.PureContent));
                 }
-                return res;
+                return res.Simplify();
             }
             lines.ForEach(x =>
             {
@@ -215,8 +215,8 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (generating.Count > 0)
                     {
                         var pureLines = generating.Select(x => x.PureContent).ToList();
-                        RuledBlockElement element = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
-                        res.Add(element);
+                        IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
+                        res.AddFlat(htmlable);
                         generating.Clear();
                     }
                     tracking = ruleOfthisLine;
@@ -226,10 +226,10 @@ namespace FCloud3.HtmlGen.Mechanics
             if (generating.Count > 0)
             {
                 var pureLines = generating.Select(x => x.PureContent).ToList();
-                RuledBlockElement element = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
-                res.Add(element);
+                IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
+                res.AddFlat(htmlable);
             }
-            return res;
+            return res.Simplify();
         }
         public class LineWithRule
         {

@@ -10,10 +10,10 @@ namespace FCloud3.HtmlGen.Models
 {
     public abstract class BlockElement : Element
     {
-        public ElementCollection Content { get; }
-        public BlockElement(ElementCollection content)
+        public IHtmlable Content { get; }
+        public BlockElement(IHtmlable? content = null)
         {
-            Content = content;
+            Content = content ?? new EmptyElement();
         }
 
         public override string ToHtml()
@@ -23,10 +23,10 @@ namespace FCloud3.HtmlGen.Models
     }
     public class TitledBlockElement : BlockElement
     {
-        public ElementCollection Title { get; }
+        public IHtmlable Title { get; }
         public int Level { get; }
         
-        public TitledBlockElement(ElementCollection title, int level, ElementCollection content):base(content)
+        public TitledBlockElement(IHtmlable title, int level, IHtmlable content):base(content)
         {
             Title = title;
             Level = level;
@@ -40,7 +40,7 @@ namespace FCloud3.HtmlGen.Models
     public class RuledBlockElement: BlockElement
     {
         public IHtmlBlockRule? GenByRule { get; }
-        public RuledBlockElement(ElementCollection content, IHtmlBlockRule? genByRule):base(content)
+        public RuledBlockElement(IHtmlable content, IHtmlBlockRule? genByRule):base(content)
         {
             GenByRule = genByRule;
         }
@@ -55,7 +55,7 @@ namespace FCloud3.HtmlGen.Models
     {
         public string PutLeft { get; }
         public string PutRight { get; }
-        public SimpleBlockElement(ElementCollection content, string putLeft, string putRight):base(content)
+        public SimpleBlockElement(IHtmlable content, string putLeft, string putRight):base(content)
         {
             PutLeft = putLeft;
             PutRight = putRight;

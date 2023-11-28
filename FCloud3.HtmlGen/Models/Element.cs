@@ -25,24 +25,42 @@ namespace FCloud3.HtmlGen.Models
         }
     }
 
-    public class ElementCollection : List<Element>, IHtmlable
+    public class ElementCollection : List<IHtmlable>, IHtmlable
     {
-        public ElementCollection(Element onlyItem)
+        public ElementCollection(IHtmlable onlyItem)
         {
-            this.Add(onlyItem);
+            base.Add(onlyItem);
         }
-        public ElementCollection(params Element[] items)
+        public ElementCollection(params IHtmlable[] items)
         {
-            this.AddRange(items);
+            base.AddRange(items);
         }
-        public ElementCollection(IEnumerable<Element> items)
+        public ElementCollection(IEnumerable<IHtmlable> items)
         {
-            this.AddRange(items);
+            base.AddRange(items);
         }
         public ElementCollection() { }
+        public void AddFlat(IHtmlable htmlable)
+        {
+            if (htmlable is Element ele)
+                base.Add(ele);
+            else if (htmlable is ElementCollection collection)
+                base.AddRange(collection);
+            else
+                throw new NotImplementedException();
+        }
         public virtual string ToHtml()
         {
             return string.Concat(this.ConvertAll(x => x.ToHtml()));
+        }
+        public IHtmlable Simplify()
+        {
+            if (this.Count == 1)
+                return this[0];
+            else if (this.Count > 1)
+                return this;
+            else
+                return new EmptyElement();
         }
 
         public static implicit operator ElementCollection(Element element)

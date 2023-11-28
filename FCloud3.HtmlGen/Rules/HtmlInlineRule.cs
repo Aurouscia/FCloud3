@@ -25,7 +25,7 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="span">截取出的区域</param>
         /// <returns>是否适用于本规则</returns>
         public bool FulFill(string span);
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
+        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
     }
 
     public abstract class HtmlInlineRule : IHtmlInlineRule
@@ -52,9 +52,10 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts()=>string.Empty;
         public virtual string GetPostScripts()=>string.Empty;
-        public virtual InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public virtual IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            return inlineParser.SplitByMarks(span, marks, this);
+            var parsed = inlineParser.SplitByMarks(span, marks);
+            return new RuledInlineElement(parsed, this);
         }
         public override bool Equals(object? obj)
         {
@@ -107,7 +108,7 @@ namespace FCloud3.HtmlGen.Rules
         public string GetPostScripts() => RelyOn.GetPostScripts();
         public string GetPreScripts() => RelyOn.GetPreScripts();
         public string GetStyles() => RelyOn.GetStyles();
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
             => RelyOn.MakeElementFromSpan(span, marks, inlineParser);
         public bool FulFill(string span) => RelyOn.FulFill(span);
     }
@@ -156,7 +157,7 @@ namespace FCloud3.HtmlGen.Rules
             return (parts[1].StartsWith("http") || parts[1].StartsWith("/"));
         }
 
-        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
@@ -187,7 +188,7 @@ namespace FCloud3.HtmlGen.Rules
         public string GetPreScripts() => string.Empty;
         public string GetStyles() => $".{ColorTextElement.classNameWhenEmpty}{{border-radius:3px}}";
         public const string sep = "\\@";
-        public InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             int sepIndex = span.IndexOf(sep);
             if (sepIndex != -1)
@@ -195,7 +196,7 @@ namespace FCloud3.HtmlGen.Rules
                 var marksWithOffset = new InlineMarkList(marks, sepIndex + 2);
                 string color = span[..sepIndex];
                 string text = span[(sepIndex + 2)..];
-                ElementCollection textParsed = inlineParser.SplitByMarks(text,marksWithOffset);
+                IHtmlable textParsed = inlineParser.SplitByMarks(text,marksWithOffset);
                 return new ColorTextElement(textParsed, color);
             }
             else
@@ -206,13 +207,13 @@ namespace FCloud3.HtmlGen.Rules
         public class ColorTextElement : InlineElement
         {
             public string Color { get; }
-            public ElementCollection Content { get; }
+            public IHtmlable Content { get; }
             public bool HaveText { get; }
             public string ClassName => HaveText ? classNameWhenText : classNameWhenEmpty;
 
             public const string classNameWhenText = "coloredText";
             public const string classNameWhenEmpty = "coloredBlock";
-            public ColorTextElement(ElementCollection content,string color) 
+            public ColorTextElement(IHtmlable content,string color) 
             {
                 Color = HtmlColor.Formalize(color.Trim());
                 Content = content;

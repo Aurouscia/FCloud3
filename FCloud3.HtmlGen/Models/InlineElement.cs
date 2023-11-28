@@ -15,19 +15,16 @@ namespace FCloud3.HtmlGen.Models
     public class RuledInlineElement : InlineElement
     {
         public IHtmlInlineRule? Rule { get; }
-        public ElementCollection Content { get; }
+        public IHtmlable Content { get; }
         public RuledInlineElement(IHtmlInlineRule? rule = null)
         {
             Rule = rule;
-            Content = new();
+            Content = new ElementCollection();
         }
-        public void Add(Element element)
+        public RuledInlineElement(IHtmlable htmlable,IHtmlInlineRule? rule = null)
         {
-            Content.Add(element);
-        }
-        public void AddRange(IEnumerable<Element> elements)
-        {
-            Content.AddRange(elements);
+            Rule = rule;
+            Content = htmlable;
         }
         public override string ToHtml()
         {
@@ -47,6 +44,10 @@ namespace FCloud3.HtmlGen.Models
         {
             return Content;
         }
+    }
+    public class EmptyElement : InlineElement
+    {
+        public override string ToHtml() => string.Empty;
     }
     public class AnchorElement : TextElement
     {

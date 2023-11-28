@@ -12,10 +12,10 @@ namespace FCloud3.HtmlGen.Models
     public class TemplateElement : Element
     {
         private readonly HtmlTemplate _template;
-        private readonly Dictionary<string, ElementCollection> _values;
+        private readonly Dictionary<string, IHtmlable> _values;
         private readonly TemplateSlotInfoCache _slotInfoCache;
 
-        public TemplateElement(HtmlTemplate template, Dictionary<string,ElementCollection> values, TemplateSlotInfoCache slotInfoCache)
+        public TemplateElement(HtmlTemplate template, Dictionary<string,IHtmlable> values, TemplateSlotInfoCache slotInfoCache)
         {
             _template = template;
             _values = values;
@@ -32,16 +32,16 @@ namespace FCloud3.HtmlGen.Models
             if (_values.Count == 1 && _values.ContainsKey(string.Empty) && slots.Count >= 1)
             {
                 //省略参数名的简写形式
-                _ = _values.TryGetValue(string.Empty, out ElementCollection? value);
-                value ??= new();
+                _ = _values.TryGetValue(string.Empty, out var value);
+                value ??= new EmptyElement();
                 code = HtmlTemplate.Fill(code, slots[0], value.ToHtml());
             }
             else
             {
                 foreach (var slotName in slots)
                 {
-                    _ = _values.TryGetValue(slotName, out ElementCollection? value);
-                    value ??= new();
+                    _ = _values.TryGetValue(slotName, out var value);
+                    value ??= new EmptyElement();
                     code = HtmlTemplate.Fill(code, slotName, value.ToHtml());
                 }
             }

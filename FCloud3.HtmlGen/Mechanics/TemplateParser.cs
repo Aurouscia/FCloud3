@@ -23,7 +23,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
 
 
-        public ElementCollection Run(string input)
+        public IHtmlable Run(string input)
         {
             SplittedByCalls splitted = SplitByCalls(input);
             var frags = splitted.Frags;
@@ -31,7 +31,7 @@ namespace FCloud3.HtmlGen.Mechanics
             foreach(var f in frags)
             {
                 if (f.Type == SplittedByCalls.FragTypes.Plain)
-                    res.AddRange(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
+                    res.AddFlat(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
                 else if (f.Type == SplittedByCalls.FragTypes.Template)
                 {
                     res.Add(ParseSingleCall(f.PureContent,out HtmlTemplate? detected));
@@ -66,7 +66,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
                 List<string> values = valueStr.Split(valuesSep, StringSplitOptions.TrimEntries).ToList();
                 values.RemoveAll(string.IsNullOrEmpty);
-                Dictionary<string, ElementCollection> valuesDic = new();
+                Dictionary<string, IHtmlable> valuesDic = new();
 
                 if (values.Count == 1 && !keyValueSep.Any(x => values[0].Contains(x)))
                 {

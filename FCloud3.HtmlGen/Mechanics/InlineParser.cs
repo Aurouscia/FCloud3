@@ -12,9 +12,9 @@ namespace FCloud3.HtmlGen.Mechanics
 {
     public interface IInlineParser
     {
-        public ElementCollection Run(string input, bool mayContainTemplateCall = true);
-        public BlockElement RunForLine(string input);
-        public InlineElement SplitByMarks(string input, InlineMarkList marks, IHtmlInlineRule? rule = null);
+        public IHtmlable Run(string input, bool mayContainTemplateCall = true);
+        public IHtmlable RunForLine(string input);
+        public IHtmlable SplitByMarks(string input, InlineMarkList marks);
     }
     public class InlineParser:IInlineParser
     {
@@ -26,7 +26,7 @@ namespace FCloud3.HtmlGen.Mechanics
             _templateParser = new(() => new(options));
         }
 
-        public ElementCollection Run(string input,bool mayContainTemplateCall = true)
+        public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
             try
             {
@@ -43,13 +43,13 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             catch(Exception ex)
             {
-                return new(new ErrorElement($"行内解析出错:{ex.Message}"));
+                return new ErrorElement($"行内解析出错:{ex.Message}");
             }
         }
 
-        public BlockElement RunForLine(string input)
+        public IHtmlable RunForLine(string input)
         {
-            ElementCollection lineContent = Run(input);
+            IHtmlable lineContent = Run(input);
             LineElement line = new(lineContent);
             return line;
         }
@@ -140,20 +140,24 @@ namespace FCloud3.HtmlGen.Mechanics
             return res;
         }
 
-        public InlineElement SplitByMarks(string input, InlineMarkList marks, IHtmlInlineRule? rule = null)
+        /// <summary>
+        /// 将输入的字符串根据规则标记拆成元素
+        /// </summary>
+        /// <param name="input">输入字符串</param>
+        /// <param name="marks">标记（内部索引由input的开头作为0开始）</param>
+        /// <returns></returns>
+        public IHtmlable SplitByMarks(string input, InlineMarkList marks)
         {
+            //对于输入的标记，试图找到最靠左侧的，且没有越界的标记
             var first = marks
                 .Where(x=>x.LeftIndex >= 0 && x.RightIndex<= input.Length)
                 .MinBy(x => x.LeftIndex);
 
-            var res = new RuledInlineElement(rule);
             if (first is null) {
                 var text = new TextElement(input);
-                if (rule is null)
-                    return text;
-                res.Add(text);
-                return res;
+                return text;
             }
+            ElementCollection res = new();
 
             int middleStartIndex = first.LeftIndex + first.LeftMarkLength;
             int rightStartIndex = first.LeftIndex  + first.TotalLength;
@@ -164,19 +168,16 @@ namespace FCloud3.HtmlGen.Mechanics
             if (!string.IsNullOrEmpty(left))
                 res.Add(new TextElement(left));
             var middleSplitted = first.Rule.MakeElementFromSpan(middle, new(marks,middleStartIndex), this);
-            res.Add(middleSplitted);
+            res.AddFlat(middleSplitted);
 
             var rightSplitted = SplitByMarks(right,new(marks,rightStartIndex));
-            if (rightSplitted is RuledInlineElement ruled)
-                res.AddRange(ruled.Content);
-            else
-                res.Add(rightSplitted);
+            res.AddFlat(rightSplitted);
             return res;
         }
 
         public class LineElement : SimpleBlockElement
         {
-            public LineElement(ElementCollection content)
+            public LineElement(IHtmlable content)
                 : base(content, "<p>", "</p>")
             {
             }

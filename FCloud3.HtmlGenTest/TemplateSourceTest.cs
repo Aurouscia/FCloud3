@@ -1,6 +1,7 @@
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen;
 
 namespace FCloud3.HtmlGenTest
 {
@@ -39,7 +40,7 @@ namespace FCloud3.HtmlGenTest
         public void Filling(string source,string values, string answer) 
         {
             HtmlTemplate template = new("模板名称", source);
-            var valuesDic = values.Split(',').ToDictionary(x => x.Split(':')[0], x => new ElementCollection(new TextElement(x.Split(':')[1])));
+            var valuesDic = values.Split(',').ToDictionary(x => x.Split(':')[0], x => new TextElement(x.Split(':')[1]) as IHtmlable);
             TemplateElement element = new(template,valuesDic,new());
             string result = element.ToHtml();
             Assert.AreEqual(answer, result);
