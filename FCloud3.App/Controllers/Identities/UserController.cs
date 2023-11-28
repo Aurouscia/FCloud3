@@ -1,5 +1,4 @@
-﻿using FCloud3.App.Models.COM.Identities;
-using FCloud3.App.Services;
+﻿using FCloud3.App.Services;
 using FCloud3.Repos.Models.Identities;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
@@ -51,6 +50,14 @@ namespace FCloud3.App.Controllers.Identities
             if (!_userService.TryEdit(uid,model.Name, model.Pwd, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+        public class UserComModel
+        {
+            public int Id { get; set; }
+            public string? Name { get; set; }
+            public string? Pwd { get; set; }
+            public string? AvatarFileName { get; set; }
         }
     }
 }

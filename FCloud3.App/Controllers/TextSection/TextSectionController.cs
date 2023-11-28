@@ -1,6 +1,6 @@
-﻿using FCloud3.App.Models.COM.TextSec;
-using FCloud3.App.Services;
+﻿using FCloud3.App.Services;
 using FCloud3.Repos.Models.Cor;
+using FCloud3.Repos.Models.TextSec;
 using FCloud3.Services.TextSec;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,22 @@ namespace FCloud3.App.Controllers.TextSec
             if (!_textSectionService.TryUpdate(model.Id, _user.Id, model.Title, model.Content, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+
+        public class TextSectionComModel
+        {
+            public int Id { get; set; }
+            public string? Title { get; set; }
+            public string? Content { get; set; }
+
+            public TextSectionComModel() { }
+            public TextSectionComModel(TextSection original)
+            {
+                Id = original.Id;
+                Title = original.Title;
+                Content = original.Content;
+            }
         }
     }
 }

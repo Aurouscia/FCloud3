@@ -1,5 +1,4 @@
-﻿using FCloud3.App.Models.COM.Wiki;
-using FCloud3.App.Services;
+﻿using FCloud3.App.Services;
 using FCloud3.Repos.Models.Wiki;
 using FCloud3.Services.Wiki;
 using Microsoft.AspNetCore.Authorization;
@@ -51,17 +50,30 @@ namespace FCloud3.App.Controllers.Wiki
         public IActionResult InsertPara(int id, int afterOrder, WikiParaType type)
         {
             var res = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
-            if (res is null)
+            if (!res)
                 return this.ApiFailedResp(errmsg);
-            return this.ApiResp(res);
+            var newList = _wikiService.GetWikiParaDisplays(id);
+            return this.ApiResp(newList);
         }
         public IActionResult SetParaOrders([FromBody]WikiItemParaOrdersComModel model)
         {
             var orderedParaIds = model.OrderedParaIds ?? throw new Exception("Ids参数为空");
             var res = _wikiService.SetParaOrders(model.Id, orderedParaIds, out string? errmsg);
-            if (res is null)
+            if (!res)
                 return this.ApiFailedResp(errmsg);
-            return this.ApiResp(res);
+            var newList = _wikiService.GetWikiParaDisplays(model.Id);
+            return this.ApiResp(newList);
+        }
+
+        public class WikiItemComModel
+        {
+            public int Id { get; set; }
+            public string? Title { get; set; }
+        }
+        public class WikiItemParaOrdersComModel
+        {
+            public int Id { get; set; }
+            public List<int>? OrderedParaIds { get; set; }
         }
     }
 }

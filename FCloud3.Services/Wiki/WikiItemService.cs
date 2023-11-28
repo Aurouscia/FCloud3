@@ -1,5 +1,7 @@
 ﻿using FCloud3.Repos.Models.Cor;
+using FCloud3.Repos.Models.TextSec;
 using FCloud3.Repos.Models.Wiki;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +13,108 @@ namespace FCloud3.Services.Wiki
     public class WikiItemService
     {
         private readonly WikiItemRepo _wikiRepo;
+        private readonly CorrRepo _corrRepo;
+        private readonly TextSectionRepo _textSectionRepo;
+        private readonly List<CorrType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
-        public WikiItemService(WikiItemRepo wikiRepo)
+        public WikiItemService(WikiItemRepo wikiRepo,CorrRepo corrRepo,TextSectionRepo textSectionRepo)
         {
             _wikiRepo = wikiRepo;
+            _corrRepo = corrRepo;
+            _textSectionRepo = textSectionRepo;
+            _wikiParaTypes = WikiParaTypeUtil.WikiParaCorrTypes;
+        }
+        public WikiItem? GetById(int id)
+        {
+            return _wikiRepo.GetById(id);
+        }
+        public List<Corr> GetWikiParaCorrs(int wikiId, int start = 0, int count = int.MaxValue)
+        {
+            var corrs = _corrRepo.Existing
+                .Where(x => x.B == wikiId)
+                .Where(x => _wikiParaTypes.Contains(x.CorrType))
+                .OrderBy(x => x.Order)
+                .Skip(start)
+                .Take(count)
+                .ToList();
+            return corrs;
+        }
+        public bool BuildParaCorr(int wikiId, WikiParaType type, int order, out string? errmsg)
+        {
+            Corr c = new()
+            {
+                B = wikiId,
+                Order = order,
+                CorrType = type.ToCorrType()
+            };
+            return _corrRepo.TryAdd(c, out errmsg);
+        }
+        public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId, int start = 0, int count = int.MaxValue)
+        {
+            var corrs = GetWikiParaCorrs(wikiId, start, count);
+            EnsureParaOrderDense(corrs);
+
+            List<TextSectionMeta> textParas = _textSectionRepo.GetMetaRangeByParaCorr(corrs);
+
+            List<KeyValuePair<Corr, IWikiPara>> paras = corrs.ConvertAll(x =>
+            {
+                WikiParaType type = x.CorrType.ToWikiPara();
+                IWikiPara? para = null;
+                if (type == WikiParaType.Text)
+                {
+                    para = textParas.Find(p => p.MatchedCorr(x));
+                }
+                else
+                {
+                    //throw new NotImplementedException();
+                }
+                para ??= new WikiParaPlaceholder(type);
+                return new KeyValuePair<Corr, IWikiPara>(x, para);
+            });
+
+            List<WikiParaDisplay> res = paras.ToDisplaySimpleList();
+            return res;
+        }
+        public bool InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
+        {
+            _wikiRepo.BeginTransaction();
+            var itsParas = GetWikiParaCorrs(wikiId);
+            EnsureParaOrderDense(itsParas);
+            var moveBackwards = itsParas.FindAll(x => x.Order > afterOrder);
+            moveBackwards.ForEach(x => x.Order++);
+            if (!BuildParaCorr(wikiId, type, afterOrder + 1,out errmsg))
+                return false;
+            EnsureParaOrderDense(itsParas);
+            if (!_corrRepo.TryEditRange(itsParas, out errmsg))
+                return false;
+            _wikiRepo.CommitTransaction();
+
+            return true;
+        }
+        public bool SetParaOrders(int wikiId, List<int> OrderedParaIds, out string? errmsg)
+        {
+            var itsParas = GetWikiParaCorrs(wikiId);
+            EnsureParaOrderDense(itsParas);
+            List<Corr> orderedParaCorrs = new(itsParas.Count);
+            foreach (int id in OrderedParaIds)
+            {
+                var p = itsParas.Find(x => x.Id == id) ?? throw new Exception("在重设顺序时找不到指定id段落");
+                orderedParaCorrs.Add(p);
+            }
+            ResetOrder(orderedParaCorrs);
+            if (!_corrRepo.TryEditRange(orderedParaCorrs, out errmsg))
+                return false;
+            return true;
+        }
+        private static void EnsureParaOrderDense(List<Corr> corrs)
+        {
+            corrs.Sort((x, y) => x.Order - y.Order);
+            ResetOrder(corrs);
+        }
+        private static void ResetOrder(List<Corr> corrs)
+        {
+            for (int i = 0; i < corrs.Count; i++)
+                corrs[i].Order = i;
         }
         public static bool BasicInfoCheck(WikiItem w, out string? errmsg)
         {
@@ -31,31 +131,6 @@ namespace FCloud3.Services.Wiki
             }
             return true;
         }
-
-        public WikiItem? GetById(int id)
-        {
-            return _wikiRepo.GetById(id);
-        }
-
-        public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId,int count=int.MaxValue)
-        {
-            return _wikiRepo.GetWikiParaDisplays(wikiId, 0, count);
-        } 
-
-        public List<WikiParaDisplay>? InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
-        {
-            if (!_wikiRepo.InsertPara(wikiId, afterOrder, type, out errmsg))
-                return null;
-            return GetWikiParaDisplays(wikiId);
-        }
-
-        public List<WikiParaDisplay>? SetParaOrders(int wikiId, List<int> orderedParaIds,out string? errmsg)
-        {
-            if (!_wikiRepo.SetParaOrders(wikiId, orderedParaIds, out errmsg))
-                return null;
-            return GetWikiParaDisplays(wikiId);
-        }
-
         public bool TryAdd(int creator,string? title, out string? errmsg)
         {
             WikiItem w = new()
@@ -80,6 +155,9 @@ namespace FCloud3.Services.Wiki
                 return false;
             return true;
         }
-
+        public bool TryRemovePara(int id,out string? errmsg)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

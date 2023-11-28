@@ -36,8 +36,12 @@ namespace FCloud3.Repos.Models.TextSec
         }
         public static string? Brief(string? content)
         {
-            if(content is not null)
-                return content[..20];
+            if (content is not null)
+            {
+                if(content.Length>20)
+                    return content[..20];
+                return content;
+            }
             return null;
         }
     }
@@ -103,7 +107,7 @@ namespace FCloud3.Repos.Models.TextSec
                 return true;
             else
             {
-                errmsg = "修改标题失败";
+                errmsg = "修改内容失败";
                 return false;
             }
         }
