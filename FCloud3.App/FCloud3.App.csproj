@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FCloud3.HtmlGen\FCloud3.HtmlGen.csproj" />
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
     <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />
     <ProjectReference Include="..\FCloud3.Utils\FCloud3.Utils.csproj" />

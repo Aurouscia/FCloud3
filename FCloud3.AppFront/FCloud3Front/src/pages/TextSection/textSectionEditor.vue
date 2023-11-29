@@ -15,6 +15,35 @@ const data = ref<TextSection>({
     Content:"",
     Title:""
 });
+const previewContent = ref<string>();
+
+async function togglePreview(){
+    if(previewOn.value){
+        previewOn.value=false;
+    }else{
+        previewOn.value=true;
+        contentInput();
+    }
+}
+var timer:number=0;
+//var lastInputTime:number=0;
+const refreshThrs=750;
+async function contentInput(){
+    if(!previewContent.value){
+        previewContent.value="加载中..."
+    }
+    window.clearTimeout(timer);
+    timer = window.setTimeout(refreshPreview,refreshThrs);
+}
+async function refreshPreview() {
+    if(!previewOn.value){
+        return;
+    }
+    const res = await api.textSection.preview(data.value.Content,pop.value.show);
+    if(res){
+        previewContent.value = res.HtmlSource;
+    }
+}
 
 async function replaceTitle() {
     const val = data.value.Title;
@@ -43,7 +72,7 @@ onMounted(async()=>{
 <template>
 <div class="topbar">
     <div>
-        <button @click="previewOn=!previewOn">
+        <button @click="togglePreview">
             {{ previewOn?"预览开":"预览关" }}
         </button>
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
@@ -55,13 +84,10 @@ onMounted(async()=>{
     </div>
 </div>
 <div v-if="data" class="background">
-    <div class="preview" v-show="previewOn">
-        {{ data.Content }}
+    <div class="preview" v-show="previewOn" v-html="previewContent">
     </div>
-    <div class="write" :class="{writeNoPreview:!previewOn}">
-        <textarea v-model="data.Content" placeholder="请输入内容">
+        <textarea v-model="data.Content" placeholder="请输入内容" @input="contentInput" class="write" :class="{writeNoPreview:!previewOn}">
         </textarea>
-    </div>
 </div>
 </template>
 
@@ -71,48 +97,50 @@ onMounted(async()=>{
         width: 100vw;
         top: 50px;
         left: 0px;
-        height: calc(100vh - 50px);
+        bottom: 0px;
 
         display: flex;
         flex-wrap: wrap;
         justify-content:space-between;
+        align-items: center;
         overflow: hidden;
     }
     .preview{
-        width: 50vw;
+        width: calc(50vw - 20px);
         height: 100%;
-        font-size: 18px;
+        font-size: 16px;
         overflow-y: scroll;
         word-break: break-all;
+        padding: 10px;
     }
     .write{
-        width: 50vw;
-        height: 100%;
-    }
-    .write textarea{
-        width: 100%;
-        height: 100%;
+        width: calc(50vw - 20px);
+        height: calc(100% - 16px);
         resize:none;
         border: none !important;
-        font-size: 18px;
+        font-size: 16px;
         font-family:unset;
         overflow-y: scroll;
         word-break: break-all;
+        padding: 10px;
+        line-height: 25px;
+        background-color: #222;
+        color:white;
     }
-    .write textarea:focus{
-        border:none
+    .write:focus{
+        border:none !important
     }
     .writeNoPreview{
-        width: 100vw;
+        width: calc(100vw - 20px);
     }
     @media screen and (max-width:800px) {
         .preview{
-            width: 100vw;
-            height: 50%;
+            width: calc(100vw - 20px);
+            height: calc(50vh - 20px - 25px);
         }
         .write{
-            width: 100vw;
-            height: 50%;
+            width: calc(100vw - 20px);
+            height: calc(50vh - 20px);
         }
         .writeNoPreview{
             height: 100%;

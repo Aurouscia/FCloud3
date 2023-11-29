@@ -1,6 +1,6 @@
 import { popDelegate } from "../components/Pop.vue";
 import { User } from "../models/identities/user";
-import { TextSection } from "../models/textSection/textSection";
+import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
 import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
@@ -119,5 +119,14 @@ export class Api{
                 return res.data as boolean;
             }
         },
+        preview:async(content:string,pop:popDelegate)=>{
+            const res = await this.httpClient.send({
+                reletiveUrl:"/api/TextSection/Preview",
+                type:"postForm"
+            },{content:content},pop);
+            if(res.success){
+                return res.data as TextSectionPreviewResponse;
+            }
+        }
     }
 }

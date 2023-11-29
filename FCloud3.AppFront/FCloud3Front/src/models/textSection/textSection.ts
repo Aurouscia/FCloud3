@@ -3,3 +3,6 @@ export interface TextSection{
     Title:string,
     Content:string
 }
+export interface TextSectionPreviewResponse{
+    HtmlSource:string
+}
