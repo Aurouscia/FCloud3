@@ -111,11 +111,11 @@ namespace FCloud3.HtmlGen.Mechanics
                     layer--;
                 if (layer == 0)
                 {
-                    name = call.Substring(1, pointer - 1);
+                    name = call.Substring(1, pointer - 1).Trim();
                     if (pointer == call.Length - 1)
                         content = string.Empty;
                     else
-                        content = call.Substring(pointer + 1);
+                        content = call.Substring(pointer + 1).Trim();
                     return;
                 }
                 else
@@ -176,8 +176,8 @@ namespace FCloud3.HtmlGen.Mechanics
                         }
                     }
                 }
-                if (layer != 0)
-                    throw new Exception("本段内有未闭合'{'与'}'");
+                //if (layer != 0)
+                //    throw new Exception("未闭合'{'与'}'");
                 this.Frags.Add(new(sb.ToString(), false));
             }
             public class SplittedFrag

@@ -66,6 +66,7 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             //从标题等级最高（数字最小）开始找
             int targetLevel = lines.Where(x => x.Level != 0).Select(x => x.Level).Min();
+            int titleLevelOffset = _options.BlockParsingOptions.TitleLevelOffset;
 
             ElementCollection res = new();
 
@@ -81,7 +82,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     {
                         IHtmlable generated = Run(generating);
                         IHtmlable titleParsed = _inlineParser.Run(title);
-                        TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
+                        TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
                         res.Add(titledBlock);
                     }
                     else
@@ -101,7 +102,7 @@ namespace FCloud3.HtmlGen.Mechanics
             {
                 IHtmlable generated = Run(generating);
                 IHtmlable titleParsed = _inlineParser.Run(title);
-                TitledBlockElement titledBlock = new(titleParsed, targetLevel, generated);
+                TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
                 res.Add(titledBlock);
             }
             else

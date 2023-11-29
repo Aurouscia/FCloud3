@@ -198,7 +198,7 @@ namespace FCloud3.HtmlGen.Rules
     public class HtmlSepBlockRule: HtmlBlockRule
     {
         public const char aLineOfChar = '-';
-        public const string style = $".{SepElement.htmlClassName}:{{background-color:gray;height:2px;}}";
+        public const string style = $".{SepElement.htmlClassName}{{background-color:black;height:2px;margin:10px 0px 10px 0px}}";
         public HtmlSepBlockRule() : base(style: style) { }
         public override string Apply(IHtmlable content)
         {

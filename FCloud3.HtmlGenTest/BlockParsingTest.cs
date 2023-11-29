@@ -19,15 +19,18 @@ namespace FCloud3.HtmlGenTest
         public BlockParsingTest()
         {
             HtmlGenOptionsBuilder optionsBuilder = new(
-                templates: new(),
-                extraInlineRules: new(),
-                extraBlockRules: new()
-                {
-                    new HtmlPrefixBlockRule(
-                        ">","<div q>","</div>","引用"
-                    )
-                }
-            );
+                templateOptions: new(),
+                blockOptions: new HtmlGen.Options.SubOptions.BlockParsingOptions(
+                    blockRules:new()
+                    {
+                        new HtmlPrefixBlockRule(
+                            ">","<div q>","</div>","引用"
+                        )
+                    },
+                    titleLevelOffset:0
+                ),
+                inlineOptions:new()
+                );
             _options = optionsBuilder.GetOptions();
         }
         [TestMethod]
@@ -67,7 +70,7 @@ namespace FCloud3.HtmlGenTest
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p>##二级标题#2</p></div></div>")]
         [DataRow(
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n#red#",//看起来像是标题，但其实不是标题的东西
-            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p><span class=\"coloredBlock\" style=\"color:red\">cbk</span></p></div></div>")]
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p><span class=\"coloredBlock\" style=\"color:red;background-color:red\"></span></p></div></div>")]
         [DataRow(
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题2\n哼唧哼",
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题2</h2><div class=\"indent\"><p>哼唧哼</p></div></div>")]

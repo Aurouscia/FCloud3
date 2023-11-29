@@ -3,9 +3,11 @@ using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FCloud3.HtmlGen.Rules
 {
@@ -193,15 +195,32 @@ namespace FCloud3.HtmlGen.Rules
             int sepIndex = span.IndexOf(sep);
             if (sepIndex != -1)
             {
-                var marksWithOffset = new InlineMarkList(marks, sepIndex + 2);
                 string color = span[..sepIndex];
                 string text = span[(sepIndex + 2)..];
-                IHtmlable textParsed = inlineParser.SplitByMarks(text,marksWithOffset);
-                return new ColorTextElement(textParsed, color);
+
+                if (HtmlColor.TryFormalize(color, out string formalColor))
+                {
+                    var marksWithOffset = new InlineMarkList(marks, sepIndex + 2);
+                    IHtmlable textParsed = inlineParser.SplitByMarks(text, marksWithOffset);
+                    return new ColorTextElement(textParsed, formalColor);
+                }
+                else
+                {
+                    var marksWithOffset = new InlineMarkList(marks,-MarkLeft.Length);
+                    return inlineParser.SplitByMarks($"{MarkLeft}{span}{MarkRight}", marksWithOffset);
+                }
             }
             else
             {
-                return new ColorTextElement(span);
+                if (HtmlColor.TryFormalize(span, out string formalColor))
+                {
+                    return new ColorTextElement(formalColor);
+                }
+                else
+                {
+                    var marksWithOffset = new InlineMarkList(marks, -MarkLeft.Length);
+                    return inlineParser.SplitByMarks($"{MarkLeft}{span}{MarkRight}", marksWithOffset);
+                }
             }
         }
         public class ColorTextElement : InlineElement
@@ -210,25 +229,26 @@ namespace FCloud3.HtmlGen.Rules
             public IHtmlable Content { get; }
             public bool HaveText { get; }
             public string ClassName => HaveText ? classNameWhenText : classNameWhenEmpty;
+            public string Style => HaveText ? $"color:{Color}" : $"color:{Color};background-color:{Color}";
 
             public const string classNameWhenText = "coloredText";
             public const string classNameWhenEmpty = "coloredBlock";
             public ColorTextElement(IHtmlable content,string color) 
             {
-                Color = HtmlColor.Formalize(color.Trim());
+                Color = color;
                 Content = content;
                 HaveText = true;
             }
             public ColorTextElement(string color)
             {
-                Color = HtmlColor.Formalize(color.Trim());
-                Content = new TextElement("cbk");
+                Color = color;
+                Content = new EmptyElement();
                 HaveText = false;
             }
 
             public override string ToHtml()
             {
-                return $"<span class=\"{ClassName}\" style=\"color:{Color}\">{Content.ToHtml()}</span>";
+                return $"<span class=\"{ClassName}\" style=\"{Style}\">{Content.ToHtml()}</span>";
             }
         }
     }
@@ -250,7 +270,7 @@ namespace FCloud3.HtmlGen.Rules
                 new HtmlCustomInlineRule("***","***","<u>","</u>","下划线"),
                 new HtmlCustomInlineRule("****","****","<s>","</s>","删除线"),
 
-                new HtmlCustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black}"),
+                new HtmlCustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
                 new HtmlCustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),
                 new HtmlColorTextRule(),
                 new HtmlCustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标"),

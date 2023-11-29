@@ -23,6 +23,8 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
+            if (input.Length > 10000)
+                return "单段字数过多，请分段";
             IHtmlable result = _blockParser.Run(input);
             if (!putCommon)
                 return result.ToHtml();
@@ -38,7 +40,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public string Styles()
         {
             var allStyles = _options.UsedRulesLog.Select(x => x.GetStyles()).ToList();
-            if (allStyles.Count == 0 || allStyles.All(x=>x==""))
+            if (allStyles.Count == 0 || allStyles.All(s => s == ""))
                 return "";
             allStyles = allStyles.Distinct().ToList();
             return HtmlLabel.Style(string.Concat(allStyles));

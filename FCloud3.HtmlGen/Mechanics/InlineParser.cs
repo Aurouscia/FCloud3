@@ -43,7 +43,7 @@ namespace FCloud3.HtmlGen.Mechanics
             }
             catch(Exception ex)
             {
-                return new ErrorElement($"行内解析出错:{ex.Message}");
+                return new ErrorElement($"{ex.Message}");
             }
         }
 
@@ -157,6 +157,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 var text = new TextElement(input);
                 return text;
             }
+            marks.Remove(first);
             ElementCollection res = new();
 
             int middleStartIndex = first.LeftIndex + first.LeftMarkLength;

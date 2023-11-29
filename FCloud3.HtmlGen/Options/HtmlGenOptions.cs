@@ -117,6 +117,17 @@ namespace FCloud3.HtmlGen.Options
             AutoReplaceOptions = autoReplaceOptions ?? new();
             ImplantsHandleOptions = implantsHandleOptions ?? new();
         }
+        public HtmlGenOptionsBuilder()
+        {
+            ExtraTemplates = new();
+            ExtraInlineRules = new();
+            ExtraBlockRules = new();
+            InlineParsingOptions = new();
+            BlockParsingOptions = new();
+            TemplateParsingOptions = new();
+            AutoReplaceOptions = new();
+            ImplantsHandleOptions = new();
+        }
         public HtmlGenOptions GetOptions()
         {
             //谨慎考虑顺序问题
