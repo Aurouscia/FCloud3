@@ -91,12 +91,17 @@ namespace FCloud3.Services.Wiki
 
             return true;
         }
-        public bool SetParaOrders(int wikiId, List<int> OrderedParaIds, out string? errmsg)
+        public bool SetParaOrders(int wikiId, List<int> orderedParaIds, out string? errmsg)
         {
             var itsParas = GetWikiParaCorrs(wikiId);
             EnsureParaOrderDense(itsParas);
+            if (orderedParaIds.Count < itsParas.Count)
+            {
+                errmsg = "数据不一致，请刷新页面后重试";
+                return false;
+            }
             List<Corr> orderedParaCorrs = new(itsParas.Count);
-            foreach (int id in OrderedParaIds)
+            foreach (int id in orderedParaIds)
             {
                 var p = itsParas.Find(x => x.Id == id) ?? throw new Exception("在重设顺序时找不到指定id段落");
                 orderedParaCorrs.Add(p);
@@ -155,9 +160,30 @@ namespace FCloud3.Services.Wiki
                 return false;
             return true;
         }
-        public bool TryRemovePara(int id,out string? errmsg)
+        public bool TryRemovePara(int id, int corrId, out string? errmsg)
         {
-            throw new NotImplementedException();
+            var paras = GetWikiParaCorrs(id);
+            var target = paras.Find(x => x.Id == corrId);
+            if(target is null)
+            {
+                errmsg = "未找到指定Id的目标段落";
+                return false;
+            }
+            paras.Remove(target);
+            _corrRepo.BeginTransaction();
+            EnsureParaOrderDense(paras);
+            if (!_corrRepo.TryEditRange(paras, out errmsg))
+            {
+                _corrRepo.RollbackTransaction();
+                return false;
+            }
+            if (!_corrRepo.TryRemove(target, out errmsg))
+            {
+                _corrRepo.RollbackTransaction();
+                return false;
+            }
+            _corrRepo.CommitTransaction();
+            return true;
         }
     }
 }

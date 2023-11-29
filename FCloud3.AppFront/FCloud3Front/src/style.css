@@ -66,6 +66,9 @@ button.queryAdjust{
 button:hover {
   cursor: pointer;
 }
+button.danger{
+  background-color: red;
+}
 
 .section{
   margin: 10px;

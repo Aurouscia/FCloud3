@@ -113,6 +113,17 @@ async function EnterEdit(corrId:number)
         return;
     }
 }
+async function RemovePara(corrId:number){
+    const target = paras.value.find(x=>x.CorrId == corrId);
+    if(!target){return;}
+    if(window.confirm(`确定要将[${target.Title}]从本词条移除`)){
+        const resp = await api.wiki.removePara({
+            id:props.wikiId,
+            paraId:corrId,
+        },pop.value.show);
+        refresh(resp);
+    }
+}
 
 async function Load(){
     const resp = await api.wiki.loadSimple(props.wikiId,pop.value.show);
@@ -167,7 +178,7 @@ onUnmounted(()=>{
                 <Functions x-align="right">
                     <button @click="EnterEdit(p.CorrId)">编辑</button>
                     <button>指定已有</button>
-                    <button>移除</button>
+                    <button @click="RemovePara(p.CorrId)" class="danger">移除</button>
                 </Functions>
             </div>
         </div>

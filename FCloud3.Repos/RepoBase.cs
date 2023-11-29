@@ -19,6 +19,10 @@ namespace FCloud3.Repos
         {
             _context.Database.CommitTransaction();
         }
+        public void RollbackTransaction()
+        {
+            _context.Database.RollbackTransaction();
+        }
         public virtual T? GetById(int id)
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault();
@@ -94,7 +98,7 @@ namespace FCloud3.Repos
                 errmsg = $"试图向数据库删除空{nameof(T)}对象";
                 return false;
             }
-            if (TryRemoveCheck(item, out errmsg))
+            if (!TryRemoveCheck(item, out errmsg))
                 return false;
             item.Deleted = true;
             _context.Update(item);

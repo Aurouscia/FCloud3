@@ -80,6 +80,15 @@ export class Api{
             if(res.success){
                 return res.data as Array<WikiPara>
             }
+        },
+        removePara:async(req:{id:number,paraId:number},pop:popDelegate)=>{
+            const res = await this.httpClient.send({
+                reletiveUrl:"/api/WikiItem/RemovePara",
+                type:"postForm"
+            },req,pop,"成功删除")
+            if(res.success){
+                return res.data as Array<WikiPara>
+            }
         }
     }
     textSection = {

@@ -64,6 +64,15 @@ namespace FCloud3.App.Controllers.Wiki
             var newList = _wikiService.GetWikiParaDisplays(model.Id);
             return this.ApiResp(newList);
         }
+        public IActionResult RemovePara(int id,int paraId)
+        {
+            if (id == 0 || paraId == 0)
+                return BadRequest();
+            if (!_wikiService.TryRemovePara(id, paraId, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            var newList = _wikiService.GetWikiParaDisplays(id);
+            return this.ApiResp(newList);
+        }
 
         public class WikiItemComModel
         {
