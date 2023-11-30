@@ -23,7 +23,8 @@ namespace FCloud3.Utils.Settings
                 if (sections.Any() && Configuration is not null)
                 {
                     string key = string.Join(':', sections);
-                    return Configuration[key];
+                    string? res = Configuration[key];
+                    return res;
                 }
             }
             catch { }

@@ -366,3 +366,7 @@ FodyWeavers.xsd
 *.db
 *.db-shm
 *.db-wal
+
+# Private Settings Files
+/FCloud3.App/appsettings.Production.json
+/FCloud3.App/appsettings.Development.json
