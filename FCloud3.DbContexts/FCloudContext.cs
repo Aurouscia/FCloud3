@@ -1,7 +1,7 @@
-﻿using FCloud3.Entities.DbModels.Corr;
-using FCloud3.Entities.DbModels.Identities;
-using FCloud3.Entities.DbModels.TextSec;
-using FCloud3.Entities.DbModels.Wiki;
+﻿using FCloud3.Entities.Corr;
+using FCloud3.Entities.Identities;
+using FCloud3.Entities.TextSection;
+using FCloud3.Entities.Wiki;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.DbContexts

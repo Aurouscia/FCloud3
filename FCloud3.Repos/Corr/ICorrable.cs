@@ -1,6 +1,6 @@
-﻿using FCloud3.Entities.DbModels.Corr;
+﻿using FCloud3.Entities.Corr;
 
-namespace FCloud3.Repos.Models.Cor
+namespace FCloud3.Repos.Cor
 {
     public interface ICorrable
     {

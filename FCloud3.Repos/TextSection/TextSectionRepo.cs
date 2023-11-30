@@ -1,12 +1,12 @@
-﻿using FCloud3.Entities.DbModels;
-using FCloud3.Entities.DbModels.Corr;
-using FCloud3.Entities.DbModels.TextSec;
+﻿using FCloud3.Entities;
 using FCloud3.DbContexts;
-using FCloud3.Repos.Models.Cor;
-using FCloud3.Repos.Models.Wiki;
 using Microsoft.EntityFrameworkCore;
+using FCloud3.Entities.TextSection;
+using FCloud3.Entities.Corr;
+using FCloud3.Repos.Wiki;
+using FCloud3.Repos.Cor;
 
-namespace FCloud3.Repos.Models.TextSec
+namespace FCloud3.Repos.TextSec
 {
     //public class TextSection : IDbModel, IWikiPara, ICorrable
     //{
@@ -85,7 +85,7 @@ namespace FCloud3.Repos.Models.TextSec
             return Existing.Where(x => textParaIds.Contains(x.Id)).GetMetaData().ToList();
         }
 
-        public bool TryChangeTitle(int id,string newTitle,out string? errmsg)
+        public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
         {
             errmsg = null;
             int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Title, newTitle));
@@ -98,7 +98,7 @@ namespace FCloud3.Repos.Models.TextSec
             }
         }
 
-        public bool TryChangeContent(int id,string newContent,out string? errmsg)
+        public bool TryChangeContent(int id, string newContent, out string? errmsg)
         {
             errmsg = null;
             int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Content, newContent));

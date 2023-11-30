@@ -1,6 +1,6 @@
-﻿using FCloud3.Entities.DbModels.Corr;
+﻿using FCloud3.Entities.Corr;
 
-namespace FCloud3.Repos.Models.Wiki
+namespace FCloud3.Repos.Wiki
 {
     public interface IWikiPara
     {
@@ -10,7 +10,7 @@ namespace FCloud3.Repos.Models.Wiki
 
     public abstract class WikiPara : Corr, IWikiPara
     {
-        public WikiParaType ParaType => base.CorrType.ToWikiPara();
+        public WikiParaType ParaType => CorrType.ToWikiPara();
         public abstract WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki);
         public abstract WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki);
     }

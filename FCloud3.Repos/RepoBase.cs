@@ -1,5 +1,5 @@
 ﻿using FCloud3.DbContexts;
-using FCloud3.Entities.DbModels;
+using FCloud3.Entities;
 
 namespace FCloud3.Repos
 {

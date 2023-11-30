@@ -1,6 +1,6 @@
 ﻿using FCloud3.App.Services;
-using FCloud3.Entities.DbModels.Wiki;
-using FCloud3.Repos.Models.Wiki;
+using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Wiki;
 using FCloud3.Services.Wiki;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

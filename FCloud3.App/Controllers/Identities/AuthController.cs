@@ -7,9 +7,9 @@ using System.Text;
 
 using FCloud3.Services.Identities;
 using FCloud3.App.Services;
-using FCloud3.Repos.Models.Identities;
+using FCloud3.Repos.Identities;
 using FCloud3.Utils.Settings;
-using FCloud3.Entities.DbModels.Identities;
+using FCloud3.Entities.Identities;
 
 namespace FCloud3.App.Controllers
 {

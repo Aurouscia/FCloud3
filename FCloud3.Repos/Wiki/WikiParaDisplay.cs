@@ -1,12 +1,12 @@
-﻿using FCloud3.Entities.DbModels.Corr;
-using FCloud3.Repos.Models.Cor;
+﻿using FCloud3.Entities.Corr;
+using FCloud3.Repos.Cor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos.Models.Wiki
+namespace FCloud3.Repos.Wiki
 {
     public class WikiParaDisplay
     {
@@ -25,7 +25,7 @@ namespace FCloud3.Repos.Models.Wiki
         /// </summary>
         public int Order { get; set; }
         public WikiParaType Type { get; set; }
-        public WikiParaDisplay(Corr corr, int underlyingId, string? title,string? content,WikiParaType type)
+        public WikiParaDisplay(Corr corr, int underlyingId, string? title, string? content, WikiParaType type)
         {
             CorrId = corr.Id;
             Order = corr.Order;
@@ -58,12 +58,12 @@ namespace FCloud3.Repos.Models.Wiki
 
         public WikiParaDisplay ToDisplay(Corr corr)
         {
-            return new WikiParaDisplay(corr,0 ,"新段落","",Type);
+            return new WikiParaDisplay(corr, 0, "新段落", "", Type);
         }
 
         public WikiParaDisplay ToDisplaySimple(Corr corr)
         {
-            return new WikiParaDisplay(corr,0, "新段落", "", Type);
+            return new WikiParaDisplay(corr, 0, "新段落", "", Type);
         }
     }
 }

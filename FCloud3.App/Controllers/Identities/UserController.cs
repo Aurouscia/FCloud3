@@ -1,6 +1,6 @@
 ﻿using FCloud3.App.Services;
-using FCloud3.Entities.DbModels.Identities;
-using FCloud3.Repos.Models.Identities;
+using FCloud3.Entities.Identities;
+using FCloud3.Repos.Identities;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

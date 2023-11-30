@@ -1,4 +1,4 @@
-﻿namespace FCloud3.Entities.DbModels.Corr
+﻿namespace FCloud3.Entities.Corr
 {
     public class Corr : IDbModel
     {

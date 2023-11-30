@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using FCloud3.Repos.Models.Identities;
-using FCloud3.Repos.Models.Wiki;
-using FCloud3.Repos.Models.Cor;
-using FCloud3.Repos.Models.TextSec;
 using FCloud3.DbContexts;
+using FCloud3.Repos.TextSec;
+using FCloud3.Repos.Wiki;
+using FCloud3.Repos.Cor;
+using FCloud3.Repos.Identities;
 
 namespace FCloud3.Repos
 {

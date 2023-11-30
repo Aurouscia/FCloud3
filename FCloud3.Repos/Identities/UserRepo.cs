@@ -1,7 +1,7 @@
 ﻿using FCloud3.DbContexts;
-using FCloud3.Entities.DbModels.Identities;
+using FCloud3.Entities.Identities;
 
-namespace FCloud3.Repos.Models.Identities
+namespace FCloud3.Repos.Identities
 {
     public class UserRepo : RepoBase<User>
     {

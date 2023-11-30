@@ -1,7 +1,7 @@
-﻿using FCloud3.Entities.DbModels.Wiki;
-using FCloud3.DbContexts;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Wiki;
 
-namespace FCloud3.Repos.Models.Wiki
+namespace FCloud3.Repos.Wiki
 {
     public class WikiItemRepo : RepoBase<WikiItem>
     {

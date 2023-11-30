@@ -1,13 +1,10 @@
-﻿using FCloud3.Entities.DbModels;
-
-namespace FCloud3.Entities.DbModels.TextSec
+﻿namespace FCloud3.Entities.Wiki
 {
-    public class TextSection : IDbModel
+    public class WikiItem : IDbModel
     {
         public int Id { get; set; }
         public string? Title { get; set; }
-        public string? Content { get; set; }
-        public string? ContentBrief { get; set; }
+        public int OwnerUserId { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

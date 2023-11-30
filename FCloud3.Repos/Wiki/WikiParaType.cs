@@ -1,22 +1,23 @@
-﻿using FCloud3.Entities.DbModels.Corr;
-using FCloud3.Repos.Models.Cor;
+﻿using FCloud3.Entities.Corr;
+using FCloud3.Repos.Cor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos.Models.Wiki
+namespace FCloud3.Repos.Wiki
 {
     public enum WikiParaType
     {
         Text = 0,
         File = 1,
-        Table = 2 
+        Table = 2
     }
     public static class WikiParaTypeUtil
     {
-        public static List<CorrType> WikiParaCorrTypes {
+        public static List<CorrType> WikiParaCorrTypes
+        {
             get
             {
                 return new()
@@ -26,18 +27,18 @@ namespace FCloud3.Repos.Models.Wiki
                     CorrType.TableItem_WikiItem
                 };
             }
-        } 
+        }
         public static WikiParaType ToWikiPara(this CorrType corr)
         {
-            if(corr == CorrType.TextSection_WikiItem)
+            if (corr == CorrType.TextSection_WikiItem)
             {
                 return WikiParaType.Text;
             }
-            else if(corr == CorrType.FileItem_WikiItem)
+            else if (corr == CorrType.FileItem_WikiItem)
             {
                 return WikiParaType.File;
             }
-            else if(corr == CorrType.TableItem_WikiItem)
+            else if (corr == CorrType.TableItem_WikiItem)
             {
                 return WikiParaType.Table;
             }

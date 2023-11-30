@@ -1,4 +1,4 @@
-﻿namespace FCloud3.Entities.DbModels.Identities
+﻿namespace FCloud3.Entities.Identities
 {
     public class User : IDbModel
     {
