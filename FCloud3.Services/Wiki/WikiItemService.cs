@@ -3,7 +3,6 @@ using FCloud3.Entities.DbModels.Wiki;
 using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.TextSec;
 using FCloud3.Repos.Models.Wiki;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿using FCloud3.Repos.DbContexts;
+﻿using FCloud3.DbContexts;
 using FCloud3.Entities.DbModels.Identities;
 
 namespace FCloud3.Repos.Models.Identities

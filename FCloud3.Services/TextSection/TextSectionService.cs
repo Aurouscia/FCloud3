@@ -1,4 +1,5 @@
 ﻿using FCloud3.Entities.DbModels.Corr;
+using FCloud3.Entities.DbModels.TextSec;
 using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.Identities;
 using FCloud3.Repos.Models.TextSec;

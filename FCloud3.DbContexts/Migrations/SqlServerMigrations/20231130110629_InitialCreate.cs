@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FCloud3.Repos.Migrations.SqlServerMigrations
+namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

@@ -25,7 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.HtmlGenTest", "FClo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.Entities", "2.Entities", "{6B89FF1F-81C9-4A31-B491-94638D69B54A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCloud3.Entities", "FCloud3.Entities\FCloud3.Entities.csproj", "{B691443B-9BF1-44D1-AF04-EA203A653C0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Entities", "FCloud3.Entities\FCloud3.Entities.csproj", "{B691443B-9BF1-44D1-AF04-EA203A653C0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCloud3.DbContexts", "FCloud3.DbContexts\FCloud3.DbContexts.csproj", "{24968350-BC0E-477C-AF4E-2D7D42596BC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{B691443B-9BF1-44D1-AF04-EA203A653C0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B691443B-9BF1-44D1-AF04-EA203A653C0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B691443B-9BF1-44D1-AF04-EA203A653C0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24968350-BC0E-477C-AF4E-2D7D42596BC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24968350-BC0E-477C-AF4E-2D7D42596BC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24968350-BC0E-477C-AF4E-2D7D42596BC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24968350-BC0E-477C-AF4E-2D7D42596BC2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{7483FF72-6F71-4EAA-B5C9-971F34814A9D} = {C5668509-3178-4C88-926B-011963AD6D5F}
 		{838DB910-D449-4CB9-BE0F-752AF69E62C3} = {C5668509-3178-4C88-926B-011963AD6D5F}
 		{B691443B-9BF1-44D1-AF04-EA203A653C0F} = {6B89FF1F-81C9-4A31-B491-94638D69B54A}
+		{24968350-BC0E-477C-AF4E-2D7D42596BC2} = {6B89FF1F-81C9-4A31-B491-94638D69B54A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7861C67-D850-476A-A2A5-64450D45439D}

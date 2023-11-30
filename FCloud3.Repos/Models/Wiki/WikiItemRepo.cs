@@ -1,5 +1,5 @@
 ﻿using FCloud3.Entities.DbModels.Wiki;
-using FCloud3.Repos.DbContexts;
+using FCloud3.DbContexts;
 
 namespace FCloud3.Repos.Models.Wiki
 {

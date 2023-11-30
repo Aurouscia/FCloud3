@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos.DbContexts
+namespace FCloud3.DbContexts
 {
     public class FCloudSqlServerContext : FCloudContext
     {

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Mechanics;
+using FCloud3.Entities.DbModels.TextSec;
 
 namespace FCloud3.App.Controllers.TextSec
 {
