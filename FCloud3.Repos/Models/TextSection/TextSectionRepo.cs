@@ -1,50 +1,53 @@
-﻿using FCloud3.Repos.DB;
+﻿using FCloud3.Entities.DbModels;
+using FCloud3.Entities.DbModels.Corr;
+using FCloud3.Entities.DbModels.TextSec;
+using FCloud3.Repos.DbContexts;
 using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.Wiki;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Models.TextSec
 {
-    public class TextSection : IDbModel, IWikiPara, ICorrable
-    {
-        public int Id { get; set; }
-        public string? Title { get; set; }
-        public string? Content { get; set; }
-        public string? ContentBrief { get; set; }
+    //public class TextSection : IDbModel, IWikiPara, ICorrable
+    //{
+    //    public int Id { get; set; }
+    //    public string? Title { get; set; }
+    //    public string? Content { get; set; }
+    //    public string? ContentBrief { get; set; }
 
-        public int CreatorUserId { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Updated { get; set; }
-        public bool Deleted { get; set; }
+    //    public int CreatorUserId { get; set; }
+    //    public DateTime Created { get; set; }
+    //    public DateTime Updated { get; set; }
+    //    public bool Deleted { get; set; }
 
-        public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
-        {
-            return new WikiParaDisplay(corrWithCurrentWiki, Id,Title,Content,WikiParaType.Text);
-        }
-        public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
-        {
-            return new WikiParaDisplay(corrWithCurrentWiki, Id,Title, ContentBrief, WikiParaType.Text);
-        }
-        public bool MatchedCorr(Corr corr)
-        {
-            if (corr.CorrType == CorrType.TextSection_WikiItem)
-            {
-                if (corr.A == Id)
-                    return true;
-            }
-            return false;
-        }
-        public static string? Brief(string? content)
-        {
-            if (content is not null)
-            {
-                if(content.Length>20)
-                    return content[..20];
-                return content;
-            }
-            return null;
-        }
-    }
+    //    public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
+    //    {
+    //        return new WikiParaDisplay(corrWithCurrentWiki, Id,Title,Content,WikiParaType.Text);
+    //    }
+    //    public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
+    //    {
+    //        return new WikiParaDisplay(corrWithCurrentWiki, Id,Title, ContentBrief, WikiParaType.Text);
+    //    }
+    //    public bool MatchedCorr(Corr corr)
+    //    {
+    //        if (corr.CorrType == CorrType.TextSection_WikiItem)
+    //        {
+    //            if (corr.A == Id)
+    //                return true;
+    //        }
+    //        return false;
+    //    }
+    //    public static string? Brief(string? content)
+    //    {
+    //        if (content is not null)
+    //        {
+    //            if(content.Length>20)
+    //                return content[..20];
+    //            return content;
+    //        }
+    //        return null;
+    //    }
+    //}
 
     public class TextSectionRepo : RepoBase<TextSection>
     {
@@ -100,16 +103,17 @@ namespace FCloud3.Repos.Models.TextSec
             errmsg = null;
             int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Content, newContent));
 
-            string? brief = TextSection.Brief(newContent);
-            Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.ContentBrief, brief));
+            throw new NotImplementedException();
+            //string? brief = TextSection.Brief(newContent);
+            //Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.ContentBrief, brief));
 
-            if (changed == 1)
-                return true;
-            else
-            {
-                errmsg = "修改内容失败";
-                return false;
-            }
+            //if (changed == 1)
+            //    return true;
+            //else
+            //{
+            //    errmsg = "修改内容失败";
+            //    return false;
+            //}
         }
     }
 

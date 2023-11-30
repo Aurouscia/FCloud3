@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos.Models.Identities;
+﻿using FCloud3.Entities.DbModels.Identities;
+using FCloud3.Repos.Models.Identities;
 using FCloud3.Utils.Utils.Cryptography;
 using System.Text.RegularExpressions;
 

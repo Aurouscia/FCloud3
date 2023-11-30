@@ -1,25 +1,8 @@
-﻿using FCloud3.Repos.DB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FCloud3.Repos.DbContexts;
+using FCloud3.Entities.DbModels.Identities;
 
 namespace FCloud3.Repos.Models.Identities
 {
-    public class User : IDbModel
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? PwdMd5 { get; set; }
-        public string? AvatarFileName { get; set; }
-
-        public int CreatorUserId { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Updated { get; set; }
-        public bool Deleted { get; set; }
-    }
-
     public class UserRepo : RepoBase<User>
     {
         public UserRepo(FCloudContext context) : base(context)

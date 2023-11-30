@@ -1,23 +1,25 @@
 using FCloud3.Utils.Utils;
-using FCloud3.Utils.Utils.Settings;
+using FCloud3.Utils.Settings;
 using FCloud3.Repos;
 using FCloud3.App.Services;
 using FCloud3.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//读取配置文件
-SettingsAccessor<AppSettingsModel> settings = new();
+//读取配置文件并存入AppSettings静态类
+_ = new SettingsHelper(builder.Configuration);
 
 //注册服务容器
-builder.Services.AddControllersWithViews();
 
-builder.Services.AddUtils(settings);
-builder.Services.AddRepos(settings);
+//添加数据库读写功能
+builder.Services.AddRepos();
+//添加业务功能
 builder.Services.AddServices();
-
+//添加app本身的功能，例如Controller和用户身份
 builder.Services.AddAppServices();
-builder.Services.AddJwtService(settings);
+//添加jwt鉴权(authentication)
+builder.Services.AddJwtService();
+
 string localVueCors = "localVueCors";
 builder.Services.AddCors(options =>
 {
@@ -37,8 +39,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 //配置请求管道
-app.UseExceptionHandler("/Error");
-
 app.UseCors(localVueCors);
 
 app.UseFileServer();

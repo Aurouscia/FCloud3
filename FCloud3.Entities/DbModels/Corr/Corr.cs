@@ -1,11 +1,4 @@
-﻿using FCloud3.Repos.DB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FCloud3.Repos.Models.Cor
+﻿namespace FCloud3.Entities.DbModels.Corr
 {
     public class Corr : IDbModel
     {
@@ -29,11 +22,5 @@ namespace FCloud3.Repos.Models.Cor
         TextSection_WikiItem = 21,
         FileItem_WikiItem = 22,
         TableItem_WikiItem = 23
-    }
-    public class CorrRepo : RepoBase<Corr>
-    {
-        public CorrRepo(FCloudContext context) : base(context)
-        {
-        }
     }
 }

@@ -1,5 +1,5 @@
-﻿using FCloud3.Repos.DB;
-using Microsoft.EntityFrameworkCore;
+﻿using FCloud3.Repos.DbContexts;
+using FCloud3.Entities.DbModels;
 
 namespace FCloud3.Repos
 {

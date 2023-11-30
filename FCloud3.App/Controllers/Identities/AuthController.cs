@@ -8,7 +8,8 @@ using System.Text;
 using FCloud3.Services.Identities;
 using FCloud3.App.Services;
 using FCloud3.Repos.Models.Identities;
-using FCloud3.Utils.Utils.Settings;
+using FCloud3.Utils.Settings;
+using FCloud3.Entities.DbModels.Identities;
 
 namespace FCloud3.App.Controllers
 {
@@ -16,13 +17,13 @@ namespace FCloud3.App.Controllers
     {
         private readonly UserService _userService;
         private readonly HttpUserInfoService _userInfo;
-        private readonly JwtInfoProvider _jwtInfo;
+        //private readonly JwtInfoProvider _jwtInfo;
 
-        public AuthController(UserService userService, HttpUserInfoService userInfo, JwtInfoProvider jwtInfo)
+        public AuthController(UserService userService, HttpUserInfoService userInfo)//, JwtInfoProvider jwtInfo)
         {
             _userService = userService;
             _userInfo = userInfo;
-            _jwtInfo = jwtInfo;
+            //_jwtInfo = jwtInfo;
         }
         public IActionResult Login(string? userName, string? password)
         {
@@ -41,8 +42,8 @@ namespace FCloud3.App.Controllers
                 Name = "Au"
             };
 
-            string domain = _jwtInfo.GetDomain();
-            string secret = _jwtInfo.GetSecretKey();
+            string domain = AppSettings.Jwt.Domain ?? throw new Exception("缺少配置[Jwt:Domain]");
+            string secret = AppSettings.Jwt.SecretKey ?? throw new Exception("缺少配置[Jwt:Secret]");
             int expHours = 72;
             var claims = new[]
             {

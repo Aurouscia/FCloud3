@@ -1,4 +1,6 @@
-﻿using FCloud3.Repos.Models.Cor;
+﻿using FCloud3.Entities.DbModels.Corr;
+using FCloud3.Entities.DbModels.Wiki;
+using FCloud3.Repos.Models.Cor;
 using FCloud3.Repos.Models.TextSec;
 using FCloud3.Repos.Models.Wiki;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +53,10 @@ namespace FCloud3.Services.Wiki
         }
         public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId, int start = 0, int count = int.MaxValue)
         {
+            if (!_wikiRepo.Existing.Any(x => x.Id == wikiId))
+            {
+                throw new Exception("找不到指定id的wiki");
+            }
             var corrs = GetWikiParaCorrs(wikiId, start, count);
             EnsureParaOrderDense(corrs);
 

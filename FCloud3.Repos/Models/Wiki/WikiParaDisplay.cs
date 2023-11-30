@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos.Models.Cor;
+﻿using FCloud3.Entities.DbModels.Corr;
+using FCloud3.Repos.Models.Cor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,11 +37,11 @@ namespace FCloud3.Repos.Models.Wiki
     }
     public static class WikiParaDisplayListConverter
     {
-        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<Cor.Corr, IWikiPara>> para)
+        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<Corr, IWikiPara>> para)
         {
             return para.ConvertAll(x =>
             {
-                Cor.Corr paraCorr = x.Key;
+                Corr paraCorr = x.Key;
                 IWikiPara paraEntity = x.Value;
                 WikiParaDisplay display = paraEntity.ToDisplaySimple(paraCorr);
                 return display;

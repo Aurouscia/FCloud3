@@ -1,4 +1,4 @@
-﻿using FCloud3.Utils.Utils.Settings;
+﻿using FCloud3.Utils.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -11,12 +11,15 @@ namespace FCloud3.App.Services
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped<HttpUserInfoService>();
+            services.AddControllers(options => {
+                options.Filters.Add<ApiExceptionFilter>();
+            });
             return services;
         }
-        public static IServiceCollection AddJwtService(this IServiceCollection services, SettingsAccessor<AppSettingsModel> settings)
+        public static IServiceCollection AddJwtService(this IServiceCollection services)
         {
-            string domain = settings.Get(x => x.SiteInfo?.Domain) ?? "域名未配置";
-            string jwtKey = settings.Get(x => x.SiteInfo?.JwtSecretKey) ?? "jwtKey未配置";
+            string domain = AppSettings.Jwt.Domain ?? "Jwt域名未配置";
+            string jwtKey = AppSettings.Jwt.SecretKey ?? "jwtKey未配置";
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
                     options.TokenValidationParameters = new TokenValidationParameters

@@ -3,21 +3,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace FCloud3.Repos.Migrations
+namespace FCloud3.Repos.Migrations.SqlServerMigrations
 {
     /// <inheritdoc />
-    public partial class AddWikiItemTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "CreatorUserId",
-                table: "Users",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
-
             migrationBuilder.CreateTable(
                 name: "Corrs",
                 columns: table => new
@@ -39,6 +32,44 @@ namespace FCloud3.Repos.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TextSections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ContentBrief = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatorUserId = table.Column<int>(type: "int", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Updated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TextSections", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PwdMd5 = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AvatarFileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatorUserId = table.Column<int>(type: "int", nullable: false),
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Updated = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WikiItems",
                 columns: table => new
                 {
@@ -55,25 +86,6 @@ namespace FCloud3.Repos.Migrations
                 {
                     table.PrimaryKey("PK_WikiItems", x => x.Id);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "WikiTextParas",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ContentBrief = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CreatorUserId = table.Column<int>(type: "int", nullable: false),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Updated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Deleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WikiTextParas", x => x.Id);
-                });
         }
 
         /// <inheritdoc />
@@ -83,14 +95,13 @@ namespace FCloud3.Repos.Migrations
                 name: "Corrs");
 
             migrationBuilder.DropTable(
-                name: "WikiItems");
+                name: "TextSections");
 
             migrationBuilder.DropTable(
-                name: "WikiTextParas");
+                name: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "CreatorUserId",
-                table: "Users");
+            migrationBuilder.DropTable(
+                name: "WikiItems");
         }
     }
 }
