@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Options.SubOptions;
+﻿using FCloud3.HtmlGen.Models;
+using FCloud3.HtmlGen.Options.SubOptions;
 using FCloud3.HtmlGen.Rules;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options
 {
+    /// <summary>
+    /// Html生成器的启动选项类
+    /// </summary>
     public class HtmlGenOptions:IHtmlGenOptions
     {
         public TemplateParsingOptions TemplateParsingOptions { get; }
@@ -29,21 +33,6 @@ namespace FCloud3.HtmlGen.Options
             AutoReplaceOptions = autoReplaceOptions ?? new();
             InlineParsingOptions = inlineParsingOptions ?? new();
             BlockParsingOptions = blockParsingOptions ?? new();
-            UsedRulesLog = new();
-        }
-
-        public List<IHtmlRule> UsedRulesLog { get; }
-        public void ReportUsage(IHtmlRule rule)
-        {
-            if(!UsedRulesLog.Contains(rule))
-                UsedRulesLog.Add(rule);
-            if(rule.IsSingleUse)
-            {
-                if(rule is IHtmlInlineRule i)
-                    InlineParsingOptions.InlineRules.Remove(i);
-                if (rule is IHtmlBlockRule b)
-                    BlockParsingOptions.BlockRules.Remove(b);
-            }
         }
 
         public void OverrideWith(IHtmlGenOptions another)

@@ -3,23 +3,25 @@ using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Text;
+using static FCloud3.HtmlGen.Rules.HtmlTemplate;
+using System.Text.RegularExpressions;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
     public class TemplateParser
     {
-        private readonly HtmlGenOptions _options;
+        private readonly HtmlGenContext _ctx;
         private readonly Lazy<BlockParser> _blockParser;
         private readonly Lazy<InlineParser> _inlineParser;
-        private readonly TemplateSlotInfoCache _slotInfoCache;
+        private readonly TemplateSlotInfo _slotInfo;
 
-        public TemplateParser(HtmlGenOptions options)
+        public TemplateParser(HtmlGenContext ctx)
         {
             //可能造成stackOverflow，解决办法：都改成Lazy的
-            _options = options;
-            _blockParser = new(()=>new(options));
-            _inlineParser = new(()=>new(options));
-            _slotInfoCache = new();
+            _ctx = ctx;
+            _blockParser = new(()=>new(ctx));
+            _inlineParser = new(()=>new(ctx));
+            _slotInfo = ctx.TemplateSlotInfo;
         }
 
 
@@ -36,13 +38,13 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     res.Add(ParseSingleCall(f.PureContent,out HtmlTemplate? detected));
                     if(detected is not null)
-                        _options.ReportUsage(detected);
+                        _ctx.ReportUsage(detected);
                 }
-                else
+                else if(f.Type==SplittedByCalls.FragTypes.Implant)
                 {
-                    string? implantRes = _options.ImplantsHandleOptions.HandleImplant(f.PureContent);
+                    string? implantRes = _ctx.Options.ImplantsHandleOptions.HandleImplant(f.PureContent);
                     if (implantRes is null)
-                        res.Add(new ErrorElement($"不存在的内插：{f.Content}"));
+                        res.Add(new TextElement(f.Content));
                     else
                         res.Add(new TextElement(implantRes));
                 }
@@ -59,35 +61,43 @@ namespace FCloud3.HtmlGen.Mechanics
                 ExtractCallName(templateCallSource, out string templateName, out string valueStr);
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
-                var template = _options.TemplateParsingOptions.Templates.Find(x => x.Name == templateName);
+                var template = _ctx.Options.TemplateParsingOptions.Templates.Find(x => x.Name == templateName);
                 detected = template;
                 if (template is null)
                     throw new Exception($"找不到指定模板:({templateName})");
 
+                var slots = _slotInfo.Get(template);
+
                 List<string> values = valueStr.Split(valuesSep, StringSplitOptions.TrimEntries).ToList();
                 values.RemoveAll(string.IsNullOrEmpty);
-                Dictionary<string, IHtmlable> valuesDic = new();
+                Dictionary<TemplateSlot, IHtmlable> valuesDic = new();
 
                 if (values.Count == 1 && !keyValueSep.Any(x => values[0].Contains(x)))
                 {
                     //若只填写一个参数，则不需要参数名
                     string key = string.Empty;
                     string value = values[0].Trim();
-                    valuesDic.Add(key, _blockParser.Value.Run(value, enforceBlock:false));
+                    TemplateSlot? slot = slots.FirstOrDefault();
+                    if(slot is not null)
+                        valuesDic.Add(slot, slot.DealWithContent(value,_blockParser.Value));
                 }
                 else
                 {
                     foreach (var str in values)
                     {
                         string[] parts = str.Split(keyValueSep, StringSplitOptions.TrimEntries);
-                        if (parts.Length != 2)
-                            throw new Exception($"{Consts.valueDicFormatMsg}，'&&'间应只有一个'::'");
+                        if (parts.Length < 2)
+                            throw new Exception($"{Consts.valueDicFormatMsg}，'&&'间应有一个'::'表示参数名和参数值分隔");
                         string key = parts[0].Trim();
                         string value = parts[1].Trim();
-                        valuesDic.Add(key, _blockParser.Value.Run(value, enforceBlock: false));
+                        if (key.Length == 0)
+                            throw new Exception($"{Consts.valueDicFormatMsg}，::前应有参数名");
+                        TemplateSlot? slot = slots.FirstOrDefault(x => x.PureValue == key);
+                        if(slot is not null)
+                            valuesDic.Add(slot, slot.DealWithContent(value,_blockParser.Value));
                     }
                 }
-                return new TemplateElement(template, valuesDic, _slotInfoCache);
+                return new TemplateElement(template, valuesDic, _slotInfo, _ctx.UniqueSlotIncre++);
             }
             catch (Exception e)
             {
@@ -95,6 +105,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new ErrorElement(e.Message);
             }
         }
+
 
         public static void ExtractCallName(string call, out string name, out string content)
         {

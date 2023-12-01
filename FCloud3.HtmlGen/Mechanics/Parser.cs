@@ -12,12 +12,12 @@ namespace FCloud3.HtmlGen.Mechanics
 {
     public class Parser
     {
-        private readonly HtmlGenOptions _options;
+        private readonly HtmlGenContext _ctx;
         private readonly BlockParser _blockParser;
         public Parser(HtmlGenOptions options)
         {
-            _options = options;
-            _blockParser = new(options);
+            _ctx = new(options);
+            _blockParser = new(_ctx);
         }
         public string Run(string? input,bool putCommon = false)
         {
@@ -39,7 +39,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public string Styles()
         {
-            var allStyles = _options.UsedRulesLog.Select(x => x.GetStyles()).ToList();
+            var allStyles = _ctx.GetUsedRules().Select(x => x.GetStyles()).ToList();
             if (allStyles.Count == 0 || allStyles.All(s => s == ""))
                 return "";
             allStyles = allStyles.Distinct().ToList();
@@ -47,7 +47,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public string PreScripts()
         { 
-            var allPre = _options.UsedRulesLog.Select(x=>x.GetPreScripts()).ToList();
+            var allPre = _ctx.GetUsedRules().Select(x=>x.GetPreScripts()).ToList();
             if (allPre.Count == 0 || allPre.All(x=>x==""))
                 return "";
             allPre = allPre.Distinct().ToList();
@@ -55,7 +55,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public string PostScripts()
         {
-            var allPost = _options.UsedRulesLog.Select(x => x.GetPostScripts()).ToList();
+            var allPost = _ctx.GetUsedRules().Select(x => x.GetPostScripts()).ToList();
             if (allPost.Count == 0 || allPost.All(x => x == ""))
                 return "";
             allPost = allPost.Distinct().ToList();

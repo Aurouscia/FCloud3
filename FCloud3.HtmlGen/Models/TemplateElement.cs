@@ -1,48 +1,56 @@
-﻿using FCloud3.HtmlGen.Options;
+﻿using FCloud3.HtmlGen.Mechanics;
+using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace FCloud3.HtmlGen.Models
 {
     public class TemplateElement : Element
     {
         private readonly HtmlTemplate _template;
-        private readonly Dictionary<string, IHtmlable> _values;
-        private readonly TemplateSlotInfoCache _slotInfoCache;
+        private readonly Dictionary<TemplateSlot, IHtmlable> _values;
+        private readonly TemplateSlotInfo _slotInfo;
+        private readonly int _uniqueSlotIncre;
 
-        public TemplateElement(HtmlTemplate template, Dictionary<string,IHtmlable> values, TemplateSlotInfoCache slotInfoCache)
+        public TemplateElement(HtmlTemplate template, Dictionary<TemplateSlot,IHtmlable> values, TemplateSlotInfo slotInfo,int uniqueSlotIncre = 0)
         {
             _template = template;
             _values = values;
-            _slotInfoCache = slotInfoCache;
+            _slotInfo = slotInfo;
+            _uniqueSlotIncre = uniqueSlotIncre;
         }
         public override string ToHtml()
         {
             string? code = _template.Source;
             if (code is null) 
                 return ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码");
-            List<string> slots = _slotInfoCache.Get(_template);
-            if (slots is null)
-                return code;
-            if (_values.Count == 1 && _values.ContainsKey(string.Empty) && slots.Count >= 1)
+            List<TemplateSlot> slots = _slotInfo.Get(_template);
+
+            foreach (var slot in slots)
             {
-                //省略参数名的简写形式
-                _ = _values.TryGetValue(string.Empty, out var value);
-                value ??= new EmptyElement();
-                code = HtmlTemplate.Fill(code, slots[0], value.ToHtml());
-            }
-            else
-            {
-                foreach (var slotName in slots)
+                if (slot is UniqueSlot u)
                 {
-                    _ = _values.TryGetValue(slotName, out var value);
-                    value ??= new EmptyElement();
-                    code = HtmlTemplate.Fill(code, slotName, value.ToHtml());
+                    var replace = u.BuildReplacement(_uniqueSlotIncre);
+                    if (!_values.TryAdd(slot, replace))
+                        _values[slot] = replace;
+                }
+            }
+
+            if (slots is null || slots.Count==0)
+                return code;
+            {
+                foreach (var slot in slots)
+                {
+                    _ = _values.TryGetValue(slot, out var value);
+                    value ??= slot.DefaultContent();
+                    code = code.Replace(slot.Value, value.ToHtml());
                 }
             }
             return code;
@@ -59,17 +67,135 @@ namespace FCloud3.HtmlGen.Models
         }
     }
 
-    public class TemplateSlotInfoCache:Dictionary<string, List<string>>
+    /// <summary>
+    /// 存储每一个模板内部的插槽信息，key为模板名，value为插槽List
+    /// </summary>
+    public class TemplateSlotInfo : Dictionary<string, List<TemplateSlot>>
     {
-        public List<string> Get(HtmlTemplate template)
+        public TemplateSlotInfo() 
+        {
+        }
+        /// <summary>
+        /// 懒加载地获取一个模板中的所有插槽
+        /// </summary>
+        /// <param name="template">模板</param>
+        /// <returns></returns>
+        public List<TemplateSlot> Get(HtmlTemplate template)
         {
             if (string.IsNullOrEmpty(template.Name))
                 return new();
             if (this.TryGetValue(template.Name, out var list))
                 return list;
-            var slots = template.GetSlots();
+            var slots = GetSlots(template);
             this.Add(template.Name, slots);
             return slots;
+        }
+        private List<TemplateSlot> GetSlots(HtmlTemplate template)
+        {
+            List<TemplateSlot> slots = new();
+            if (template.Source is null)
+                return slots;
+            MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, x => new PlainSlot(x));
+            MatchAndCollect(template.Source, ParseSlot.MatchRegex, slots, x => new ParseSlot(x));
+            MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, x => new UniqueSlot(x));
+            return slots;
+        }
+        private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,TemplateSlot> constructor)
+        {
+            var matches = Regex.Matches(source, regex);
+            foreach (var match in matches.AsEnumerable<Match>())
+            {
+                string val = match.Value;
+                if (!data.Any(x => x.Value == val))
+                    data.Add(constructor(val));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 模板插槽，表示模板作者希望用户填写的内容被放置到此处
+    /// </summary>
+    public abstract class TemplateSlot:IEquatable<TemplateSlot>
+    {
+        /// <summary>
+        /// 包含着匹配符号的插槽名
+        /// </summary>
+        public string Value { get; }
+        /// <summary>
+        /// 去除了匹配符号的插槽名
+        /// </summary>
+        public string PureValue { get; }
+        public TemplateSlot(string value,string pureValue)
+        {
+            Value = value;
+            PureValue = pureValue;
+        }
+        public abstract IHtmlable DealWithContent(string content, IBlockParser parser);
+        public virtual IHtmlable DefaultContent() => new EmptyElement();
+
+        public bool Equals(TemplateSlot? other)
+        {
+            return other?.Value == this.Value;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as TemplateSlot);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+    }
+    /// <summary>
+    /// 表示一个填写内容不会被解析的模板插槽
+    /// </summary>
+    public class PlainSlot : TemplateSlot
+    {
+        public const string MatchRegex = @"\[\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]\]";
+        public PlainSlot(string value) : base(value, value[5..^5])
+        {
+        }
+
+        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        {
+            return new TextElement(content);
+        }
+    }
+    /// <summary>
+    /// 表示一个填写内容会被解析的模板插槽
+    /// </summary>
+    public class ParseSlot : TemplateSlot
+    {
+        public const string MatchRegex = @"\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]";
+        public ParseSlot(string value) : base(value,value[4..^4])
+        {
+        }
+        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        {
+            return parser.Run(content,enforceBlock:false);
+        }
+    }
+    /// <summary>
+    /// 表示一个内容自动填入，无需用户指定的模板插槽（内容在同一次调用中相同，但在不同调用的中不同）
+    /// </summary>
+    public class UniqueSlot : TemplateSlot
+    {
+        public const string MatchRegex = @"\[\[__%[\u4E00-\u9FA5A-Za-z0-9]{1,10}%__\]\]";
+
+        public UniqueSlot(string value) : base(value,value[5..^5])
+        {
+        }
+
+        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        {
+            return new EmptyElement();
+        }
+
+        public IHtmlable BuildReplacement(int templateUsedTimes)
+        {
+            return new TextElement($"{PureValue}_{templateUsedTimes}");
         }
     }
 }

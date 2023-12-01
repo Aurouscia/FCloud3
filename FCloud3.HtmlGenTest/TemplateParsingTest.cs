@@ -13,6 +13,7 @@ namespace FCloud3.HtmlGenTest
     public class TemplateParsingTest
     {
         private readonly HtmlGenOptions _options;
+        private readonly HtmlGenContext _ctx;
         public string? GenLinkForWiki(string name)
         {
             if (name == "哼哼")
@@ -26,14 +27,19 @@ namespace FCloud3.HtmlGenTest
             HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new()
                 {
-                    new("重点强调","<b>!![[文字]]!!</b>"),
-                    new("名称信息", "<div><b>[[中文名]]</b><i>[[英文名]]</i></div>")
+                    new("重点强调","<b>!![[__文字__]]!!</b>"),
+                    new("名称信息", "<div><b>[[__中文名__]]</b><i>[[__英文名__]]</i></div>"),
+                    new("好看的图表","<script>const rawData='[[[__数据__]]]'</script>"),
+                    new("唯一id测试","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
+                    new("唯一id测试2","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
+                    new("唯一id测试3","<div id=\"[[__%ik%__]]\"><script>doc.get('[[__%ik%__]]')</script>")
                 },
                 extraInlineRules: new(),
                 extraBlockRules: new(),
                 implantsHandleOptions: new(GenLinkForWiki)
             );
             _options = optionsBuilder.GetOptions();
+            _ctx = new(_options);
         }
         [TestMethod]
         [DataRow(
@@ -99,9 +105,50 @@ namespace FCloud3.HtmlGenTest
         [DataRow(
             "{{名称信息}\n中文名::充电宝\n&&英文名：：Power Baby}",
             "<div><b>充电宝</b><i>Power Baby</i></div>")]
+        [DataRow(
+            "{{好看的图表}\n数据::172,163,105*144*97}",
+            "<script>const rawData='172,163,105*144*97'</script>")]
+        [DataRow(
+            "{{好看的图表}172,163,105*144*97}",
+            "<script>const rawData='172,163,105*144*97'</script>")]
+        [DataRow(
+            "{{好看的图表}\n数据::172,163\n105*144*97}",
+            "<script>const rawData='172,163\n105*144*97'</script>")]
         public void ParseTemplate(string input, string answer)
         {
-            TemplateParser parser = new(_options);
+            TemplateParser parser = new(_ctx);
+            string output = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output);
+        }
+
+
+
+        [TestMethod]
+        [DataRow(
+            "{{唯一id测试}哼哼~}",
+            "<div id=\"id_0\"><script>doc.get('id_0')</script>"
+            )]
+        [DataRow(
+            "{{唯一id测试}}哼哼哼{{唯一id测试}}",
+            "<div id=\"id_0\"><script>doc.get('id_0')</script>哼哼哼<div id=\"id_1\"><script>doc.get('id_1')</script>"
+            )]
+        [DataRow(
+            "{{唯一id测试}}哼哼哼{{唯一id测试}}哼哼{{唯一id测试}}",
+            "<div id=\"id_0\"><script>doc.get('id_0')</script>哼哼哼" +
+            "<div id=\"id_1\"><script>doc.get('id_1')</script>哼哼" +
+            "<div id=\"id_2\"><script>doc.get('id_2')</script>"
+            )]
+        [DataRow(
+            "{{唯一id测试}}哼哼哼{{唯一id测试2}}",
+            "<div id=\"id_0\"><script>doc.get('id_0')</script>哼哼哼<div id=\"id_1\"><script>doc.get('id_1')</script>"
+            )]
+        [DataRow(
+            "{{唯一id测试}}哼哼哼{{唯一id测试3}}",
+            "<div id=\"id_0\"><script>doc.get('id_0')</script>哼哼哼<div id=\"ik_1\"><script>doc.get('ik_1')</script>"
+            )]
+        public void UniqueSlotTest(string input,string answer)
+        {
+            TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
         }
@@ -118,7 +165,7 @@ namespace FCloud3.HtmlGenTest
             "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]
         public void ParseImplant(string input,string answer)
         {
-            TemplateParser parser = new(_options);
+            TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
         }

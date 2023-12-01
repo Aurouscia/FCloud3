@@ -8,17 +8,19 @@ using System.Text.RegularExpressions;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
-    public class BlockParser
+    public interface IBlockParser
     {
-        private readonly HtmlGenOptions _options;
-        private readonly TitledBlockParser _titledBlockParser;
+        public IHtmlable Run(string input, bool enforceBlock = true);
+    }
+    public class BlockParser:IBlockParser
+    {
+        private readonly Lazy<TitledBlockParser> _titledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
 
-        public BlockParser(HtmlGenOptions options)
+        public BlockParser(HtmlGenContext ctx)
         {
-            _titledBlockParser = new(options);
-            _inlineParser = new(()=>new(options));
-            _options = options;
+            _titledBlockParser = new(()=>new(ctx));
+            _inlineParser = new(()=>new(ctx));
         }
 
         public IHtmlable Run(string input, bool enforceBlock = true)
@@ -35,21 +37,21 @@ namespace FCloud3.HtmlGen.Mechanics
                     return _inlineParser.Value.Run(lines[0]);
             }
 
-            return _titledBlockParser.Run(lines);
+            return _titledBlockParser.Value.Run(lines);
         }
     }
 
     public class TitledBlockParser
     {
-        private readonly HtmlGenOptions _options;
-        private readonly RuledBlockParser _ruledBlockParser;
-        private readonly InlineParser _inlineParser;
+        private readonly HtmlGenContext _ctx;
+        private readonly Lazy<RuledBlockParser> _ruledBlockParser;
+        private readonly Lazy<InlineParser> _inlineParser;
 
-        public TitledBlockParser(HtmlGenOptions options)
+        public TitledBlockParser(HtmlGenContext ctx)
         {
-            _options = options;
-            _ruledBlockParser = new RuledBlockParser(options);
-            _inlineParser = new InlineParser(options);
+            _ctx = ctx;
+            _ruledBlockParser = new(()=> new RuledBlockParser(ctx));
+            _inlineParser = new(()=>new InlineParser(ctx));
         }
         public IHtmlable Run(List<string> inputLines)
         {
@@ -61,12 +63,12 @@ namespace FCloud3.HtmlGen.Mechanics
             //为每一行标记其标题（如果有）的等级
             if (lines.All(x => x.Level == 0))
             {
-                IHtmlable ruled = _ruledBlockParser.Run(lines.Select(x => x.PureContent).ToList());
+                IHtmlable ruled = _ruledBlockParser.Value.Run(lines.Select(x => x.PureContent).ToList());
                 return ruled;
             }
             //从标题等级最高（数字最小）开始找
             int targetLevel = lines.Where(x => x.Level != 0).Select(x => x.Level).Min();
-            int titleLevelOffset = _options.BlockParsingOptions.TitleLevelOffset;
+            int titleLevelOffset = _ctx.Options.BlockParsingOptions.TitleLevelOffset;
 
             ElementCollection res = new();
 
@@ -81,13 +83,13 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (!string.IsNullOrEmpty(title))
                     {
                         IHtmlable generated = Run(generating);
-                        IHtmlable titleParsed = _inlineParser.Run(title);
+                        IHtmlable titleParsed = _inlineParser.Value.Run(title);
                         TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
                         res.Add(titledBlock);
                     }
                     else
                     {
-                        IHtmlable ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                        IHtmlable ruled = _ruledBlockParser.Value.Run(generating.Select(x => x.PureContent).ToList());
                         res.AddFlat(ruled);
                     }
                     generating.Clear();
@@ -101,13 +103,13 @@ namespace FCloud3.HtmlGen.Mechanics
             if (!string.IsNullOrEmpty(title))
             {
                 IHtmlable generated = Run(generating);
-                IHtmlable titleParsed = _inlineParser.Run(title);
+                IHtmlable titleParsed = _inlineParser.Value.Run(title);
                 TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
                 res.Add(titledBlock);
             }
             else
             {
-                IHtmlable ruled = _ruledBlockParser.Run(generating.Select(x => x.PureContent).ToList());
+                IHtmlable ruled = _ruledBlockParser.Value.Run(generating.Select(x => x.PureContent).ToList());
                 res.AddFlat(ruled);
             }
             return res.Simplify();
@@ -173,18 +175,18 @@ namespace FCloud3.HtmlGen.Mechanics
     }
     public class RuledBlockParser:IRuledBlockParser
     {
-        private readonly HtmlGenOptions _options;
-        private readonly InlineParser _inlineParser;
-        public RuledBlockParser(HtmlGenOptions options)
+        private readonly HtmlGenContext _ctx;
+        private readonly Lazy<InlineParser> _inlineParser;
+        public RuledBlockParser(HtmlGenContext ctx)
         {
-            _options = options;
-            _inlineParser = new(options);
+            _ctx = ctx;
+            _inlineParser = new(()=>new(ctx));
         }
         public IHtmlable Run(List<string> inputLines)
         {
             if (inputLines.Count == 0)
                 return new EmptyElement();
-            List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_options.BlockParsingOptions.BlockRules));
+            List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_ctx.Options.BlockParsingOptions.BlockRules));
             return Run(lines);
         }
         private IHtmlable Run(List<LineWithRule> lines)
@@ -195,14 +197,14 @@ namespace FCloud3.HtmlGen.Mechanics
                 //每一行都没有块规则调用
                 foreach (var line in lines)
                 {
-                    res.Add(_inlineParser.RunForLine(line.PureContent));
+                    res.Add(_inlineParser.Value.RunForLine(line.PureContent));
                 }
                 return res.Simplify();
             }
             lines.ForEach(x =>
             {
                 if (x.Rule is not null)
-                    _options.ReportUsage(x.Rule);
+                    _ctx.ReportUsage(x.Rule);
             });
 
             var emptyRule = new HtmlEmptyBlockRule();
@@ -216,7 +218,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (generating.Count > 0)
                     {
                         var pureLines = generating.Select(x => x.PureContent).ToList();
-                        IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines,_inlineParser,this);
+                        IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines,_inlineParser.Value,this);
                         res.AddFlat(htmlable);
                         generating.Clear();
                     }
@@ -227,7 +229,7 @@ namespace FCloud3.HtmlGen.Mechanics
             if (generating.Count > 0)
             {
                 var pureLines = generating.Select(x => x.PureContent).ToList();
-                IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines, _inlineParser, this);
+                IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines, _inlineParser.Value, this);
                 res.AddFlat(htmlable);
             }
             return res.Simplify();

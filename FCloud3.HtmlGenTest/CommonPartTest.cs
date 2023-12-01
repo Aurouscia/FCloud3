@@ -18,8 +18,8 @@ namespace FCloud3.HtmlGenTest
             HtmlGenOptionsBuilder optionsBuilder = new(
                 templates: new()
                 {
-                    new HtmlTemplate("打招呼","<div class=\"hello\">[[内容]]</div>",".hello{font-size:large}"),
-                    new HtmlTemplate("哼唧","<div class=\"hj\">[[内容]]</div>",".hj{color:gray}","console.log('哼唧')")
+                    new HtmlTemplate("打招呼","<div class=\"hello\">[[__内容__]]</div>",".hello{font-size:large}"),
+                    new HtmlTemplate("哼唧","<div class=\"hj\">[[__内容__]]</div>",".hj{color:gray}","console.log('哼唧')")
                 },
                 extraInlineRules: new()
                 {

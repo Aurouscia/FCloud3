@@ -18,12 +18,12 @@ namespace FCloud3.HtmlGen.Mechanics
     }
     public class InlineParser:IInlineParser
     {
-        private readonly HtmlGenOptions _options;
+        private readonly HtmlGenContext _ctx;
         private readonly Lazy<TemplateParser> _templateParser;
-        public InlineParser(HtmlGenOptions options) 
+        public InlineParser(HtmlGenContext ctx) 
         {
-            _options = options;
-            _templateParser = new(() => new(options));
+            _ctx = ctx;
+            _templateParser = new(() => new(ctx));
         }
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
@@ -37,7 +37,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     return new TextElement(input);
                 marks.ForEach(x =>
                 {
-                    _options.ReportUsage(x.Rule);
+                    _ctx.ReportUsage(x.Rule);
                 });
                 return SplitByMarks(input,marks);
             }
@@ -58,7 +58,7 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             int pointer = 0;
             InlineMarkList res = new();
-            foreach(var r in _options.InlineParsingOptions.InlineRules)
+            foreach(var r in _ctx.Options.InlineParsingOptions.InlineRules)
             {
                 //对于每个行内规则
                 if (!input.Contains(r.MarkLeft) || !input.Contains(r.MarkRight))

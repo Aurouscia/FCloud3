@@ -14,6 +14,7 @@ namespace FCloud3.HtmlGenTest
     public class InlineParsingTest
     {
         private readonly HtmlGenOptions _options;
+        private readonly HtmlGenContext _ctx;
 
         public InlineParsingTest()
         {
@@ -23,6 +24,7 @@ namespace FCloud3.HtmlGenTest
                 extraBlockRules: new()
             );
             _options = optionsBuilder.GetOptions();
+            _ctx = new(_options);
         }
 
         [TestMethod]
@@ -31,7 +33,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("1**2*34*5**6", "1,9;4,7")]
         public void MakeMark(string input,string answer)
         {
-            InlineParser parser = new(_options);
+            InlineParser parser = new(_ctx);
             var res = parser.MakeMarks(input);
             var resStrs = res.ConvertAll(x => $"{x.LeftIndex},{x.RightIndex}");
             string result = string.Join(';',resStrs);
@@ -54,7 +56,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("小王 \\bd 小李 \\bd 小张", "小王<span class=\"bordered\">小李</span>小张")]
         public void Parse(string input,string answer)
         {
-            InlineParser parser = new(_options);
+            InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();
             Assert.AreEqual(answer,html);
@@ -71,7 +73,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("小王 #beige# 小张", "小王<span class=\"coloredBlock\" style=\"color:beige;background-color:beige\"></span>小张")]
         public void ColorTextParse(string input,string answer)
         {
-            InlineParser parser = new(_options);
+            InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();
             Assert.AreEqual(answer, html);
