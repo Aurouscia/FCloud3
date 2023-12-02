@@ -17,16 +17,18 @@ namespace FCloud3.App.Controllers
     {
         private readonly UserService _userService;
         private readonly HttpUserInfoService _userInfo;
-        //private readonly JwtInfoProvider _jwtInfo;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(UserService userService, HttpUserInfoService userInfo)//, JwtInfoProvider jwtInfo)
+        public AuthController(UserService userService, HttpUserInfoService userInfo,ILogger<AuthController> logger)
         {
             _userService = userService;
             _userInfo = userInfo;
-            //_jwtInfo = jwtInfo;
+            _logger = logger;
         }
         public IActionResult Login(string? userName, string? password)
         {
+            _logger.LogInformation("登录请求：{userName}",userName);
+
             //if (userName is null || password is null)
             //    return this.ApiFailedResp("请填写用户名和密码");
             //var u = _context.Staff.Where(x => x.Name == userName).FirstOrDefault();
@@ -62,6 +64,7 @@ namespace FCloud3.App.Controllers
             );
 
             string tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
+            _logger.LogInformation($"{userName}登录成功");
             return this.ApiResp(new { token = tokenStr });
         }
         [Authorize]

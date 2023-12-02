@@ -1,6 +1,10 @@
 ﻿using FCloud3.Utils.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Configuration;
+using Serilog.Core;
+using Serilog.Events;
 using System.Text;
 
 namespace FCloud3.App.Services
@@ -18,8 +22,12 @@ namespace FCloud3.App.Services
         }
         public static IServiceCollection AddJwtService(this IServiceCollection services)
         {
-            string domain = AppSettings.Jwt.Domain ?? "Jwt域名未配置";
-            string jwtKey = AppSettings.Jwt.SecretKey ?? "jwtKey未配置";
+            string? domain = AppSettings.Jwt.Domain;
+            string? jwtKey = AppSettings.Jwt.SecretKey;
+            if (string.IsNullOrEmpty(domain))
+                throw new Exception("[Jwt域名未配置]");
+            if (string.IsNullOrEmpty(jwtKey))
+                throw new Exception("[JwtKey未配置]");
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -35,6 +43,15 @@ namespace FCloud3.App.Services
                     };
                 });
             return services;
+        }
+
+        public static void AddSerilog(this WebApplicationBuilder builder)
+        {
+            var logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+            builder.Services.AddSerilog(logger);
+            Log.Logger = logger;
         }
     }
 }

@@ -8,12 +8,24 @@ namespace FCloud3.App.Services
 {
     public class ApiExceptionFilter:ExceptionFilterAttribute
     {
+        private readonly ILogger<ApiExceptionFilter> _logger;
+
+        public ApiExceptionFilter(ILogger<ApiExceptionFilter> logger)
+        {
+            _logger = logger;
+        }
         public override void OnException(ExceptionContext context)
         {
             // 如果异常没有被处理则进行处理
             if (context.ExceptionHandled == false)
             {
-                string msg = context.Exception.Message ?? "服务器内部错误";
+                Exception ex = context.Exception;
+                string msg = ex.Message ?? "服务器内部错误";
+                string path = context.HttpContext.Request.Path;
+                string method = context.HttpContext.Request.Method;
+
+                _logger.LogError(ex, "未经处理的异常 {Method} {path}",method,path);
+
                 context.Result = new ContentResult()
                 {
                     StatusCode = 200,

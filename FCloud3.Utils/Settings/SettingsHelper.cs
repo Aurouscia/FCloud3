@@ -13,6 +13,7 @@ namespace FCloud3.Utils.Settings
         public static IConfiguration? Configuration { get; private set; }
         public SettingsHelper(IConfiguration configuration)
         {
+            //构造时仅仅只是保存了Config的引用，并没有读取内部内容，不会抛出错误
             Configuration = configuration;
         }
         public static string? Get(params string[] sections)

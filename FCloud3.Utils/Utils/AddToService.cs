@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using FCloud3.Utils.Utils.Logger;
 using FCloud3.Utils.Utils.MemCache;
 using FCloud3.Utils.Settings;
 
