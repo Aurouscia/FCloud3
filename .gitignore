@@ -370,3 +370,6 @@ FodyWeavers.xsd
 # Private Settings Files
 /FCloud3.App/appsettings.Production.json
 /FCloud3.App/appsettings.Development.json
+
+# vue build dist
+/FCloud3.App/wwwroot
