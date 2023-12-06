@@ -17,7 +17,7 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly Lazy<TitledBlockParser> _titledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
 
-        public BlockParser(HtmlGenContext ctx)
+        public BlockParser(ParserContext ctx)
         {
             _titledBlockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
@@ -43,11 +43,11 @@ namespace FCloud3.HtmlGen.Mechanics
 
     public class TitledBlockParser
     {
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
         private readonly Lazy<RuledBlockParser> _ruledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
 
-        public TitledBlockParser(HtmlGenContext ctx)
+        public TitledBlockParser(ParserContext ctx)
         {
             _ctx = ctx;
             _ruledBlockParser = new(()=> new RuledBlockParser(ctx));
@@ -175,9 +175,9 @@ namespace FCloud3.HtmlGen.Mechanics
     }
     public class RuledBlockParser:IRuledBlockParser
     {
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
         private readonly Lazy<InlineParser> _inlineParser;
-        public RuledBlockParser(HtmlGenContext ctx)
+        public RuledBlockParser(ParserContext ctx)
         {
             _ctx = ctx;
             _inlineParser = new(()=>new(ctx));
@@ -207,8 +207,8 @@ namespace FCloud3.HtmlGen.Mechanics
                     _ctx.ReportUsage(x.Rule);
             });
 
-            var emptyRule = new HtmlEmptyBlockRule();
-            IHtmlBlockRule tracking = emptyRule;
+            var emptyRule = new EmptyBlockRule();
+            IBlockRule tracking = emptyRule;
             List<LineWithRule> generating = new();
             foreach(var l in lines)
             {
@@ -236,9 +236,9 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public class LineWithRule
         {
-            public IHtmlBlockRule? Rule { get; }
+            public IBlockRule? Rule { get; }
             public string PureContent { get; }
-            public LineWithRule(string line,List<IHtmlBlockRule> allRules)
+            public LineWithRule(string line,List<IBlockRule> allRules)
             {
                 this.Rule = allRules.FirstOrDefault(t => t.LineMatched(line));
                 if (Rule is null)

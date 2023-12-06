@@ -20,7 +20,7 @@ namespace FCloud3.App.Controllers.TextSec
             _user = user;
             _textSectionService = textSectionService;
 
-            _parser = new(()=>new Parser(new HtmlGenOptionsBuilder().GetOptions()));//临时只使用默认规则
+            _parser = new(()=>new ParserBuilder().BuildParser());//临时只使用默认规则
         }
 
         public IActionResult CreateForCorr(int corrId)
@@ -48,7 +48,7 @@ namespace FCloud3.App.Controllers.TextSec
         [Authorize]
         public IActionResult Preview(string content)
         {
-            var res = new TextSectionPreviewResponse(_parser.Value.Run(content,true));
+            var res = new TextSectionPreviewResponse(_parser.Value.RunToPlain(content,true));
             return this.ApiResp(res);
         }
 

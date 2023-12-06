@@ -14,24 +14,14 @@ namespace FCloud3.HtmlGenTest
     [TestClass]
     public class BlockParsingTest
     {
-        private readonly HtmlGenOptions _options;
+        private readonly Parser _parser;
 
         public BlockParsingTest()
         {
-            HtmlGenOptionsBuilder optionsBuilder = new(
-                templateOptions: new(),
-                blockOptions: new HtmlGen.Options.SubOptions.BlockParsingOptions(
-                    blockRules:new()
-                    {
-                        new HtmlPrefixBlockRule(
-                            ">","<div q>","</div>","引用"
-                        )
-                    },
-                    titleLevelOffset:0
-                ),
-                inlineOptions:new()
+            var parserBuilder = new ParserBuilder().Block.AddMoreRule(
+                new PrefixBlockRule(">", "<div q>", "</div>", "引用")
                 );
-            _options = optionsBuilder.GetOptions();
+            _parser = parserBuilder.BuildParser();
         }
         [TestMethod]
         [DataRow(
@@ -85,8 +75,7 @@ namespace FCloud3.HtmlGenTest
             "<p>内容1</p><h1>一级<i>标</i>题</h1><div class=\"indent\"><p>内容2</p><h2>二级<b>标</b>题1</h2><div class=\"indent\"><p>内容3</p></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
         public void ParseTest(string content, string answer)
         {
-            Parser parser = new(_options);
-            string html = parser.Run(content);
+            string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
 
@@ -102,8 +91,7 @@ namespace FCloud3.HtmlGenTest
             "<table><tr><th>名称</th><th>年龄</th></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td>38</td></tr></table>")]
         public void MiniTableTest(string content, string answer)
         {
-            Parser parser = new(_options);
-            string html = parser.Run(content);
+            string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
 
@@ -113,8 +101,7 @@ namespace FCloud3.HtmlGenTest
             "<p>以下是获奖人员名单：</p><ul><li>Au先生</li><li>hcm先生</li><li>兔兔子小姐</li></ul><p>让我们用热烈掌声祝贺他们！</p>")]
         public void ListTest(string content,string answer)
         {
-            Parser parser = new(_options);
-            string html = parser.Run(content);
+            string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
         [TestMethod]
@@ -126,8 +113,7 @@ namespace FCloud3.HtmlGenTest
             "<p>AAA</p><p>BBB</p><div class=\"sep\"></div><div class=\"sep\"></div><p>CCC</p><p>DDD</p>")]
         public void SepTest(string content, string answer)
         {
-            Parser parser = new(_options);
-            string html = parser.Run(content);
+            string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
     }

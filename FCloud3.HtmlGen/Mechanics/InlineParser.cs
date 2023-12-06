@@ -18,9 +18,9 @@ namespace FCloud3.HtmlGen.Mechanics
     }
     public class InlineParser:IInlineParser
     {
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
         private readonly Lazy<TemplateParser> _templateParser;
-        public InlineParser(HtmlGenContext ctx) 
+        public InlineParser(ParserContext ctx) 
         {
             _ctx = ctx;
             _templateParser = new(() => new(ctx));

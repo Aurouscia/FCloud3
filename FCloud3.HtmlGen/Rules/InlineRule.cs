@@ -14,7 +14,7 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 表示一个行内规则，用户通过某种方式在行内标记出一块呈现特殊效果的区域
     /// </summary>
-    public interface IHtmlInlineRule : IHtmlRule,IEquatable<IHtmlInlineRule>
+    public interface IHtmlInlineRule : IRule,IEquatable<IHtmlInlineRule>
     {
         public string Name { get; }
         public string MarkLeft { get; }
@@ -30,7 +30,7 @@ namespace FCloud3.HtmlGen.Rules
         public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
     }
 
-    public abstract class HtmlInlineRule : IHtmlInlineRule
+    public abstract class InlineRule : IHtmlInlineRule
     {
         public string Name { get; }
         public string MarkLeft { get; }
@@ -40,7 +40,7 @@ namespace FCloud3.HtmlGen.Rules
         public string Style { get; }
         public bool IsSingleUse { get; }
 
-        protected HtmlInlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="",bool isSingleUse = false)
+        protected InlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="",bool isSingleUse = false)
         {
             MarkLeft = markLeft;
             MarkRight = markRight;
@@ -61,7 +61,7 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool Equals(object? obj)
         {
-            return Equals(obj as HtmlInlineRule);
+            return Equals(obj as InlineRule);
         }
         public override int GetHashCode()
         {
@@ -70,22 +70,22 @@ namespace FCloud3.HtmlGen.Rules
 
         public bool Equals(IHtmlInlineRule? other)
         {
-            if(other is HtmlInlineRule otherRule)
+            if(other is InlineRule otherRule)
                 if (otherRule.MarkLeft == this.MarkLeft && otherRule.MarkRight == this.MarkRight)
                     return true;
             return false;
         }
     }
-    public class HtmlCustomInlineRule : HtmlInlineRule
+    public class CustomInlineRule : InlineRule
     {
-        public HtmlCustomInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name="",string style = "")
+        public CustomInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name="",string style = "")
             : base(markLeft, markRight, putLeft, putRight, style, name) { }
         public override bool FulFill(string span) => true;
     }
-    public class HtmlRelyInlineRule : IHtmlInlineRule
+    public class RelyInlineRule : IHtmlInlineRule
     {
-        public HtmlCustomInlineRule RelyOn { get; }
-        public HtmlRelyInlineRule(string markLeft, string markRight, HtmlCustomInlineRule relyOn, string name = "")
+        public CustomInlineRule RelyOn { get; }
+        public RelyInlineRule(string markLeft, string markRight, CustomInlineRule relyOn, string name = "")
         {
             RelyOn = relyOn;
             Name = name;
@@ -100,7 +100,7 @@ namespace FCloud3.HtmlGen.Rules
         public bool IsSingleUse => RelyOn.IsSingleUse;
         public bool Equals(IHtmlInlineRule? other)
         {
-            if(other is HtmlRelyInlineRule rr)
+            if(other is RelyInlineRule rr)
             {
                 if (rr.RelyOn.Equals(this.RelyOn))
                     return this.Name == rr.Name;
@@ -114,10 +114,10 @@ namespace FCloud3.HtmlGen.Rules
             => RelyOn.MakeElementFromSpan(span, marks, inlineParser);
         public bool FulFill(string span) => RelyOn.FulFill(span);
     }
-    public class HtmlLiteralInlineRule : HtmlInlineRule
+    public class LiteralInlineRule : InlineRule
     {
         public Func<string> GetReplacement { get; }
-        public HtmlLiteralInlineRule(string target,Func<string> getReplacement) 
+        public LiteralInlineRule(string target,Func<string> getReplacement) 
             : base(markLeft:target, markRight:"", putLeft:"", putRight:"", "", "",
                   isSingleUse:true)
         {
@@ -129,9 +129,9 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool FulFill(string span)=>true;
     }
-    public class HtmlManualAnchorRule : HtmlInlineRule
+    public class ManualAnchorRule : InlineRule
     {
-        public HtmlManualAnchorRule()
+        public ManualAnchorRule()
             : base("[", "]", "", "", "", "手动链接") { }
 
         public override bool FulFill(string span)
@@ -145,10 +145,10 @@ namespace FCloud3.HtmlGen.Rules
             return new AnchorElement(span.Trim(), span.Trim());
         }
     }
-    public class HtmlManualTextedAnchorRule : HtmlInlineRule
+    public class ManualTextedAnchorRule : InlineRule
     {
         private const string partsSep = "](";
-        public HtmlManualTextedAnchorRule()
+        public ManualTextedAnchorRule()
             : base("[", ")", "", "", "", "带文字的手动链接") { }
         public override bool FulFill(string span)
         {
@@ -176,7 +176,7 @@ namespace FCloud3.HtmlGen.Rules
     /// 当内部不含"\@"时，表示一个指定了颜色的方块（宽度和高度由字体大小决定）<b>（原作者：滨蜀，此为同一规则的重新实现）</b><br/>
     /// 例子：#red#<br/>
     /// </summary>
-    public class HtmlColorTextRule : IHtmlInlineRule
+    public class ColorTextRule : IHtmlInlineRule
     {
         public string Name => "彩色字";
         public string MarkLeft => "#";
@@ -184,7 +184,7 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft => "";
         public string PutRight => "";
         public bool IsSingleUse => false;
-        public bool Equals(IHtmlInlineRule? other) => other is HtmlColorTextRule;
+        public bool Equals(IHtmlInlineRule? other) => other is ColorTextRule;
         public bool FulFill(string span) => span.Length>2;
         public string GetPostScripts() => string.Empty;
         public string GetPreScripts() => string.Empty;
@@ -257,24 +257,24 @@ namespace FCloud3.HtmlGen.Rules
     {
         public static List<IHtmlInlineRule> GetInstances()
         {
-            var centerRule1 = new HtmlCustomInlineRule("\\ct", "\\ct", "<div class=\"center\">", "</div>", "左右居中块", ".center{text-align:center}");
-            var centerRule2 = new HtmlRelyInlineRule("\\中", "\\中", centerRule1);
-            var mqRule1 = new HtmlCustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条");
-            var mqRule2 = new HtmlRelyInlineRule("\\滚", "\\滚", mqRule1);
+            var centerRule1 = new CustomInlineRule("\\ct", "\\ct", "<div class=\"center\">", "</div>", "左右居中块", ".center{text-align:center}");
+            var centerRule2 = new RelyInlineRule("\\中", "\\中", centerRule1);
+            var mqRule1 = new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条");
+            var mqRule2 = new RelyInlineRule("\\滚", "\\滚", mqRule1);
             var instances = new List<IHtmlInlineRule>()
             {
-                new HtmlManualAnchorRule(),
-                new HtmlManualTextedAnchorRule(),
-                new HtmlCustomInlineRule("*","*","<i>","</i>","斜体"),
-                new HtmlCustomInlineRule("**","**","<b>","</b>","粗体"),
-                new HtmlCustomInlineRule("***","***","<u>","</u>","下划线"),
-                new HtmlCustomInlineRule("****","****","<s>","</s>","删除线"),
+                new ManualAnchorRule(),
+                new ManualTextedAnchorRule(),
+                new CustomInlineRule("*","*","<i>","</i>","斜体"),
+                new CustomInlineRule("**","**","<b>","</b>","粗体"),
+                new CustomInlineRule("***","***","<u>","</u>","下划线"),
+                new CustomInlineRule("****","****","<s>","</s>","删除线"),
 
-                new HtmlCustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
-                new HtmlCustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),
-                new HtmlColorTextRule(),
-                new HtmlCustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标"),
-                new HtmlCustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标"),
+                new CustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
+                new CustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),
+                new ColorTextRule(),
+                new CustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标"),
+                new CustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标"),
                 centerRule1,centerRule2,
                 mqRule1,mqRule2
 

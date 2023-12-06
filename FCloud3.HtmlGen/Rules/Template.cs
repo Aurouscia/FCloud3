@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Rules
 {
-    public class HtmlTemplate : IHtmlRule, IEquatable<HtmlTemplate>
+    public class Template : IRule, IEquatable<Template>
     {
         public string Name { get;}
         public string Source { get; }
@@ -16,7 +16,7 @@ namespace FCloud3.HtmlGen.Rules
         public string Styles { get; }
         public bool IsSingleUse => false;
 
-        public HtmlTemplate(string name, string source,string styles="", string preScripts = "", string postScripts = "")
+        public Template(string name, string source,string styles="", string preScripts = "", string postScripts = "")
         {
             Name = name;
             Source = source;
@@ -29,7 +29,7 @@ namespace FCloud3.HtmlGen.Rules
         public string GetPostScripts() => PostCommons;
         public string GetStyles() => Styles;
 
-        public bool Equals(HtmlTemplate? other)
+        public bool Equals(Template? other)
         {
             if(other == null) 
                 return false;
@@ -38,7 +38,7 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool Equals(object? obj)
         {
-            return Equals(obj as HtmlTemplate);
+            return Equals(obj as Template);
         }
 
         public override int GetHashCode()

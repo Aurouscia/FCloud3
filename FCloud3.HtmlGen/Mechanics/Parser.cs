@@ -12,54 +12,95 @@ namespace FCloud3.HtmlGen.Mechanics
 {
     public class Parser
     {
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
-        public Parser(HtmlGenOptions options)
+        public const int maxInputLength = 10000;
+        public const string maxInputLengthViolatedHint = "单段字数过多，请分段";
+        public Parser(ParserOptions options)
         {
             _ctx = new(options);
             _blockParser = new(_ctx);
         }
-        public string Run(string? input,bool putCommon = false)
+        public string RunToPlain(string? input,bool putCommon = false)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
-            if (input.Length > 10000)
-                return "单段字数过多，请分段";
+            if (input.Length > maxInputLength)
+                return maxInputLengthViolatedHint;
             IHtmlable result = _blockParser.Run(input);
             if (!putCommon)
                 return result.ToHtml();
             else
                 return $"{Styles()}{PreScripts()}{result.ToHtml()}{PostScripts()}";
         }
+        public ParserResult RunToStructured(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return new();
+            if (input.Length > maxInputLength)
+                return new(maxInputLengthViolatedHint);
+            IHtmlable htmlable = _blockParser.Run(input);
+            string resultStr = htmlable.ToHtml();
+            ScriptExtract.Run(resultStr, out string content, out string extractedScripts);
+            string preScripts = PreScripts(false);
+            string postScripts = $"{extractedScripts}\n{PostScripts(false)}";
+            string styles = Styles(false);
+            ParserResult result = new(content, preScripts, postScripts, styles);
+            return result;
+        }
         public string RunMutiple(List<string?> inputs)
         {
-            List<string> res = inputs.ConvertAll(x=>Run(x,false));
+            List<string> res = inputs.ConvertAll(x=>RunToPlain(x,false));
             throw new NotImplementedException();
             //return $"{Styles()}{PreScripts()}{string.Concat(res)}{PostScripts()}";
         }
-        public string Styles()
+        private string Styles(bool withLabel=true)
         {
             var allStyles = _ctx.GetUsedRules().Select(x => x.GetStyles()).ToList();
             if (allStyles.Count == 0 || allStyles.All(s => s == ""))
                 return "";
             allStyles = allStyles.Distinct().ToList();
-            return HtmlLabel.Style(string.Concat(allStyles));
+            string res = string.Concat(allStyles);
+            if(withLabel)
+                return HtmlLabel.Style(res);
+            return res;
         }
-        public string PreScripts()
+        private string PreScripts(bool withLabel= true)
         { 
             var allPre = _ctx.GetUsedRules().Select(x=>x.GetPreScripts()).ToList();
             if (allPre.Count == 0 || allPre.All(x=>x==""))
                 return "";
-            allPre = allPre.Distinct().ToList();
-            return HtmlLabel.Script(string.Concat(allPre));
+            allPre = allPre.Where(x=>x!="").Distinct().ToList();
+            string res = string.Join('\n',allPre);
+            if(withLabel)
+                return HtmlLabel.Script(res);
+            return res;
         }
-        public string PostScripts()
+        private string PostScripts(bool withLabel= true)
         {
             var allPost = _ctx.GetUsedRules().Select(x => x.GetPostScripts()).ToList();
             if (allPost.Count == 0 || allPost.All(x => x == ""))
                 return "";
             allPost = allPost.Distinct().ToList();
-            return HtmlLabel.Script(string.Concat(allPost));
+            string res = string.Join('\n',allPost);
+            if(withLabel)
+                return HtmlLabel.Script(res);
+            return res;
+        }
+    }
+
+    public class ParserResult
+    {
+        public string Content { get; }
+        public string PreScript { get; }
+        public string PostScript { get; }
+        public string Style { get; }
+        public ParserResult(string content="", string preScript="", string postScript="",string style="")
+        {
+            Content = content;
+            PreScript = preScript;
+            PostScript = postScript;
+            Style = style;
         }
     }
 }

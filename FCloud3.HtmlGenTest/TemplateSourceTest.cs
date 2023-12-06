@@ -16,7 +16,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("[[__AA__]]-[[__BB__]]-[[__AA__]]-[[__CC__]]-[[__D D__]]", "AA,BB,CC")]
         public void GettingSlots(string source,string answer)
         {
-            HtmlTemplate template = new("模板名称",source);
+            Template template = new("模板名称",source);
             var slots = new TemplateSlotInfo().Get(template);
             var answers = answer.Split(',');
             CollectionAssert.AreEquivalent(answers, slots.Select(x=>x.PureValue).ToList());
@@ -40,7 +40,7 @@ namespace FCloud3.HtmlGenTest
             )]
         public void Filling(string source,string values, string answer) 
         {
-            HtmlTemplate template = new("模板名称", source);
+            Template template = new("模板名称", source);
             var valuesDic = values.Split(',').ToDictionary(x => new ParseSlot("[[__"+x.Split(':')[0]+"__]]") as TemplateSlot, x => new TextElement(x.Split(':')[1]) as IHtmlable);
             TemplateElement element = new(template,valuesDic,new());
             string result = element.ToHtml();

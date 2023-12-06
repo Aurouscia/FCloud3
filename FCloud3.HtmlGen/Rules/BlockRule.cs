@@ -12,7 +12,7 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 块规则，表示用户用某种方法为行做了标记(LineMatched)，并希望相邻的同规则行成为一个块
     /// </summary>
-    public interface IHtmlBlockRule : IHtmlRule,IEquatable<IHtmlBlockRule>
+    public interface IBlockRule : IRule,IEquatable<IBlockRule>
     {
         /// <summary>
         /// 定义规则最后应该如何应用
@@ -42,14 +42,14 @@ namespace FCloud3.HtmlGen.Rules
         public IHtmlable MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
     }
 
-    public abstract class HtmlBlockRule : IHtmlBlockRule
+    public abstract class BlockRule : IBlockRule
     {
         public string Name { get; }
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Style { get; }
         public bool IsSingleUse { get; }
-        public HtmlBlockRule(string putLeft="",string putRight="", string style = "",string name="",bool isSingleUse = false)
+        public BlockRule(string putLeft="",string putRight="", string style = "",string name="",bool isSingleUse = false)
         {
             Style = style;
             PutLeft = putLeft;
@@ -64,13 +64,13 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
-        public abstract bool Equals(IHtmlBlockRule? other);
+        public abstract bool Equals(IBlockRule? other);
     }
 
     /// <summary>
     /// 表示没有任何标记的默认块规则
     /// </summary>
-    public class HtmlEmptyBlockRule : HtmlBlockRule
+    public class EmptyBlockRule : BlockRule
     {
         public override string Apply(IHtmlable content)
         {
@@ -95,25 +95,25 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool Equals(object? obj)
         {
-            return Equals(obj as IHtmlBlockRule);
+            return Equals(obj as IBlockRule);
         }
         public override int GetHashCode()
         {
-            return nameof(HtmlEmptyBlockRule).GetHashCode();
+            return nameof(EmptyBlockRule).GetHashCode();
         }
-        public override bool Equals(IHtmlBlockRule? other)
+        public override bool Equals(IBlockRule? other)
         {
-            return other is HtmlEmptyBlockRule;
+            return other is EmptyBlockRule;
         }
     }
 
     /// <summary>
     /// 表示在块的每一行前都加了标记的块规则，例如">"
     /// </summary>
-    public class HtmlPrefixBlockRule : HtmlBlockRule
+    public class PrefixBlockRule : BlockRule
     {
         public string Mark { get; }
-        public HtmlPrefixBlockRule(string mark, string putLeft, string putRight, string name,string style = "") 
+        public PrefixBlockRule(string mark, string putLeft, string putRight, string name,string style = "") 
             : base(putLeft,putRight,style,name)
         {
             Mark = mark;
@@ -140,15 +140,15 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool Equals(object? obj)
         {
-            return Equals(obj as IHtmlBlockRule);
+            return Equals(obj as IBlockRule);
         }
         public override int GetHashCode()
         {
             return Mark.GetHashCode();
         }
-        public override bool Equals(IHtmlBlockRule? other)
+        public override bool Equals(IBlockRule? other)
         {
-            if (other is HtmlPrefixBlockRule rule)
+            if (other is PrefixBlockRule rule)
                 return rule.Mark == this.Mark;
             return false;
         }
@@ -157,9 +157,9 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 表示每一行前加了"-"的列表
     /// </summary>
-    public class HtmlListBlockRule:HtmlPrefixBlockRule
+    public class ListBlockRule:PrefixBlockRule
     {
-        public HtmlListBlockRule()
+        public ListBlockRule()
             : base("-","<ul>","</ul>","列表","")
         {
         }
@@ -195,11 +195,11 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 表示一个分隔线，一行内只有"---"
     /// </summary>
-    public class HtmlSepBlockRule: HtmlBlockRule
+    public class SepBlockRule: BlockRule
     {
         public const char aLineOfChar = '-';
         public const string style = $".{SepElement.htmlClassName}{{background-color:black;height:2px;margin:10px 0px 10px 0px}}";
-        public HtmlSepBlockRule() : base(style: style) { }
+        public SepBlockRule() : base(style: style) { }
         public override string Apply(IHtmlable content)
         {
             return content.ToHtml();
@@ -234,17 +234,17 @@ namespace FCloud3.HtmlGen.Rules
             }
         }
 
-        public override bool Equals(IHtmlBlockRule? other)
+        public override bool Equals(IBlockRule? other)
         {
-            return other is HtmlSepBlockRule;
+            return other is SepBlockRule;
         }
         public override bool Equals(object? obj)
         {
-            return Equals(obj as IHtmlBlockRule);
+            return Equals(obj as IBlockRule);
         }
         public override int GetHashCode()
         {
-            return nameof(HtmlSepBlockRule).GetHashCode();
+            return nameof(SepBlockRule).GetHashCode();
         }
     }
     /// <summary>
@@ -253,11 +253,11 @@ namespace FCloud3.HtmlGen.Rules
     /// |Au|20|
     /// |Br|38|
     /// </summary>
-    public class HtmlMiniTableBlockRule : HtmlBlockRule
+    public class MiniTableBlockRule : BlockRule
     {
         public const char tableSep = '|';
 
-        public HtmlMiniTableBlockRule() : base("<table>", "</table>", "") { }
+        public MiniTableBlockRule() : base("<table>", "</table>", "") { }
 
         public override bool LineMatched(string line)
         {
@@ -299,15 +299,15 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool Equals(object? obj)
         {
-            return Equals(obj as IHtmlBlockRule);
+            return Equals(obj as IBlockRule);
         }
         public override int GetHashCode()
         {
-            return nameof(HtmlMiniTableBlockRule).GetHashCode();
+            return nameof(MiniTableBlockRule).GetHashCode();
         }
-        public override bool Equals(IHtmlBlockRule? other)
+        public override bool Equals(IBlockRule? other)
         {
-            return (other is HtmlMiniTableBlockRule);
+            return (other is MiniTableBlockRule);
         }
 
         public class TableRowElement : SimpleBlockElement
@@ -338,14 +338,14 @@ namespace FCloud3.HtmlGen.Rules
     /// </summary>
     public static class InternalBlockRules
     {
-        public static List<IHtmlBlockRule> GetInstances()
+        public static List<IBlockRule> GetInstances()
         {
-            return new List<IHtmlBlockRule>()
+            return new List<IBlockRule>()
             {
-                new HtmlListBlockRule(),
-                new HtmlSepBlockRule(),
-                new HtmlMiniTableBlockRule(),
-                new HtmlPrefixBlockRule(">","<div class=\"quote\">","</div>","引用"),
+                new ListBlockRule(),
+                new SepBlockRule(),
+                new MiniTableBlockRule(),
+                new PrefixBlockRule(">","<div class=\"quote\">","</div>","引用"),
             };
         }
     }

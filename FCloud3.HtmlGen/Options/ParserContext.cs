@@ -12,19 +12,19 @@ namespace FCloud3.HtmlGen.Options
     /// <summary>
     /// Html生成器上下文，在单次解析中唯一
     /// </summary>
-    public class HtmlGenContext
+    public class ParserContext
     {
-        public HtmlGenOptions Options { get; }
-        public Dictionary<IHtmlRule,int> UsedRulesLog { get; }
+        public ParserOptions Options { get; }
+        public Dictionary<IRule,int> UsedRulesLog { get; }
         public TemplateSlotInfo TemplateSlotInfo { get; }
         public int UniqueSlotIncre { get; set; }
-        public HtmlGenContext(HtmlGenOptions options)
+        public ParserContext(ParserOptions options)
         {
             UsedRulesLog = new();
             TemplateSlotInfo = new();
             Options = options;
         }
-        public void ReportUsage(IHtmlRule rule)
+        public void ReportUsage(IRule rule)
         {
             UsedRulesLog.TryAdd(rule, 0);
             UsedRulesLog[rule] += 1;
@@ -33,15 +33,15 @@ namespace FCloud3.HtmlGen.Options
                 //如果是一次性的规则，使用后会被移除（不确定这样实现合不合适）
                 if (rule is IHtmlInlineRule i)
                     Options.InlineParsingOptions.InlineRules.Remove(i);
-                if (rule is IHtmlBlockRule b)
+                if (rule is IBlockRule b)
                     Options.BlockParsingOptions.BlockRules.Remove(b);
             }
         }
-        public List<IHtmlRule> GetUsedRules()
+        public List<IRule> GetUsedRules()
         {
             return UsedRulesLog.Keys.ToList();
         }
-        public int RuleUsedTime(IHtmlRule rule)
+        public int RuleUsedTime(IRule rule)
         {
             _ = UsedRulesLog.TryGetValue(rule, out int times);
             return times;

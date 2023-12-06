@@ -6,31 +6,27 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options.SubOptions
 {
-    public class ImplantsHandleOptions : IHtmlGenOptions
+    public class ImplantsHandleOptions
     {
         public Func<string, string?> HandleImplant { get; private set; }
-        public ImplantsHandleOptions()
+        private readonly ParserBuilder _master;
+        public ImplantsHandleOptions(ParserBuilder master)
         {
             HandleImplant = x => x;
-        }
-        public ImplantsHandleOptions(Func<string,string?> handler)
-        {
-            HandleImplant = handler;
+            _master = master;
         }
 
-        public void OverrideWith(IHtmlGenOptions another)
+        public ParserBuilder AddImplantsHandler(Func<string,string?> handleImplant)
         {
-            if(another is ImplantsHandleOptions iho)
-            {
                 var original = HandleImplant;
                 HandleImplant = (x) =>
                 {
-                    string? newAnswer = iho.HandleImplant(x);
+                    string? newAnswer = handleImplant(x);
                     if (newAnswer is null)
                         return original(x);
                     return newAnswer;
                 };
-            }
+            return _master;
         }
     }
 }

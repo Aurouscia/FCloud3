@@ -6,36 +6,31 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options.SubOptions
 {
-    public class AutoReplaceOptions : IHtmlGenOptions
+    public class AutoReplaceOptions
     {
         public List<string> Detects { get; private set; }
         public Func<string, string> Replace { get; private set; }
-        public AutoReplaceOptions()
+        private readonly ParserBuilder _master;
+        public AutoReplaceOptions(ParserBuilder master)
         {
             Detects = new();
             Replace = x => x;
-        }
-        public AutoReplaceOptions(List<string> targets, Func<string, string> replace)
-        {
-            Detects = targets;
-            Replace = replace;
+            _master = master;
         }
 
-        public void OverrideWith(IHtmlGenOptions another)
+        public ParserBuilder AddReplacing(List<string> targets, Func<string, string> replace)
         {
-            if (another is AutoReplaceOptions aro) 
+            Detects.RemoveAll(targets.Contains);
+            Detects.AddRange(targets);
+            var original = Replace;
+            Replace = (d) =>
             {
-                Detects.RemoveAll(aro.Detects.Contains);
-                Detects.AddRange(aro.Detects);
-                var original = Replace;
-                Replace = (d) =>
-                {
-                    string newAnswer = aro.Replace(d);
-                    if (newAnswer == d)
-                        return original(d);
-                    return newAnswer;
-                };
-            }
+                string newAnswer = replace(d);
+                if (newAnswer == d)
+                    return original(d);
+                return newAnswer;
+            };
+            return _master;
         }
     }
 }

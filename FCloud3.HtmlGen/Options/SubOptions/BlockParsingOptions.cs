@@ -7,24 +7,36 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options.SubOptions
 {
-    public class BlockParsingOptions : IHtmlGenOptions
+    public class BlockParsingOptions
     {
-        public List<IHtmlBlockRule> BlockRules { get; private set; }
+        public List<IBlockRule> BlockRules { get; private set; }
         public int TitleLevelOffset { get; private set; }
-        public BlockParsingOptions(List<IHtmlBlockRule>? blockRules = null, int titleLevelOffset = 1)
+        private readonly ParserBuilder _master;
+        public BlockParsingOptions(ParserBuilder master)
         {
-            BlockRules = blockRules ?? new();
-            TitleLevelOffset = titleLevelOffset;
+            _master = master;
+            BlockRules = new();
         }
 
-        public void OverrideWith(IHtmlGenOptions another)
+        public ParserBuilder AddMoreRules(List<IBlockRule> blockRules)
         {
-            if(another is BlockParsingOptions bpo)
-            {
-                BlockRules.RemoveAll(bpo.BlockRules.Contains);
-                BlockRules.AddRange(bpo.BlockRules);
-                TitleLevelOffset = bpo.TitleLevelOffset;
-            }
+            BlockRules.RemoveAll(blockRules.Contains);
+            BlockRules.AddRange(blockRules);
+            return _master;
+        }
+        public ParserBuilder AddMoreRule(IBlockRule rule)
+        {
+            BlockRules.Remove(rule);
+            BlockRules.Add(rule);
+            return _master;
+        }
+
+        public ParserBuilder SetTitleLevelOffset(int titleLevelOffset)
+        {
+            if(titleLevelOffset<0 || titleLevelOffset>4)
+                throw new ArgumentOutOfRangeException(nameof(titleLevelOffset));
+            TitleLevelOffset = titleLevelOffset;
+            return _master;
         }
     }
 }

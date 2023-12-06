@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Rules;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,8 @@ namespace FCloud3.HtmlGenTest
     [TestClass]
     public class TemplateParsingTest
     {
-        private readonly HtmlGenOptions _options;
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserOptions _options;
+        private readonly ParserContext _ctx;
         public string? GenLinkForWiki(string name)
         {
             if (name == "哼哼")
@@ -24,8 +25,7 @@ namespace FCloud3.HtmlGenTest
         }
         public TemplateParsingTest()
         {
-            HtmlGenOptionsBuilder optionsBuilder = new(
-                templates: new()
+            var templates = new List<Template>()
                 {
                     new("重点强调","<b>!![[__文字__]]!!</b>"),
                     new("名称信息", "<div><b>[[__中文名__]]</b><i>[[__英文名__]]</i></div>"),
@@ -33,12 +33,11 @@ namespace FCloud3.HtmlGenTest
                     new("唯一id测试","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
                     new("唯一id测试2","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
                     new("唯一id测试3","<div id=\"[[__%ik%__]]\"><script>doc.get('[[__%ik%__]]')</script>")
-                },
-                extraInlineRules: new(),
-                extraBlockRules: new(),
-                implantsHandleOptions: new(GenLinkForWiki)
-            );
-            _options = optionsBuilder.GetOptions();
+                };
+            _options = new ParserBuilder()
+                .Template.AddTemplates(templates)
+                .Implant.AddImplantsHandler(GenLinkForWiki)
+                .GetCurrentOptions();
             _ctx = new(_options);
         }
         [TestMethod]

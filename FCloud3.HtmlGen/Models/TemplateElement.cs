@@ -14,12 +14,12 @@ namespace FCloud3.HtmlGen.Models
 {
     public class TemplateElement : Element
     {
-        private readonly HtmlTemplate _template;
+        private readonly Template _template;
         private readonly Dictionary<TemplateSlot, IHtmlable> _values;
         private readonly TemplateSlotInfo _slotInfo;
         private readonly int _uniqueSlotIncre;
 
-        public TemplateElement(HtmlTemplate template, Dictionary<TemplateSlot,IHtmlable> values, TemplateSlotInfo slotInfo,int uniqueSlotIncre = 0)
+        public TemplateElement(Template template, Dictionary<TemplateSlot,IHtmlable> values, TemplateSlotInfo slotInfo,int uniqueSlotIncre = 0)
         {
             _template = template;
             _values = values;
@@ -80,7 +80,7 @@ namespace FCloud3.HtmlGen.Models
         /// </summary>
         /// <param name="template">模板</param>
         /// <returns></returns>
-        public List<TemplateSlot> Get(HtmlTemplate template)
+        public List<TemplateSlot> Get(Template template)
         {
             if (string.IsNullOrEmpty(template.Name))
                 return new();
@@ -90,7 +90,7 @@ namespace FCloud3.HtmlGen.Models
             this.Add(template.Name, slots);
             return slots;
         }
-        private List<TemplateSlot> GetSlots(HtmlTemplate template)
+        private List<TemplateSlot> GetSlots(Template template)
         {
             List<TemplateSlot> slots = new();
             if (template.Source is null)

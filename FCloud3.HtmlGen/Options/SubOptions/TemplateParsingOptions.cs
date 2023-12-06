@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options.SubOptions
 {
-    public class TemplateParsingOptions : IHtmlGenOptions
+    public class TemplateParsingOptions
     {
-        public List<HtmlTemplate> Templates { get; }
-        public TemplateParsingOptions(List<HtmlTemplate>? templates = null)
+        public List<Template> Templates { get; }
+        private readonly ParserBuilder _master;
+        public TemplateParsingOptions(ParserBuilder master, List<Template>? templates = null)
         {
             Templates = templates ?? new();
+            _master = master;
         }
 
-        public void OverrideWith(IHtmlGenOptions another)
+        public ParserBuilder AddTemplates(List<Template> templates)
         {
-            if(another is TemplateParsingOptions tpo)
-            {
-                Templates.RemoveAll(x=>tpo.Templates.Contains(x));
-                Templates.AddRange(tpo.Templates);  
-            }
+            Templates.RemoveAll(x=>templates.Contains(x));
+            Templates.AddRange(templates);  
+            return _master;
         }
     }
 }

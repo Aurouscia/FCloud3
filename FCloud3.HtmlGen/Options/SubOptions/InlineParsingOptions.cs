@@ -7,22 +7,36 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Options.SubOptions
 {
-    public class InlineParsingOptions : IHtmlGenOptions
+    public class InlineParsingOptions
     {
         public List<IHtmlInlineRule> InlineRules { get; }
-        public InlineParsingOptions(List<IHtmlInlineRule>? inlineRules = null)
+        private readonly ParserBuilder _master;
+        public InlineParsingOptions(ParserBuilder master, List<IHtmlInlineRule>? inlineRules = null)
         {
+            _master = master;
             InlineRules = inlineRules ?? new();
-            InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
+            SortRules();
         }
 
-        public void OverrideWith(IHtmlGenOptions another)
+        public ParserBuilder AddMoreRules(List<IHtmlInlineRule> inlineRules)
         {
-            if (another is InlineParsingOptions ipo)
-            {
-                InlineRules.RemoveAll(ipo.InlineRules.Contains);
-                InlineRules.AddRange(ipo.InlineRules);
-            }
+            InlineRules.RemoveAll(inlineRules.Contains);
+            InlineRules.AddRange(inlineRules);
+            SortRules();
+            return _master;
+        }
+
+        public ParserBuilder AddMoreRule(IHtmlInlineRule inlineRule)
+        {
+            InlineRules.Remove(inlineRule);
+            InlineRules.Add(inlineRule);
+            SortRules();
+            return _master;
+        }
+
+        private void SortRules()
+        {
+            InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
         }
     }
 }

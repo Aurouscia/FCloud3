@@ -12,29 +12,22 @@ namespace FCloud3.HtmlGenTest
     [TestClass]
     public class CommonPartTest
     {
-        private readonly HtmlGenOptions _options;
+        private readonly Parser _parser;
         public CommonPartTest()
         {
-            HtmlGenOptionsBuilder optionsBuilder = new(
-                templates: new()
+            ParserBuilder parserBuilder = new ParserBuilder()
+                .Block.AddMoreRule(new PrefixBlockRule(
+                        ">", "<div class=\"quote\">", "</div>", "引用", ".quote{font-size:small}"
+                    ))
+                .Inline.AddMoreRule(new CustomInlineRule(
+                        "\\red", "\\red", "<span class=\"red\">", "</span>", "红色字体", ".red{color:red}"
+                    ))
+                .Template.AddTemplates(new()
                 {
-                    new HtmlTemplate("打招呼","<div class=\"hello\">[[__内容__]]</div>",".hello{font-size:large}"),
-                    new HtmlTemplate("哼唧","<div class=\"hj\">[[__内容__]]</div>",".hj{color:gray}","console.log('哼唧')")
-                },
-                extraInlineRules: new()
-                {
-                    new HtmlCustomInlineRule(
-                            "\\red","\\red","<span class=\"red\">","</span>","红色字体",".red{color:red}"
-                        )
-                },
-                extraBlockRules: new()
-                {
-                    new HtmlPrefixBlockRule(
-                        ">","<div class=\"quote\">","</div>","引用",".quote{font-size:small}"
-                    )
-                }
-            );
-            _options = optionsBuilder.GetOptions();
+                    new Template("打招呼","<div class=\"hello\">[[__内容__]]</div>",".hello{font-size:large}"),
+                    new Template("哼唧","<div class=\"hj\">[[__内容__]]</div>",".hj{color:gray}","console.log('哼唧')")
+                });
+            _parser = parserBuilder.BuildParser();
         }
 
         [TestMethod]
@@ -62,8 +55,7 @@ namespace FCloud3.HtmlGenTest
             "<style>.red{color:red}.hj{color:gray}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
         public void TestOne(string input,string answer)
         {
-            var parser = new Parser(_options);
-            var res = parser.Run(input,true);
+            var res = _parser.RunToPlain(input,true);
             Assert.AreEqual(answer, res);
         }
     }

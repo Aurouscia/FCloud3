@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Rules
 {
-    public interface IHtmlRule
+    public interface IRule
     {
         public string GetStyles();
         public string GetPreScripts();

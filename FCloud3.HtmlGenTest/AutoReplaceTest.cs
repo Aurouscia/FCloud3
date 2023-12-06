@@ -11,7 +11,7 @@ namespace FCloud3.HtmlGenTest
     [TestClass]
     public class AutoReplaceTest
     {
-        private readonly HtmlGenOptions _options;
+        private readonly Parser _parser;
         private readonly Dictionary<string,int> wikis = new()
         {
             {  "3C教育体系大纲",6 },
@@ -27,13 +27,12 @@ namespace FCloud3.HtmlGenTest
         }
         public AutoReplaceTest()
         {
-            HtmlGenOptionsBuilder optionsBuilder = new(
-                templates: new(),
-                extraInlineRules: new(),
-                extraBlockRules: new(),
-                autoReplaceOptions: new(wikis.Select(x=>x.Key).ToList(),MakeUrlForWiki)
-            );
-            _options = optionsBuilder.GetOptions();
+            var optionsBuilder = new ParserBuilder()
+                .AutoReplace.AddReplacing(
+                    wikis.Select(x => x.Key).ToList(),
+                    MakeUrlForWiki
+                );
+            _parser = optionsBuilder.BuildParser();
         }
 
         [TestMethod]
@@ -54,8 +53,7 @@ namespace FCloud3.HtmlGenTest
             "<p>Au一边喊着\"咪<a href=\"/w/14\">咪么么么</a>么\"，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>")]
         public void Test(string input, string answer)
         {
-            Parser p = new(_options);
-            string res = p.Run(input);
+            string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
         }
     }

@@ -13,18 +13,12 @@ namespace FCloud3.HtmlGenTest
     [TestClass]
     public class InlineParsingTest
     {
-        private readonly HtmlGenOptions _options;
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
 
         public InlineParsingTest()
         {
-            HtmlGenOptionsBuilder optionsBuilder = new(
-                templates: new(),
-                extraInlineRules: new(),
-                extraBlockRules: new()
-            );
-            _options = optionsBuilder.GetOptions();
-            _ctx = new(_options);
+            var options = new ParserBuilder().GetCurrentOptions();
+            _ctx = new(options);
         }
 
         [TestMethod]

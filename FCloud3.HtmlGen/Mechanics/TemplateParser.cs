@@ -3,19 +3,19 @@ using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Text;
-using static FCloud3.HtmlGen.Rules.HtmlTemplate;
+using static FCloud3.HtmlGen.Rules.Template;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
     public class TemplateParser
     {
-        private readonly HtmlGenContext _ctx;
+        private readonly ParserContext _ctx;
         private readonly Lazy<BlockParser> _blockParser;
         private readonly Lazy<InlineParser> _inlineParser;
         private readonly TemplateSlotInfo _slotInfo;
 
-        public TemplateParser(HtmlGenContext ctx)
+        public TemplateParser(ParserContext ctx)
         {
             //可能造成stackOverflow，解决办法：都改成Lazy的
             _ctx = ctx;
@@ -36,7 +36,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     res.AddFlat(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
                 else if (f.Type == SplittedByCalls.FragTypes.Template)
                 {
-                    res.Add(ParseSingleCall(f.PureContent,out HtmlTemplate? detected));
+                    res.Add(ParseSingleCall(f.PureContent,out Template? detected));
                     if(detected is not null)
                         _ctx.ReportUsage(detected);
                 }
@@ -54,7 +54,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
         private static readonly string[] valuesSep = new string[] { "&&" };
         private static readonly string[] keyValueSep = new string[] { "::", "：：" };
-        public Element ParseSingleCall(string templateCallSource,out HtmlTemplate? detected)
+        public Element ParseSingleCall(string templateCallSource,out Template? detected)
         {
             try
             {
