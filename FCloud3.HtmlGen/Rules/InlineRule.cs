@@ -140,6 +140,7 @@ namespace FCloud3.HtmlGen.Rules
             return trimmed.StartsWith("http") || trimmed.StartsWith("/");
         }
 
+        //TODO: 有图片后缀名的话变成行内图片
         public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
             return new AnchorElement(span.Trim(), span.Trim());

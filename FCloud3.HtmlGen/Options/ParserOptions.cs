@@ -21,14 +21,16 @@ namespace FCloud3.HtmlGen.Options
         public AutoReplaceOptions AutoReplaceOptions { get; }
         public InlineParsingOptions InlineParsingOptions { get; }
         public BlockParsingOptions BlockParsingOptions { get;}
+        public CacheOptions CacheOptions { get; }
         public ParserOptions(TemplateParsingOptions template, ImplantsHandleOptions implant,
-            AutoReplaceOptions autoReplace, InlineParsingOptions inline,BlockParsingOptions block)
+            AutoReplaceOptions autoReplace, InlineParsingOptions inline,BlockParsingOptions block, CacheOptions cacheOptions)
         {
             TemplateParsingOptions = template;
             ImplantsHandleOptions = implant;
             AutoReplaceOptions = autoReplace;
             InlineParsingOptions = inline;
             BlockParsingOptions = block;
+            CacheOptions = cacheOptions;
         }
     }
 
@@ -39,6 +41,7 @@ namespace FCloud3.HtmlGen.Options
         public AutoReplaceOptions AutoReplace { get; }
         public InlineParsingOptions Inline { get; }
         public BlockParsingOptions Block { get; }
+        public CacheOptions Cache { get; }
         public ParserBuilder()
         {
             Template = new(this);
@@ -46,6 +49,7 @@ namespace FCloud3.HtmlGen.Options
             AutoReplace = new(this);
             Inline = new(this);
             Block = new(this);
+            Cache = new(this);
 
             Block.AddMoreRules(InternalBlockRules.GetInstances());
             Inline.AddMoreRules(InternalInlineRules.GetInstances());
@@ -54,7 +58,7 @@ namespace FCloud3.HtmlGen.Options
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
-            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block);
+            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache);
             return options;
         }
 

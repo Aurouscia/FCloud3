@@ -61,4 +61,10 @@ namespace FCloud3.HtmlGen.Models
             return $"<a href=\"{Href}\">{Content}</a>";
         }
     }
+    public sealed class PureTextElement : TextElement
+    {
+        public PureTextElement(string content) : base(content)
+        {
+        }
+    }
 }

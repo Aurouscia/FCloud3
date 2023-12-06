@@ -147,6 +147,12 @@ namespace FCloud3.HtmlGen.Mechanics
                 input = input.Trim();
                 if (string.IsNullOrEmpty(input))
                     return;
+
+                if (!input.Contains(Consts.tplt_L) || !input.Contains(Consts.tplt_R))
+                {
+                    this.Frags.Add(new(input, false));
+                    return;
+                }
                 StringBuilder sb = new();
                 int layer = 0;
                 bool isInPlain = true;
@@ -187,8 +193,8 @@ namespace FCloud3.HtmlGen.Mechanics
                         }
                     }
                 }
-                //if (layer != 0)
-                //    throw new Exception("未闭合'{'与'}'");
+                if (layer != 0)
+                    throw new Exception("未闭合'{'与'}'");
                 this.Frags.Add(new(sb.ToString(), false));
             }
             public class SplittedFrag

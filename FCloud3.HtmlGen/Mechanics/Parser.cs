@@ -14,11 +14,15 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
-        public const int maxInputLength = 10000;
-        public const string maxInputLengthViolatedHint = "单段字数过多，请分段";
+        public const int maxInputLength = 5000;
         public Parser(ParserOptions options)
         {
             _ctx = new(options);
+            _blockParser = new(_ctx);
+        }
+        public Parser(ParserContext ctx)
+        {
+            _ctx = ctx;
             _blockParser = new(_ctx);
         }
         public string RunToPlain(string? input,bool putCommon = false)
@@ -26,7 +30,7 @@ namespace FCloud3.HtmlGen.Mechanics
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
             if (input.Length > maxInputLength)
-                return maxInputLengthViolatedHint;
+                return input;
             IHtmlable result = _blockParser.Run(input);
             if (!putCommon)
                 return result.ToHtml();
@@ -38,7 +42,7 @@ namespace FCloud3.HtmlGen.Mechanics
             if (string.IsNullOrWhiteSpace(input))
                 return new();
             if (input.Length > maxInputLength)
-                return new(maxInputLengthViolatedHint);
+                return new(input);
             IHtmlable htmlable = _blockParser.Run(input);
             string resultStr = htmlable.ToHtml();
             ScriptExtract.Run(resultStr, out string content, out string extractedScripts);

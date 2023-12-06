@@ -4,5 +4,8 @@ export interface TextSection{
     Content:string
 }
 export interface TextSectionPreviewResponse{
-    HtmlSource:string
+    HtmlSource:string,
+    PreScripts:string,
+    PostScripts:string,
+    Styles:string
 }

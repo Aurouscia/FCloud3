@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import {ref, Ref, onMounted, inject} from 'vue'
+import {ref, Ref, onMounted, inject, computed} from 'vue'
 import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
+import { updateScript } from '../../utils/dynamicScriptUpdate';
 
 const props = defineProps<{id:string}>()
 var textSecId:number = Number(props.id);
 const previewOn = ref<boolean>(true);
 var api:Api
 var pop:Ref<InstanceType<typeof Pop>>;
+
+const preScriptsDiv = ref<HTMLDivElement>();
+const postScriptsDiv = ref<HTMLDivElement>();
+const stylesContent = ref<string>();
+const styles = computed(()=>`<style>${stylesContent}</style>`)
 
 const data = ref<TextSection>({
     Id:textSecId,
@@ -40,8 +46,16 @@ async function refreshPreview() {
         return;
     }
     const res = await api.textSection.preview(data.value.Content,pop.value.show);
-    if(res){
+    if(res && preScriptsDiv.value){
+        stylesContent.value = res.Styles;
+        updateScript(preScriptsDiv.value, res.PreScripts);
         previewContent.value = res.HtmlSource;
+        setTimeout(()=>
+        {
+            if(postScriptsDiv.value){
+                updateScript(postScriptsDiv.value, res.PostScripts)
+            }
+        },10);
     }
 }
 
@@ -84,10 +98,14 @@ onMounted(async()=>{
     </div>
 </div>
 <div v-if="data" class="background">
+    <div class="invisible" v-html="styles"></div>
+    <div ref="preScriptsDiv" class="invisible"></div>
     <div class="preview" v-show="previewOn" v-html="previewContent">
     </div>
-        <textarea v-model="data.Content" placeholder="请输入内容" @input="contentInput" class="write" :class="{writeNoPreview:!previewOn}">
-        </textarea>
+    <div ref="postScriptsDiv" class="invisible"></div>
+
+    <textarea v-model="data.Content" placeholder="请输入内容" @input="contentInput" class="write" :class="{writeNoPreview:!previewOn}">
+    </textarea>
 </div>
 </template>
 
@@ -161,5 +179,8 @@ onMounted(async()=>{
     .topbar > div{
         display: flex;
         padding: 0px 10px 0px 10px;
+    }
+    .invisible{
+        display: none;
     }
 </style>

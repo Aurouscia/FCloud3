@@ -1,6 +1,7 @@
 ﻿using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,21 +21,35 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly ParserContext _ctx;
         private readonly Lazy<TemplateParser> _templateParser;
+        private readonly bool _useCache;
+
         public InlineParser(ParserContext ctx) 
         {
             _ctx = ctx;
             _templateParser = new(() => new(ctx));
+            _useCache = ctx.Options.CacheOptions.UseCache;
         }
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
+            if (_useCache)
+            {
+                if (_ctx.IsPureString(input)) 
+                {
+                    _ctx.CacheReadCount++;
+                    return new TextElement(input);
+                }
+            }
             try
             {
-                if (mayContainTemplateCall)
+                if (mayContainTemplateCall && input.Contains(Consts.tplt_L) && input.Contains(Consts.tplt_R))
                     return _templateParser.Value.Run(input);
                 var marks = MakeMarks(input);
                 if (marks.Count == 0)
+                {
+                    _ctx.ReportPureString(input);
                     return new TextElement(input);
+                }
                 marks.ForEach(x =>
                 {
                     _ctx.ReportUsage(x.Rule);

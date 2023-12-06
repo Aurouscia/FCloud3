@@ -16,15 +16,27 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly Lazy<TitledBlockParser> _titledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
+        private readonly ParserContext _ctx;
+        private readonly bool _useCache;
 
         public BlockParser(ParserContext ctx)
         {
             _titledBlockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
+            _useCache = ctx.Options.CacheOptions.UseCache;
+            _ctx = ctx;
         }
 
         public IHtmlable Run(string input, bool enforceBlock = true)
         {
+            if (_useCache)
+            {
+                if (_ctx.IsPureString(input))
+                {
+                    _ctx.CacheReadCount++;
+                    return new TextElement(input);
+                }
+            }
             var lines = LineSplitter.Split(input);
 
             if (lines.Count == 0)

@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Util
 {
-    public static class Escape
+    public static partial class Escape
     {
         public const char escapeChar = '\\';
-        public const string removeEscapeCharOfPattern = @"\\(?!\\)";
         public static string HideEscapeMark(string input)
         {
             if (!input.Contains(escapeChar))
                 return input;
-            return Regex.Replace(input, removeEscapeCharOfPattern ,string.Empty);
+            return RemoveEscapeChar().Replace(input, string.Empty);
         }
+
+        [GeneratedRegex("\\\\(?!\\\\)")]
+        private static partial Regex RemoveEscapeChar();
     }
 }

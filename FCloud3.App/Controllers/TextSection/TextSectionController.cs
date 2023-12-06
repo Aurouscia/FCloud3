@@ -48,7 +48,7 @@ namespace FCloud3.App.Controllers.TextSec
         [Authorize]
         public IActionResult Preview(string content)
         {
-            var res = new TextSectionPreviewResponse(_parser.Value.RunToPlain(content,true));
+            var res = new TextSectionPreviewResponse(_parser.Value.RunToStructured(content));
             return this.ApiResp(res);
         }
 
@@ -70,9 +70,22 @@ namespace FCloud3.App.Controllers.TextSec
         public class TextSectionPreviewResponse
         {
             public string HtmlSource { get; }
+            public string PreScripts { get; }
+            public string PostScripts { get; }
+            public string Styles { get; }
             public TextSectionPreviewResponse(string htmlSource)
             {
                 HtmlSource = htmlSource;
+                PreScripts = "";
+                PostScripts = "";
+                Styles = "";
+            }
+            public TextSectionPreviewResponse(ParserResult parserResult)
+            {
+                HtmlSource = parserResult.Content;
+                PreScripts = parserResult.PreScript;
+                PostScripts = parserResult.PostScript;
+                Styles = parserResult.Style;
             }
         }
     }
