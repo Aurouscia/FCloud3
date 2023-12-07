@@ -118,6 +118,10 @@ namespace FCloud3.HtmlGenTest
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
+            string output2 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output2);
+            string output3 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output3);
         }
 
 
@@ -150,6 +154,12 @@ namespace FCloud3.HtmlGenTest
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
+            _ctx.Reset();
+            string output2 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output2);
+            _ctx.Reset();
+            string output3 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output3);
         }
 
         [TestMethod]
@@ -167,6 +177,10 @@ namespace FCloud3.HtmlGenTest
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
+            string output2 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output2);
+            string output3 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output3);
         }
     }
 }

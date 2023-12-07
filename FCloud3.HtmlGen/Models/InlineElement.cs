@@ -14,14 +14,14 @@ namespace FCloud3.HtmlGen.Models
     }
     public class RuledInlineElement : InlineElement
     {
-        public IHtmlInlineRule? Rule { get; }
+        public IInlineRule? Rule { get; }
         public IHtmlable Content { get; }
-        public RuledInlineElement(IHtmlInlineRule? rule = null)
+        public RuledInlineElement(IInlineRule? rule = null)
         {
             Rule = rule;
             Content = new ElementCollection();
         }
-        public RuledInlineElement(IHtmlable htmlable,IHtmlInlineRule? rule = null)
+        public RuledInlineElement(IHtmlable htmlable,IInlineRule? rule = null)
         {
             Rule = rule;
             Content = htmlable;
@@ -31,6 +31,13 @@ namespace FCloud3.HtmlGen.Models
             if (Rule is null)
                 return Content.ToHtml();
             return $"{Rule.PutLeft}{Content.ToHtml()}{Rule.PutRight}";
+        }
+        public override List<IRule>? ContainRules()
+        {
+            var res = Content.ContainRules() ?? new();
+            if (this.Rule is not null)
+                res.Add(Rule);
+            return res;
         }
     }
     public class TextElement:InlineElement
@@ -61,10 +68,23 @@ namespace FCloud3.HtmlGen.Models
             return $"<a href=\"{Href}\">{Content}</a>";
         }
     }
-    public sealed class PureTextElement : TextElement
+    public sealed class CachedElement : InlineElement
     {
-        public PureTextElement(string content) : base(content)
+        public string Content { get; }
+        public List<IRule> UsedRules { get; }
+        public CachedElement(string content, List<IRule> usedRules)
         {
+            Content = content;
+            UsedRules = usedRules;
+        }
+
+        public override string ToHtml()
+        {
+            return Content;
+        }
+        public override List<IRule>? ContainRules()
+        {
+            return UsedRules;
         }
     }
 }

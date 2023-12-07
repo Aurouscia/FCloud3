@@ -55,6 +55,10 @@ namespace FCloud3.HtmlGenTest
         {
             string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
+            string res2 = _parser.RunToPlain(input);
+            Assert.AreEqual(answer, res2);
+            string res3 = _parser.RunToPlain(input);
+            Assert.AreEqual(answer, res3);
         }
     }
 }

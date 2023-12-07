@@ -14,6 +14,7 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly Lazy<BlockParser> _blockParser;
         private readonly Lazy<InlineParser> _inlineParser;
         private readonly TemplateSlotInfo _slotInfo;
+        private readonly bool _useExclusiveCache;
 
         public TemplateParser(ParserContext ctx)
         {
@@ -22,6 +23,7 @@ namespace FCloud3.HtmlGen.Mechanics
             _blockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
             _slotInfo = ctx.TemplateSlotInfo;
+            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
         }
 
 
@@ -29,6 +31,12 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             SplittedByCalls splitted = SplitByCalls(input);
             var frags = splitted.Frags;
+            if(_useExclusiveCache && frags.Count==1 && frags[0].Type == SplittedByCalls.FragTypes.Plain)
+            {
+                _ctx.Caches.ReportNonTemplateStr(input);
+                return _inlineParser.Value.Run(input, mayContainTemplateCall: false);
+            }
+
             ElementCollection res = new();
             foreach(var f in frags)
             {
@@ -38,7 +46,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     res.Add(ParseSingleCall(f.PureContent,out Template? detected));
                     if(detected is not null)
-                        _ctx.ReportUsage(detected);
+                        _ctx.RuleUsage.ReportUsage(detected);
                 }
                 else if(f.Type==SplittedByCalls.FragTypes.Implant)
                 {

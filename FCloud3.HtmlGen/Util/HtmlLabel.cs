@@ -16,5 +16,9 @@ namespace FCloud3.HtmlGen.Util
         {
             return $"<script>{script}</script>";
         }
+        public static string DebugInfo(string info)
+        {
+            return $"<div style=\"color:gray;text-decoration:underline\">{info}</div>";
+        }
     }
 }

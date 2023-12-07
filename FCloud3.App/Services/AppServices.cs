@@ -18,6 +18,8 @@ namespace FCloud3.App.Services
             services.AddControllers(options => {
                 options.Filters.Add<ApiExceptionFilter>();
             });
+            services.AddMemoryCache();
+            services.AddScoped<HtmlGenParserProvider>();
             return services;
         }
         public static IServiceCollection AddJwtService(this IServiceCollection services)

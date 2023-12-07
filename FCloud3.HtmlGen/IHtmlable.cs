@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FCloud3.HtmlGen.Rules;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,5 +10,6 @@ namespace FCloud3.HtmlGen
     public interface IHtmlable
     {
         public string ToHtml();
+        public List<IRule>? ContainRules();
     }
 }

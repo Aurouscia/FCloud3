@@ -12,15 +12,17 @@ namespace FCloud3.App.Controllers.TextSec
     public class TextSectionController:Controller
     {
         private readonly TextSectionService _textSectionService;
+        private readonly HtmlGenParserProvider _genParser;
         private readonly HttpUserInfoService _user;
-        private readonly Lazy<Parser> _parser;
 
-        public TextSectionController(HttpUserInfoService user, TextSectionService textSectionService) 
+        public TextSectionController(
+            HttpUserInfoService user,
+            TextSectionService textSectionService,
+            HtmlGenParserProvider genParser) 
         {
             _user = user;
             _textSectionService = textSectionService;
-
-            _parser = new(()=>new ParserBuilder().BuildParser());//临时只使用默认规则
+            _genParser = genParser;
         }
 
         public IActionResult CreateForCorr(int corrId)
@@ -46,9 +48,10 @@ namespace FCloud3.App.Controllers.TextSec
         }
 
         [Authorize]
-        public IActionResult Preview(string content)
+        public IActionResult Preview(int id, string content)
         {
-            var res = new TextSectionPreviewResponse(_parser.Value.RunToStructured(content));
+            var parser = _genParser.GetParser(id);
+            var res = new TextSectionPreviewResponse(parser.RunToStructured(content));
             return this.ApiResp(res);
         }
 

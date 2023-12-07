@@ -20,6 +20,10 @@ namespace FCloud3.HtmlGen.Models
         {
             return Content.ToHtml();
         }
+        public override List<IRule>? ContainRules()
+        {
+            return Content.ContainRules();
+        }
     }
     public class TitledBlockElement : BlockElement
     {
@@ -49,6 +53,13 @@ namespace FCloud3.HtmlGen.Models
             if(GenByRule is not null)
                 return GenByRule.Apply(Content);
             return base.ToHtml();
+        }
+        public override List<IRule>? ContainRules()
+        {
+            var res = Content.ContainRules()??new();
+            if (GenByRule is not null)
+                res.Add(GenByRule);
+            return res;
         }
     }
     public class SimpleBlockElement : BlockElement

@@ -17,23 +17,33 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly Lazy<TitledBlockParser> _titledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
         private readonly ParserContext _ctx;
-        private readonly bool _useCache;
+        private readonly bool _useExclusiveCache;
+        private readonly bool _useInclusiveCache;
 
         public BlockParser(ParserContext ctx)
         {
             _titledBlockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
-            _useCache = ctx.Options.CacheOptions.UseCache;
+            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
+            _useInclusiveCache = ctx.Options.CacheOptions.UseInclusiveCache;
             _ctx = ctx;
         }
 
         public IHtmlable Run(string input, bool enforceBlock = true)
         {
-            if (_useCache)
+            if (_useInclusiveCache)
             {
-                if (_ctx.IsPureString(input))
+                var res = _ctx.Caches.ReadParseResult(input);
+                if (res is not null)
                 {
-                    _ctx.CacheReadCount++;
+                    _ctx.RuleUsage.ReportUsage(res.UsedRules);
+                    return new CachedElement(res.Content,res.UsedRules);
+                }
+            }
+            if (_useExclusiveCache)
+            {
+                if (_ctx.Caches.IsNonMarkString(input))
+                {
                     return new TextElement(input);
                 }
             }
@@ -41,15 +51,26 @@ namespace FCloud3.HtmlGen.Mechanics
 
             if (lines.Count == 0)
                 return new EmptyElement();
+
+            IHtmlable resElement;
             if (lines.Count == 1)
             {
                 if (enforceBlock)
-                    return _inlineParser.Value.RunForLine(lines[0]);
+                    resElement = _inlineParser.Value.RunForLine(lines[0]);
                 else
-                    return _inlineParser.Value.Run(lines[0]);
+                    resElement = _inlineParser.Value.Run(lines[0]);
             }
+            else
+                resElement = _titledBlockParser.Value.Run(lines);
 
-            return _titledBlockParser.Value.Run(lines);
+            if (_useInclusiveCache)
+            {
+                string content = resElement.ToHtml();
+                List<IRule> usedRules = resElement.ContainRules() ?? new();
+                _ctx.Caches.SaveParseResult(input, content, usedRules);
+                return new CachedElement(content,usedRules);
+            }
+            return resElement;
         }
     }
 
@@ -216,7 +237,7 @@ namespace FCloud3.HtmlGen.Mechanics
             lines.ForEach(x =>
             {
                 if (x.Rule is not null)
-                    _ctx.ReportUsage(x.Rule);
+                    _ctx.RuleUsage.ReportUsage(x.Rule);
             });
 
             var emptyRule = new EmptyBlockRule();

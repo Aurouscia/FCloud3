@@ -14,7 +14,7 @@ var pop:Ref<InstanceType<typeof Pop>>;
 const preScriptsDiv = ref<HTMLDivElement>();
 const postScriptsDiv = ref<HTMLDivElement>();
 const stylesContent = ref<string>();
-const styles = computed(()=>`<style>${stylesContent}</style>`)
+const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 
 const data = ref<TextSection>({
     Id:textSecId,
@@ -45,7 +45,7 @@ async function refreshPreview() {
     if(!previewOn.value){
         return;
     }
-    const res = await api.textSection.preview(data.value.Content,pop.value.show);
+    const res = await api.textSection.preview(textSecId,data.value.Content,pop.value.show);
     if(res && preScriptsDiv.value){
         stylesContent.value = res.Styles;
         updateScript(preScriptsDiv.value, res.PreScripts);

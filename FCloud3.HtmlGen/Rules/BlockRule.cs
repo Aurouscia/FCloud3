@@ -221,16 +221,25 @@ namespace FCloud3.HtmlGen.Rules
         public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             var res = new ElementCollection();
-            lines.ToList().ForEach(x => res.Add(new SepElement()));
+            lines.ToList().ForEach(x => res.Add(new SepElement(this)));
             return res;
         }
         public class SepElement:BlockElement
         {
             public const string htmlClassName = "sep";
-            public SepElement() : base() { }
+            private readonly SepBlockRule _fromRule;
+
+            public SepElement(SepBlockRule fromRule) : base()
+            {
+                _fromRule = fromRule;
+            }
             public override string ToHtml()
             {
                 return $"<div class=\"{htmlClassName}\"></div>";
+            }
+            public override List<IRule>? ContainRules()
+            {
+                return new() { _fromRule };
             }
         }
 

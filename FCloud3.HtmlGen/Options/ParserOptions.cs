@@ -22,8 +22,9 @@ namespace FCloud3.HtmlGen.Options
         public InlineParsingOptions InlineParsingOptions { get; }
         public BlockParsingOptions BlockParsingOptions { get;}
         public CacheOptions CacheOptions { get; }
-        public ParserOptions(TemplateParsingOptions template, ImplantsHandleOptions implant,
-            AutoReplaceOptions autoReplace, InlineParsingOptions inline,BlockParsingOptions block, CacheOptions cacheOptions)
+        public bool Debug { get; }
+        public ParserOptions(TemplateParsingOptions template, ImplantsHandleOptions implant, AutoReplaceOptions autoReplace, 
+            InlineParsingOptions inline,BlockParsingOptions block, CacheOptions cacheOptions, bool debug)
         {
             TemplateParsingOptions = template;
             ImplantsHandleOptions = implant;
@@ -31,6 +32,7 @@ namespace FCloud3.HtmlGen.Options
             InlineParsingOptions = inline;
             BlockParsingOptions = block;
             CacheOptions = cacheOptions;
+            Debug = debug;
         }
     }
 
@@ -42,6 +44,7 @@ namespace FCloud3.HtmlGen.Options
         public InlineParsingOptions Inline { get; }
         public BlockParsingOptions Block { get; }
         public CacheOptions Cache { get; }
+        public bool Debug { get; private set; }
         public ParserBuilder()
         {
             Template = new(this);
@@ -55,10 +58,15 @@ namespace FCloud3.HtmlGen.Options
             Inline.AddMoreRules(InternalInlineRules.GetInstances());
         }
         
+        public ParserBuilder EnableDebugInfo()
+        {
+            Debug = true; return this;
+        }
+
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
-            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache);
+            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, Debug);
             return options;
         }
 
@@ -68,9 +76,9 @@ namespace FCloud3.HtmlGen.Options
             return new Parser(options);
         }
 
-        private static List<IHtmlInlineRule> InlineRulesFromAutoReplace(AutoReplaceOptions autoReplaceOptions)
+        private static List<IInlineRule> InlineRulesFromAutoReplace(AutoReplaceOptions autoReplaceOptions)
         {
-            List<IHtmlInlineRule> inlineRules = new();
+            List<IInlineRule> inlineRules = new();
             if (autoReplaceOptions is not null && autoReplaceOptions.Detects.Count > 0)
             {
                 var detects = autoReplaceOptions.Detects;

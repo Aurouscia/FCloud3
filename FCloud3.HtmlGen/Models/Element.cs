@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Util;
+﻿using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace FCloud3.HtmlGen.Models
     public abstract class Element : IHtmlable
     {
         public abstract string ToHtml();
+        public virtual List<IRule>? ContainRules() => null;
     }
 
     public class ErrorElement : Element
@@ -52,6 +54,17 @@ namespace FCloud3.HtmlGen.Models
         public virtual string ToHtml()
         {
             return string.Concat(this.ConvertAll(x => x.ToHtml()));
+        }
+        public virtual List<IRule> ContainRules()
+        {
+            List<IRule> res = new();
+            foreach(var e in this)
+            {
+                var r = e.ContainRules();
+                if (r is not null)
+                    res.AddRange(r);
+            }
+            return res;
         }
         public IHtmlable Simplify()
         {

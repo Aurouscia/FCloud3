@@ -77,6 +77,10 @@ namespace FCloud3.HtmlGenTest
         {
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
+            string html2 = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html2);
+            string html3 = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html3);
         }
 
         [TestMethod]

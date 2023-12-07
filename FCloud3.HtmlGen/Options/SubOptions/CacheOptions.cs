@@ -8,20 +8,29 @@ namespace FCloud3.HtmlGen.Options.SubOptions
 {
     public class CacheOptions
     {
-        public bool UseCache { get; private set; }
+        public bool UseExclusiveCache { get; private set; }
+        public bool UseInclusiveCache { get; private set; }
         public int SlideExpirationMins { get; private set; }
 
         private readonly ParserBuilder _master;
 
         public CacheOptions(ParserBuilder master)
         {
-            UseCache = true;
+            UseExclusiveCache = false;
+            UseInclusiveCache = true;
             SlideExpirationMins = 5;
             _master = master;
         }
         public ParserBuilder DisableCache()
         {
-            UseCache = false;
+            UseExclusiveCache = false;
+            UseInclusiveCache = false;
+            return _master;
+        }
+        public ParserBuilder SwitchToExclusiveCache()
+        {
+            UseInclusiveCache = false;
+            UseExclusiveCache = true;
             return _master;
         }
         public ParserBuilder SetSlideExpirationMins(int mins)

@@ -54,6 +54,10 @@ namespace FCloud3.HtmlGenTest
             var res = parser.Run(input);
             var html = res.ToHtml();
             Assert.AreEqual(answer,html);
+            var html2 = res.ToHtml();
+            Assert.AreEqual(answer, html2);
+            var html3 = res.ToHtml();
+            Assert.AreEqual(answer, html3);
         }
 
         [TestMethod]
@@ -71,6 +75,10 @@ namespace FCloud3.HtmlGenTest
             var res = parser.Run(input);
             var html = res.ToHtml();
             Assert.AreEqual(answer, html);
+            var html2 = res.ToHtml();
+            Assert.AreEqual(answer, html2);
+            var html3 = res.ToHtml();
+            Assert.AreEqual(answer, html3);
         }
     }
 }

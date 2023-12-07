@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
-    public class Parser
+    public class Parser:IDisposable
     {
         private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
@@ -27,18 +27,25 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         public string RunToPlain(string? input,bool putCommon = false)
         {
+            _ctx.Reset();
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
             if (input.Length > maxInputLength)
                 return input;
             IHtmlable result = _blockParser.Run(input);
+            string resStr = result.ToHtml();
+            if (_ctx.Options.Debug)
+            {
+                resStr = _ctx.DebugInfo() + resStr;
+            }
             if (!putCommon)
-                return result.ToHtml();
+                return resStr;
             else
-                return $"{Styles()}{PreScripts()}{result.ToHtml()}{PostScripts()}";
+                return $"{Styles()}{PreScripts()}{resStr}{PostScripts()}";
         }
         public ParserResult RunToStructured(string? input)
         {
+            _ctx.Reset();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
             if (input.Length > maxInputLength)
@@ -49,8 +56,22 @@ namespace FCloud3.HtmlGen.Mechanics
             string preScripts = PreScripts(false);
             string postScripts = $"{extractedScripts}\n{PostScripts(false)}";
             string styles = Styles(false);
+            if (_ctx.Options.Debug)
+            {
+                content = _ctx.DebugInfo() + content;
+            }
             ParserResult result = new(content, preScripts, postScripts, styles);
             return result;
+        }
+        public IHtmlable RunToRaw(string? input)
+        {
+            _ctx.Reset();
+            if(input is null)
+                return new EmptyElement();
+            if (input.Length > maxInputLength)
+                return new TextElement(input);
+            IHtmlable htmlable = _blockParser.Run(input);
+            return htmlable;
         }
         public string RunMutiple(List<string?> inputs)
         {
@@ -60,10 +81,11 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private string Styles(bool withLabel=true)
         {
-            var allStyles = _ctx.GetUsedRules().Select(x => x.GetStyles()).ToList();
+            var allStyles = _ctx.RuleUsage.GetUsedRules().Select(x => x.GetStyles()).ToList();
             if (allStyles.Count == 0 || allStyles.All(s => s == ""))
                 return "";
             allStyles = allStyles.Distinct().ToList();
+            allStyles.Sort();
             string res = string.Concat(allStyles);
             if(withLabel)
                 return HtmlLabel.Style(res);
@@ -71,7 +93,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private string PreScripts(bool withLabel= true)
         { 
-            var allPre = _ctx.GetUsedRules().Select(x=>x.GetPreScripts()).ToList();
+            var allPre = _ctx.RuleUsage.GetUsedRules().Select(x=>x.GetPreScripts()).ToList();
             if (allPre.Count == 0 || allPre.All(x=>x==""))
                 return "";
             allPre = allPre.Where(x=>x!="").Distinct().ToList();
@@ -82,7 +104,7 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private string PostScripts(bool withLabel= true)
         {
-            var allPost = _ctx.GetUsedRules().Select(x => x.GetPostScripts()).ToList();
+            var allPost = _ctx.RuleUsage.GetUsedRules().Select(x => x.GetPostScripts()).ToList();
             if (allPost.Count == 0 || allPost.All(x => x == ""))
                 return "";
             allPost = allPost.Distinct().ToList();
@@ -90,6 +112,15 @@ namespace FCloud3.HtmlGen.Mechanics
             if(withLabel)
                 return HtmlLabel.Script(res);
             return res;
+        }
+        ~Parser()
+        {
+            Dispose();
+        }
+        public void Dispose()
+        {
+            _ctx.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 

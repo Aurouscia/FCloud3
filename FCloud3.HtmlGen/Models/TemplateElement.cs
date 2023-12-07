@@ -5,6 +5,7 @@ using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -54,6 +55,18 @@ namespace FCloud3.HtmlGen.Models
                 }
             }
             return code;
+        }
+        public override List<IRule>? ContainRules()
+        {
+            List<IRule> rules = new();
+            foreach(var value in _values.Values)
+            {
+                var r = value.ContainRules();
+                if (r is not null)
+                    rules.AddRange(r);
+            }
+            rules.Add(_template);
+            return rules;
         }
         public static bool IsValidTemplateCall(string thingLikeCall)
         {

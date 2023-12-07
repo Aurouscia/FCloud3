@@ -14,7 +14,7 @@ namespace FCloud3.HtmlGen.Rules
     /// <summary>
     /// 表示一个行内规则，用户通过某种方式在行内标记出一块呈现特殊效果的区域
     /// </summary>
-    public interface IHtmlInlineRule : IRule,IEquatable<IHtmlInlineRule>
+    public interface IInlineRule : IRule,IEquatable<IInlineRule>
     {
         public string Name { get; }
         public string MarkLeft { get; }
@@ -30,7 +30,7 @@ namespace FCloud3.HtmlGen.Rules
         public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
     }
 
-    public abstract class InlineRule : IHtmlInlineRule
+    public abstract class InlineRule : IInlineRule
     {
         public string Name { get; }
         public string MarkLeft { get; }
@@ -68,7 +68,7 @@ namespace FCloud3.HtmlGen.Rules
             return $"{MarkLeft}{MarkRight}".GetHashCode();
         }
 
-        public bool Equals(IHtmlInlineRule? other)
+        public bool Equals(IInlineRule? other)
         {
             if(other is InlineRule otherRule)
                 if (otherRule.MarkLeft == this.MarkLeft && otherRule.MarkRight == this.MarkRight)
@@ -82,7 +82,7 @@ namespace FCloud3.HtmlGen.Rules
             : base(markLeft, markRight, putLeft, putRight, style, name) { }
         public override bool FulFill(string span) => true;
     }
-    public class RelyInlineRule : IHtmlInlineRule
+    public class RelyInlineRule : IInlineRule
     {
         public CustomInlineRule RelyOn { get; }
         public RelyInlineRule(string markLeft, string markRight, CustomInlineRule relyOn, string name = "")
@@ -98,7 +98,7 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft => RelyOn.PutLeft;
         public string PutRight => RelyOn.PutRight;
         public bool IsSingleUse => RelyOn.IsSingleUse;
-        public bool Equals(IHtmlInlineRule? other)
+        public bool Equals(IInlineRule? other)
         {
             if(other is RelyInlineRule rr)
             {
@@ -177,7 +177,7 @@ namespace FCloud3.HtmlGen.Rules
     /// 当内部不含"\@"时，表示一个指定了颜色的方块（宽度和高度由字体大小决定）<b>（原作者：滨蜀，此为同一规则的重新实现）</b><br/>
     /// 例子：#red#<br/>
     /// </summary>
-    public class ColorTextRule : IHtmlInlineRule
+    public class ColorTextRule : IInlineRule
     {
         public string Name => "彩色字";
         public string MarkLeft => "#";
@@ -185,7 +185,7 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft => "";
         public string PutRight => "";
         public bool IsSingleUse => false;
-        public bool Equals(IHtmlInlineRule? other) => other is ColorTextRule;
+        public bool Equals(IInlineRule? other) => other is ColorTextRule;
         public bool FulFill(string span) => span.Length>2;
         public string GetPostScripts() => string.Empty;
         public string GetPreScripts() => string.Empty;
@@ -203,7 +203,7 @@ namespace FCloud3.HtmlGen.Rules
                 {
                     var marksWithOffset = new InlineMarkList(marks, sepIndex + 2);
                     IHtmlable textParsed = inlineParser.SplitByMarks(text, marksWithOffset);
-                    return new ColorTextElement(textParsed, formalColor);
+                    return new ColorTextElement(textParsed, formalColor,this);
                 }
                 else
                 {
@@ -215,7 +215,7 @@ namespace FCloud3.HtmlGen.Rules
             {
                 if (HtmlColor.TryFormalize(span, out string formalColor))
                 {
-                    return new ColorTextElement(formalColor);
+                    return new ColorTextElement(formalColor,this);
                 }
                 else
                 {
@@ -234,35 +234,44 @@ namespace FCloud3.HtmlGen.Rules
 
             public const string classNameWhenText = "coloredText";
             public const string classNameWhenEmpty = "coloredBlock";
-            public ColorTextElement(IHtmlable content,string color) 
+            private readonly ColorTextRule _fromRule;
+            public ColorTextElement(IHtmlable content,string color,ColorTextRule fromRule) 
             {
                 Color = color;
                 Content = content;
                 HaveText = true;
+                _fromRule = fromRule;
             }
-            public ColorTextElement(string color)
+            public ColorTextElement(string color,ColorTextRule fromRule)
             {
                 Color = color;
                 Content = new EmptyElement();
                 HaveText = false;
+                _fromRule = fromRule;
             }
 
             public override string ToHtml()
             {
                 return $"<span class=\"{ClassName}\" style=\"{Style}\">{Content.ToHtml()}</span>";
             }
+            public override List<IRule>? ContainRules()
+            {
+                var res = Content.ContainRules()??new();
+                res.Add(_fromRule);
+                return res;
+            }
         }
     }
 
     public static class InternalInlineRules
     {
-        public static List<IHtmlInlineRule> GetInstances()
+        public static List<IInlineRule> GetInstances()
         {
             var centerRule1 = new CustomInlineRule("\\ct", "\\ct", "<div class=\"center\">", "</div>", "左右居中块", ".center{text-align:center}");
             var centerRule2 = new RelyInlineRule("\\中", "\\中", centerRule1);
             var mqRule1 = new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条");
             var mqRule2 = new RelyInlineRule("\\滚", "\\滚", mqRule1);
-            var instances = new List<IHtmlInlineRule>()
+            var instances = new List<IInlineRule>()
             {
                 new ManualAnchorRule(),
                 new ManualTextedAnchorRule(),

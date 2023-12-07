@@ -119,11 +119,11 @@ export class Api{
                 return res.data as boolean;
             }
         },
-        preview:async(content:string,pop:popDelegate)=>{
+        preview:async(textSecId:number,content:string,pop:popDelegate)=>{
             const res = await this.httpClient.send({
                 reletiveUrl:"/api/TextSection/Preview",
                 type:"postForm"
-            },{content:content},pop);
+            },{id:textSecId,content:content},pop);
             if(res.success){
                 return res.data as TextSectionPreviewResponse;
             }

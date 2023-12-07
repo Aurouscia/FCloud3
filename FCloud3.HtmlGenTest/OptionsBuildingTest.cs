@@ -42,11 +42,11 @@ namespace FCloud3.HtmlGenTest
             var inline2 = new CustomInlineRule("**", "**", "<em>", "<em>");
             var inline3 = new CustomInlineRule("$$", "$$", "money", "money");
             var inline4 = new CustomInlineRule("^^", "^^", "<i>", "</i>");
-            var original = new List<IHtmlInlineRule>(){ inline1, inline3 };
-            var extra = new List<IHtmlInlineRule>() { inline2, inline4 };
+            var original = new List<IInlineRule>(){ inline1, inline3 };
+            var extra = new List<IInlineRule>() { inline2, inline4 };
             var answer = InternalInlineRules.GetInstances();
             answer.RemoveAll(x => x.MarkLeft == "**");
-            answer.AddRange(new List<IHtmlInlineRule>() { inline2, inline3, inline4 });
+            answer.AddRange(new List<IInlineRule>() { inline2, inline3, inline4 });
 
             ParserBuilder builder = new();
             builder.Inline.AddMoreRules(original);

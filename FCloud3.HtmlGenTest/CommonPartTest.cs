@@ -39,10 +39,10 @@ namespace FCloud3.HtmlGenTest
             "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>")]
         [DataRow(
             "{{打招呼}内容::兄弟 \\red 你好 \\red}很高兴认识你！",
-            "<style>.red{color:red}.hello{font-size:large}</style><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div>很高兴认识你！</p>")]
+            "<style>.hello{font-size:large}.red{color:red}</style><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div>很高兴认识你！</p>")]
         [DataRow(
             "他说：\r\n > {{打招呼}内容::兄弟 \\red 你好 \\red} \r\n >很高兴认识你！",
-            "<style>.quote{font-size:small}.red{color:red}.hello{font-size:large}</style>" +
+            "<style>.hello{font-size:large}.quote{font-size:small}.red{color:red}</style>" +
             "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div></p><p>很高兴认识你！</p></div>")]
         [DataRow(
             "{{哼唧}}",
@@ -52,11 +52,15 @@ namespace FCloud3.HtmlGenTest
             "<style>.hj{color:gray}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜噜</div></p>")]
         [DataRow(
             "{{哼唧}噜\\red噜\\red}",
-            "<style>.red{color:red}.hj{color:gray}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
+            "<style>.hj{color:gray}.red{color:red}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
         public void TestOne(string input,string answer)
         {
             var res = _parser.RunToPlain(input,true);
             Assert.AreEqual(answer, res);
+            var res2 = _parser.RunToPlain(input, true);
+            Assert.AreEqual(answer, res2);
+            var res3 = _parser.RunToPlain(input, true);
+            Assert.AreEqual(answer, res3);
         }
     }
 }

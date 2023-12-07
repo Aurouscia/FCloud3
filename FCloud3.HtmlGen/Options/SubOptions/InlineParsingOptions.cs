@@ -9,16 +9,16 @@ namespace FCloud3.HtmlGen.Options.SubOptions
 {
     public class InlineParsingOptions
     {
-        public List<IHtmlInlineRule> InlineRules { get; }
+        public List<IInlineRule> InlineRules { get; }
         private readonly ParserBuilder _master;
-        public InlineParsingOptions(ParserBuilder master, List<IHtmlInlineRule>? inlineRules = null)
+        public InlineParsingOptions(ParserBuilder master, List<IInlineRule>? inlineRules = null)
         {
             _master = master;
             InlineRules = inlineRules ?? new();
             SortRules();
         }
 
-        public ParserBuilder AddMoreRules(List<IHtmlInlineRule> inlineRules)
+        public ParserBuilder AddMoreRules(List<IInlineRule> inlineRules)
         {
             InlineRules.RemoveAll(inlineRules.Contains);
             InlineRules.AddRange(inlineRules);
@@ -26,7 +26,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
             return _master;
         }
 
-        public ParserBuilder AddMoreRule(IHtmlInlineRule inlineRule)
+        public ParserBuilder AddMoreRule(IInlineRule inlineRule)
         {
             InlineRules.Remove(inlineRule);
             InlineRules.Add(inlineRule);

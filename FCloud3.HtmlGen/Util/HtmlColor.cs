@@ -49,7 +49,7 @@ namespace FCloud3.HtmlGen.Util
             {
                 string[] rgb = str.Split(",");
                 if (rgb.Length != 3)
-                    throw new Exception("颜色格式异常，RGB参数应有三个");
+                    return false;
                 foreach (var num in rgb)
                 {
                     if (!int.TryParse(num, out var n) || n < 0 || n > 255)

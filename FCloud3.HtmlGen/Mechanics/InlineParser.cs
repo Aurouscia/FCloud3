@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static FCloud3.HtmlGen.Rules.SepBlockRule;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
@@ -21,40 +22,73 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly ParserContext _ctx;
         private readonly Lazy<TemplateParser> _templateParser;
-        private readonly bool _useCache;
+        private readonly bool _useExclusiveCache;
+        private readonly bool _useInclusiveCache;
 
         public InlineParser(ParserContext ctx) 
         {
             _ctx = ctx;
             _templateParser = new(() => new(ctx));
-            _useCache = ctx.Options.CacheOptions.UseCache;
+            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
+            _useInclusiveCache = ctx.Options.CacheOptions.UseInclusiveCache;
         }
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
-            if (_useCache)
+            if (_useInclusiveCache)
             {
-                if (_ctx.IsPureString(input)) 
+                var res = _ctx.Caches.ReadParseResult(input);
+                if (res is not null)
                 {
-                    _ctx.CacheReadCount++;
+                    _ctx.RuleUsage.ReportUsage(res.UsedRules);
+                    return new CachedElement(res.Content,res.UsedRules);
+                }
+            }
+            if (_useExclusiveCache)
+            {
+                if (_ctx.Caches.IsNonMarkString(input)) 
+                {
                     return new TextElement(input);
                 }
             }
             try
             {
-                if (mayContainTemplateCall && input.Contains(Consts.tplt_L) && input.Contains(Consts.tplt_R))
-                    return _templateParser.Value.Run(input);
-                var marks = MakeMarks(input);
-                if (marks.Count == 0)
+                IHtmlable? res = null;
+                if (mayContainTemplateCall)
                 {
-                    _ctx.ReportPureString(input);
-                    return new TextElement(input);
+                    if (_useExclusiveCache && _ctx.Caches.IsNonTemplateStr(input))
+                    {
+                        //无需送去templateParser
+                    }
+                    else
+                        res = _templateParser.Value.Run(input);
                 }
-                marks.ForEach(x =>
+                if (res is null)
                 {
-                    _ctx.ReportUsage(x.Rule);
-                });
-                return SplitByMarks(input,marks);
+                    var marks = MakeMarks(input);
+                    if (marks.Count == 0)
+                    {
+                        if (_useExclusiveCache)
+                            _ctx.Caches.ReportNonMarkString(input);
+                        res = new TextElement(input);
+                    }
+                    else
+                    {
+                        marks.ForEach(x =>
+                        {
+                            _ctx.RuleUsage.ReportUsage(x.Rule);
+                        });
+                        res = SplitByMarks(input, marks);
+                    }
+                }
+                if (_useInclusiveCache)
+                {
+                    string content = res.ToHtml();
+                    List<IRule> usedRules = res.ContainRules() ?? new();
+                    _ctx.Caches.SaveParseResult(input, content, usedRules);
+                    return new CachedElement(content,usedRules);
+                }
+                return res;
             }
             catch(Exception ex)
             {
@@ -71,13 +105,21 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public InlineMarkList MakeMarks(string input)
         {
+            if (_useExclusiveCache)
+            {
+                InlineMarkList? cache = _ctx.Caches.GetInlineMarks(input);
+                if (cache is not null)
+                    return cache;
+            }
+
             int pointer = 0;
             InlineMarkList res = new();
             foreach(var r in _ctx.Options.InlineParsingOptions.InlineRules)
             {
                 //对于每个行内规则
-                if (!input.Contains(r.MarkLeft) || !input.Contains(r.MarkRight))
-                    continue ;
+                //如果是一次性规则，而且之前用过，那就直接跳过
+                if (r.IsSingleUse && _ctx.RuleUsage.RuleUsedTime(r) > 0)
+                    continue;
 
                 pointer = 0;
                 while (true)
@@ -152,6 +194,12 @@ namespace FCloud3.HtmlGen.Mechanics
                         break;
                 }
             }
+
+            if (_useExclusiveCache && res.Count > 0)
+            {
+                _ctx.Caches.SetInlineMarks(input, res);
+            }
+
             return res;
         }
 
@@ -207,8 +255,8 @@ namespace FCloud3.HtmlGen.Mechanics
         public int RightMarkLength => Rule.MarkRight.Length;
         public int ContentLength => RightIndex - LeftIndex - LeftMarkLength;
         public int TotalLength => ContentLength + LeftMarkLength + RightMarkLength;
-        public IHtmlInlineRule Rule { get; }
-        public InlineMark(IHtmlInlineRule rule, int leftIndex, int rightIndex)
+        public IInlineRule Rule { get; }
+        public InlineMark(IInlineRule rule, int leftIndex, int rightIndex)
         {
             Rule = rule;
             LeftIndex = leftIndex;
