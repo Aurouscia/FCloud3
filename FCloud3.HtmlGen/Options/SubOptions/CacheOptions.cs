@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,34 +9,31 @@ namespace FCloud3.HtmlGen.Options.SubOptions
 {
     public class CacheOptions
     {
-        public bool UseExclusiveCache { get; private set; }
-        public bool UseInclusiveCache { get; private set; }
+        public bool UseCache { get; private set; }
         public int SlideExpirationMins { get; private set; }
+        public IMemoryCache? CacheInstance { get; private set; }
 
         private readonly ParserBuilder _master;
 
         public CacheOptions(ParserBuilder master)
         {
-            UseExclusiveCache = false;
-            UseInclusiveCache = true;
+            UseCache = true;
             SlideExpirationMins = 5;
             _master = master;
         }
         public ParserBuilder DisableCache()
         {
-            UseExclusiveCache = false;
-            UseInclusiveCache = false;
-            return _master;
-        }
-        public ParserBuilder SwitchToExclusiveCache()
-        {
-            UseInclusiveCache = false;
-            UseExclusiveCache = true;
+            UseCache = false;
             return _master;
         }
         public ParserBuilder SetSlideExpirationMins(int mins)
         {
             SlideExpirationMins = mins;
+            return _master;
+        }
+        public ParserBuilder UseCacheInstance(IMemoryCache cacheInstance)
+        {
+            CacheInstance = cacheInstance;
             return _master;
         }
     }

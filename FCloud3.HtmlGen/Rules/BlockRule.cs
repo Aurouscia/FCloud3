@@ -39,14 +39,14 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="inlineParser">行内解析器</param>
         /// <param name="blockParser">块解析器</param>
         /// <returns>按本规则解析得的块元素</returns>
-        public IHtmlable MakeBlockFromLines(IEnumerable<string> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
+        public IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
     }
 
     public abstract class BlockRule : IBlockRule
     {
         public string Name { get; }
-        public string PutLeft { get; }
-        public string PutRight { get; }
+        public string PutLeft { get; protected set; }
+        public string PutRight { get; protected set; }
         public string Style { get; }
         public bool IsSingleUse { get; }
         public BlockRule(string putLeft="",string putRight="", string style = "",string name="",bool isSingleUse = false)
@@ -60,7 +60,7 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string Apply(IHtmlable content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
         public abstract bool LineMatched(string line);
         public abstract string GetPureContentOf(string line);
-        public abstract IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser);
+        public abstract IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser);
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
@@ -84,7 +84,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return false;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //可以确定lines是没有块标记的，直接分别解析每行
             var resContent = lines.ToList().ConvertAll(inlineParser.RunForLine);
@@ -129,7 +129,7 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Trim().Substring(Mark.Length).Trim();
             return line;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             //lines仅去除了本规则的块标记，不清楚里面是否有第二层块标记，需要调用blockParser得到内容ElementCollection
             var resContent = blockParser.Run(lines.ToList());
@@ -163,12 +163,12 @@ namespace FCloud3.HtmlGen.Rules
             : base("-","<ul>","</ul>","列表","")
         {
         }
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             var items = new ElementCollection();
             foreach (var line in lines)
             {
-                ListItemElement item = new(inlineParser.Run(line));
+                ListItemElement item = new(inlineParser.Run(line.Text));
                 items.Add(item);
             }
             return new(items,this);
@@ -218,7 +218,7 @@ namespace FCloud3.HtmlGen.Rules
             return false;
         }
 
-        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             var res = new ElementCollection();
             lines.ToList().ForEach(x => res.Add(new SepElement(this)));
@@ -278,11 +278,11 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Substring(1,line.Length-2).Trim();
             return line;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<string> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
         {
             ElementCollection rows = new();
 
-            List<string[]> text = lines.ToList().ConvertAll(x => x.Split(tableSep));
+            List<string[]> text = lines.ToList().Select(x=>x.Text).Select(x => x.Split(tableSep)).ToList();
             int width = text.Select(x => x.Length).Max();
             int headSepRowIndex = text.FindIndex(x => x.All(y => y.Length>=3 && y.All(c => c == '-')));
 

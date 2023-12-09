@@ -32,7 +32,7 @@ namespace FCloud3.HtmlGenTest
             "\n12{{3\n\r456\n78}}9", 1)]
         public void LineSplitTest(string content,int answer)
         {
-            var res = LineSplitter.Split(content);
+            var res = LineSplitter.Split(content,null);
             Assert.AreEqual(res.Count, answer);
         }
 

@@ -4,6 +4,8 @@ import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/dynamicScriptUpdate';
+import { LineAndHash,split } from '../../utils/textSecSplitLine';
+import { md5 } from 'js-md5'
 
 const props = defineProps<{id:string}>()
 var textSecId:number = Number(props.id);
@@ -16,12 +18,17 @@ const postScriptsDiv = ref<HTMLDivElement>();
 const stylesContent = ref<string>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 
+const loadComplete = ref<boolean>(false);
 const data = ref<TextSection>({
     Id:textSecId,
     Content:"",
     Title:""
 });
 const previewContent = ref<string>();
+const lines:Array<LineAndHash>=[];
+const writeArea = ref<HTMLTextAreaElement>();
+const previewArea = ref<HTMLDivElement>();
+const writeAreaLineHeight = 25;
 
 async function togglePreview(){
     if(previewOn.value){
@@ -39,7 +46,11 @@ async function contentInput(){
         previewContent.value="加载中..."
     }
     window.clearTimeout(timer);
-    timer = window.setTimeout(refreshPreview,refreshThrs);
+    timer = window.setTimeout(async()=>{
+        var refreshProm = refreshPreview()
+        calculateLines();
+        await refreshProm;
+    },refreshThrs);
 }
 async function refreshPreview() {
     if(!previewOn.value){
@@ -58,6 +69,32 @@ async function refreshPreview() {
         },10);
     }
 }
+function calculateLines(){
+    if(!writeArea.value){
+        return;
+    }
+    const content = data.value.Content;
+    const res = split(content,false,false);
+    var searchStart = 0
+    var same = true;
+    for(var i=0;i<res.length;i++){
+        const newLine = res[i];
+        const index = content.indexOf(newLine,searchStart);
+        const indexEnd = index+newLine.length;
+        searchStart = indexEnd;
+        if(!lines[i] || newLine!=lines[i].text){
+            same = false;
+        }
+        if(!same){
+            lines[i]={
+                text:newLine,
+                hash:md5(res[i].trim()),
+                indexStart:index,
+                indextEnd:indexEnd
+            }
+        }
+    }
+}
 
 async function replaceTitle() {
     const val = data.value.Title;
@@ -71,7 +108,9 @@ async function replaceTitle() {
 async function init(){
     const resp = await api.textSection.edit(textSecId,pop.value.show);
     if(resp){
-        data.value = resp;}
+        data.value = resp;
+        loadComplete.value = true;
+    }
 }
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
@@ -81,13 +120,55 @@ onMounted(async()=>{
 
     await init();
 })
+
+function leftToRight(e:MouseEvent){
+    if(!writeArea.value){return;}
+    const target = e.target as HTMLElement;
+    var lookingAt:HTMLElement|null = target;
+    var attr:Attr|null = null;
+    while(!attr){
+        attr = lookingAt.attributes.getNamedItem("loc");
+        if(!attr){
+            lookingAt = lookingAt.parentElement
+        }
+        if(!lookingAt || lookingAt.attributes.getNamedItem("class")?.value=='preview'){
+            break;
+        }
+    }
+    if(!attr){return;}
+    const line = lines.find(x=>x.hash==attr?.value)
+    if(!line){return;}
+    writeArea.value.setSelectionRange(line.indexStart,line.indexStart);
+    writeArea.value.focus();
+    writeArea.value.setSelectionRange(line.indexStart,line.indextEnd);
+}
+function rightToLeft(e:MouseEvent){
+    const write = writeArea.value;
+    if(!write || e.target!=writeArea.value){
+        return;
+    }
+    const sele = write.selectionStart;
+    const targetLine = lines.find(line=>sele>=line.indexStart&&sele<=line.indextEnd);
+    if(!targetLine){
+        return;
+    }
+    const targetHash = targetLine.hash;
+    const target = document.querySelector(`[loc="${targetHash}"]`) as HTMLElement;
+    if(previewArea.value){
+        previewArea.value.scrollTo({top: target.offsetTop, behavior: 'smooth'})
+    }
+    target.style.backgroundColor="yellow";
+    window.setTimeout(()=>{
+        target.style.backgroundColor="";
+    },1000)
+}
 </script>
 
 <template>
 <div class="topbar">
     <div>
-        <button @click="togglePreview">
-            {{ previewOn?"预览开":"预览关" }}
+        <button @click="togglePreview" :class="{off:!previewOn}">
+            预览
         </button>
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
     </div>
@@ -97,19 +178,24 @@ onMounted(async()=>{
         </button>
     </div>
 </div>
-<div v-if="data" class="background">
+<div v-if="loadComplete" class="background">
     <div class="invisible" v-html="styles"></div>
     <div ref="preScriptsDiv" class="invisible"></div>
-    <div class="preview" v-show="previewOn" v-html="previewContent">
+    <div @click="leftToRight" v-show="previewOn"
+        ref="previewArea" class="preview" v-html="previewContent">
     </div>
     <div ref="postScriptsDiv" class="invisible"></div>
 
-    <textarea v-model="data.Content" placeholder="请输入内容" @input="contentInput" class="write" :class="{writeNoPreview:!previewOn}">
+    <textarea v-model="data.Content"
+        ref="writeArea" placeholder="请输入内容"
+        @input="contentInput" @click="rightToLeft"
+        class="write" :class="{writeNoPreview:!previewOn}"
+        :style="{lineHeight:writeAreaLineHeight+'px'}">
     </textarea>
 </div>
 </template>
 
-<style scoped> 
+<style scoped>
     .background{
         position: fixed;
         width: 100vw;
@@ -118,14 +204,14 @@ onMounted(async()=>{
         bottom: 0px;
 
         display: flex;
-        flex-wrap: wrap;
+        flex-direction:row;
         justify-content:space-between;
         align-items: center;
         overflow: hidden;
     }
     .preview{
         width: calc(50vw - 20px);
-        height: 100%;
+        height: calc(100% - 20px);
         font-size: 16px;
         overflow-y: scroll;
         word-break: break-all;
@@ -133,7 +219,7 @@ onMounted(async()=>{
     }
     .write{
         width: calc(50vw - 20px);
-        height: calc(100% - 16px);
+        height: calc(100% - 20px);
         resize:none;
         border: none !important;
         font-size: 16px;
@@ -144,9 +230,6 @@ onMounted(async()=>{
         line-height: 25px;
         background-color: #222;
         color:white;
-    }
-    .write:focus{
-        border:none !important
     }
     .writeNoPreview{
         width: calc(100vw - 20px);
@@ -162,6 +245,9 @@ onMounted(async()=>{
         }
         .writeNoPreview{
             height: 100%;
+        }
+        .background{
+            flex-direction: column;
         }
     }
     .topbar{
@@ -183,4 +269,10 @@ onMounted(async()=>{
     .invisible{
         display: none;
     }
+</style>
+
+<style>
+.preview *{
+    transition: 0.6s;
+}
 </style>

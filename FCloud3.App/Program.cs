@@ -19,7 +19,7 @@ try
     //添加数据库读写功能
     builder.Services.AddRepos();
     //添加业务功能
-    builder.Services.AddServices();
+    builder.Services.AddFCloudServices();
     //添加app本身的功能，例如Controller和用户身份
     builder.Services.AddAppServices();
     //添加jwt鉴权(authentication)

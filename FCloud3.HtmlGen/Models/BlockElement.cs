@@ -1,5 +1,6 @@
 ﻿using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,16 +30,22 @@ namespace FCloud3.HtmlGen.Models
     {
         public IHtmlable Title { get; }
         public int Level { get; }
+        private readonly string? _rawLineHash;
         
-        public TitledBlockElement(IHtmlable title, int level, IHtmlable content):base(content)
+        public TitledBlockElement(IHtmlable title,string? rawLineHash, int level, IHtmlable content):base(content)
         {
             Title = title;
             Level = level;
+            _rawLineHash = rawLineHash;
         }
 
         public override string ToHtml()
         {
-            return $"<h{Level}>{Title.ToHtml()}</h{Level}><div class=\"indent\">{Content.ToHtml()}</div>";
+            string body = $"<div class=\"indent\">{Content.ToHtml()}</div>";
+            if (_rawLineHash is null)
+                return $"<h{Level}>{Title.ToHtml()}</h{Level}>{body}";
+            else
+                return $"{HtmlLabel.Custom(Title.ToHtml(), $"h{Level}", Consts.locatorAttrName, _rawLineHash)}{body}";
         }
     }
     public class RuledBlockElement: BlockElement

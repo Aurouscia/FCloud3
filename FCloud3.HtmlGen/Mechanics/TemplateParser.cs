@@ -2,9 +2,6 @@
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
-using System.Text;
-using static FCloud3.HtmlGen.Rules.Template;
-using System.Text.RegularExpressions;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
@@ -14,7 +11,6 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly Lazy<BlockParser> _blockParser;
         private readonly Lazy<InlineParser> _inlineParser;
         private readonly TemplateSlotInfo _slotInfo;
-        private readonly bool _useExclusiveCache;
 
         public TemplateParser(ParserContext ctx)
         {
@@ -23,7 +19,6 @@ namespace FCloud3.HtmlGen.Mechanics
             _blockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
             _slotInfo = ctx.TemplateSlotInfo;
-            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
         }
 
 
@@ -31,11 +26,6 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             SplittedByCalls splitted = SplitByCalls(input);
             var frags = splitted.Frags;
-            if(_useExclusiveCache && frags.Count==1 && frags[0].Type == SplittedByCalls.FragTypes.Plain)
-            {
-                _ctx.Caches.ReportNonTemplateStr(input);
-                return _inlineParser.Value.Run(input, mayContainTemplateCall: false);
-            }
 
             ElementCollection res = new();
             foreach(var f in frags)
@@ -161,7 +151,8 @@ namespace FCloud3.HtmlGen.Mechanics
                     this.Frags.Add(new(input, false));
                     return;
                 }
-                StringBuilder sb = new();
+                int pointerA = 0;
+                int pointerB = 0;
                 int layer = 0;
                 bool isInPlain = true;
 
@@ -177,13 +168,13 @@ namespace FCloud3.HtmlGen.Mechanics
                         if (layer >= 1)
                         {
                             isInPlain = false;
-                            this.Frags.Add(new(sb.ToString(),false));
-                            sb.Clear();
-                            sb.Append(c);
+                            this.Frags.Add(new(input.Substring(pointerA,pointerB-pointerA),false));
+                            pointerA = pointerB;
+                            pointerB++;
                         }
                         else
                         {
-                            sb.Append(c);
+                            pointerB++;
                         }
                     }
                     else
@@ -191,19 +182,19 @@ namespace FCloud3.HtmlGen.Mechanics
                         if (layer == 0)
                         {
                             isInPlain = true;
-                            sb.Append(c);
-                            this.Frags.Add(new(sb.ToString(), true));
-                            sb.Clear();
+                            pointerB++;
+                            this.Frags.Add(new(input.Substring(pointerA, pointerB - pointerA), true));
+                            pointerA = pointerB;
                         }
                         else
                         {
-                            sb.Append(c);
+                            pointerB++;
                         }
                     }
                 }
                 if (layer != 0)
                     throw new Exception("未闭合'{'与'}'");
-                this.Frags.Add(new(sb.ToString(), false));
+                this.Frags.Add(new(input.Substring(pointerA, pointerB - pointerA), false));
             }
             public class SplittedFrag
             {

@@ -2,6 +2,8 @@
 using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options.SubOptions;
 using FCloud3.HtmlGen.Rules;
+using FCloud3.HtmlGen.Util;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +25,9 @@ namespace FCloud3.HtmlGen.Options
         public BlockParsingOptions BlockParsingOptions { get;}
         public CacheOptions CacheOptions { get; }
         public bool Debug { get; }
+        public ILocatorHash? LocatorHash { get; }
         public ParserOptions(TemplateParsingOptions template, ImplantsHandleOptions implant, AutoReplaceOptions autoReplace, 
-            InlineParsingOptions inline,BlockParsingOptions block, CacheOptions cacheOptions, bool debug)
+            InlineParsingOptions inline,BlockParsingOptions block, CacheOptions cacheOptions, bool debug, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
             ImplantsHandleOptions = implant;
@@ -33,6 +36,7 @@ namespace FCloud3.HtmlGen.Options
             BlockParsingOptions = block;
             CacheOptions = cacheOptions;
             Debug = debug;
+            LocatorHash = locatorHash;
         }
     }
 
@@ -45,6 +49,7 @@ namespace FCloud3.HtmlGen.Options
         public BlockParsingOptions Block { get; }
         public CacheOptions Cache { get; }
         public bool Debug { get; private set; }
+        public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
         {
             Template = new(this);
@@ -62,11 +67,15 @@ namespace FCloud3.HtmlGen.Options
         {
             Debug = true; return this;
         }
+        public ParserBuilder UseLocatorHash(ILocatorHash locatorHash)
+        {
+            LocatorHash = locatorHash;return this;
+        }
 
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
-            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, Debug);
+            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, Debug, LocatorHash);
             return options;
         }
 
@@ -76,6 +85,11 @@ namespace FCloud3.HtmlGen.Options
             return new Parser(options);
         }
 
+        /// <summary>
+        /// AutoReplace会被转译为字面量行内规则(LiteralInlineRules)被行内解析器(InlineParser)匹配
+        /// </summary>
+        /// <param name="autoReplaceOptions"></param>
+        /// <returns></returns>
         private static List<IInlineRule> InlineRulesFromAutoReplace(AutoReplaceOptions autoReplaceOptions)
         {
             List<IInlineRule> inlineRules = new();

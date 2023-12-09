@@ -26,7 +26,7 @@ namespace FCloud3.HtmlGenTest
             "*;\\bd")]
         public void Inline(string input,string answerStr)
         {
-            var parser = new ParserBuilder().Cache.SwitchToExclusiveCache().BuildParser();
+            var parser = new ParserBuilder().BuildParser();
             var element = parser.RunToRaw(input);
             var rules = element.ContainRules()??new();
             var inlineRules = rules.ConvertAll(x=>

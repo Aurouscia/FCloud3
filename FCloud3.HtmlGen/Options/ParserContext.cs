@@ -97,16 +97,23 @@ namespace FCloud3.HtmlGen.Options
     public class ParserCacheContext:IDisposable
     {
         public int CacheReadCount { get; private set; }
-        private MemoryCache _exclusiveCache { get;}
-        private MemoryCache _inclusiveCache { get; }
+        private readonly IMemoryCache _cache;
         private readonly CacheOptions _options;
-        public ParserCacheContext(CacheOptions options) 
+        public  bool IsSelfHostedCache { get; }
+        public ParserCacheContext(CacheOptions options)
         {
-            NonMarkStr = new();   
-            NonTemplateStr = new();
             _options = options;
-            _exclusiveCache = new(new MemoryCacheOptions());
-            _inclusiveCache = new(new MemoryCacheOptions());
+            //未提供缓存实例，自己造，自己回收
+            if (options.CacheInstance is null)
+            {
+                IsSelfHostedCache = true;
+                _cache = new MemoryCache(new MemoryCacheOptions());
+            }
+            else
+            {
+                IsSelfHostedCache = false;
+                _cache = options.CacheInstance;
+            }
         }
 
         ~ParserCacheContext()
@@ -115,100 +122,32 @@ namespace FCloud3.HtmlGen.Options
         }
         public void Dispose()
         {
-            _exclusiveCache.Dispose();
-            _inclusiveCache.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        public void Clear()
-        {
-            NonMarkStr.Clear();
-            NonTemplateStr.Clear();
-            _exclusiveCache.Clear();
-            _inclusiveCache.Clear();
-            Reset();
+            if (IsSelfHostedCache)
+            {
+                _cache.Dispose();
+                GC.SuppressFinalize(this);
+            }
         }
         public void Reset()
         {
             CacheReadCount = 0;
-            NonMarkSavedScanChar = 0;
-            NonTemplateSavedScanChar = 0;
             ParsedSavedScanChar = 0;
         }
-
-        #region exclusiveCache=========
-        private HashSet<int> NonMarkStr { get; }
-        public int NonMarkSavedScanChar { get; private set; }
-        public void ReportNonMarkString(string str)
-        {
-            NonMarkStr.Add(str.GetHashCode());
-        }
-        public bool IsNonMarkString(string str)
-        {
-            var res = NonMarkStr.Contains(str.GetHashCode());
-            if (res)
-            {
-                CacheReadCount++;
-                NonMarkSavedScanChar += str.Length;
-            }
-            return res;
-        }
-
-        private HashSet<int> NonTemplateStr { get; }
-        public int NonTemplateSavedScanChar { get; private set; }
-        public void ReportNonTemplateStr(string str)
-        {
-            NonTemplateStr.Add(str.GetHashCode());
-        }
-        public bool IsNonTemplateStr(string str)
-        {
-            var res = NonTemplateStr.Contains(str.GetHashCode());
-            if (res)
-            {
-                CacheReadCount++;
-                NonTemplateSavedScanChar += str.Length;
-            }
-            return res;
-        }
-
-        public int MarkCacheSavedScanChar { get; private set; }
-        public void SetInlineMarks(string input,InlineMarkList marks)
-        {
-            var copy = new InlineMarkList(marks, 0);
-            _exclusiveCache.Set<InlineMarkList>(input.GetHashCode(), copy, new MemoryCacheEntryOptions()
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins)
-            });
-        }
-        public InlineMarkList? GetInlineMarks(string input)
-        {
-            var res = _exclusiveCache.Get<InlineMarkList>(input.GetHashCode());
-            if(res is not null)
-            {
-                CacheReadCount++;
-                MarkCacheSavedScanChar += input.Length;
-                return res;
-            }
-            return null;
-        }
-        #endregion
-
-        #region inclusiveCache=========
 
         public int ParsedSavedScanChar { get;private set; }
         public void SaveParseResult(string input, string output,List<IRule> usedRules)
         {
             if (string.IsNullOrEmpty(input))
                 return;
-            var cache = new InclusiveCacheValue(output, usedRules);
-            _inclusiveCache.Set<InclusiveCacheValue>(input.GetHashCode(), cache, new MemoryCacheEntryOptions()
+            var cache = new CacheValue(output, usedRules);
+            _cache.Set<CacheValue>(input, cache, new MemoryCacheEntryOptions()
             {
                 SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
             });
         }
-        public InclusiveCacheValue? ReadParseResult(string input)
+        public CacheValue? ReadParseResult(string input)
         {
-            var cache = _inclusiveCache.Get<InclusiveCacheValue>(input.GetHashCode());
+            var cache = _cache.Get<CacheValue>(input);
             if (cache is not null)
             {
                 CacheReadCount++;
@@ -217,28 +156,27 @@ namespace FCloud3.HtmlGen.Options
             return cache;
         }
 
-        public class InclusiveCacheValue
+        public class CacheValue
         {
             public string Content { get; }
             public List<IRule> UsedRules { get; }
-            public InclusiveCacheValue(string content, List<IRule> usedRules)
+            public CacheValue(string content, List<IRule> usedRules)
             {
                 Content = content;
                 UsedRules = usedRules;
             }
         }
-        #endregion
 
         public string DebugInfo()
         {
             string info = "";
-            if (_options.UseInclusiveCache)
+            if (IsSelfHostedCache)
+                info += "[自托管缓存]";
+            else
+                info += "[提供的缓存实例]";
+            if (_options.UseCache)
             {
                 info += $"缓存被读取{CacheReadCount}次，避免{ParsedSavedScanChar}字符被重新解析";
-            }
-            else if (_options.UseExclusiveCache)
-            {
-                info += $"缓存被读取{CacheReadCount}次，避免{MarkCacheSavedScanChar+NonMarkSavedScanChar}字符被重新标记行内规则，避免{NonTemplateSavedScanChar}字符被重新检查模板调用";
             }
             else
             {

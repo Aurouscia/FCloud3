@@ -17,21 +17,19 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly Lazy<TitledBlockParser> _titledBlockParser;
         private readonly Lazy<InlineParser> _inlineParser;
         private readonly ParserContext _ctx;
-        private readonly bool _useExclusiveCache;
-        private readonly bool _useInclusiveCache;
+        private readonly bool _useCache;
 
         public BlockParser(ParserContext ctx)
         {
             _titledBlockParser = new(()=>new(ctx));
             _inlineParser = new(()=>new(ctx));
-            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
-            _useInclusiveCache = ctx.Options.CacheOptions.UseInclusiveCache;
+            _useCache = ctx.Options.CacheOptions.UseCache;
             _ctx = ctx;
         }
 
         public IHtmlable Run(string input, bool enforceBlock = true)
         {
-            if (_useInclusiveCache)
+            if (_useCache)
             {
                 var res = _ctx.Caches.ReadParseResult(input);
                 if (res is not null)
@@ -40,14 +38,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     return new CachedElement(res.Content,res.UsedRules);
                 }
             }
-            if (_useExclusiveCache)
-            {
-                if (_ctx.Caches.IsNonMarkString(input))
-                {
-                    return new TextElement(input);
-                }
-            }
-            var lines = LineSplitter.Split(input);
+            var lines = LineSplitter.Split(input,_ctx.Options.LocatorHash);
 
             if (lines.Count == 0)
                 return new EmptyElement();
@@ -58,12 +49,12 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (enforceBlock)
                     resElement = _inlineParser.Value.RunForLine(lines[0]);
                 else
-                    resElement = _inlineParser.Value.Run(lines[0]);
+                    resElement = _inlineParser.Value.Run(lines[0].Text);
             }
             else
                 resElement = _titledBlockParser.Value.Run(lines);
 
-            if (_useInclusiveCache)
+            if (_useCache)
             {
                 string content = resElement.ToHtml();
                 List<IRule> usedRules = resElement.ContainRules() ?? new();
@@ -86,7 +77,7 @@ namespace FCloud3.HtmlGen.Mechanics
             _ruledBlockParser = new(()=> new RuledBlockParser(ctx));
             _inlineParser = new(()=>new InlineParser(ctx));
         }
-        public IHtmlable Run(List<string> inputLines)
+        public IHtmlable Run(List<LineAndHash> inputLines)
         {
             List<LineWithTitleLevel> lines = inputLines.ConvertAll(x => new LineWithTitleLevel(x));
             return Run(lines);
@@ -106,18 +97,18 @@ namespace FCloud3.HtmlGen.Mechanics
             ElementCollection res = new();
 
             List<LineWithTitleLevel> generating = new();
-            string? title = null;
+            LineAndHash? title = null;
             foreach (var l in lines)
             {
                 //遇到目标等级标题的行
                 if (targetLevel == l.Level)
                 {
                     //将其之前的部分纳入上一个同级标题麾下
-                    if (!string.IsNullOrEmpty(title))
+                    if (title is not null && !string.IsNullOrEmpty(title.Text))
                     {
                         IHtmlable generated = Run(generating);
-                        IHtmlable titleParsed = _inlineParser.Value.Run(title);
-                        TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
+                        IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
+                        TitledBlockElement titledBlock = new(titleParsed, title.RawLineHash, targetLevel+titleLevelOffset, generated);
                         res.Add(titledBlock);
                     }
                     else
@@ -133,11 +124,11 @@ namespace FCloud3.HtmlGen.Mechanics
                     generating.Add(l);
                 }
             }
-            if (!string.IsNullOrEmpty(title))
+            if (title is not null && !string.IsNullOrEmpty(title.Text))
             {
                 IHtmlable generated = Run(generating);
-                IHtmlable titleParsed = _inlineParser.Value.Run(title);
-                TitledBlockElement titledBlock = new(titleParsed, targetLevel+titleLevelOffset, generated);
+                IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
+                TitledBlockElement titledBlock = new(titleParsed,title.RawLineHash, targetLevel+titleLevelOffset, generated);
                 res.Add(titledBlock);
             }
             else
@@ -157,26 +148,29 @@ namespace FCloud3.HtmlGen.Mechanics
             /// <summary>
             /// 纯内容（如果有开头井号就去掉，没有就是原字符串）
             /// </summary>
-            public string PureContent { get; }
-            public LineWithTitleLevel(string line)
+            public LineAndHash PureContent { get; }
+            public LineWithTitleLevel(LineAndHash line)
             {
+                PureContent = line;
+                string lineStr = line.Text;
                 Level = 0;
+                if (!lineStr.StartsWith(Consts.titleLevelMark))
+                    return;
                 foreach(var t in TitleMark.OrderedTitleMarks)
                 {
-                    if (line.StartsWith(t.Value))
+                    if (lineStr.StartsWith(t.Value))
                     {
-                        string pureContent = line[t.Value.Length..].Trim();
+                        string pureContent = lineStr[t.Value.Length..].Trim();
                         if (pureContent.Contains(Consts.titleLevelMark))
                             break;
                         else
                         {
                             this.Level = t.Key;
-                            this.PureContent = pureContent;
+                            this.PureContent.Text = pureContent;
                             return;
                         }
                     }
                 }
-                PureContent = line;
             }
         }
         public static class TitleMark
@@ -188,7 +182,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     if (titleMarks is not null)
                         return titleMarks;
-                    titleMarks = new();
+                    titleMarks = new(6);
                     StringBuilder titleTemp = new();
                     for (int i = 1; i < 7; i++)
                     {
@@ -204,7 +198,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
     public interface IRuledBlockParser
     {
-        public IHtmlable Run(List<string> inputLines);
+        public IHtmlable Run(List<LineAndHash> inputLines);
     }
     public class RuledBlockParser:IRuledBlockParser
     {
@@ -215,7 +209,7 @@ namespace FCloud3.HtmlGen.Mechanics
             _ctx = ctx;
             _inlineParser = new(()=>new(ctx));
         }
-        public IHtmlable Run(List<string> inputLines)
+        public IHtmlable Run(List<LineAndHash> inputLines)
         {
             if (inputLines.Count == 0)
                 return new EmptyElement();
@@ -270,14 +264,13 @@ namespace FCloud3.HtmlGen.Mechanics
         public class LineWithRule
         {
             public IBlockRule? Rule { get; }
-            public string PureContent { get; }
-            public LineWithRule(string line,List<IBlockRule> allRules)
+            public LineAndHash PureContent { get; }
+            public LineWithRule(LineAndHash line,List<IBlockRule> allRules)
             {
-                this.Rule = allRules.FirstOrDefault(t => t.LineMatched(line));
-                if (Rule is null)
-                    PureContent = line;
-                else
-                    PureContent = Rule.GetPureContentOf(line);
+                PureContent = line;
+                this.Rule = allRules.FirstOrDefault(t => t.LineMatched(line.Text));
+                if (Rule is not null)
+                    PureContent.Text = Rule.GetPureContentOf(line.Text);
             }
         }
     }

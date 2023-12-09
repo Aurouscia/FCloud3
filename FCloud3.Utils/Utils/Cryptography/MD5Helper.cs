@@ -9,15 +9,13 @@ namespace FCloud3.Utils.Utils.Cryptography
         {
             if (input is null)
                 return null;
-            // 新建一个MD5对象
-            MD5 md5Hasher = MD5.Create();
 
             // 把输入的字符串转换为字节数组并计算哈希值
-            byte[] data = md5Hasher.ComputeHash(Encoding.UTF8.GetBytes(input));
+            byte[] data = MD5.HashData(Encoding.UTF8.GetBytes(input));
 
 
             // 新建一个Sb对象来收集结果
-            StringBuilder sBuilder = new StringBuilder();
+            StringBuilder sBuilder = new();
 
 
             // 对于上述结果的每一个byte

@@ -20,5 +20,9 @@ namespace FCloud3.HtmlGen.Util
         {
             return $"<div style=\"color:gray;text-decoration:underline\">{info}</div>";
         }
+        public static string Custom(string content, string name,string attrName,string attrValue)
+        {
+            return $"<{name} {attrName}=\"{attrValue}\">{content}</{name}>";
+        }
     }
 }

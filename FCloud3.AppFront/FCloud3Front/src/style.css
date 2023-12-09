@@ -50,6 +50,7 @@ button {
   border: none;
   font-size: unset;
   margin-bottom: 2px;
+  transition: 0.4s;
 }
 button.confirm {
   background-color: cornflowerblue;
@@ -68,6 +69,9 @@ button:hover {
 }
 button.danger{
   background-color: red;
+}
+button.off{
+  background-color: #666;
 }
 
 .section{

@@ -7,7 +7,7 @@ namespace FCloud3.Services
 {
     public static class AddToService
     {
-        public static IServiceCollection AddServices(this IServiceCollection services)
+        public static IServiceCollection AddFCloudServices(this IServiceCollection services)
         {
             services.AddScoped<UserService>();
             services.AddScoped<WikiItemService>();

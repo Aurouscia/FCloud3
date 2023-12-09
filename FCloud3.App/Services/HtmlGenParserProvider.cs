@@ -1,5 +1,7 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Util;
+using FCloud3.Utils.Utils.Cryptography;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.App.Services
@@ -36,12 +38,22 @@ namespace FCloud3.App.Services
         {
             return new ParserBuilder()
                 .EnableDebugInfo()
+                .UseLocatorHash(new LocatorHash())
+                .Cache.UseCacheInstance(_cache)
                 .Block.SetTitleLevelOffset(1)
                 .BuildParser();
         }
         private string Key(int textSecId)
         {
-            return $"{_userInfo.Id}_{textSecId}";
+            return $"hgParser_{_userInfo.Id}_{textSecId}";
+        }
+
+        public class LocatorHash : ILocatorHash
+        {
+            public string? Hash(string? input)
+            {
+                return MD5Helper.GetMD5Of(input);
+            }
         }
     }
 }

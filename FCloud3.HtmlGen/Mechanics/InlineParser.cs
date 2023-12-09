@@ -15,27 +15,25 @@ namespace FCloud3.HtmlGen.Mechanics
     public interface IInlineParser
     {
         public IHtmlable Run(string input, bool mayContainTemplateCall = true);
-        public IHtmlable RunForLine(string input);
+        public IHtmlable RunForLine(LineAndHash input);
         public IHtmlable SplitByMarks(string input, InlineMarkList marks);
     }
     public class InlineParser:IInlineParser
     {
         private readonly ParserContext _ctx;
         private readonly Lazy<TemplateParser> _templateParser;
-        private readonly bool _useExclusiveCache;
-        private readonly bool _useInclusiveCache;
+        private readonly bool _useCache;
 
         public InlineParser(ParserContext ctx) 
         {
             _ctx = ctx;
             _templateParser = new(() => new(ctx));
-            _useExclusiveCache = ctx.Options.CacheOptions.UseExclusiveCache;
-            _useInclusiveCache = ctx.Options.CacheOptions.UseInclusiveCache;
+            _useCache = ctx.Options.CacheOptions.UseCache;
         }
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
-            if (_useInclusiveCache)
+            if (_useCache)
             {
                 var res = _ctx.Caches.ReadParseResult(input);
                 if (res is not null)
@@ -44,32 +42,18 @@ namespace FCloud3.HtmlGen.Mechanics
                     return new CachedElement(res.Content,res.UsedRules);
                 }
             }
-            if (_useExclusiveCache)
-            {
-                if (_ctx.Caches.IsNonMarkString(input)) 
-                {
-                    return new TextElement(input);
-                }
-            }
             try
             {
                 IHtmlable? res = null;
                 if (mayContainTemplateCall)
                 {
-                    if (_useExclusiveCache && _ctx.Caches.IsNonTemplateStr(input))
-                    {
-                        //无需送去templateParser
-                    }
-                    else
-                        res = _templateParser.Value.Run(input);
+                     res = _templateParser.Value.Run(input);
                 }
                 if (res is null)
                 {
                     var marks = MakeMarks(input);
                     if (marks.Count == 0)
                     {
-                        if (_useExclusiveCache)
-                            _ctx.Caches.ReportNonMarkString(input);
                         res = new TextElement(input);
                     }
                     else
@@ -81,7 +65,7 @@ namespace FCloud3.HtmlGen.Mechanics
                         res = SplitByMarks(input, marks);
                     }
                 }
-                if (_useInclusiveCache)
+                if (_useCache)
                 {
                     string content = res.ToHtml();
                     List<IRule> usedRules = res.ContainRules() ?? new();
@@ -96,22 +80,15 @@ namespace FCloud3.HtmlGen.Mechanics
             }
         }
 
-        public IHtmlable RunForLine(string input)
+        public IHtmlable RunForLine(LineAndHash line)
         {
-            IHtmlable lineContent = Run(input);
-            LineElement line = new(lineContent);
-            return line;
+            IHtmlable lineContent = Run(line.Text);
+            LineElement res = new(lineContent,line.RawLineHash);
+            return res;
         }
 
         public InlineMarkList MakeMarks(string input)
         {
-            if (_useExclusiveCache)
-            {
-                InlineMarkList? cache = _ctx.Caches.GetInlineMarks(input);
-                if (cache is not null)
-                    return cache;
-            }
-
             int pointer = 0;
             InlineMarkList res = new();
             foreach(var r in _ctx.Options.InlineParsingOptions.InlineRules)
@@ -194,12 +171,6 @@ namespace FCloud3.HtmlGen.Mechanics
                         break;
                 }
             }
-
-            if (_useExclusiveCache && res.Count > 0)
-            {
-                _ctx.Caches.SetInlineMarks(input, res);
-            }
-
             return res;
         }
 
@@ -241,9 +212,17 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public class LineElement : SimpleBlockElement
         {
-            public LineElement(IHtmlable content)
+            private readonly string? _rawLineHash;
+            public LineElement(IHtmlable content, string? rawLineHash)
                 : base(content, "<p>", "</p>")
             {
+                _rawLineHash = rawLineHash;
+            }
+            public override string ToHtml()
+            {
+                if(_rawLineHash is null)
+                    return base.ToHtml();
+                return HtmlLabel.Custom(Content.ToHtml(),"p", Consts.locatorAttrName, _rawLineHash);
             }
         }
     }
