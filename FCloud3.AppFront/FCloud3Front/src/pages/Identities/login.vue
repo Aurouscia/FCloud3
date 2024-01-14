@@ -16,7 +16,7 @@ async function Login(){
     const token = await api.identites.login({
         userName:userName.value,
         password:password.value
-    },pop.value.show)
+    })
     if(token){
         httpClient.setToken(token);
         identityInfoProvider.clearCache();

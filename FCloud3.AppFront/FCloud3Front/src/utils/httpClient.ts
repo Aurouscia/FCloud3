@@ -1,19 +1,35 @@
-import { Http,ApiResponse,FileType } from "./http";
-import { popDelegate} from '../components/Pop.vue'
+import axios, { Axios } from 'axios'
+import {AxiosError} from 'axios'
 
+export type ApiResponse = {
+    success: boolean
+    data: any
+    errmsg: string
+}
 export type RequestType = "get"|"postForm"|"postRaw";
 export interface Api{
     type:RequestType,
     reletiveUrl:string
 }
+export type HttpCallBack = (result:"ok"|"warn"|"err",msg:string)=>void
+export interface ApiRequestHeader{
+    Authorization:string|undefined
+}
 
 const storageKey = "fcloudAuthToken"
+const defaultFailResp:ApiResponse = {data:undefined,success:false,errmsg:"失败"}
 
-export type {ApiResponse,FileType}
 export class HttpClient{
     jwtToken:string|null=null
-    constructor(){
-        this.jwtToken = localStorage.getItem(storageKey)
+    httpCallBack:HttpCallBack
+    ax:Axios
+    constructor(httpCallBack:HttpCallBack){
+        this.jwtToken = localStorage.getItem(storageKey);
+        this.httpCallBack = httpCallBack;
+        this.ax = axios.create({
+            baseURL: import.meta.env.VITE_BASEURL,
+            validateStatus: (n)=>n < 500
+          });
     }
     setToken(token:string){
         this.jwtToken = token;
@@ -23,60 +39,57 @@ export class HttpClient{
         this.jwtToken = null;
         localStorage.removeItem(storageKey);
     }
-    private getHeaders():Array<[string,string]>{
-        const headers:Array<[string,string]> = []
-        if(this.jwtToken){
-            headers.push(["Authorization",`Bearer ${this.jwtToken}`])
+    private headers(){
+        return {
+            Authorization: `Bearer ${this.jwtToken}`
         }
-        return headers;
     }
-    get(resource:string,data?:any): Promise<ApiResponse>{
-        if(!data)
-            return Http.get(resource,this.getHeaders());
-        else{
-            var safeCounter = 0;
-            var q = "?"
-            for(const key in data){
-                q = q+key;
-                q = q+"=";
-                q = q+String(data[key]);
-                q = q+"&";
-                safeCounter++;
-                if(safeCounter>6){
-                    break;
-                }
+    private showErrToUser(err:AxiosError){
+        this.httpCallBack("err",err.message);
+    }
+    async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
+        var res;
+        try{
+            if(type=='get'){
+                res = await this.ax.get(
+                    resource,
+                    {
+                        params:data,
+                        headers:this.headers(),
+                    }
+                );
+            }else if(type=='postRaw'){
+                res = await this.ax.post(
+                    resource,
+                    data,
+                    {
+                        headers:this.headers()
+                    }
+                );
+            }else if(type=='postForm'){
+                res = await this.ax.postForm(resource,
+                    data,
+                    {
+                        headers:this.headers()
+                    }
+                );
             }
-            return Http.get(resource+q,this.getHeaders());
         }
-    }
-    postAsJson(resource:string,data:object): Promise<ApiResponse>{
-        return Http.postAsJson(resource,data,this.getHeaders())
-    }
-    postAsForm(resource:string,data:object): Promise<ApiResponse>{
-        return Http.postAsForm(resource,data,this.getHeaders())
-    }
-    async send(apiInfo:Api,data?:object,
-        pop?:popDelegate,
-        successMsg?:string
-        ): Promise<ApiResponse>
-        {
-        var resp:ApiResponse;
-        if(apiInfo.type=="get"){
-            resp = await this.get(apiInfo.reletiveUrl,data)
-        }else if(apiInfo.type=="postForm"){
-            resp = await this.postAsForm(apiInfo.reletiveUrl,data||{});
-        }else if(apiInfo.type=="postRaw"){
-            resp = await this.postAsJson(apiInfo.reletiveUrl,data||{});
-        }else{
-            throw new Error("未实现的请求类型");
+        catch(ex){
+            const err = ex as AxiosError;
+            this.showErrToUser(err);
         }
-        if(pop){
+        if(res){
+            const resp = res.data as ApiResponse;
+            if(resp.success && successMsg){
+                this.httpCallBack('ok',successMsg)
+            }
             if(!resp.success){
-                pop(resp.errmsg,"failed")
-            }else if(successMsg){
-                pop(successMsg,"success")
+                this.httpCallBack('err',resp.errmsg)
             }
+            return resp;
+        }else{
+            return defaultFailResp;
         }
-        return resp;
     }
 }

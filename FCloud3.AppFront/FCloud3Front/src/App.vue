@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { provide, ref} from 'vue';
-import { HttpClient } from './utils/httpClient';
+import { HttpCallBack, HttpClient } from './utils/httpClient';
 import { IdentityInfoProvider } from './utils/userInfo';
 import Pop from './components/Pop.vue';
 import Topbar from './components/Topbar.vue';
@@ -9,8 +9,13 @@ import { Api } from './utils/api';
 
 const pop = ref<InstanceType<typeof Pop> | null>(null);
 provide('pop', pop)
+const httpCallBack:HttpCallBack = (result,msg)=>{
+  if(result=='ok'){pop.value?.show(msg,'success')}
+  else if(result=='err'){pop.value?.show(msg,'failed')}
+  else if(result=='warn'){pop.value?.show(msg,'warning')}
+}
 
-const httpClient = new HttpClient()
+const httpClient = new HttpClient(httpCallBack)
 provide('http', httpClient)
 const api = new Api(httpClient);
 provide('api',api)

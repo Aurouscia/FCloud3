@@ -56,7 +56,7 @@ async function refreshPreview() {
     if(!previewOn.value){
         return;
     }
-    const res = await api.textSection.preview(textSecId,data.value.Content,pop.value.show);
+    const res = await api.textSection.preview(textSecId,data.value.Content);
     if(res && preScriptsDiv.value){
         stylesContent.value = res.Styles;
         updateScript(preScriptsDiv.value, res.PreScripts);
@@ -102,11 +102,11 @@ async function replaceTitle() {
         pop.value.show("段落标题不可为空","failed");
         return;
     }
-    api.textSection.editExe(data.value,pop.value.show)
+    api.textSection.editExe(data.value)
 }
 
 async function init(){
-    const resp = await api.textSection.edit(textSecId,pop.value.show);
+    const resp = await api.textSection.edit(textSecId);
     if(resp){
         data.value = resp;
         loadComplete.value = true;
@@ -154,6 +154,7 @@ function rightToLeft(e:MouseEvent){
     }
     const targetHash = targetLine.hash;
     const target = document.querySelector(`[loc="${targetHash}"]`) as HTMLElement;
+    if(!target){return;}
     if(previewArea.value){
         previewArea.value.scrollTo({top: target.offsetTop, behavior: 'smooth'})
     }

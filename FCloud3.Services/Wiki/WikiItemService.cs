@@ -100,7 +100,6 @@ namespace FCloud3.Services.Wiki
                 moveBackwards.ForEach(x => x.Order++);
                 if (!BuildPara(wikiId, type, afterOrder + 1, out msg))
                     return false;
-                itsParas.EnsureOrderDense();
                 if (!_paraRepo.TryEditRange(itsParas, out msg))
                     return false;
                 success = true;

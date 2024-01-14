@@ -60,19 +60,28 @@ namespace FCloud3.Repos.TextSec
         public bool TryChangeContent(int id, string newContent, out string? errmsg)
         {
             errmsg = null;
-            int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Content, newContent));
+            string brief = TextSectionBrief(newContent);
+            int changed = Existing.Where(s => s.Id == id)
+                .ExecuteUpdate(s => s
+                    .SetProperty(x => x.Content, newContent)
+                    .SetProperty(x=>x.ContentBrief, brief));
 
-            throw new NotImplementedException();
-            //string? brief = TextSection.Brief(newContent);
-            //Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.ContentBrief, brief));
+            if (changed == 1)
+                return true;
+            else
+            {
+                errmsg = "修改内容失败";
+                return false;
+            }
+        }
 
-            //if (changed == 1)
-            //    return true;
-            //else
-            //{
-            //    errmsg = "修改内容失败";
-            //    return false;
-            //}
+        public static string TextSectionBrief(string content)
+        {
+            if (content.Length >= 30)
+            {
+                return string.Concat(content.AsSpan(0, 27), "...");
+            }
+            return content;
         }
     }
 

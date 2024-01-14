@@ -83,7 +83,7 @@ async function endMoving(){
             const resp = await api.wiki.setParaOrders({
                 id:props.wikiId,
                 orderedParaIds:ids
-            },pop.value.show)
+            })
             setTimeout(()=>{
                 refresh(resp);
             },500)
@@ -106,7 +106,7 @@ async function EnterEdit(paraId:number)
         router.push(`/EditTextSection/${target.UnderlyingId}`);
         return;
     }
-    const resp = await api.textSection.createForPara({paraId:paraId},pop.value.show);
+    const resp = await api.textSection.createForPara({paraId:paraId});
     if(resp){
         const newlyCreatedId = resp.CreatedId;
         router.push(`/EditTextSection/${newlyCreatedId}`);
@@ -120,13 +120,13 @@ async function RemovePara(paraId:number){
         const resp = await api.wiki.removePara({
             id:props.wikiId,
             paraId:paraId,
-        },pop.value.show);
+        });
         refresh(resp);
     }
 }
 
 async function Load(){
-    const resp = await api.wiki.loadSimple(props.wikiId,pop.value.show);
+    const resp = await api.wiki.loadSimple(props.wikiId);
     originalOrder = JSON.stringify(resp?.map(x=>x.ParaId))
     refresh(resp);
 }
