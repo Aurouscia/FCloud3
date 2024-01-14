@@ -1,6 +1,4 @@
-﻿using FCloud3.Entities.Corr;
-using FCloud3.Entities.TextSection;
-using FCloud3.Repos.Cor;
+﻿using FCloud3.Entities.TextSection;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.TextSec;
@@ -15,11 +13,11 @@ namespace FCloud3.Services.TextSec
 {
     public class TextSectionService
     {
-        private readonly CorrRepo _corrRepo;
+        private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
-        public TextSectionService(CorrRepo corrRepo, TextSectionRepo textsectionRepo)
+        public TextSectionService(WikiParaRepo paraRepo, TextSectionRepo textsectionRepo)
         {
-            _corrRepo = corrRepo;
+            _paraRepo = paraRepo;
             _textSectionRepo = textsectionRepo;
         }
 
@@ -61,16 +59,15 @@ namespace FCloud3.Services.TextSec
         /// 新建一个文本段并关联指定段落
         /// </summary>
         /// <returns>新建的文本段Id</returns>
-        public int TryAddAndAttach(int user, int corrId, out string? errmsg)
+        public int TryAddAndAttach(int user, int paraId, out string? errmsg)
         {
-            Corr corr = _corrRepo.GetById(corrId) ?? throw new Exception("找不到指定Id的段落");
-            if (corr.CorrType != CorrType.TextSection_WikiItem)
-                throw new Exception("段落类型异常");
+            var para = _paraRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
             int createdTextId = TryAdd(user, out errmsg);
             if (createdTextId <= 0)
                 return 0;
-            corr.A = createdTextId;
-            _corrRepo.TryEdit(corr, out _);
+            para.ObjectId = createdTextId;
+            if (!_paraRepo.TryEdit(para, out errmsg))
+                return 0;
             return createdTextId;
         }
         /// <summary>

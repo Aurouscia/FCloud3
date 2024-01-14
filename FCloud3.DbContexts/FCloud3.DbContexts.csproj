@@ -16,4 +16,9 @@
     <ProjectReference Include="..\FCloud3.Utils\FCloud3.Utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\SqliteMigrations\" />
+    <Folder Include="Migrations\SqlServerMigrations\" />
+  </ItemGroup>
+
 </Project>

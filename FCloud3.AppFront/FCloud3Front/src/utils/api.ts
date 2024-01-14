@@ -92,9 +92,9 @@ export class Api{
         }
     }
     textSection = {
-        createForCorr:async (req:{corrId:number},pop:popDelegate) => {
+        createForPara:async (req:{paraId:number},pop:popDelegate) => {
             const res = await this.httpClient.send({
-                reletiveUrl:"/api/TextSection/CreateForCorr",
+                reletiveUrl:"/api/TextSection/CreateForPara",
                 type:"postForm"
             },req,pop)
             if(res.success){

@@ -2,85 +2,44 @@
 using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Entities.TextSection;
-using FCloud3.Entities.Corr;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Cor;
+using FCloud3.Entities.Wiki.Paragraph;
 
 namespace FCloud3.Repos.TextSec
 {
-    //public class TextSection : IDbModel, IWikiPara, ICorrable
-    //{
-    //    public int Id { get; set; }
-    //    public string? Title { get; set; }
-    //    public string? Content { get; set; }
-    //    public string? ContentBrief { get; set; }
-
-    //    public int CreatorUserId { get; set; }
-    //    public DateTime Created { get; set; }
-    //    public DateTime Updated { get; set; }
-    //    public bool Deleted { get; set; }
-
-    //    public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
-    //    {
-    //        return new WikiParaDisplay(corrWithCurrentWiki, Id,Title,Content,WikiParaType.Text);
-    //    }
-    //    public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
-    //    {
-    //        return new WikiParaDisplay(corrWithCurrentWiki, Id,Title, ContentBrief, WikiParaType.Text);
-    //    }
-    //    public bool MatchedCorr(Corr corr)
-    //    {
-    //        if (corr.CorrType == CorrType.TextSection_WikiItem)
-    //        {
-    //            if (corr.A == Id)
-    //                return true;
-    //        }
-    //        return false;
-    //    }
-    //    public static string? Brief(string? content)
-    //    {
-    //        if (content is not null)
-    //        {
-    //            if(content.Length>20)
-    //                return content[..20];
-    //            return content;
-    //        }
-    //        return null;
-    //    }
-    //}
-
     public class TextSectionRepo : RepoBase<TextSection>
     {
         public TextSectionRepo(FCloudContext context) : base(context)
         {
         }
 
-        public TextSection? GetByParaCorr(Corr paraCorr)
+        public TextSection? GetByPara(WikiPara para)
         {
-            if (paraCorr.CorrType.ToWikiPara() != WikiParaType.Text)
+            if (para.Type != WikiParaType.Text)
                 return null;
-            return Existing.Where(x => x.Id == paraCorr.A).FirstOrDefault();
+            return Existing.Where(x => x.Id == para.ObjectId).FirstOrDefault();
         }
-        public List<TextSection> GetRangeByParaCorr(List<Corr> paraCorrs)
+        public List<TextSection> GetRangeByParas(List<WikiPara> paras)
         {
-            var textParaIds = paraCorrs
-                .Where(x => x.CorrType.ToWikiPara() == WikiParaType.Text)
-                .Select(x => x.A)
+            var textSecIds = paras
+                .Where(x => x.Type == WikiParaType.Text)
+                .Select(x => x.ObjectId)
                 .ToList();
-            return Existing.Where(x => textParaIds.Contains(x.Id)).ToList();
+            return Existing.Where(x => textSecIds.Contains(x.Id)).ToList();
         }
 
-        public TextSectionMeta? GetMetaByParaCorr(Corr paraCorr)
+        public TextSectionMeta? GetMetaByPara(WikiPara para)
         {
-            if (paraCorr.CorrType.ToWikiPara() != WikiParaType.Text)
+            if (para.Type != WikiParaType.Text)
                 return null;
-            return Existing.Where(x => x.Id == paraCorr.A).GetMetaData().FirstOrDefault();
+            return Existing.Where(x => x.Id == para.ObjectId).GetMetaData().FirstOrDefault();
         }
-        public List<TextSectionMeta> GetMetaRangeByParaCorr(List<Corr> paraCorrs)
+        public List<TextSectionMeta> GetMetaRangeByParas(List<WikiPara> paras)
         {
-            var textParaIds = paraCorrs
-                .Where(x => x.CorrType.ToWikiPara() == WikiParaType.Text)
-                .Select(x => x.A)
+            var textParaIds = paras
+                .Where(x => x.Type == WikiParaType.Text)
+                .Select(x => x.ObjectId)
                 .ToList();
             return Existing.Where(x => textParaIds.Contains(x.Id)).GetMetaData().ToList();
         }
@@ -117,7 +76,10 @@ namespace FCloud3.Repos.TextSec
         }
     }
 
-    public class TextSectionMeta : IWikiPara, ICorrable
+    /// <summary>
+    /// 文本段的元数据，只查询元数据可避免加载段落的所有文本，降低数据库负担
+    /// </summary>
+    public class TextSectionMeta : IWikiParaObject
     {
         public int Id { get; set; }
         public string? Title { get; set; }
@@ -128,24 +90,14 @@ namespace FCloud3.Repos.TextSec
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
 
-        public bool MatchedCorr(Corr corr)
+        public WikiParaDisplay ToDisplay(WikiPara para)
         {
-            if (corr.CorrType == CorrType.TextSection_WikiItem)
-            {
-                if (corr.A == Id)
-                    return true;
-            }
-            return false;
+            return new WikiParaDisplay(para, Id, Title, ContentBrief, WikiParaType.Text);
         }
 
-        public WikiParaDisplay ToDisplay(Corr corrWithCurrentWiki)
+        public WikiParaDisplay ToDisplaySimple(WikiPara para)
         {
-            return new WikiParaDisplay(corrWithCurrentWiki, Id, Title, ContentBrief, WikiParaType.Text);
-        }
-
-        public WikiParaDisplay ToDisplaySimple(Corr corrWithCurrentWiki)
-        {
-            return new WikiParaDisplay(corrWithCurrentWiki, Id, Title, ContentBrief, WikiParaType.Text);
+            return new WikiParaDisplay(para, Id, Title, ContentBrief, WikiParaType.Text);
         }
     }
     public static class TextSectionParaMetaQuerier

@@ -3,59 +3,21 @@ using System;
 using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FCloud3.DbContexts.Migrations.SqliteMigrations
+namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
 {
-    [DbContext(typeof(FCloudSqliteContext))]
-    [Migration("20231130110556_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(FCloudSqliteDevContext))]
+    partial class FCloudSqliteDevContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
 
-            modelBuilder.Entity("FCloud3.Entities.DbModels.Corr.Corr", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("A")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("B")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CorrType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Corrs");
-                });
-
-            modelBuilder.Entity("FCloud3.Entities.DbModels.Identities.User", b =>
+            modelBuilder.Entity("FCloud3.Entities.Identities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -87,36 +49,7 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FCloud3.Entities.DbModels.Wiki.WikiItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("OwnerUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WikiItems");
-                });
-
-            modelBuilder.Entity("FCloud3.Repos.Models.TextSec.TextSection", b =>
+            modelBuilder.Entity("FCloud3.Entities.TextSection.TextSection", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,6 +79,70 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                     b.HasKey("Id");
 
                     b.ToTable("TextSections");
+                });
+
+            modelBuilder.Entity("FCloud3.Entities.Wiki.WikiItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatorUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OwnerUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WikiItems");
+                });
+
+            modelBuilder.Entity("FCloud3.Entities.Wiki.WikiPara", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatorUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ObjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WikiItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WikiParas");
                 });
 #pragma warning restore 612, 618
         }

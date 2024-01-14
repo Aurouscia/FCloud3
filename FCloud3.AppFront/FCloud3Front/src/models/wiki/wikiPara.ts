@@ -1,7 +1,7 @@
 import { wikiParaType } from "./wikiParaTypes";
 
 export interface WikiPara{
-    CorrId:number,
+    ParaId:number,
     UnderlyingId:number,
     Title:string,
     Content:string,

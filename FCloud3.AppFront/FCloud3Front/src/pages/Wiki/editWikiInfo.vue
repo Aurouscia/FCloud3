@@ -19,7 +19,7 @@ const router = useRouter();
 
 //临时测试用
 const props = {
-    wikiId:4
+    wikiId:1
 }
 
 function order2PosY(order:number){
@@ -72,7 +72,7 @@ async function endMoving(){
         })
         calculatePosY();
         moving = false;
-        const list = paras.value.map(x=>{return{Id:x.CorrId,Order:x.Order}})
+        const list = paras.value.map(x=>{return{Id:x.ParaId,Order:x.Order}})
         list.sort((x,y)=>{
             return x.Order-y.Order
         })
@@ -98,28 +98,28 @@ async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
     })
     refresh(resp);
 }
-async function EnterEdit(corrId:number)
+async function EnterEdit(paraId:number)
 {
-    const target = paras.value.find(x=>x.CorrId == corrId);
+    const target = paras.value.find(x=>x.ParaId == paraId);
     if(!target){return;}
     if(target.UnderlyingId && target.UnderlyingId>0){
         router.push(`/EditTextSection/${target.UnderlyingId}`);
         return;
     }
-    const resp = await api.textSection.createForCorr({corrId:corrId},pop.value.show);
+    const resp = await api.textSection.createForPara({paraId:paraId},pop.value.show);
     if(resp){
         const newlyCreatedId = resp.CreatedId;
         router.push(`/EditTextSection/${newlyCreatedId}`);
         return;
     }
 }
-async function RemovePara(corrId:number){
-    const target = paras.value.find(x=>x.CorrId == corrId);
+async function RemovePara(paraId:number){
+    const target = paras.value.find(x=>x.ParaId == paraId);
     if(!target){return;}
     if(window.confirm(`确定要将[${target.Title}]从本词条移除`)){
         const resp = await api.wiki.removePara({
             id:props.wikiId,
-            paraId:corrId,
+            paraId:paraId,
         },pop.value.show);
         refresh(resp);
     }
@@ -127,7 +127,7 @@ async function RemovePara(corrId:number){
 
 async function Load(){
     const resp = await api.wiki.loadSimple(props.wikiId,pop.value.show);
-    originalOrder = JSON.stringify(resp?.map(x=>x.CorrId))
+    originalOrder = JSON.stringify(resp?.map(x=>x.ParaId))
     refresh(resp);
 }
 async function refresh(p:WikiPara[]|undefined) {
@@ -166,7 +166,7 @@ onUnmounted(()=>{
 
 <template>
     <div class="paras" ref="parasDiv">
-        <div v-for="p in paras" :key="p.CorrId" class="para" :style="{top:p.posY+'px'}"
+        <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <div class="paraTitle">
                 <h2>{{ p.Title }}</h2>
@@ -176,9 +176,9 @@ onUnmounted(()=>{
             <div class="paraContent">{{ p.Content }}</div>
             <div class="paraBottom">
                 <Functions x-align="right">
-                    <button @click="EnterEdit(p.CorrId)">编辑</button>
+                    <button @click="EnterEdit(p.ParaId)">编辑</button>
                     <button>指定已有</button>
-                    <button @click="RemovePara(p.CorrId)" class="danger">移除</button>
+                    <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
                 </Functions>
             </div>
         </div>

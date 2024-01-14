@@ -25,9 +25,9 @@ namespace FCloud3.App.Controllers.TextSec
             _genParser = genParser;
         }
 
-        public IActionResult CreateForCorr(int corrId)
+        public IActionResult CreateForPara(int paraId)
         {
-            int createdId = _textSectionService.TryAddAndAttach(_user.Id, corrId, out string? errmsg);
+            int createdId = _textSectionService.TryAddAndAttach(_user.Id, paraId, out string? errmsg);
             if (createdId <= 0)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(new { CreatedId = createdId });

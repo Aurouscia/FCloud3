@@ -11,18 +11,7 @@ namespace FCloud3.Repos
             _context = context;
         }
         public IQueryable<T> Existing { get { return _context.Set<T>().Where(x => x.Deleted == false); } }
-        public void BeginTransaction()
-        {
-            _context.Database.BeginTransaction();
-        }
-        public void CommitTransaction()
-        {
-            _context.Database.CommitTransaction();
-        }
-        public void RollbackTransaction()
-        {
-            _context.Database.RollbackTransaction();
-        }
+
         public virtual T? GetById(int id)
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault();

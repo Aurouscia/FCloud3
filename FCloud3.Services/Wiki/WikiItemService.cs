@@ -1,6 +1,7 @@
-﻿using FCloud3.Entities.Corr;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos.Cor;
+using FCloud3.Entities.Wiki.Paragraph;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using System;
@@ -13,119 +14,127 @@ namespace FCloud3.Services.Wiki
 {
     public class WikiItemService
     {
+        private readonly DbTransactionService _transaction;
         private readonly WikiItemRepo _wikiRepo;
-        private readonly CorrRepo _corrRepo;
+        private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
-        private readonly List<CorrType> _wikiParaTypes;
+        private readonly List<WikiParaType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
-        public WikiItemService(WikiItemRepo wikiRepo,CorrRepo corrRepo,TextSectionRepo textSectionRepo)
+        public WikiItemService(
+            DbTransactionService transaction,
+            WikiItemRepo wikiRepo,WikiParaRepo paraRepo,
+            TextSectionRepo textSectionRepo)
         {
+            _transaction = transaction;
             _wikiRepo = wikiRepo;
-            _corrRepo = corrRepo;
+            _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
-            _wikiParaTypes = WikiParaTypeUtil.WikiParaCorrTypes;
+            _wikiParaTypes = WikiParaTypes.GetListInstance();
         }
         public WikiItem? GetById(int id)
         {
             return _wikiRepo.GetById(id);
         }
-        public List<Corr> GetWikiParaCorrs(int wikiId, int start = 0, int count = int.MaxValue)
+        /// <summary>
+        /// 获取某wiki的一部分或全部段落
+        /// </summary>
+        /// <param name="wikiId">wiki的Id</param>
+        /// <param name="start">从第几段开始（0是第一段）</param>
+        /// <param name="count">取几段</param>
+        /// <returns></returns>
+        public List<WikiPara> GetWikiParas(int wikiId, int start = 0, int count = int.MaxValue)
         {
-            var corrs = _corrRepo.Existing
-                .Where(x => x.B == wikiId)
-                .Where(x => _wikiParaTypes.Contains(x.CorrType))
+            var paras = _paraRepo.Existing
+                .Where(x => x.WikiItemId == wikiId)
                 .OrderBy(x => x.Order)
                 .Skip(start)
                 .Take(count)
                 .ToList();
-            return corrs;
+            return paras;
         }
-        public bool BuildParaCorr(int wikiId, WikiParaType type, int order, out string? errmsg)
-        {
-            Corr c = new()
-            {
-                B = wikiId,
-                Order = order,
-                CorrType = type.ToCorrType()
-            };
-            return _corrRepo.TryAdd(c, out errmsg);
-        }
+        /// <summary>
+        /// 获取某wiki的一部分或全部段落，并转换为显示用的数据
+        /// </summary>
+        /// <param name="wikiId">wiki的Id</param>
+        /// <param name="start">从第几段开始（0是第一段）</param>
+        /// <param name="count">取几段</param>
+        /// <returns></returns>
         public List<WikiParaDisplay> GetWikiParaDisplays(int wikiId, int start = 0, int count = int.MaxValue)
         {
             if (!_wikiRepo.Existing.Any(x => x.Id == wikiId))
             {
                 throw new Exception("找不到指定id的wiki");
             }
-            var corrs = GetWikiParaCorrs(wikiId, start, count);
-            EnsureParaOrderDense(corrs);
+            var paras = GetWikiParas(wikiId, start, count);
+            paras.EnsureOrderDense();
 
-            List<TextSectionMeta> textParas = _textSectionRepo.GetMetaRangeByParaCorr(corrs);
+            List<TextSectionMeta> textParas = _textSectionRepo.GetMetaRangeByParas(paras);
 
-            List<KeyValuePair<Corr, IWikiPara>> paras = corrs.ConvertAll(x =>
+            List<KeyValuePair<WikiPara, IWikiParaObject>> paraObjs = paras.ConvertAll(x =>
             {
-                WikiParaType type = x.CorrType.ToWikiPara();
-                IWikiPara? para = null;
+                WikiParaType type = x.Type;
+                IWikiParaObject? para = null;
                 if (type == WikiParaType.Text)
                 {
-                    para = textParas.Find(p => p.MatchedCorr(x));
+                    para = textParas.Find(p => p.Id==x.ObjectId);
                 }
                 else
                 {
                     //throw new NotImplementedException();
                 }
                 para ??= new WikiParaPlaceholder(type);
-                return new KeyValuePair<Corr, IWikiPara>(x, para);
+                return new KeyValuePair<WikiPara, IWikiParaObject>(x, para);
             });
 
-            List<WikiParaDisplay> res = paras.ToDisplaySimpleList();
+            List<WikiParaDisplay> res = paraObjs.ToDisplaySimpleList();
             return res;
         }
         public bool InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
         {
-            _wikiRepo.BeginTransaction();
-            var itsParas = GetWikiParaCorrs(wikiId);
-            EnsureParaOrderDense(itsParas);
-            var moveBackwards = itsParas.FindAll(x => x.Order > afterOrder);
-            moveBackwards.ForEach(x => x.Order++);
-            if (!BuildParaCorr(wikiId, type, afterOrder + 1,out errmsg))
-                return false;
-            EnsureParaOrderDense(itsParas);
-            if (!_corrRepo.TryEditRange(itsParas, out errmsg))
-                return false;
-            _wikiRepo.CommitTransaction();
-
-            return true;
+            string? msg = null;
+            bool success = _transaction.DoTransaction(() =>
+            {
+                var itsParas = GetWikiParas(wikiId);
+                itsParas.EnsureOrderDense();
+                var moveBackwards = itsParas.FindAll(x => x.Order > afterOrder);
+                moveBackwards.ForEach(x => x.Order++);
+                if (!BuildPara(wikiId, type, afterOrder + 1, out msg))
+                    return false;
+                itsParas.EnsureOrderDense();
+                if (!_paraRepo.TryEditRange(itsParas, out msg))
+                    return false;
+                success = true;
+                return true;
+            });
+            errmsg = msg;
+            return success;
         }
         public bool SetParaOrders(int wikiId, List<int> orderedParaIds, out string? errmsg)
         {
-            var itsParas = GetWikiParaCorrs(wikiId);
-            EnsureParaOrderDense(itsParas);
-            if (orderedParaIds.Count < itsParas.Count)
+            var itsParas = GetWikiParas(wikiId);
+            itsParas.EnsureOrderDense();
+            if (orderedParaIds.Count != itsParas.Count)
             {
                 errmsg = "数据不一致，请刷新页面后重试";
                 return false;
             }
-            List<Corr> orderedParaCorrs = new(itsParas.Count);
+            List<WikiPara> orderedParas = new(itsParas.Count);
             foreach (int id in orderedParaIds)
             {
-                var p = itsParas.Find(x => x.Id == id) ?? throw new Exception("在重设顺序时找不到指定id段落");
-                orderedParaCorrs.Add(p);
+                var p = itsParas.Find(x => x.Id == id);
+                if (p is null)
+                {
+                    errmsg = "数据不一致，请刷新页面后重试";
+                    return false;
+                }
+                orderedParas.Add(p);
             }
-            ResetOrder(orderedParaCorrs);
-            if (!_corrRepo.TryEditRange(orderedParaCorrs, out errmsg))
+            orderedParas.ResetOrder();
+            if (!_paraRepo.TryEditRange(orderedParas, out errmsg))
                 return false;
             return true;
         }
-        private static void EnsureParaOrderDense(List<Corr> corrs)
-        {
-            corrs.Sort((x, y) => x.Order - y.Order);
-            ResetOrder(corrs);
-        }
-        private static void ResetOrder(List<Corr> corrs)
-        {
-            for (int i = 0; i < corrs.Count; i++)
-                corrs[i].Order = i;
-        }
+
         public static bool BasicInfoCheck(WikiItem w, out string? errmsg)
         {
             errmsg = null;
@@ -165,30 +174,39 @@ namespace FCloud3.Services.Wiki
                 return false;
             return true;
         }
-        public bool TryRemovePara(int id, int corrId, out string? errmsg)
+        public bool TryRemovePara(int id, int paraId, out string? errmsg)
         {
-            var paras = GetWikiParaCorrs(id);
-            var target = paras.Find(x => x.Id == corrId);
+            var paras = GetWikiParas(id);
+            var target = paras.Find(x => x.Id == paraId);
             if(target is null)
             {
                 errmsg = "未找到指定Id的目标段落";
                 return false;
             }
             paras.Remove(target);
-            _corrRepo.BeginTransaction();
-            EnsureParaOrderDense(paras);
-            if (!_corrRepo.TryEditRange(paras, out errmsg))
+            paras.EnsureOrderDense();
+            string? msg = null;
+            bool success = _transaction.DoTransaction(() =>
             {
-                _corrRepo.RollbackTransaction();
-                return false;
-            }
-            if (!_corrRepo.TryRemove(target, out errmsg))
+                if (!_paraRepo.TryEditRange(paras, out msg))
+                    return false;
+                if (!_paraRepo.TryRemove(target, out msg))
+                    return false;
+                return true;
+            });
+            errmsg = msg;
+            return success;
+        }
+
+        private bool BuildPara(int wikiId, WikiParaType type, int order, out string? errmsg)
+        {
+            WikiPara p = new()
             {
-                _corrRepo.RollbackTransaction();
-                return false;
-            }
-            _corrRepo.CommitTransaction();
-            return true;
+                WikiItemId = wikiId,
+                Order = order,
+                Type = type
+            };
+            return _paraRepo.TryAdd(p, out errmsg);
         }
     }
 }

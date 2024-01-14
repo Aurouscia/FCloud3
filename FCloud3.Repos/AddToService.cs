@@ -2,7 +2,6 @@
 using FCloud3.DbContexts;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Cor;
 using FCloud3.Repos.Identities;
 
 namespace FCloud3.Repos
@@ -14,8 +13,8 @@ namespace FCloud3.Repos
             services.AddDb();
 
             services.AddScoped<UserRepo>();
-            services.AddScoped<CorrRepo>();
             services.AddScoped<WikiItemRepo>();
+            services.AddScoped<WikiParaRepo>();
             services.AddScoped<TextSectionRepo>();
 
             return services;

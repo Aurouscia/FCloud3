@@ -18,6 +18,8 @@ namespace FCloud3.DbContexts
             ConnStr = connStr;
         }
     }
+
+
     public static class DbContextSetup
     {
         public static IServiceCollection AddDb(this IServiceCollection services)
@@ -31,12 +33,19 @@ namespace FCloud3.DbContexts
             {
                 services.AddDbContext<FCloudContext, FCloudSqliteContext>();
             }
+            else if (dbType == "sqlitedev")
+            {
+                services.AddDbContext<FCloudContext, FCloudSqliteDevContext>();
+            }
             else if (dbType == "sqlserver")
             {
                 services.AddDbContext<FCloudContext, FCloudSqlServerContext>();
             }
             else
                 throw new Exception("不支持的数据库类型，请检查配置的Db:Type项");
+
+            services.AddScoped<DbTransactionService>();
+
             return services;
         }
     }

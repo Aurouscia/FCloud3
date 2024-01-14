@@ -1,34 +1,29 @@
-﻿using FCloud3.Entities.Corr;
-using FCloud3.Repos.Cor;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos.Wiki
+namespace FCloud3.Entities.Wiki.Paragraph
 {
     public class WikiParaDisplay
     {
         /// <summary>
-        /// 指该段落与本词条对应的corr的Id
+        /// 指该段落Id
         /// </summary>
-        public int CorrId { get; set; }
+        public int ParaId { get; set; }
         /// <summary>
         /// 指该段落代表的文本段/文件/表格的Id
         /// </summary>
         public int UnderlyingId { get; set; }
         public string? Title { get; set; }
         public string? Content { get; set; }
-        /// <summary>
-        /// 指该段落与本词条对应的corr的Order
-        /// </summary>
         public int Order { get; set; }
         public WikiParaType Type { get; set; }
-        public WikiParaDisplay(Corr corr, int underlyingId, string? title, string? content, WikiParaType type)
+        public WikiParaDisplay(WikiPara para, int underlyingId, string? title, string? content, WikiParaType type)
         {
-            CorrId = corr.Id;
-            Order = corr.Order;
+            ParaId = para.Id;
+            Order = para.Order;
             UnderlyingId = underlyingId;
             Title = title;
             Content = content;
@@ -37,18 +32,18 @@ namespace FCloud3.Repos.Wiki
     }
     public static class WikiParaDisplayListConverter
     {
-        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<Corr, IWikiPara>> para)
+        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<WikiPara, IWikiParaObject>> para)
         {
             return para.ConvertAll(x =>
             {
-                Corr paraCorr = x.Key;
-                IWikiPara paraEntity = x.Value;
-                WikiParaDisplay display = paraEntity.ToDisplaySimple(paraCorr);
+                WikiPara para = x.Key;
+                IWikiParaObject paraEntity = x.Value;
+                WikiParaDisplay display = paraEntity.ToDisplaySimple(para);
                 return display;
             });
         }
     }
-    public class WikiParaPlaceholder : IWikiPara
+    public class WikiParaPlaceholder : IWikiParaObject
     {
         public WikiParaType Type { get; set; }
         public WikiParaPlaceholder(WikiParaType type)
@@ -56,14 +51,14 @@ namespace FCloud3.Repos.Wiki
             Type = type;
         }
 
-        public WikiParaDisplay ToDisplay(Corr corr)
+        public WikiParaDisplay ToDisplay(WikiPara para)
         {
-            return new WikiParaDisplay(corr, 0, "新段落", "", Type);
+            return new WikiParaDisplay(para, 0, "新段落", "", Type);
         }
 
-        public WikiParaDisplay ToDisplaySimple(Corr corr)
+        public WikiParaDisplay ToDisplaySimple(WikiPara para)
         {
-            return new WikiParaDisplay(corr, 0, "新段落", "", Type);
+            return new WikiParaDisplay(para, 0, "新段落", "", Type);
         }
     }
 }
