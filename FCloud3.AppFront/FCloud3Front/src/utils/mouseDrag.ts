@@ -90,7 +90,6 @@ export class MouseDragListener{
             window.removeEventListener("touchstart",touchstart);
             window.removeEventListener("touchend",touchend);
             window.removeEventListener("touchmove",touchmove);
-            console.log("已清除排序用监听器")
         }
     }
 }

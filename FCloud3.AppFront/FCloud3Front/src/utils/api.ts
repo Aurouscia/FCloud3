@@ -1,3 +1,4 @@
+import { IndexQuery, IndexResult } from "../models";
 import { User } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
 import { WikiPara } from "../models/wiki/wikiPara";
@@ -47,6 +48,16 @@ export class Api{
                 return true
             }
         },
+        getInfoByName: async(name:string)=>{
+            var res = await this.httpClient.request(
+                "/api/User/GetInfoByName",
+                "get",
+                {name:name}
+            )
+            if(res.success){
+                return res.data as User
+            }
+        }
     }
     wiki = {
         create: undefined,
@@ -84,11 +95,21 @@ export class Api{
         removePara:async(req:{id:number,paraId:number})=>{
             const res = await this.httpClient.request(
                 "/api/WikiItem/RemovePara",
-                "postForm"
-                ,req,
+                "postForm",
+                req,
                 "成功删除")
             if(res.success){
                 return res.data as Array<WikiPara>
+            }
+        },
+        index:async(req:IndexQuery)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/Index",
+                "postRaw",
+                req,
+            )
+            if(res.success){
+                return res.data as IndexResult;
             }
         }
     }

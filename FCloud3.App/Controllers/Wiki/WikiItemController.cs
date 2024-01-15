@@ -1,5 +1,7 @@
-﻿using FCloud3.App.Services;
+﻿using FCloud3.App.Models.COM;
+using FCloud3.App.Services;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Wiki;
 using Microsoft.AspNetCore.Authorization;
@@ -73,6 +75,12 @@ namespace FCloud3.App.Controllers.Wiki
                 return this.ApiFailedResp(errmsg);
             var newList = _wikiService.GetWikiParaDisplays(id);
             return this.ApiResp(newList);
+        }
+
+        public IActionResult Index([FromBody]IndexRequestModel query)
+        {
+            var res = (_wikiService.Index(query));
+            return this.ApiResp(res);
         }
 
         public class WikiItemComModel

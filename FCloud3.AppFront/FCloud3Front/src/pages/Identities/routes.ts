@@ -1,7 +1,8 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import login from "./login.vue"
-import personal from "./personal.vue"
+import Login from "./login.vue"
+import Personal from "./personal.vue"
+import User from "./user.vue";
 
 export function addIdentities(r:Router){
     addToRouter(r,routes);
@@ -10,10 +11,15 @@ export function addIdentities(r:Router){
 const routes = [
     {
         path:"/User/Login",
-        component:login
+        component:Login
     },
     {
         path:"/User/Personal",
-        component:personal
+        component:Personal
+    },
+    {
+        path:"/u/:username?",
+        component:User,
+        props:true
     }
 ]

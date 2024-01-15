@@ -1,4 +1,6 @@
-﻿namespace FCloud3.Entities.Wiki
+﻿using System.ComponentModel;
+
+namespace FCloud3.Entities.Wiki
 {
     public class WikiItem : IDbModel
     {

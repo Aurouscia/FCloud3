@@ -5,10 +5,9 @@ namespace FCloud3.Utils.Utils.Cryptography
 {
     public static class MD5Helper
     {
-        public static string? GetMD5Of(string? input)
+        public static string GetMD5Of(string input)
         {
-            if (input is null)
-                return null;
+            input ??= "";
 
             // 把输入的字符串转换为字节数组并计算哈希值
             byte[] data = MD5.HashData(Encoding.UTF8.GetBytes(input));

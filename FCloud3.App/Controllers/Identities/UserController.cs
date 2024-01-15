@@ -32,13 +32,7 @@ namespace FCloud3.App.Controllers.Identities
         {
             int uid = _user.Id;
             User u = _userService.GetById(uid) ?? throw new Exception("找不到指定ID的用户");
-            UserComModel model = new()
-            {
-                Id = uid,
-                Name = u.Name,
-                Pwd = "",
-                AvatarFileName = u.AvatarFileName
-            };
+            UserComModel model = UserComModel.ExcludePwd(u);
             return this.ApiResp(model);
         }
 
@@ -53,12 +47,36 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp();
         }
 
+        public IActionResult GetInfoByName(string name)
+        {
+            User? u = _userService.GetByName(name);
+            if(u is null)
+            {
+                return this.ApiFailedResp($"找不到用户[{name}]");
+            }
+            UserComModel model = UserComModel.ExcludePwd(u);
+            return this.ApiResp(model);
+        }
+
+        /// <summary>
+        /// 对应前端：\src\models\identities\user.ts
+        /// </summary>
         public class UserComModel
         {
             public int Id { get; set; }
             public string? Name { get; set; }
             public string? Pwd { get; set; }
             public string? AvatarFileName { get; set; }
+
+            public static UserComModel ExcludePwd(User u)
+            {
+                return new UserComModel
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    AvatarFileName = u.AvatarFileName
+                };
+            }
         }
     }
 }

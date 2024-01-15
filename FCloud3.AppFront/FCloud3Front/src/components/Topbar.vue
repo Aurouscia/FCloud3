@@ -25,7 +25,7 @@
     </div>
     <div class="topbar-item">
       <div>
-        <RouterLink to="/User/Personal">个人</RouterLink>
+        <RouterLink to="/u">个人</RouterLink>
       </div>
     </div>
   </div>

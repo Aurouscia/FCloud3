@@ -48,6 +48,7 @@ export class HttpClient{
         this.httpCallBack("err",err.message);
     }
     async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
+        console.log(`开始发送[${type}]=>[${resource}]`,data)
         var res;
         try{
             if(type=='get'){

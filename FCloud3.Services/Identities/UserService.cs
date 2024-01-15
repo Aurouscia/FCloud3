@@ -26,6 +26,11 @@ namespace FCloud3.Services.Identities
             return _repo.GetById(id);
         }
 
+        public User? GetByName(string name)
+        {
+            return _repo.Existing.Where(x => x.Name == name).FirstOrDefault();
+        }
+
         public static bool BasicInfoCheck(string? name,string pwd,out string? errmsg,bool allowEmptyPwd=false)
         {
             errmsg = null;

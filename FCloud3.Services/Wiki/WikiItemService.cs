@@ -2,6 +2,7 @@
 using FCloud3.Entities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Entities.Wiki.Paragraph;
+using FCloud3.Repos;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using System;
@@ -35,6 +36,11 @@ namespace FCloud3.Services.Wiki
         {
             return _wikiRepo.GetById(id);
         }
+        public IndexResult<WikiItemIndexItem> Index(IndexQuery query)
+        {
+            return _wikiRepo.IndexFilterOrder(query).TakePage(query,x=>new WikiItemIndexItem(x));
+        }
+
         /// <summary>
         /// 获取某wiki的一部分或全部段落
         /// </summary>
@@ -206,6 +212,19 @@ namespace FCloud3.Services.Wiki
                 Type = type
             };
             return _paraRepo.TryAdd(p, out errmsg);
+        }
+    }
+
+    public class WikiItemIndexItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Update { get; set; }
+        public WikiItemIndexItem(WikiItem w)
+        {
+            Id = w.Id;
+            Title = w.Title??"";
+            Update = w.Updated.ToString("yy/MM/dd HH:mm");
         }
     }
 }
