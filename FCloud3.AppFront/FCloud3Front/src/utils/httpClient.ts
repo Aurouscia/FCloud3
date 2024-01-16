@@ -44,8 +44,8 @@ export class HttpClient{
             Authorization: `Bearer ${this.jwtToken}`
         }
     }
-    private showErrToUser(err:AxiosError){
-        this.httpCallBack("err",err.message);
+    private showErrToUser(_err:AxiosError){
+        this.httpCallBack("err","请检查网络连接");
     }
     async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
         console.log(`开始发送[${type}]=>[${resource}]`,data)

@@ -58,6 +58,9 @@ button.confirm {
   border: none;
   padding: 5px;
 }
+button.ok{
+  background-color: green;
+}
 button.queryAdjust{
   border: none;
   background: none;

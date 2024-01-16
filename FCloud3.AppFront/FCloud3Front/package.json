@@ -17,6 +17,7 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.202",
     "@vitejs/plugin-vue": "^4.2.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",

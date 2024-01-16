@@ -13,4 +13,11 @@ public class AppSettings
         public static string? Type { get; set; } = SettingsHelper.Get("Db", "Type");
         public static string? ConnStr { get; set; } = SettingsHelper.Get("Db", "ConnStr");
     }
+    public class Oss
+    {
+        public static string? EndPoint { get; set; } = SettingsHelper.Get("Oss", "EndPoint");
+        public static string? BucketName { get; set; } = SettingsHelper.Get("Oss", "BucketName");
+        public static string? AccessKeyId { get; set; } = SettingsHelper.Get("Oss", "AccessKeyId");
+        public static string? AccessKeySecret { get; set; } = SettingsHelper.Get("Oss", "AccessKeySecret");
+    }
 }

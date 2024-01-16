@@ -67,7 +67,8 @@ try
 }
 catch(Exception ex)
 {
-    Log.Error(ex, "FCloud3.App启动失败=============================================");
+    if(ex is not HostAbortedException)
+        Log.Error(ex, "FCloud3.App启动失败=============================================");
 }
 finally
 {

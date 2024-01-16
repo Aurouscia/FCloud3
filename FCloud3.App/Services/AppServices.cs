@@ -1,4 +1,6 @@
-﻿using FCloud3.Utils.Settings;
+﻿using FCloud3.App.Services.Configs;
+using FCloud3.Services.Files;
+using FCloud3.Utils.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -20,6 +22,7 @@ namespace FCloud3.App.Services
             });
             services.AddMemoryCache();
             services.AddScoped<HtmlGenParserProvider>();
+            services.AddSingleton<IOssConfig, OssConfig>();
             return services;
         }
         public static IServiceCollection AddJwtService(this IServiceCollection services)

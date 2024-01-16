@@ -2,6 +2,7 @@
 using FCloud3.Services.Wiki;
 using FCloud3.Services.TextSec;
 using Microsoft.Extensions.DependencyInjection;
+using FCloud3.Services.Files;
 
 namespace FCloud3.Services
 {
@@ -12,6 +13,7 @@ namespace FCloud3.Services
             services.AddScoped<UserService>();
             services.AddScoped<WikiItemService>();
             services.AddScoped<TextSectionService>();
+            services.AddScoped<IFileService, OssFileService>();
             return services;
         }
     }

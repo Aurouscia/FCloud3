@@ -140,6 +140,21 @@ namespace FCloud3.Repos
             return true;
         }
 
+        public virtual int TryAddAndGetId(T item, out string? errmsg)
+        {
+            if (item is null)
+            {
+                errmsg = $"试图向数据库加入空{nameof(T)}对象";
+                return 0;
+            }
+            if (!TryAddCheck(item, out errmsg))
+                return 0;
+            item.Created = DateTime.Now;
+            _context.Add(item);
+            _context.SaveChanges();
+            return item.Id;
+        }
+
         public virtual bool TryEditCheck(T item, out string? errmsg)
         {
             errmsg = null;

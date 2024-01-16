@@ -1,10 +1,12 @@
-import { IndexQuery, IndexResult } from "../models";
+import { IndexQuery, IndexResult } from "../components/Index/index";
 import { User } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
 import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
+import { StagingFile } from '../models/files/StagingFile';
+import _ from 'lodash';
 
 export class Api{
     private httpClient: HttpClient;
@@ -149,6 +151,22 @@ export class Api{
                 {id:textSecId,content:content});
             if(res.success){
                 return res.data as TextSectionPreviewResponse;
+            }
+        }
+    }
+    files = {
+        save:async(req: StagingFile, dist:string)=>{
+            const res = await this.httpClient.request(
+                "/api/Files/Save",
+                "postForm",
+                {
+                    ToSave:req.file,
+                    DisplayName:req.displayName,
+                    StoreName:req.storeName,
+                    StorePath:dist
+                },`成功上传：${_.truncate(req.displayName,{length:8})}`);
+            if(res.success){
+                return res.data as {Id:number};
             }
         }
     }

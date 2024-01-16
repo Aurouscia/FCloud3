@@ -24,6 +24,9 @@ onMounted(async()=>{
         iden = await (inject('userInfo') as IdentityInfoProvider).getIdentityInfo();
         username = iden.Name
     }
+    if(iden.Id==0){
+        return;
+    }
     user.value = await api.identites.getInfoByName(username);
     if(user.value){
         ok.value = true;

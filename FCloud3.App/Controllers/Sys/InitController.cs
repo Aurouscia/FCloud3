@@ -4,7 +4,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Utils.Utils.Cryptography;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCloud3.App.Controllers.System
+namespace FCloud3.App.Controllers.Sys
 {
     public class InitController:Controller
     {
