@@ -7,6 +7,7 @@ import NotFound from './pages/notFound.vue';
 import { addHomePage } from './pages/Home/routes';
 import { addWiki } from './pages/Wiki/routes';
 import { addTextSection } from './pages/TextSection/routes';
+import { addFiles } from './pages/Files/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -21,6 +22,7 @@ addIdentities(router)
 addHomePage(router)
 addWiki(router)
 addTextSection(router)
+addFiles(router)
 
 
 createApp(App).use(router).mount('#app')

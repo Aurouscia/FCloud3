@@ -18,6 +18,7 @@ namespace FCloud3.Repos
             services.AddScoped<WikiParaRepo>();
             services.AddScoped<TextSectionRepo>();
             services.AddScoped<FileItemRepo>();
+            services.AddScoped<FileDirRepo>();
 
             return services;
         }

@@ -1,4 +1,5 @@
 ﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Utils.Utils.Cryptography;
@@ -53,6 +54,60 @@ namespace FCloud3.App.Controllers.Sys
                     PwdMd5 = MD5Helper.GetMD5Of("123456")
                 };
                 _context.Users.Add(u);
+                _context.SaveChanges();
+            }
+            return this.ApiResp();
+        }
+        public IActionResult InitFileDirs()
+        {
+            bool anyFileDirs = _context.FileDirs.Any();
+            if (!anyFileDirs)
+            {
+                FileDir d1 = new FileDir()
+                {
+                    Name = "一号文件夹",
+                };
+                _context.FileDirs.Add(d1);
+                _context.SaveChanges();
+                FileDir d2 = new FileDir()
+                {
+                    Name = "二号文件夹",
+                };
+                _context.FileDirs.Add(d2);
+                _context.SaveChanges();
+
+                FileDir d3 = new FileDir()
+                {
+                    Name = "三号文件夹",
+                    ParentDir = d1.Id,
+                    Depth = 1
+                };
+                _context.FileDirs.Add(d3);
+                _context.SaveChanges();
+                FileDir d4 = new FileDir()
+                {
+                    Name = "四号文件夹",
+                    ParentDir = d1.Id,
+                    Depth = 1
+                };
+                _context.FileDirs.Add(d4);
+                _context.SaveChanges();
+
+                FileDir d5 = new FileDir()
+                {
+                    Name = "五号文件夹",
+                    ParentDir = d3.Id,
+                    Depth = 2
+                };
+                _context.FileDirs.Add(d5);
+                _context.SaveChanges();
+                FileDir d6 = new FileDir()
+                {
+                    Name = "六号文件夹",
+                    ParentDir = d4.Id,
+                    Depth = 2
+                };
+                _context.FileDirs.Add(d6);
                 _context.SaveChanges();
             }
             return this.ApiResp();

@@ -6,13 +6,13 @@ using FCloud3.Utils.Utils.FileUtils;
 
 namespace FCloud3.Services.Files
 {
-    public class OssFileService:IFileService
+    public class OssFileItemService:IFileItemService
     {
         private readonly FileItemRepo _repo;
         private readonly IOssConfig _config;
         private readonly Lazy<OssClient> _ossClient;
 
-        public OssFileService(FileItemRepo repo, IOssConfig config)
+        public OssFileItemService(FileItemRepo repo, IOssConfig config)
         {
             _repo = repo;
             _config = config;

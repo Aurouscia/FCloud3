@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.Services.Files
 {
-    public interface IFileService
+    public interface IFileItemService
     {
         /// <summary>
         /// 存储新添加的文件

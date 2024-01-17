@@ -7,6 +7,8 @@ import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
 import { StagingFile } from '../models/files/StagingFile';
 import _ from 'lodash';
+import { TakeContentResult } from "../models/files/TakeContentResult";
+import { FileDirIndexResult } from "../models/files/FileDirIndexResult";
 
 export class Api{
     private httpClient: HttpClient;
@@ -167,6 +169,31 @@ export class Api{
                 },`成功上传：${_.truncate(req.displayName,{length:8})}`);
             if(res.success){
                 return res.data as {Id:number};
+            }
+        },
+        index:async(q: IndexQuery,path: string[])=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/Index",
+                "postRaw",
+                {
+                    Query:q,
+                    Path:path
+                },
+            )
+            if(res.success){
+                return res.data as FileDirIndexResult;
+            }
+        },
+        takeContent:async(dirId:number)=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/TakeContent",
+                "get",
+                {
+                    dirId
+                },
+            )
+            if(res.success){
+                return res.data as TakeContentResult;
             }
         }
     }

@@ -13,5 +13,6 @@ namespace FCloud3.DbContexts
         public DbSet<WikiPara> WikiParas { get; set; }
         public DbSet<TextSection> TextSections { get; set; }
         public DbSet<FileItem> FileItems { get; set; }
+        public DbSet<FileDir> FileDirs { get; set; }
     }
 }

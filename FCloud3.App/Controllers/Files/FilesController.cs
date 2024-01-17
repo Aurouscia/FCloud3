@@ -6,10 +6,10 @@ namespace FCloud3.App.Controllers.Files
 {
     public class FilesController : Controller
     {
-        private readonly IFileService _fileService;
+        private readonly IFileItemService _fileService;
         private const int maxUploadLength = 10 * 1000 * 1000;
 
-        public FilesController(IFileService fileService)
+        public FilesController(IFileItemService fileService)
         {
             _fileService = fileService;
         }

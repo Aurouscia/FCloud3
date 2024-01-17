@@ -18,7 +18,11 @@ namespace FCloud3.Repos
 
         public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
         {
-            var q = Existing;
+            return IndexFilterOrder(Existing, query);
+        }
+        public virtual IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query)
+        {
+            var q = from;
             q = Filter(q, query.ParsedSearch());
             q = Order(q, query.OrderBy, query.OrderRev);
             return q;

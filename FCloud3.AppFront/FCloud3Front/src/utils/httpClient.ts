@@ -78,15 +78,18 @@ export class HttpClient{
         }
         catch(ex){
             const err = ex as AxiosError;
+            console.log(`[${type}]${resource}失败`,err)
             this.showErrToUser(err);
         }
         if(res){
             const resp = res.data as ApiResponse;
             if(resp.success && successMsg){
                 this.httpCallBack('ok',successMsg)
+                console.log(`[${type}]${resource}成功`,resp.data)
             }
             if(!resp.success){
                 this.httpCallBack('err',resp.errmsg)
+                console.log(`[${type}]${resource}失败`,resp.errmsg)
             }
             return resp;
         }else{

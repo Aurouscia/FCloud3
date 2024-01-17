@@ -70,11 +70,12 @@ async function setSearch(colName:string) {
     const target = cols.value.find(x=>x.name==colName);
     if(!target){return;}
     if(target.searchText?.trim()){
-        reloadData();
+        
     }else{
         target.searchText = "";
         target.editing = false;
     }
+    reloadData();
 }
 function startEdit(colName:string){
     const target = cols.value.find(x=>x.name==colName);
@@ -95,6 +96,7 @@ async function endEdit(colName:string){
 const emit = defineEmits<{
     (e: 'reloadData', value: IndexResult): void
 }>()
+defineExpose({reloadData})
 
 const query = ref<IndexQuery>(indexQueryDefault)
 const searchStrsAlias = ref<string[]>([]);
@@ -111,7 +113,7 @@ onMounted(async()=>{
 </script>
 
 <template>
-<table class="index" v-if="qInit&&i">
+<table class="index" v-if="query&&i">
     <tbody>
         <tr v-if="!props.hidePage" class="indexControl">
             <th class="info" :colspan="cols.length-1">
@@ -125,13 +127,13 @@ onMounted(async()=>{
 
             </th>
             <th>
-                第{{ qInit.Page }}页
-                    <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:qInit.Page && qInit.Page>1}">▲</button>
-                    <button class="queryAdjust" @click="changePage('next')" :class="{highlight:qInit.Page && qInit.Page<i.PageCount}">▼</button>
+                <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
+                        第{{ query.Page }}页
+                        <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     <br/>
                     <span style="font-size: small;text-wrap: nowrap;">
                         共{{ i.PageCount }}页
-                        每页<input v-model="qInit.PageSize" @blur="reloadData" class="miniInput"/>条
+                        每页<input v-model="query.PageSize" @blur="reloadData" class="miniInput"/>条
                     </span>
             </th>
         </tr>
@@ -143,8 +145,8 @@ onMounted(async()=>{
                 </span>
                 <span v-else class="colName" @click="startEdit(c.name)">{{ c.alias }}</span>
                 <span class="order" v-if="c.canSetOrder">
-                    <button class="queryAdjust" @click="setOrder(c.name,true)" :class="{highlight:qInit.OrderBy==c.name && qInit.OrderRev}">▲</button>
-                    <button class="queryAdjust" @click="setOrder(c.name,false)" :class="{highlight:qInit.OrderBy==c.name && !qInit.OrderRev}">▼</button>
+                    <button class="queryAdjust" @click="setOrder(c.name,true)" :class="{highlight:query.OrderBy==c.name && query.OrderRev}">▲</button>
+                    <button class="queryAdjust" @click="setOrder(c.name,false)" :class="{highlight:query.OrderBy==c.name && !query.OrderRev}">▼</button>
                 </span>
             </th>
         </tr>
@@ -178,6 +180,7 @@ onMounted(async()=>{
 th{
     padding:5px;
     min-width: 100px;
+    white-space: nowrap;
 }
 .miniInput{
     width: 1.5em;text-align: center;margin: 0px;background:white
