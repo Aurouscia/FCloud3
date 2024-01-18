@@ -1,6 +1,6 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import editInfo from "./editWikiInfo.vue"
+import editInfo from "./WikiItemEdit.vue"
 
 export function addWiki(r:Router){
     addToRouter(r,routes);

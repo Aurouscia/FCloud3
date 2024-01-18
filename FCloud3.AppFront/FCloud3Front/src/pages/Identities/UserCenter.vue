@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
 import SideBar from '../../components/SideBar.vue';
-import personal from './personal.vue';
+import Personal from './PersonalSettings.vue';
 import Loading from '../../components/Loading.vue';
 import IndexWikiItem from '../../components/Index/IndexWikiItem.vue'
 import { User } from '../../models/identities/user';

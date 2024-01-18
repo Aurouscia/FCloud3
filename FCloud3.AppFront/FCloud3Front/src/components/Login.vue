@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { inject, onMounted, ref,Ref } from 'vue';
-import { HttpClient} from '../../utils/httpClient';
-import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
-import Pop from '../../components/Pop.vue';
-import { Api } from '../../utils/api';
+import { HttpClient} from '../utils/httpClient';
+import { IdentityInfo,IdentityInfoProvider } from '../utils/userInfo';
+import Pop from './Pop.vue';
+import { Api } from '../utils/api';
 
 const userName = ref<string>("")
 const password = ref<string>("")

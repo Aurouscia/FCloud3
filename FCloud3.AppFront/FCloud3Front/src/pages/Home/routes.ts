@@ -1,6 +1,6 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import home from "./home.vue"
+import HomePage from "./HomePage.vue"
 
 export function addHomePage(r:Router){
     addToRouter(r,routes);
@@ -9,10 +9,10 @@ export function addHomePage(r:Router){
 const routes = [
     {
         path:"/",
-        component:home
+        component:HomePage
     },
     {
         path:"/HomePage",
-        component:home
+        component:HomePage
     },
 ]

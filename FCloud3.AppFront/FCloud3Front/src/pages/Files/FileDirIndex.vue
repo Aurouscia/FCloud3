@@ -3,7 +3,7 @@ import { inject, onMounted, ref, watch } from 'vue';
 import IndexMini, { IndexColumn } from '../../components/Index/IndexMini.vue';
 import { Api } from '../../utils/api';
 import { IndexQuery, IndexResult } from '../../components/Index';
-import FileChildren from './fileChildren.vue';
+import FileDirChild from './FileDirChild.vue';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import SideBar from '../../components/SideBar.vue';
@@ -128,7 +128,7 @@ watch(props,async(_newVal)=>{
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileChildren :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.files.takeContent"></FileChildren>
+                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.files.takeContent"></FileDirChild>
                     </div>
                 </td>
             </tr>

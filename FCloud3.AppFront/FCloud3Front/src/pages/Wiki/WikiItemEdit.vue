@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref,Ref} from 'vue';
+import { inject, onMounted, onUnmounted, ref} from 'vue'
 import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { wikiParaType} from '../../models/wiki/wikiParaTypes'
 import { MouseDragListener } from '../../utils/mouseDrag';
-import Pop from '../../components/Pop.vue';
 import Functions from '../../components/Functions.vue';
 import { useRouter } from 'vue-router';
 import { Api } from '../../utils/api';
@@ -14,7 +13,6 @@ const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
 const paraYSpace = 130;
 var api:Api;
-var pop:Ref<InstanceType<typeof Pop>>;
 const router = useRouter();
 
 //临时测试用
@@ -144,7 +142,6 @@ var moving:boolean = false;
 var disposeListeners:()=>void|undefined;
 onMounted(async()=>{
     api = inject('api') as Api;
-    pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     await Load();
 
     const mouse = new MouseDragListener();

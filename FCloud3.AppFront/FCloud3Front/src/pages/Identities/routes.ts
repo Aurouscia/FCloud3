@@ -1,8 +1,8 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import Login from "./login.vue"
-import Personal from "./personal.vue"
-import User from "./user.vue";
+import Login from "../../components/Login.vue"
+import Personal from "./PersonalSettings.vue"
+import User from "./UserCenter.vue";
 
 export function addIdentities(r:Router){
     addToRouter(r,routes);
