@@ -83,9 +83,11 @@ export class HttpClient{
         }
         if(res){
             const resp = res.data as ApiResponse;
-            if(resp.success && successMsg){
-                this.httpCallBack('ok',successMsg)
+            if(resp.success){
                 console.log(`[${type}]${resource}成功`,resp.data)
+                if(successMsg){
+                    this.httpCallBack('ok',successMsg)
+                }
             }
             if(!resp.success){
                 this.httpCallBack('err',resp.errmsg)

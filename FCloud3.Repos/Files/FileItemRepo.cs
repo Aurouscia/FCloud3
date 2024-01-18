@@ -13,7 +13,14 @@ namespace FCloud3.Repos.Files
         public FileItemRepo(FCloudContext context) : base(context)
         {
         }
-
+        public string? GetStorePathName(int id)
+        {
+            return Existing.Where(x => x.Id == id).Select(x => x.StorePathName).FirstOrDefault();
+        }
+        public IQueryable<FileItem> GetByDirId(int dirId)
+        {
+            return Existing.Where(x => x.InDir == dirId);
+        }
         public override bool TryAddCheck(FileItem item, out string? errmsg)
         {
             if (string.IsNullOrEmpty(item.DisplayName))

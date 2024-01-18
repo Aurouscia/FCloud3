@@ -1,6 +1,8 @@
-﻿using FCloud3.Repos;
+﻿using FCloud3.Entities.Files;
+using FCloud3.Repos;
 using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Mvc;
+using static FCloud3.Services.Files.FileDirTakeContentResult;
 
 namespace FCloud3.App.Controllers.Files
 {
@@ -17,20 +19,67 @@ namespace FCloud3.App.Controllers.Files
         {
             if (req.Query is null || req.Path is null)
                 return BadRequest();
-            var res = _fileDirService.GetListByPath(req.Query, req.Path,out string? errmsg);
-            if(res is not null)
+            var res = _fileDirService.GetSubDirAndItemsByPath(req.Query, req.Path,out string? errmsg);
+            if (res is not null)
+            {
                 return this.ApiResp(res);
+            }
             return this.ApiFailedResp(errmsg);
         }
         public IActionResult TakeContent(int dirId)
         {
-            return this.ApiResp(_fileDirService.TakeContent(dirId));
+            FileDirTakeContentResult res = _fileDirService.TakeContent(dirId);
+            if(res is null)
+                return this.ApiFailedResp("文件夹内容获取失败");
+            return this.ApiResp(res);
+        }
+        public IActionResult Edit(int id)
+        {
+            var data = _fileDirService.GetById(id);
+            if(data is null)
+                return BadRequest();
+            FileDirComModel resp = new()
+            {
+                Id = data.Id,
+                Name = data.Name,
+                CanEditInfo = true,
+                CanPutFile = true
+            };
+            return this.ApiResp(resp);
+        }
+        public IActionResult EditExe([FromBody]FileDirComModel req)
+        {
+            if (req is null)
+                return BadRequest();
+            if (!_fileDirService.UpdateInfo(req.Id,req.Name, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+        public IActionResult PutInFile([FromBody] PutFileIntoDirRequest req)
+        {
+            if(req is null || req.DirPath is null) 
+                return BadRequest();
+            if (!_fileDirService.PutInFile(req.DirPath, req.FileItemId, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
         }
         public class FileDirIndexRequest
         {
             public string[]? Path { get; set; }
             public IndexQuery? Query { get; set; }
         }
-
+        public class PutFileIntoDirRequest
+        {
+            public string[]? DirPath { get; set; }
+            public int FileItemId { get; set; }
+        }
+        public class FileDirComModel
+        {
+            public int Id { get; set; }
+            public string? Name { get; set; }
+            public int Depth { get; set; }
+            public bool CanPutFile { get; set; }
+            public bool CanEditInfo { get; set; }
+        }
     }
 }

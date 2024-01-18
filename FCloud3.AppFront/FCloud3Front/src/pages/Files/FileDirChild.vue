@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { TakeContentResult } from '../../models/files/TakeContentResult';
+import { TakeContentResult } from '../../models/files/fileDir';
 import FileDirChild from './FileDirChild.vue'
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
+import FileDirItems from './FileDirItems.vue';
 
 const router = useRouter();
 
 function jumpToSubDir(name:string){
-    router.replace({name:'files',params:{path: _.concat(props.path,name)}});
+    var path =  _.concat(props.path,name);
+    path = _.filter(path, x=>!!x)
+    router.replace({name:'files',params:{path}});
+}
+function isEmptyDir(){
+    return data.value?.SubDirs.length==0 && data.value?.Items.length==0;
 }
 
 const props = defineProps<{
@@ -23,37 +29,43 @@ onMounted(async()=>{
 </script>
 
 <template>
-    <div class="fileChildren">
-        <div v-for="item in data?.SubDirs">
+    <div class="fileDirChild">
+        <div v-for="subdir in data?.SubDirs">
             <div class="subdir">
                 <div>
-                    <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren = true" style="color:#999">▶
+                    <div class="foldBtn" v-show="!subdir.showChildren" @click="subdir.showChildren = true" style="color:#999">▶
                     </div>
-                    <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren = false" style="color:black">▼
+                    <div class="foldBtn" v-show="subdir.showChildren" @click="subdir.showChildren = false" style="color:black">▼
                     </div>
-                    <div class="subdirName" @click="jumpToSubDir(item.Name)">{{ item.Name }}</div>
+                    <div class="subdirName" @click="jumpToSubDir(subdir.Name)">{{ subdir.Name }}</div>
                 </div>
                 <div>
                 </div>
             </div>
-            <div class="detail" v-if="item.showChildren">
-                <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="props.fetchFrom">
+            <div class="detail" v-if="subdir.showChildren">
+                <FileDirChild :dir-id="subdir.Id" :path="_.concat(props.path, subdir.Name)" :fetch-from="props.fetchFrom">
                 </FileDirChild>
             </div>
         </div>
-        <div v-if="data?.SubDirs.length == 0" class="emptyDir">
+        <FileDirItems :items="data?.Items"></FileDirItems>
+        <div v-if="isEmptyDir()" class="emptyDir">
             空文件夹
         </div>
     </div>
 </template>
 
 <style scoped>
+.subdirName{
+    font-weight: bold;
+}
 .subdirName:hover{
     text-decoration: underline;
     cursor: pointer;
 }
 .emptyDir{
-    text-align: center;
+    margin-top: 10px;
+    text-align: left;
+    color:#999;
     font-size: small;
 }
 .foldBtn{
@@ -61,8 +73,19 @@ onMounted(async()=>{
     overflow: visible;
     cursor: pointer;
 }
-.fileChildren{
-    padding-left: 15px;
+.fileDirChild{
+    padding-left: 5px;
+    position: relative;
+}
+.detail{
+    display: flex;
+    flex-direction: column;
+    gap:5px;
+    padding-bottom: 10px;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-left: 11px;
+    padding-left: 4px;
 }
 .subdir div{
     display: flex;
@@ -77,5 +100,6 @@ onMounted(async()=>{
     justify-content: left;
     gap:20px;
     align-items: center;
+    padding: 4px;
 }
 </style>

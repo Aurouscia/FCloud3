@@ -18,6 +18,13 @@ namespace FCloud3.Repos.Files
         {
             return Existing.GetIdByPath(path);
         }
+        public FileDir? GetByPath(string[] path)
+        {
+            int id = Existing.GetIdByPath(path);
+            if (id > 0)
+                return GetById(id);
+            return null;
+        }
         public IQueryable<FileDir>? GetChildrenByPath(string[] path,out int thisDirId, out string? errmsg)
         {
             errmsg = null;
@@ -68,5 +75,26 @@ namespace FCloud3.Repos.Files
         //        lookingAt = parent;
         //    }
         //}
+
+        public override bool TryAddCheck(FileDir item, out string? errmsg)
+        {
+            errmsg = null;
+            if (string.IsNullOrEmpty(item.Name?.Trim()))
+            {
+                errmsg = "文件夹名称不能为空";
+                return false;
+            }
+            return true;
+        }
+        public override bool TryEditCheck(FileDir item, out string? errmsg)
+        {
+            errmsg = null;
+            if(string.IsNullOrEmpty(item.Name?.Trim()))
+            {
+                errmsg = "文件夹名称不能为空";
+                return false;
+            }
+            return true;
+        }
     }
 }

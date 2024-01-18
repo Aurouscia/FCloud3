@@ -18,10 +18,16 @@ const props = defineProps<{
     columns:IndexColumn[],
     displayColumnCount:number,
     qInit?:IndexQuery,
+
     hidePage?:boolean|undefined,
     hideHead?:boolean|undefined,
 }>();
 const i = ref<IndexResult>();
+
+var pageSizeOverride:number = 0;
+function setPageSizeOverride(size:number){
+    pageSizeOverride = size;
+}
 
 async function reloadData(){
     const searchStrs:string[] = [];
@@ -34,6 +40,9 @@ async function reloadData(){
     })
     query.value.Search = searchStrs;
     searchStrsAlias.value = searchStrs_alias;
+    if(pageSizeOverride && pageSizeOverride>=5){
+        query.value.PageSize = pageSizeOverride;
+    }
     i.value = (await props.fetchIndex(query.value||indexQueryDefault)) || indexResultDefault;
     emit('reloadData',i.value);
 }
@@ -92,7 +101,7 @@ async function clearOrder() {
 const emit = defineEmits<{
     (e: 'reloadData', value: IndexResult): void
 }>()
-defineExpose({reloadData})
+defineExpose({reloadData,setPageSizeOverride})
 
 const query = ref<IndexQuery>(indexQueryDefault)
 const searchStrsAlias = ref<string[]>([]);
@@ -105,6 +114,9 @@ const orderPanelOpen = ref<boolean>(false);
 onMounted(async()=>{
     if(props.qInit){
         query.value = props.qInit;
+        if(!query.value.Page){
+            query.value.Page=1;
+        }
     }
     cols.value = props.columns;
     await reloadData();
@@ -123,23 +135,25 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 <template>
 <table class="index" v-if="query&&i">
     <tbody>
-        <tr v-if="!props.hidePage && !props.hideHead">
+        <tr v-if="!props.hideHead">
             <th :colspan="props.displayColumnCount">
                 <div class="indexControl">
-                    <div class="pageControl">
+                    <div v-if="!props.hidePage" class="pageControl">
                         <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
                         第{{ query.Page }}页
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     </div>
+                    <div v-else>　</div>
                     <div>
                         <button class="tabToggle" 
                             @click="searchPanelOpen=!searchPanelOpen;orderPanelOpen=false"
-                            :class="{highlightToggle:highlightSearchBtn}">搜索
+                            :class="{highlightToggle:highlightSearchBtn}">
+                            {{ (query.Search && query.Search.length>0)?'已筛选':'搜索' }}
                         </button>
                         <button class="tabToggle"
                             @click="orderPanelOpen=!orderPanelOpen;searchPanelOpen=false"
-                            :class="{highlightToggle:highlightOrderBtn}"
-                            >排序
+                            :class="{highlightToggle:highlightOrderBtn}">
+                            {{ query.OrderBy?'已排序':'排序' }}
                         </button>
                     </div>
                     <div v-if="searchPanelOpen" class="searchPanel">
@@ -150,8 +164,8 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                             </div>
                         </div>
                         <div class="searchPanelBtns">
-                            <button class="clearBtn" @click="clearSearch">清空</button>
-                            <button class="okBtn" @click="searchPanelOpen=false">OK</button>
+                            <button class="cancel" @click="clearSearch">清空</button>
+                            <button class="ok" @click="searchPanelOpen=false">OK</button>
                         </div>
                     </div>
                     <div v-if="orderPanelOpen" class="orderPanel">
@@ -164,7 +178,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                                 </div>
                             </div>
                         </div>
-                        <button class="clearBtn" @click="clearOrder">清空</button>
+                        <button class="cancel" @click="clearOrder">清空</button>
                     </div>
                 </div>
             </th>
@@ -185,14 +199,11 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    border-bottom: 1px solid #999;
     margin: 5px;gap:10px;
     font-weight: normal;
 }
-.clearBtn:hover{background-color: rgb(209, 98, 209);}
-.okBtn:hover{background-color:rgb(149, 222, 4);}
-.clearBtn{background-color: plum;}
-.okBtn{background-color: olivedrab;}
-.searchPanelBtns button{
+.searchPanelBtns button,.orderPanel button{
     width: 4em;
     height: 1.8em;
     line-height: 1.8em;
@@ -205,10 +216,12 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 }
 .searchItem{
     font-weight:normal;
-    margin: 5px;
+    margin: 2px;
+    padding: 2px;
     display: flex;
     justify-content: space-between;
-    gap:3px
+    gap:3px;
+    border-bottom: 1px solid #999;
 }
 .searchPanel,.orderPanel{
     position: absolute;
@@ -237,7 +250,8 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
     width: 1.5em;text-align: center;margin: 0px;background:white
 }
 button.highlightToggle{
-    color:black !important
+    color:black !important;
+    font-weight: bold;
 }
 button.tabToggle{
     background-color: white;

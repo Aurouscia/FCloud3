@@ -22,6 +22,7 @@ namespace FCloud3.Entities.Files
         public string? StorePathName { get; set; }
         public int ByteCount { get; set; }
         public string? Hash { get; set; }
+        public int InDir { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

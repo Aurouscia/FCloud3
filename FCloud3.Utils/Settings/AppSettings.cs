@@ -19,5 +19,6 @@ public class AppSettings
         public static string? BucketName { get; set; } = SettingsHelper.Get("Oss", "BucketName");
         public static string? AccessKeyId { get; set; } = SettingsHelper.Get("Oss", "AccessKeyId");
         public static string? AccessKeySecret { get; set; } = SettingsHelper.Get("Oss", "AccessKeySecret");
+        public static string? DomainName { get; set; } = SettingsHelper.Get("Oss", "DomainName");
     }
 }

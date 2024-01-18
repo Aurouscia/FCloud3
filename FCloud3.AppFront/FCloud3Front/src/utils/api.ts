@@ -5,10 +5,9 @@ import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
-import { StagingFile } from '../models/files/StagingFile';
+import { StagingFile,TakeContentResult,FileDirIndexResult } from '../models/files/fileDir';
 import _ from 'lodash';
-import { TakeContentResult } from "../models/files/TakeContentResult";
-import { FileDirIndexResult } from "../models/files/FileDirIndexResult";
+import { FileDir } from "../models/files/fileDir";
 
 export class Api{
     private httpClient: HttpClient;
@@ -156,10 +155,10 @@ export class Api{
             }
         }
     }
-    files = {
+    fileItem = {
         save:async(req: StagingFile, dist:string)=>{
             const res = await this.httpClient.request(
-                "/api/Files/Save",
+                "/api/FileItem/Save",
                 "postForm",
                 {
                     ToSave:req.file,
@@ -168,9 +167,11 @@ export class Api{
                     StorePath:dist
                 },`成功上传：${_.truncate(req.displayName,{length:8})}`);
             if(res.success){
-                return res.data as {Id:number};
+                return res.data as {CreatedId:number};
             }
         },
+    }
+    fileDir = {
         index:async(q: IndexQuery,path: string[])=>{
             const res = await this.httpClient.request(
                 "/api/FileDir/Index",
@@ -194,6 +195,43 @@ export class Api{
             )
             if(res.success){
                 return res.data as TakeContentResult;
+            }
+        },
+        editDir:async(id:number)=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/Edit",
+                "get",
+                {
+                    id:id
+                },
+            )
+            if(res.success){
+                return res.data as FileDir;
+            }
+        },
+        editDirExe:async(req:FileDir)=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/EditExe",
+                "postRaw",
+                req,
+                "编辑成功"
+            )
+            if(res.success){
+                return true;
+            }
+        },
+        putInFile:async(dirPath:string[], fileItemId:number)=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/PutInFile",
+                "postRaw",
+                {
+                    DirPath:dirPath,
+                    FileItemId:fileItemId
+                },
+                "成功将文件放入本文件夹"
+            )
+            if(res.success){
+                return true;
             }
         }
     }

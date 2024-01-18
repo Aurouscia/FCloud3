@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CSSProperties, Ref, inject, onMounted, ref } from 'vue';
-import { fileSizeStr, getFileType } from '../utils/fileUtils';
-import { StagingFile, FileUploadDist } from '../models/files/StagingFile';
+import { Ref, inject, onMounted, ref } from 'vue';
+import { fileSizeStr, getFileIconStyle,getFileExt } from '../utils/fileUtils';
+import { StagingFile, FileUploadDist } from '../models/files/fileDir';
 import _ from 'lodash'
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';
@@ -33,41 +33,24 @@ function delFile(idx:number){
 
 const fileList = ref<StagingFile[]>([]);
 
-function getFileExt(str:string):string{
-    var parts = str.split('.');
-    if(parts.length==1){
-        return "???";
-    }
-    var ext = parts[parts.length-1];
-    if(ext.length>4){
-       ext = ext.substring(0,4);
-    }
-    return ext;
-}
-function getFileIconStyle(fileName:string):CSSProperties{
-    var type = getFileType(fileName);
-    if(type=='image'){
-        return {backgroundColor:'#A7D0D8'}
-    }
-    if(type=="video"){
-        return {backgroundColor:'#D6ACC3'}
-    }
-    if(type=='text'){
-        return {backgroundColor:'#96B23C'}
-    }
-    if(type=='audio'){
-        return {backgroundColor:'#EFD67F'}
-    }
-    return {backgroundColor:'#AAAAAA'}
-}
+
 async function commit(idx:number){
     const target = fileList.value[idx];
     if(!target){return;}
-    const resp = await api.files.save(target,props.dist);
+    if(target.file.size>10*1000*1000){
+        pop.value.show("文件过大，请拆分或压缩质量","failed")
+        return;
+    }
+    const resp = await api.fileItem.save(target,props.dist);
     if(resp){
         delFile(idx);
+        emit('uploaded',resp.CreatedId)
     }
 }
+
+const emit = defineEmits<{
+    (e: 'uploaded', fileItemId: number): void
+}>()
 
 var pop: Ref<InstanceType<typeof Pop>>
 var api: Api;
@@ -82,10 +65,13 @@ onMounted(()=>{
         <div class="staging">
             <div class="fileItem" v-for="f,i in fileList" :key="f.file.name">
                 <div class="fileIcon" :style="getFileIconStyle(f.file.name)">{{ getFileExt(f.file.name) }}</div>
-                <div class="fileName">
-                    <span @click="f.editing=!f.editing">{{ f.displayName }}</span>
-                    <span class="commitBtn" @click="commit(i)">✔</span>
-                    <span class="delBtn" @click="delFile(i)">×</span>
+                <div class="fileBody">
+                    <div class="itemName" @click="f.editing=!f.editing">{{ f.displayName }}</div>
+                    <div class="itemControl">
+                        <div class="fileSize" :style="{backgroundColor:f.file.size>10*1000*1000?'red':''}">{{ fileSizeStr(f.file.size)}}</div>
+                        <button class="ok" @click="commit(i)">上传</button>
+                        <button class="cancel" @click="delFile(i)">取消</button>
+                    </div>
                 </div>
                 <div class="nameEdit" v-show="f.editing">
                     <div>
@@ -93,7 +79,6 @@ onMounted(()=>{
                         <button @click="f.editing=false" class="ok">OK</button>
                     </div>
                 </div>
-                <div class="fileSize" :style="{color:f.file.size>10*1000*1000?'red':''}">{{ fileSizeStr(f.file.size)}}</div>
             </div>
         </div>
         <div class="controls">
@@ -115,13 +100,18 @@ onMounted(()=>{
     margin: 2px;
     width: 150px;
 }
+.nameEdit div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .nameEdit{
     position: absolute;
     top:32px;left:50px;
     background-color: #aaa;
     border:2px solid white;
     padding-left: 10px;
-    height: 50px;
+    height: 70px;
     width:200px;
     z-index: 100;
     border-radius: 10px;
@@ -131,35 +121,32 @@ onMounted(()=>{
     align-items:start;
     color:white
 }
-.commitBtn{
-    background-color: green;
-    right: 3px;
-}
-.commitBtn:hover{
-    background-color: darkgreen;
-}
-.delBtn{
-    background-color: red;
-    right: 25px;
-}
-.delBtn:hover{
-    background-color: darkred;
-}
-.delBtn,.commitBtn{
-    position: absolute;
-    top:0px;bottom: 0px;
+
+.itemControl button,.fileSize{
     margin: auto 0px auto 0px;
-    width: 1.2em;
-    height: 1.2em;
-    line-height: 1.2em;
+    padding-top: 0px;
+    width: 46px;
+    height: 22px;
+    line-height: 22px;
     text-align: center;
     border-radius: 2px;
     color:white;
-    display: none;
     cursor: pointer;
 }
-.fileName:hover .delBtn,.fileName:hover .commitBtn{
-    display: block;
+.itemControl{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap:2px
+}
+.itemName:hover{
+    text-decoration: underline;
+}
+.itemName{
+    overflow:hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
 }
 .fileIcon{
     border-radius: 5px;
@@ -173,37 +160,36 @@ onMounted(()=>{
     flex-shrink: 0;
 }
 
-.fileName,.fileSize{
+.fileBody{
     white-space: nowrap;
     background-color: white;
     border-radius:5px;
     padding: 4px;
-    line-height: 20px;
-    height:20px;
     position: relative;
-}
-.fileName{
+    text-align: center;
+    height:50px;
     width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 .fileSize{
-    width: 40px;
+    background-color: #666;
+    color:white;
     font-size: small;
-    padding: 1px;
-    height: 26px;
-    line-height: 26px;
 }
 .fileItem{
-    padding: 5px;
+    margin: 5px 0px 5px 0px;
+    padding: 0px 5px 0px 5px;
     display: flex;
     align-items: center;
     gap:5px;
     position: relative;
 }
 .staging{
-    width: 300px;
+    width: 220px;
     height: 310px;
     background-color: #ddd;
     border-radius: 5px;

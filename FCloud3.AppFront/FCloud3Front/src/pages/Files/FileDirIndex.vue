@@ -8,31 +8,24 @@ import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import SideBar from '../../components/SideBar.vue';
 import settingsImg from '../../assets/settings.svg';
-import FileUpload from '../../components/FileUpload.vue';
+import FileDirEdit from './FileDirEdit.vue';
+import { FileDir,FileDirSubDir,FileDirItem } from '../../models/files/fileDir';
+import FileDirItems from './FileDirItems.vue';
 
-interface FileDirIndexItem{
-    Id:number,
-    Name:string,
-    Update:string,
-    OwnerId:number,
-    OwnerName:string,
-    ByteCount:number,
-    FileNumber:number,
 
-    showChildren?:boolean|undefined
-}
 const props = defineProps<{
     path:string[]|string
 }>();
 const router = useRouter();
 const columns:IndexColumn[] = 
 [
-    {name:'Id',alias:'号',canSearch:true,canSetOrder:true},
     {name:'Name',alias:'名称',canSearch:true,canSetOrder:true},
-    {name:'Update',alias:'上次更新',canSearch:false,canSetOrder:true}
+    {name:'Updated',alias:'上次更新',canSearch:false,canSetOrder:true},
+    {name:'ByteCount',alias:'尺寸',canSearch:true,canSetOrder:true},
 ]
 
-const data = ref<FileDirIndexItem[]>([]);
+const subDirs = ref<FileDirSubDir[]>([]);
+const items = ref<FileDirItem[]>([]);
 var thisDirId = 0;
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
@@ -41,17 +34,34 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         if(p==''){p=[]}
         else{p = [p];}
     }
-    const res = await api.files.index(q,p)
-    thisDirId = res?.ThisDirId || 0;
-    return res?.Data;
+    const res = await api.fileDir.index(q,p)
+    if(res){
+        thisDirId = res?.ThisDirId || 0;
+        renderItems(res.Items);
+        renderSubdirs(res.SubDirs);
+        return res?.SubDirs;
+    }
 }
-function render(i:IndexResult){
-    data.value = [];
-    i.Data.forEach(r=>{
-        data.value?.push({
+//TODO：这两个难看的玩意是不是可以改进一下
+function renderItems(i:IndexResult|undefined){
+    items.value = [];
+    i?.Data?.forEach(r=>{
+        items.value.push({
+            Id:parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            ByteCount:parseInt(r[3]),
+            Url:r[4]
+        })
+    })
+}
+function renderSubdirs(i:IndexResult|undefined){
+    subDirs.value = [];
+    i?.Data?.forEach(r=>{
+        subDirs.value?.push({
             Id: parseInt(r[0]),
             Name:r[1],
-            Update:r[2],
+            Updated:r[2],
             OwnerId:parseInt(r[3]),
             OwnerName:r[4],
             ByteCount:parseInt(r[5]),
@@ -59,27 +69,41 @@ function render(i:IndexResult){
         })
     })
 }
+
+
 function jumpToSubDir(name:string){
-    var path =  _.concat(props.path,name);
+    var path =  _.concat(pathThis.value,name);
     path = _.filter(path, x=>!!x)
     router.replace({name:'files',params:{path}});
 }
 function jumpToAncestor(idxInChain:number){
-    router.replace({name:'files',params:{path: _.take(props.path,idxInChain+1)}})
+    router.replace({name:'files',params:{path: _.take(pathThis.value,idxInChain+1)}})
+}
+function infoUpdated(newInfo:FileDir){
+    if(newInfo.Name && newInfo.Name!=pathThisName.value){
+        var path = _.concat(pathAncestors.value,newInfo.Name);
+        path = _.filter(path, x=>!!x)
+        router.replace({name:'files',params:{path}});
+    }
 }
 
 const pathAncestors = ref<string[]>([]);
 const pathThisName = ref<string>("");
+const pathThis = ref<string[]>([]);
+const isRoot = ref<boolean>(false);
 function setPathDisplays(){
     if(typeof props.path==='string' || props.path.length==0){
-        pathAncestors.value = []
-        pathThisName.value = ''
+        pathAncestors.value = [];
+        pathThisName.value = '';
+        pathThis.value = [];
+        isRoot.value = true;
     }else{
-        pathAncestors.value = _.take(props.path,props.path.length-1)
-        pathThisName.value = _.last(props.path)||"";
+        pathThis.value = _.filter(props.path, x=>!!x)
+        pathAncestors.value = _.take(pathThis.value,pathThis.value.length-1)
+        pathThisName.value = _.last(pathThis.value)||"";
+        isRoot.value = pathThis.value.length==0;
     }
 }
-
 const sidebar = ref<InstanceType<typeof SideBar>>();
 function startEditDirInfo(){
     sidebar.value?.extend();
@@ -90,11 +114,14 @@ var api:Api;
 const ok = ref<boolean>(false);
 onMounted(async()=>{
     api = inject('api') as Api;
-    ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
     setPathDisplays();
+    index.value?.setPageSizeOverride(isRoot.value?20:1000)
+    ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
 })
 watch(props,async(_newVal)=>{
     setPathDisplays();
+    console.log("isRoot:",isRoot.value);
+    index.value?.setPageSizeOverride(isRoot.value?20:1000)
     await index.value?.reloadData();
 });
 </script>
@@ -110,13 +137,15 @@ watch(props,async(_newVal)=>{
                     <span @click="jumpToAncestor(idx)">{{ a }}</span>/
                 </div> 
             </div>
-            <div class="thisName">
+            <div v-if="pathThisName" class="thisName">
                 {{ pathThisName }}
                 <img class="settingsBtn" @click="startEditDirInfo" :src='settingsImg'/>
             </div>
+            <div v-else class="thisName">根目录</div>
         </div>
-        <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1" @reload-data="render">
-            <tr v-for="item in data">
+        <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
+            :hide-page="!isRoot">
+            <tr v-for="item in subDirs">
                 <td>
                     <div class="subdir">
                         <div>
@@ -128,50 +157,40 @@ watch(props,async(_newVal)=>{
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.files.takeContent"></FileDirChild>
+                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.fileDir.takeContent"></FileDirChild>
                     </div>
                 </td>
+            </tr>
+            <tr v-if="items.length>0">
+                <td>
+                    <FileDirItems :items="items"></FileDirItems>
+                </td>
+            </tr>
+            <tr v-if="subDirs.length==0 && items.length==0">
+                <td><div class="emptyDir">空文件夹</div></td>
             </tr>
         </IndexMini>
     </div>    
     <SideBar ref="sidebar">
-        <div>
-            <h1>文件夹操作</h1>
-        </div>
-        <div class="section">
-            <h2>上传新文件</h2>
-            <FileUpload dist="test"></FileUpload>
-        </div>
-        <div class="section">
-            <h2>编辑文件夹信息</h2>
-            <table>
-                <tr>
-                    <td>名称</td>
-                    <td><input/></td>
-                </tr>
-                <tr>
-                    <td>待填</td>
-                    <td><input/></td>
-                </tr>
-                <tr class="noneBackground">
-                    <td></td>
-                    <td>
-                        <button @click="">保存</button>
-                    </td>
-                </tr>
-            </table>
-        </div>
+        <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated"></FileDirEdit>
     </SideBar>
 </template>
 
-<style>
+<style scoped>
+.items{
+    padding-left: 20px;
+}
+.settingsBtn:hover{
+    background-color: #999;
+}
 .settingsBtn{
     object-fit: contain;
-    width: 1.2em;
-    height: 1.2em;
+    width: 20px;
+    height: 20px;
     padding: 2px;
-    background-color: #666;
-    border-radius: 10px;
+    background-color: #bbb;
+    border-radius: 5px;
+    transition: 0.5s;
 }
 .ancestors{
     font-size: small;
@@ -186,17 +205,29 @@ watch(props,async(_newVal)=>{
     cursor: pointer;
 }
 .thisName{
-    font-size: large;
+    font-size: 20px;
+    margin-top: 5px;
     margin-bottom: 10px;
     user-select: none;
+    display: flex;
+    flex-direction: row;
+    align-items:center;
+    gap:5px
+}
+.emptyDir{
+    text-align: left;
+    color:#999;
+    font-size: small;
 }
 .detail{
     display: flex;
     flex-direction: column;
     gap:5px;
-    margin-top: 5px;
-    padding-top: 5px;
-    border-top: 1px solid black;
+    padding-bottom: 10px;
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-left: 11px;
+    padding-left: 4px;
 }
 .foldBtn{
     width: 20px;
@@ -205,6 +236,7 @@ watch(props,async(_newVal)=>{
 }
 .subdirName{
     text-align: left;
+    font-weight: bold;
 }
 .subdirName:hover{
     text-decoration: underline;

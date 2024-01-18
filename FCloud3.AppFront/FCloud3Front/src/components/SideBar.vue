@@ -62,8 +62,11 @@ defineExpose({extend,fold})
 </template>
 
 <style scoped>
+.sideBar button{
+    margin-bottom: 10px;
+}
 .sideBar>div{
-    padding: 20px;
+    padding: 10px;
 }
 .sideBar{
     position: fixed;

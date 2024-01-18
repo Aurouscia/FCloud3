@@ -19,8 +19,8 @@ namespace FCloud3.Services.Files
         public int Save(Stream stream, int byteCount, string displayName, string storePath,string? storeName, out string? errmsg);
         public bool ExistDisplayName(string displayName);
         public bool ExistStorePathName(string storePathName);
-        public string Url(int id);
-        public string Url(string displayName);
+        public string? Url(int id);
+        public string? Url(string storePathName);
         public bool Delete(int id, out string? errmsg);
     }
 }

@@ -20,11 +20,19 @@ namespace FCloud3.Repos
         {
             return IndexFilterOrder(Existing, query);
         }
-        public virtual IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query)
+        public virtual IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query, Func<string,string>? keyReplace = null)
         {
             var q = from;
-            q = Filter(q, query.ParsedSearch());
-            q = Order(q, query.OrderBy, query.OrderRev);
+            var parsedSearch = query.ParsedSearch();
+            var orderBy = query.OrderBy;
+            if (keyReplace is not null)
+            {
+                parsedSearch.ForEach(s => { s.Key = keyReplace(s.Key); });
+                if(orderBy is not null)
+                    orderBy = keyReplace(orderBy);
+            }
+            q = Filter(q, parsedSearch);
+            q = Order(q, orderBy, query.OrderRev);
             return q;
         }
         public virtual IndexResult<T> Index(IndexQuery query)

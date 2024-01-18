@@ -83,14 +83,16 @@ namespace FCloud3.Services.Files
             throw new NotImplementedException();
         }
 
-        public string Url(int id)
+        public string? Url(int id)
         {
-            throw new NotImplementedException();
+            string? storePathName = _repo.GetStorePathName(id);
+            if (storePathName is null)
+                return null;
+            return Url(storePathName);
         }
-
-        public string Url(string displayName)
+        public string? Url(string storePathName)
         {
-            throw new NotImplementedException();
+            return _config.DomainName + "/" + storePathName;
         }
     }
     public interface IOssConfig
@@ -99,5 +101,6 @@ namespace FCloud3.Services.Files
         public string BucketName { get; }
         public string AccessKeyId { get; }
         public string AccessKeySecret { get; }
+        public string DomainName { get; }
     }
 }

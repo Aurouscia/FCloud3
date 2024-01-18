@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
-    public class FilesController : Controller
+    public class FileItemController : Controller
     {
         private readonly IFileItemService _fileService;
         private const int maxUploadLength = 10 * 1000 * 1000;
 
-        public FilesController(IFileItemService fileService)
+        public FileItemController(IFileItemService fileService)
         {
             _fileService = fileService;
         }

@@ -13,6 +13,7 @@ namespace FCloud3.Entities.Files
         public int ParentDir {  get; set; }
         public int Depth { get; set; }
         public int ByteCount { get; set; }
+        public int ContentCount { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
