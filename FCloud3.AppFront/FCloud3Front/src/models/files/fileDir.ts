@@ -61,3 +61,19 @@ export interface TakeContentResult {
     SubDirs:Array<TakeContentResSubDir>;
     Items:Array<TakeContentResItem>
 }
+
+
+export interface PutInFileRequest {
+    DirPath:string[]
+    FileItemId:number
+}
+export interface PutInThingsRequest {
+    DirPath:string[]
+    FileItemIds?:number[]
+    FileDirIds?:number[]
+}
+export interface FileDirPutInResult{
+    FileItemSuccess?:number[]
+    FileDirSuccess?:number[]
+    FailMsg?:string
+}

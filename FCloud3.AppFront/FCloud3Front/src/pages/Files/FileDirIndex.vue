@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, watch } from 'vue';
+import { inject, onMounted, provide, ref, watch } from 'vue';
 import IndexMini, { IndexColumn } from '../../components/Index/IndexMini.vue';
 import { Api } from '../../utils/api';
 import { IndexQuery, IndexResult } from '../../components/Index';
@@ -11,6 +11,8 @@ import settingsImg from '../../assets/settings.svg';
 import FileDirEdit from './FileDirEdit.vue';
 import { FileDir,FileDirSubDir,FileDirItem } from '../../models/files/fileDir';
 import FileDirItems from './FileDirItems.vue';
+import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '../../components/ClipBoard.vue';
+import Functions from '../../components/Functions.vue';
 
 
 const props = defineProps<{
@@ -21,7 +23,7 @@ const columns:IndexColumn[] =
 [
     {name:'Name',alias:'名称',canSearch:true,canSetOrder:true},
     {name:'Updated',alias:'上次更新',canSearch:false,canSetOrder:true},
-    {name:'ByteCount',alias:'尺寸',canSearch:true,canSetOrder:true},
+    {name:'ByteCount',alias:'尺寸',canSearch:false,canSetOrder:true},
 ]
 
 const subDirs = ref<FileDirSubDir[]>([]);
@@ -124,6 +126,36 @@ watch(props,async(_newVal)=>{
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
     await index.value?.reloadData();
 });
+const hideFn = ref<boolean>(false);
+function hideFnUpdate(){
+    if(subDirs.value.length==0 || subDirs.value.every(x=>!x.showChildren)){
+        hideFn.value = false;
+    }else{
+        hideFn.value = true;
+    }
+}
+
+const clip = ref<InstanceType<typeof ClipBoard>>();
+provide('clipboard',clip)
+function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
+    clip.value?.insert({
+        id:id,
+        name:name,
+        type:type
+    },e)
+}
+async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCallBack){
+    const fileItemIds = move.filter(x=>x.type=='fileItem').map(x=>x.id);
+    const fileDirIds = move.filter(x=>x.type=='fileDir').map(x=>x.id);
+    const res = await api.fileDir.putInThings(pathThis.value,fileItemIds,fileDirIds);
+    if(res){
+        const fileItemSuccess:ClipBoardItem[] = res.FileItemSuccess?.map(x=>{return{id:x,type:'fileItem',name:''}})||[]
+        const fileDirSuccess:ClipBoardItem[] = res.FileDirSuccess?.map(x=>{return{id:x,type:'fileDir',name:''}})||[]
+        const success = _.concat(fileItemSuccess, fileDirSuccess)
+        putEmitCallBack(success,res.FailMsg)
+        index.value?.reloadData();
+    }
+}
 </script>
 
 <template>
@@ -144,14 +176,18 @@ watch(props,async(_newVal)=>{
             <div v-else class="thisName">根目录</div>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
-            :hide-page="!isRoot">
-            <tr v-for="item in subDirs">
+            :hide-page="!isRoot" :hide-fn="hideFn">
+            <tr v-for="item in subDirs" :key="item.Id">
                 <td>
                     <div class="subdir">
                         <div>
-                            <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren=true" style="color:#999">▶</div>
-                            <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren=false" style="color:black">▼</div>
+                            <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren=true;hideFnUpdate()" style="color:#999">▶</div>
+                            <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren=false;hideFnUpdate()" style="color:black">▼</div>
                             <div class="subdirName" @click="jumpToSubDir(item.Name)">{{ item.Name }}</div>
+                            <Functions :entry-size="20" x-align="left">
+                                <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
+                                <button class="danger">删除</button>
+                            </Functions>
                         </div>
                         <div>
                         </div>
@@ -172,8 +208,9 @@ watch(props,async(_newVal)=>{
         </IndexMini>
     </div>    
     <SideBar ref="sidebar">
-        <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated"></FileDirEdit>
+        <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
     </SideBar>
+    <ClipBoard ref="clip" :current-dir="pathThisName" @put-down="clipBoardAction"></ClipBoard>
 </template>
 
 <style scoped>
@@ -182,6 +219,7 @@ watch(props,async(_newVal)=>{
 }
 .settingsBtn:hover{
     background-color: #999;
+    cursor: pointer;
 }
 .settingsBtn{
     object-fit: contain;
@@ -233,6 +271,7 @@ watch(props,async(_newVal)=>{
     width: 20px;
     overflow: visible;
     cursor: pointer;
+    user-select: none;
 }
 .subdirName{
     text-align: left;
@@ -258,6 +297,6 @@ watch(props,async(_newVal)=>{
     padding: 4px;
 }
 .fileDir{
-    height: 600px;
+    padding-bottom: 200px;
 }
 </style>

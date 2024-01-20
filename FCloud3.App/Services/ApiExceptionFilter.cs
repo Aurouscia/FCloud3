@@ -29,7 +29,7 @@ namespace FCloud3.App.Services
                 context.Result = new ContentResult()
                 {
                     StatusCode = 200,
-                    Content = JsonConvert.SerializeObject(new ApiResponse(null, false, msg)),
+                    Content = JsonConvert.SerializeObject(new ApiResponse(null, false, "未知错误："+msg)),
                     ContentType = Application.Json
                 };
             }

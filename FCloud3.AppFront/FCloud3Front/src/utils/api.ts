@@ -5,7 +5,7 @@ import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
-import { StagingFile,TakeContentResult,FileDirIndexResult } from '../models/files/fileDir';
+import { StagingFile,TakeContentResult,FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult } from '../models/files/fileDir';
 import _ from 'lodash';
 import { FileDir } from "../models/files/fileDir";
 
@@ -221,17 +221,33 @@ export class Api{
             }
         },
         putInFile:async(dirPath:string[], fileItemId:number)=>{
+            const reqData:PutInFileRequest={
+                DirPath:dirPath,
+                FileItemId:fileItemId
+            }
             const res = await this.httpClient.request(
                 "/api/FileDir/PutInFile",
                 "postRaw",
-                {
-                    DirPath:dirPath,
-                    FileItemId:fileItemId
-                },
+                reqData,
                 "成功将文件放入本文件夹"
             )
             if(res.success){
                 return true;
+            }
+        },
+        putInThings:async(dirPath:string[], fileItemIds:number[], fileDirIds:number[])=>{
+            const reqData:PutInThingsRequest={
+                DirPath:dirPath,
+                FileItemIds:fileItemIds,
+                FileDirIds:fileDirIds
+            }
+            const res = await this.httpClient.request(
+                "/api/FileDir/PutInThings",
+                "postRaw",
+                reqData
+            )
+            if(res.success){
+                return res.data as FileDirPutInResult;
             }
         }
     }

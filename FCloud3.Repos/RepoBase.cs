@@ -132,6 +132,11 @@ namespace FCloud3.Repos
             return Existing.Where(x => x.Id == id).FirstOrDefault();
         }
 
+        public virtual IQueryable<T> GetRangeByIds(IEnumerable<int> ids)
+        {
+            return Existing.Where(x => ids.Contains(x.Id));
+        } 
+
         public virtual bool TryAddCheck(T item, out string? errmsg)
         {
             errmsg = null;

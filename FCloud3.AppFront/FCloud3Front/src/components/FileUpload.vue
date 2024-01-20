@@ -107,12 +107,12 @@ onMounted(()=>{
 }
 .nameEdit{
     position: absolute;
-    top:32px;left:50px;
+    top:32px;left:10px;
     background-color: #aaa;
     border:2px solid white;
     padding-left: 10px;
     height: 70px;
-    width:200px;
+    width:170px;
     z-index: 100;
     border-radius: 10px;
     display: flex;

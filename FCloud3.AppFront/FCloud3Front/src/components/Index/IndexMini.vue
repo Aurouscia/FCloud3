@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { IndexQuery, IndexResult, indexQueryDefault, indexResultDefault } from './index.ts';
+import { IndexQuery, IndexResult, indexQueryDefault } from './index.ts';
 import Loading from '../Loading.vue';
 
 export interface IndexColumn{
@@ -21,6 +21,7 @@ const props = defineProps<{
 
     hidePage?:boolean|undefined,
     hideHead?:boolean|undefined,
+    hideFn?:boolean|undefined
 }>();
 const i = ref<IndexResult>();
 
@@ -29,6 +30,7 @@ function setPageSizeOverride(size:number){
     pageSizeOverride = size;
 }
 
+const hide = ref<boolean>(false);
 async function reloadData(){
     const searchStrs:string[] = [];
     const searchStrs_alias:string[] = [];
@@ -43,8 +45,14 @@ async function reloadData(){
     if(pageSizeOverride && pageSizeOverride>=5){
         query.value.PageSize = pageSizeOverride;
     }
-    i.value = (await props.fetchIndex(query.value||indexQueryDefault)) || indexResultDefault;
-    emit('reloadData',i.value);
+    var timer = window.setTimeout(()=>hide.value = true,300);
+    const resp = await props.fetchIndex(query.value||indexQueryDefault)
+    if(resp){
+        window.clearTimeout(timer);
+        hide.value = false;
+        i.value = resp;
+        emit('reloadData',i.value);
+    }
 }
 async function changePage(direction:"prev"|"next"){
     if(i.value && query.value){
@@ -133,7 +141,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 </script>
 
 <template>
-<table class="index" v-if="query&&i">
+<table class="index" v-if="query && i && !hide">
     <tbody>
         <tr v-if="!props.hideHead">
             <th :colspan="props.displayColumnCount">
@@ -144,7 +152,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     </div>
                     <div v-else>　</div>
-                    <div>
+                    <div v-if="!hideFn">
                         <button class="tabToggle" 
                             @click="searchPanelOpen=!searchPanelOpen;orderPanelOpen=false"
                             :class="{highlightToggle:highlightSearchBtn}">
@@ -231,6 +239,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
     border: 2px solid black;
     color:black;
     border-radius: 5px;
+    z-index: 1000;
 }
 .pageControl{
     padding: 4px;

@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { Ref, inject, onMounted, ref } from 'vue';
 import { TakeContentResult } from '../../models/files/fileDir';
 import FileDirChild from './FileDirChild.vue'
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import FileDirItems from './FileDirItems.vue';
+import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
+import Functions from '../../components/Functions.vue';
+import Loading from '../../components/Loading.vue';
 
 const router = useRouter();
 
@@ -22,15 +25,33 @@ const props = defineProps<{
     path:string[]|string,
     fetchFrom:(dir:number)=>Promise<TakeContentResult|undefined>
 }>();
+
 const data = ref<TakeContentResult>();
+const showLoading = ref<boolean>(false);
+var clip:Ref<InstanceType<typeof ClipBoard>>
 onMounted(async()=>{
-    data.value = await props.fetchFrom(props.dirId);
+    clip = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
+    var timer = window.setTimeout(()=>{
+        showLoading.value = true;
+    },800);
+    data.value = await props.fetchFrom(props.dirId);    
+    if(data.value){
+        window.clearTimeout(timer);
+        showLoading.value = false;
+    }
 })
+function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
+    clip.value?.insert({
+        id:id,
+        name:name,
+        type:type
+    },e)
+}
 </script>
 
 <template>
     <div class="fileDirChild">
-        <div v-for="subdir in data?.SubDirs">
+        <div v-for="subdir in data?.SubDirs" :key="subdir.Id">
             <div class="subdir">
                 <div>
                     <div class="foldBtn" v-show="!subdir.showChildren" @click="subdir.showChildren = true" style="color:#999">▶
@@ -38,6 +59,10 @@ onMounted(async()=>{
                     <div class="foldBtn" v-show="subdir.showChildren" @click="subdir.showChildren = false" style="color:black">▼
                     </div>
                     <div class="subdirName" @click="jumpToSubDir(subdir.Name)">{{ subdir.Name }}</div>
+                    <Functions :entry-size="20" x-align="left">
+                        <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>
+                        <button class="danger">删除</button>
+                    </Functions>
                 </div>
                 <div>
                 </div>
@@ -51,6 +76,7 @@ onMounted(async()=>{
         <div v-if="isEmptyDir()" class="emptyDir">
             空文件夹
         </div>
+        <Loading v-if="showLoading"></Loading>
     </div>
 </template>
 
@@ -72,6 +98,7 @@ onMounted(async()=>{
     width: 20px;
     overflow: visible;
     cursor: pointer;
+    user-select: none;
 }
 .fileDirChild{
     padding-left: 5px;
@@ -101,5 +128,9 @@ onMounted(async()=>{
     gap:20px;
     align-items: center;
     padding: 4px;
+    transition: 0.5s;
+}
+.subdir:hover{
+    background-color: white;
 }
 </style>

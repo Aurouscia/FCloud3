@@ -55,23 +55,40 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        public IActionResult PutInFile([FromBody] PutFileIntoDirRequest req)
+        public IActionResult PutInFile([FromBody] PutInFileRequest req)
         {
             if(req is null || req.DirPath is null) 
                 return BadRequest();
-            if (!_fileDirService.PutInFile(req.DirPath, req.FileItemId, out string? errmsg))
+            if (!_fileDirService.MoveFileIn(req.DirPath, req.FileItemId, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+
+        public IActionResult PutInThings([FromBody] PutInThingsRequest req)
+        {
+            if(req is null || req.DirPath is null)
+                return BadRequest();
+            var res = _fileDirService.MoveThingsIn(req.DirPath,req.FileItemIds,req.FileDirIds,out string? errmsg);
+            if (res is null || errmsg is not null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(res);  
+        }
+
         public class FileDirIndexRequest
         {
             public string[]? Path { get; set; }
             public IndexQuery? Query { get; set; }
         }
-        public class PutFileIntoDirRequest
+        public class PutInFileRequest
         {
             public string[]? DirPath { get; set; }
             public int FileItemId { get; set; }
+        }
+        public class PutInThingsRequest
+        {
+            public string[]? DirPath { get; set; }
+            public List<int>? FileItemIds { get; set; }
+            public List<int>? FileDirIds { get; set; }
         }
         public class FileDirComModel
         {

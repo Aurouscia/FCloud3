@@ -28,6 +28,32 @@ namespace FCloud3.Repos
             }
             return -1;
         }
+        public static List<int>? GetChainByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
+        {
+            if (path.Length == 0)
+                return new();
+            var possible = q.PathMatch(path).Select(x => new { x.Id, x.Name, x.Depth, x.ParentDir }).ToList();
+            var currentParent = possible.FirstOrDefault(x => x.Depth == 0);
+            if (currentParent is null) { return null; }
+
+            var res = new List<int>();
+            var k = 0;
+            while (k++ < 15)
+            {
+                res.Add(currentParent.Id);
+                var child = possible.FirstOrDefault(x => x.ParentDir == currentParent.Id);
+                if (child is null)
+                {
+                    if (res.Count == path.Length)
+                        return res;
+                    else
+                        return null;
+                }
+                currentParent = child;
+            }
+            return null;
+        }
+
         private static IQueryable<T> PathMatch<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             Type t = typeof(T);

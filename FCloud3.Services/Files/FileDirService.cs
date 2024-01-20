@@ -2,6 +2,7 @@
 using FCloud3.Entities.Files;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Files
 {
@@ -112,39 +113,120 @@ namespace FCloud3.Services.Files
                 return false;
             return true;
         }
-        public bool PutInFile(string[] dirPath, int fileItemId, out string? errmsg)
+
+        public List<int>? MoveFilesIn(int distDirId, List<int> fileItemIds,out string? failMsg, out string? errmsg)
+        {
+            failMsg = null;
+            //TODO权限验证，文件是不是自己的，文件夹有没有放文件权限
+
+            //fileItemIds = fileItemIds;//过滤掉没有权限的
+            
+            if (distDirId < 0)
+            {
+                errmsg = "请刷新后重试(未找到指定路径的文件夹)";
+                return null;
+            }
+            if(distDirId == 0)
+            {
+                errmsg = "不能将文件放到根目录";
+                return null;
+            }
+            var fs = _fileItemRepo.GetRangeByIds(fileItemIds);
+            fs.ExecuteUpdate(x => x.SetProperty(f => f.InDir, distDirId));
+
+            errmsg = null;
+            return fileItemIds;
+        }
+        public List<int>? MoveFilesIn(string[] dirPath, List<int> fileItemIds, out string? failMsg, out string? errmsg)
+        {
+            int dirId = _fileDirRepo.GetIdByPath(dirPath);
+            return MoveFilesIn(dirId, fileItemIds, out failMsg, out errmsg);
+        }
+        public bool MoveFileIn(string[] dirPath, int fileItemId, out string? errmsg)
+        {
+            var list = new List<int>() { fileItemId };
+            _ = MoveFilesIn(dirPath, list ,out string? failMsg, out errmsg);
+            if (errmsg is null && failMsg is not null)
+                errmsg = failMsg;
+            if (errmsg is not null)
+                return false;
+            return true;
+        }
+
+        public List<int>? MoveDirsIn(int distDirId, List<int> fileDirIds, out string? failMsg, out string? errmsg)
+        {
+            failMsg = null;
+            var dist = _fileDirRepo.GetById(distDirId);
+            if (dist is null && distDirId!=0)
+            {
+                errmsg = "未找到目的地文件夹";
+                return null; 
+            }
+            //TODO权限验证，文件夹是不是自己的，文件夹有没有放文件权限
+            //fileDirIds = fileDirIds 过滤掉没权限的，并写入failMsg
+            errmsg = null;
+            var ds = _fileDirRepo.GetRangeByIds(fileDirIds).ToList();
+
+            var setDepth = dist is null ? 0 : dist.Depth+1;
+
+            ds.ForEach(x => {
+                x.Depth = setDepth;
+                x.ParentDir = distDirId;});
+            _fileDirRepo.UpdateDescendantsInfoFor(ds,out errmsg);
+            
+            return fileDirIds;
+        }
+        public List<int>? MoveDirsIn(string[] dirPath, List<int> fileDirIds, out string? failMsg, out string? errmsg)
+        {
+            int distDirId = _fileDirRepo.GetIdByPath(dirPath);
+            if (distDirId < 0)
+            {
+                failMsg = "操作失败";
+                errmsg = "请刷新后重试(未找到指定路径的文件夹)";
+                return null;
+            }
+            return MoveDirsIn(distDirId, fileDirIds,out failMsg, out errmsg);
+        }
+
+        public FileDirPutInResult? MoveThingsIn(string[] dirPath, List<int>? fileItemIds, List<int>? fileDirIds, out string? errmsg)
         {
             errmsg = null;
-            //TODO权限验证，文件是不是自己的，文件夹有没有放文件权限
-            FileItem? f = _fileItemRepo.GetById(fileItemId);
-            if(f is null)
+            string? failMsg = null;
+            bool didSth = false;
+            List<int>? fileItemSuccess = null;
+            List<int>? fileDirSuccess = null;
+            List<int>? chain = _fileDirRepo.GetChainByPath(dirPath);
+            if(chain is null) { errmsg = "找不到指定路径的文件夹"; return null; }
+
+            int distDirId = chain.Count>0 ? chain.Last() : 0;
+
+            if (fileDirIds is not null && fileDirIds.Count > 0)
             {
-                errmsg = "未找到要放入的文件";
-                return false;
+                if (fileDirIds.Any(x => chain.Contains(x)))
+                {
+                    errmsg = "检测到循环，请勿将文件夹移入自身或子级";
+                    return null;
+                }
+                fileDirSuccess = MoveDirsIn(distDirId, fileDirIds, out failMsg, out errmsg);
+                didSth = true;
             }
-            //应该是从根文件夹全拿出来
-            FileDir? dir = _fileDirRepo.GetByPath(dirPath);
-            if(dir is null)
+            if (fileItemIds is not null && fileItemIds.Count > 0)
             {
-                errmsg = "未找到目标文件夹";
-                return false;
+                fileItemSuccess = MoveFilesIn(distDirId, fileItemIds, out failMsg, out errmsg);
+                didSth = true;
             }
-            f.InDir = dir.Id;
-            //TODO：上级文件夹也要更新这俩
-            dir.ByteCount += f.ByteCount;
-            dir.ContentCount += 1;
-            string? transErrmsg = null;
-            bool success = _transaction.DoTransaction(() =>
+            if (!didSth)
             {
-                bool dirUpdateSuccess = _fileDirRepo.TryEdit(dir, out string? dirErr);
-                bool fileUpdateSuccess = _fileItemRepo.TryEdit(f, out string? fileErr);
-                if (dirUpdateSuccess && fileUpdateSuccess)
-                    return true;
-                transErrmsg = dirErr + fileErr;
-                return false;
-            });
-            errmsg = transErrmsg;
-            return success;
+                errmsg = "未选择任何要移入的对象";
+                return null;
+            }
+            var resp = new FileDirPutInResult()
+            {
+                FileItemSuccess = fileItemSuccess,
+                FileDirSuccess = fileDirSuccess,
+                FailMsg = failMsg,
+            };
+            return resp;
         }
     }
 
@@ -194,5 +276,11 @@ namespace FCloud3.Services.Files
             SubDirs = new();
             Items = new();
         }
+    }
+    public class FileDirPutInResult
+    {
+        public List<int>? FileItemSuccess { get; set; }
+        public List<int>? FileDirSuccess { get; set; }
+        public string? FailMsg { get; set; }
     }
 }
