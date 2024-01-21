@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Ref, inject, onMounted, ref } from 'vue';
-import { TakeContentResult } from '../../models/files/fileDir';
 import FileDirChild from './FileDirChild.vue'
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
@@ -8,25 +7,69 @@ import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import Functions from '../../components/Functions.vue';
 import Loading from '../../components/Loading.vue';
+import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki } from '../../models/files/fileDir';
+import { IndexQuery, IndexResult, unlimitedIndexQueryDefault } from '../../components/Index';
 
 const router = useRouter();
 
 function jumpToSubDir(name:string){
     var path =  _.concat(props.path,name);
     path = _.filter(path, x=>!!x)
-    router.replace({name:'files',params:{path}});
+    router.push({name:'files',params:{path}});
 }
 function isEmptyDir(){
-    return data.value?.SubDirs.length==0 && data.value?.Items.length==0;
+    return items.value.length==0 && subDirs.value.length==0 && wikis.value.length==0;
+}
+
+const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
+const items = ref<FileDirItem[]>([]);
+const wikis = ref<FileDirWiki[]>([]);
+//TODO：这三个难看的玩意是不是可以改进一下
+function renderItems(i:IndexResult|undefined){
+    items.value = [];
+    i?.Data?.forEach(r=>{
+        items.value.push({
+            Id:parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            OwnerName:r[3],
+            ByteCount:parseInt(r[4]),
+            Url:r[5]
+        })
+    })
+}
+function renderSubdirs(i:IndexResult|undefined){
+    subDirs.value = [];
+    i?.Data?.forEach(r=>{
+        subDirs.value?.push({
+            Id: parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            OwnerName:r[3],
+            ByteCount:parseInt(r[4]),
+            FileNumber:parseInt(r[5])
+        })
+    })
+}
+function renderWikis(i:IndexResult|undefined){
+    wikis.value = [];
+    i?.Data?.forEach(r=>{
+        wikis.value?.push({
+            Id: parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            OwnerName:r[3],
+        })
+    })
 }
 
 const props = defineProps<{
     dirId:number,
     path:string[]|string,
-    fetchFrom:(dir:number)=>Promise<TakeContentResult|undefined>
+    fetchFrom:(q:IndexQuery, path:string[])=>Promise<FileDirIndexResult|undefined>
 }>();
 
-const data = ref<TakeContentResult>();
+//const data = ref<FileDirIndexResult>();
 const showLoading = ref<boolean>(false);
 var clip:Ref<InstanceType<typeof ClipBoard>>
 onMounted(async()=>{
@@ -34,10 +77,15 @@ onMounted(async()=>{
     var timer = window.setTimeout(()=>{
         showLoading.value = true;
     },800);
-    data.value = await props.fetchFrom(props.dirId);    
-    if(data.value){
+
+    var path = _.filter(props.path, x=>!!x)
+    var data = await props.fetchFrom(unlimitedIndexQueryDefault, path);    
+    if(data){
         window.clearTimeout(timer);
         showLoading.value = false;
+        renderItems(data.Items);
+        renderSubdirs(data.SubDirs);
+        renderWikis(data.Wikis);
     }
 })
 function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
@@ -51,7 +99,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 
 <template>
     <div class="fileDirChild">
-        <div v-for="subdir in data?.SubDirs" :key="subdir.Id">
+        <div v-for="subdir in subDirs" :key="subdir.Id">
             <div class="subdir">
                 <div>
                     <div class="foldBtn" v-show="!subdir.showChildren" @click="subdir.showChildren = true" style="color:#999">▶
@@ -72,7 +120,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                 </FileDirChild>
             </div>
         </div>
-        <FileDirItems :items="data?.Items"></FileDirItems>
+        <FileDirItems :items="items" :wikis="wikis"></FileDirItems>
         <div v-if="isEmptyDir()" class="emptyDir">
             空文件夹
         </div>

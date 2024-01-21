@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { TakeContentResItem } from '../../models/files/fileDir';
+import { FileDirItem, FileDirWiki} from '../../models/files/fileDir';
 import { fileSizeStr, getFileIconStyle, getFileExt} from '../../utils/fileUtils';
 import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import { Ref,inject, onMounted } from 'vue';
 import Functions from '../../components/Functions.vue';
 
 const props = defineProps<{
-    items: Array<TakeContentResItem>|undefined
+    items?: Array<FileDirItem>|undefined,
+    wikis?: Array<FileDirWiki>|undefined
 }>()
 
 var clipBoard:Ref<InstanceType<typeof ClipBoard>>
-function toClipBoard(e:MouseEvent, item:TakeContentResItem, type:ClipBoardItemType){
+function toClipBoard(e:MouseEvent, item:FileDirItem|FileDirWiki, type:ClipBoardItemType){
     clipBoard.value.insert({
         id:item.Id,
         name:item.Name,
@@ -24,6 +25,20 @@ onMounted(()=>{
 
 <template>
 <div v-if="props.items" class="dirItems">
+    <div class="item" v-for="wiki in props.wikis" :key="wiki.Id">
+        <div class="iconName">
+            <div class="icon">W</div>
+            <div class="name">
+                <a href="#" >{{ wiki.Name }}</a> 
+            </div>
+            <Functions x-align="left" :entry-size="20">
+                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">移动</button>
+                <button class="cancel">移出</button>
+            </Functions>
+        </div>
+        <div class="size">
+        </div>
+    </div>
     <div class="item" v-for="item in props.items" :key="item.Id">
         <div class="iconName">
             <div class="icon" :style="getFileIconStyle(item.Name)">{{ getFileExt(item.Name) }}</div>

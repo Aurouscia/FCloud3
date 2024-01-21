@@ -9,6 +9,10 @@ export const indexQueryDefault:IndexQuery={
     Page:1,
     PageSize:20
 }
+export const unlimitedIndexQueryDefault:IndexQuery={
+    Page:1,
+    PageSize:100000
+}
 
 
 export interface IndexResult{

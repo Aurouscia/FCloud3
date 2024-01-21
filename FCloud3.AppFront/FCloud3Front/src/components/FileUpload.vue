@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, onMounted, ref } from 'vue';
 import { fileSizeStr, getFileIconStyle,getFileExt } from '../utils/fileUtils';
-import { StagingFile, FileUploadDist } from '../models/files/fileDir';
+import { StagingFile, FileUploadDist} from '../models/files/fileItem';
 import _ from 'lodash'
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';

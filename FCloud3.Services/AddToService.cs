@@ -3,6 +3,7 @@ using FCloud3.Services.Wiki;
 using FCloud3.Services.TextSec;
 using Microsoft.Extensions.DependencyInjection;
 using FCloud3.Services.Files;
+using FCloud3.Services.Sys;
 
 namespace FCloud3.Services
 {
@@ -15,6 +16,7 @@ namespace FCloud3.Services
             services.AddScoped<TextSectionService>();
             services.AddScoped<IFileItemService, OssFileItemService>();
             services.AddScoped<FileDirService>();
+            services.AddScoped<QuickSearchService>();
             return services;
         }
     }

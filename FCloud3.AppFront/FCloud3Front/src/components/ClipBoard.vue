@@ -6,7 +6,7 @@ const props = defineProps<{
     currentDir:string
 }>();
 
-export type ClipBoardItemType = "fileDir"|"fileItem"
+export type ClipBoardItemType = "fileDir"|"fileItem"|"wikiItem"
 export interface ClipBoardItem{
     id:number,
     name:string,

@@ -4,6 +4,7 @@ using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
+using FCloud3.Entities.Wiki;
 
 namespace FCloud3.Repos
 {
@@ -14,9 +15,12 @@ namespace FCloud3.Repos
             services.AddDb();
 
             services.AddScoped<UserRepo>();
+
             services.AddScoped<WikiItemRepo>();
+            services.AddScoped<WikiToDirRepo>();
             services.AddScoped<WikiParaRepo>();
             services.AddScoped<TextSectionRepo>();
+
             services.AddScoped<FileItemRepo>();
             services.AddScoped<FileDirRepo>();
 

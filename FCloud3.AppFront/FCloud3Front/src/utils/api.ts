@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { IndexQuery, IndexResult } from "../components/Index/index";
 import { User } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
@@ -5,9 +6,10 @@ import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
-import { StagingFile,TakeContentResult,FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult } from '../models/files/fileDir';
-import _ from 'lodash';
+import { StagingFile } from "../models/files/fileItem";
+import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
+import {QuickSearchResult} from '../models/sys/quickSearch';
 
 export class Api{
     private httpClient: HttpClient;
@@ -185,18 +187,6 @@ export class Api{
                 return res.data as FileDirIndexResult;
             }
         },
-        takeContent:async(dirId:number)=>{
-            const res = await this.httpClient.request(
-                "/api/FileDir/TakeContent",
-                "get",
-                {
-                    dirId
-                },
-            )
-            if(res.success){
-                return res.data as TakeContentResult;
-            }
-        },
         editDir:async(id:number)=>{
             const res = await this.httpClient.request(
                 "/api/FileDir/Edit",
@@ -248,6 +238,18 @@ export class Api{
             )
             if(res.success){
                 return res.data as FileDirPutInResult;
+            }
+        }
+    }
+    quickSearch = {
+        wikiItem:async(s:string)=>{
+            const res = await this.httpClient.request(
+                "/api/QuickSearch/WikiItem",
+                "get",
+                {s}
+            )
+            if(res.success){
+                return res.data as QuickSearchResult;
             }
         }
     }

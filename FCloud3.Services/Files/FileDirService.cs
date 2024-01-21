@@ -1,7 +1,9 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Wiki;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Files
@@ -10,17 +12,23 @@ namespace FCloud3.Services.Files
     {
         private readonly FileDirRepo _fileDirRepo;
         private readonly FileItemRepo _fileItemRepo;
+        private readonly WikiItemRepo _wikiItemRepo;
+        private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly DbTransactionService _transaction;
         private readonly IFileItemService _fileItemService;
 
         public FileDirService(
             FileDirRepo fileDirRepo,
             FileItemRepo fileItemRepo,
+            WikiItemRepo wikiItemRepo,
+            WikiToDirRepo wikiToDirRepo,
             DbTransactionService transaction,
             IFileItemService fileItemService)
         {
             _fileDirRepo = fileDirRepo;
             _fileItemRepo = fileItemRepo;
+            _wikiItemRepo = wikiItemRepo;
+            _wikiToDirRepo = wikiToDirRepo;
             _transaction = transaction;
             _fileItemService = fileItemService;
         }
@@ -29,13 +37,14 @@ namespace FCloud3.Services.Files
         {
             return _fileDirRepo.GetById(id);
         }
-        public FileDirIndexResult? GetSubDirAndItemsByPath(IndexQuery q, string[] path, out string? errmsg)
+
+        public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
             var subDirsQ = _fileDirRepo.GetChildrenByPath(path,out int thisDirId ,out errmsg);
             if(subDirsQ is null)
                 return null;
             var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ,q);
-            var subDirsData = subDirs.TakePage(q,x => new FileDirSubDir()
+            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData = subDirs.TakePage(q,x => new FileDirIndexResult.FileDirSubDir()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -44,61 +53,88 @@ namespace FCloud3.Services.Files
             });
 
 
-            //两个查询共用一个IndexQuery，查询前翻译一下名字
-            static string keyReplace(string k)
+            //三个查询共用一个IndexQuery，查询前翻译一下名字
+            static string keyReplaceForFileItem(string k)
             {
                 if (k == nameof(FileDir.Name))
                     return nameof(FileItem.DisplayName);
                 return k;
             }
-            IndexResult<FileDirItem>? itemsData = null;
+            IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
             if (thisDirId != 0)
             {
                 var itemsQ = _fileItemRepo.GetByDirId(thisDirId);
-                var items = _fileItemRepo.IndexFilterOrder(itemsQ, q, keyReplace);
+                var items = _fileItemRepo.IndexFilterOrder(itemsQ, q, keyReplaceForFileItem);
 
-                itemsData = items.TakePage(q, x => new FileDirItem()
+                itemsData = items.TakePage(q, x => new FileDirIndexResult.FileDirItem()
                 {
                     Id = x.Id,
                     Name = x.DisplayName,
+                    OwnerName = "",
                     ByteCount = x.ByteCount,
                     Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                     Url = _fileItemService.Url(x.StorePathName ?? "missing")
                 });
             }
+
+            static string keyReplaceForWikiItem(string k)
+            {
+                if (k == nameof(FileDir.Name))
+                    return nameof(WikiItem.Title);
+                return k;
+            }
+            IndexResult<FileDirIndexResult.FileDirWiki>? wikisData = null;
+            if (thisDirId != 0)
+            {
+                var wikisQ = from wiki in _wikiItemRepo.Existing
+                             from relation in _wikiToDirRepo.Existing
+                             where relation.DirId == thisDirId
+                             where wiki.Id == relation.WikiId
+                             select wiki;
+                var wikis = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
+
+                wikisData = wikis.TakePage(q, x => new FileDirIndexResult.FileDirWiki()
+                {
+                    Id = x.Id,
+                    Name = x.Title,
+                    OwnerName = "",
+                    Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
+                });
+            }
             return new() { 
                 Items = itemsData,
                 SubDirs = subDirsData,
+                Wikis = wikisData,
                 ThisDirId = thisDirId
             };
         }
-        public FileDirTakeContentResult TakeContent(int dirId)
-        {
-            var subDirs = _fileDirRepo.Existing
-                .Where(x => x.ParentDir == dirId)
-                .Select(x => new { x.Id, x.Name })
-                .OrderBy(x => x.Name).ToList();
-            var items = _fileItemRepo.Existing
-                .Where(x => x.InDir == dirId)
-                .Select(x => new { x.Id, x.DisplayName, x.ByteCount, x.StorePathName })
-                .OrderBy(x=>x.DisplayName).ToList();
-            FileDirTakeContentResult res = new();
-            subDirs.ForEach(x =>
-            {
-                res.SubDirs.Add(new() { Id = x.Id, Name = x.Name });
-            });
-            items.ForEach(x =>
-            {
-                res.Items.Add(new()
-                {
-                    Id = x.Id,
-                    Name = x.DisplayName,
-                    Url = _fileItemService.Url(x.StorePathName??"missing"),
-                    ByteCount = x.ByteCount
-                });
-            });
-            return res;
-        }
+        //public FileDirIndexResult TakeContent(int dirId)
+        //{
+        //    var subDirs = _fileDirRepo.Existing
+        //        .Where(x => x.ParentDir == dirId)
+        //        .Select(x => new { x.Id, x.Name })
+        //        .OrderBy(x => x.Name).ToList();
+        //    var items = _fileItemRepo.Existing
+        //        .Where(x => x.InDir == dirId)
+        //        .Select(x => new { x.Id, x.DisplayName, x.ByteCount, x.StorePathName })
+        //        .OrderBy(x=>x.DisplayName).ToList();
+        //    FileDirIndexResult res = new();
+        //    subDirs.ForEach(x =>
+        //    {
+        //        res.SubDirs.Add(new() { Id = x.Id, Name = x.Name });
+        //    });
+        //    items.ForEach(x =>
+        //    {
+        //        res.Items.Add(new()
+        //        {
+        //            Id = x.Id,
+        //            Name = x.DisplayName,
+        //            Url = _fileItemService.Url(x.StorePathName??"missing"),
+        //            ByteCount = x.ByteCount
+        //        });
+        //    });
+        //    return res;
+        //}
 
         public bool UpdateInfo(int id,string? name,out string? errmsg)
         {
@@ -187,14 +223,24 @@ namespace FCloud3.Services.Files
             }
             return MoveDirsIn(distDirId, fileDirIds,out failMsg, out errmsg);
         }
+        public List<int>? MoveWikisIn(int distDirId, List<int>wikiItemIds,out string? failMsg, out string? errmsg)
+        {
+            failMsg = null;
+            //TODO 身份验证什么的，过滤没有权限的
+            if (!_wikiToDirRepo.AddWikisToDir(wikiItemIds, distDirId, out errmsg))
+                return null;
+            return wikiItemIds;
+        }
 
-        public FileDirPutInResult? MoveThingsIn(string[] dirPath, List<int>? fileItemIds, List<int>? fileDirIds, out string? errmsg)
+        public FileDirPutInResult? MoveThingsIn(string[] dirPath, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
         {
             errmsg = null;
             string? failMsg = null;
             bool didSth = false;
             List<int>? fileItemSuccess = null;
             List<int>? fileDirSuccess = null;
+            List<int>? wikiItemSuccess = null;
+
             List<int>? chain = _fileDirRepo.GetChainByPath(dirPath);
             if(chain is null) { errmsg = "找不到指定路径的文件夹"; return null; }
 
@@ -215,6 +261,11 @@ namespace FCloud3.Services.Files
                 fileItemSuccess = MoveFilesIn(distDirId, fileItemIds, out failMsg, out errmsg);
                 didSth = true;
             }
+            if (wikiItemIds is not null && wikiItemIds.Count > 0)
+            {
+                wikiItemSuccess = MoveWikisIn(distDirId, wikiItemIds, out failMsg, out errmsg);
+                didSth = true;
+            }
             if (!didSth)
             {
                 errmsg = "未选择任何要移入的对象";
@@ -224,63 +275,75 @@ namespace FCloud3.Services.Files
             {
                 FileItemSuccess = fileItemSuccess,
                 FileDirSuccess = fileDirSuccess,
+                WikiItemSuccess = wikiItemSuccess,
+
                 FailMsg = failMsg,
             };
             return resp;
         }
     }
 
-    public class FileDirSubDir
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? Updated { get; set; }
-        public int OwnerId { get; set; }
-        public string? OwnerName { get; set; }
-        public int ByteCount { get; set; }
-        public int FileNumber { get; set; }
-    }
-    public class FileDirItem
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? Updated { get; set; }
-        public int ByteCount { get; set; }
-        public string? Url { get; set; }
-    }
     public class FileDirIndexResult
     {
         public IndexResult<FileDirSubDir>? SubDirs { get; set; }
         public IndexResult<FileDirItem>? Items { get; set; }
+        public IndexResult<FileDirWiki>? Wikis { get; set; }
         public int ThisDirId { get; set; }
-    }
-    public class FileDirTakeContentResult
-    {
-        public List<TakeContentResSubDir> SubDirs { get; set; }
-        public List<TakeContentResItem> Items { get; set; }
-        public class TakeContentResSubDir
+
+        public class FileDirSubDir
         {
             public int Id { get; set; }
             public string? Name { get; set; }
+            public string? Updated { get; set; }
+            public string? OwnerName { get; set; }
+            public int ByteCount { get; set; }
+            public int FileNumber { get; set; }
         }
-        public class TakeContentResItem
+        public class FileDirItem
         {
             public int Id { get; set; }
             public string? Name { get; set; }
-            public string? Update { get; set; }
+            public string? Updated { get; set; }
+            public string? OwnerName { get; set; }
             public int ByteCount { get; set; }
             public string? Url { get; set; }
         }
-        public FileDirTakeContentResult()
+        public class FileDirWiki
         {
-            SubDirs = new();
-            Items = new();
+            public int Id { get; set; }
+            public string? Name { get; set; }
+            public string? Updated { get; set; }
+            public string? OwnerName { get; set; }
         }
     }
+    //public class FileDirTakeContentResult
+    //{
+    //    public List<TakeContentResSubDir> SubDirs { get; set; }
+    //    public List<TakeContentResItem> Items { get; set; }
+    //    public class TakeContentResSubDir
+    //    {
+    //        public int Id { get; set; }
+    //        public string? Name { get; set; }
+    //    }
+    //    public class TakeContentResItem
+    //    {
+    //        public int Id { get; set; }
+    //        public string? Name { get; set; }
+    //        public string? Update { get; set; }
+    //        public int ByteCount { get; set; }
+    //        public string? Url { get; set; }
+    //    }
+    //    public FileDirTakeContentResult()
+    //    {
+    //        SubDirs = new();
+    //        Items = new();
+    //    }
+    //}
     public class FileDirPutInResult
     {
         public List<int>? FileItemSuccess { get; set; }
         public List<int>? FileDirSuccess { get; set; }
+        public List<int>? WikiItemSuccess { get; set; }
         public string? FailMsg { get; set; }
     }
 }

@@ -2,7 +2,6 @@
 using FCloud3.Repos;
 using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Mvc;
-using static FCloud3.Services.Files.FileDirTakeContentResult;
 
 namespace FCloud3.App.Controllers.Files
 {
@@ -19,20 +18,20 @@ namespace FCloud3.App.Controllers.Files
         {
             if (req.Query is null || req.Path is null)
                 return BadRequest();
-            var res = _fileDirService.GetSubDirAndItemsByPath(req.Query, req.Path,out string? errmsg);
+            var res = _fileDirService.GetContent(req.Query, req.Path,out string? errmsg);
             if (res is not null)
             {
                 return this.ApiResp(res);
             }
             return this.ApiFailedResp(errmsg);
         }
-        public IActionResult TakeContent(int dirId)
-        {
-            FileDirTakeContentResult res = _fileDirService.TakeContent(dirId);
-            if(res is null)
-                return this.ApiFailedResp("文件夹内容获取失败");
-            return this.ApiResp(res);
-        }
+        //public IActionResult TakeContent(int dirId)
+        //{
+        //    FileDirTakeContentResult res = _fileDirService.TakeContent(dirId);
+        //    if(res is null)
+        //        return this.ApiFailedResp("文件夹内容获取失败");
+        //    return this.ApiResp(res);
+        //}
         public IActionResult Edit(int id)
         {
             var data = _fileDirService.GetById(id);
@@ -43,7 +42,8 @@ namespace FCloud3.App.Controllers.Files
                 Id = data.Id,
                 Name = data.Name,
                 CanEditInfo = true,
-                CanPutFile = true
+                CanPutFile = true,
+                CanPutWiki = true,
             };
             return this.ApiResp(resp);
         }
@@ -68,7 +68,7 @@ namespace FCloud3.App.Controllers.Files
         {
             if(req is null || req.DirPath is null)
                 return BadRequest();
-            var res = _fileDirService.MoveThingsIn(req.DirPath,req.FileItemIds,req.FileDirIds,out string? errmsg);
+            var res = _fileDirService.MoveThingsIn(req.DirPath,req.FileItemIds,req.FileDirIds,req.WikiItemIds,out string? errmsg);
             if (res is null || errmsg is not null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);  
@@ -89,6 +89,7 @@ namespace FCloud3.App.Controllers.Files
             public string[]? DirPath { get; set; }
             public List<int>? FileItemIds { get; set; }
             public List<int>? FileDirIds { get; set; }
+            public List<int>? WikiItemIds { get; set; }
         }
         public class FileDirComModel
         {
@@ -96,6 +97,7 @@ namespace FCloud3.App.Controllers.Files
             public string? Name { get; set; }
             public int Depth { get; set; }
             public bool CanPutFile { get; set; }
+            public bool CanPutWiki { get; set; }
             public bool CanEditInfo { get; set; }
         }
     }

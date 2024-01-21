@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.Entities
 {
-    public interface IRelation: IDbModel
+    public interface IRelation
     {
         public int RelationMainId();
         public int RelationSubId();

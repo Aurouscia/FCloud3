@@ -10,6 +10,7 @@ namespace FCloud3.DbContexts
     {
         public DbSet<User> Users { get; set; }
         public DbSet<WikiItem> WikiItems { get; set; }
+        public DbSet<WikiToDir> WikiToDirs { get; set; }
         public DbSet<WikiPara> WikiParas { get; set; }
         public DbSet<TextSection> TextSections { get; set; }
         public DbSet<FileItem> FileItems { get; set; }

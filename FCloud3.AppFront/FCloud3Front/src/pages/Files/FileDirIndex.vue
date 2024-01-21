@@ -9,14 +9,15 @@ import _ from 'lodash';
 import SideBar from '../../components/SideBar.vue';
 import settingsImg from '../../assets/settings.svg';
 import FileDirEdit from './FileDirEdit.vue';
-import { FileDir,FileDirSubDir,FileDirItem } from '../../models/files/fileDir';
+import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki } from '../../models/files/fileDir';
 import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '../../components/ClipBoard.vue';
 import Functions from '../../components/Functions.vue';
 
 
 const props = defineProps<{
-    path:string[]|string
+    path:string[]|string,
+    space:"files"|"wiki"
 }>();
 const router = useRouter();
 const columns:IndexColumn[] = 
@@ -26,8 +27,9 @@ const columns:IndexColumn[] =
     {name:'ByteCount',alias:'尺寸',canSearch:false,canSetOrder:true},
 ]
 
-const subDirs = ref<FileDirSubDir[]>([]);
+const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
 const items = ref<FileDirItem[]>([]);
+const wikis = ref<FileDirWiki[]>([]);
 var thisDirId = 0;
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
@@ -41,10 +43,11 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         thisDirId = res?.ThisDirId || 0;
         renderItems(res.Items);
         renderSubdirs(res.SubDirs);
+        renderWikis(res.Wikis);
         return res?.SubDirs;
     }
 }
-//TODO：这两个难看的玩意是不是可以改进一下
+//TODO：这三个难看的玩意是不是可以改进一下
 function renderItems(i:IndexResult|undefined){
     items.value = [];
     i?.Data?.forEach(r=>{
@@ -52,8 +55,9 @@ function renderItems(i:IndexResult|undefined){
             Id:parseInt(r[0]),
             Name:r[1],
             Updated:r[2],
-            ByteCount:parseInt(r[3]),
-            Url:r[4]
+            OwnerName:r[3],
+            ByteCount:parseInt(r[4]),
+            Url:r[5]
         })
     })
 }
@@ -64,10 +68,20 @@ function renderSubdirs(i:IndexResult|undefined){
             Id: parseInt(r[0]),
             Name:r[1],
             Updated:r[2],
-            OwnerId:parseInt(r[3]),
-            OwnerName:r[4],
-            ByteCount:parseInt(r[5]),
-            FileNumber:parseInt(r[6])
+            OwnerName:r[3],
+            ByteCount:parseInt(r[4]),
+            FileNumber:parseInt(r[5])
+        })
+    })
+}
+function renderWikis(i:IndexResult|undefined){
+    wikis.value = [];
+    i?.Data?.forEach(r=>{
+        wikis.value?.push({
+            Id: parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            OwnerName:r[3],
         })
     })
 }
@@ -76,10 +90,10 @@ function renderSubdirs(i:IndexResult|undefined){
 function jumpToSubDir(name:string){
     var path =  _.concat(pathThis.value,name);
     path = _.filter(path, x=>!!x)
-    router.replace({name:'files',params:{path}});
+    router.push({name:'files',params:{path}});
 }
 function jumpToAncestor(idxInChain:number){
-    router.replace({name:'files',params:{path: _.take(pathThis.value,idxInChain+1)}})
+    router.push({name:'files',params:{path: _.take(pathThis.value,idxInChain+1)}})
 }
 function infoUpdated(newInfo:FileDir){
     if(newInfo.Name && newInfo.Name!=pathThisName.value){
@@ -193,13 +207,13 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.fileDir.takeContent"></FileDirChild>
+                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.fileDir.index"></FileDirChild>
                     </div>
                 </td>
             </tr>
             <tr v-if="items.length>0">
                 <td>
-                    <FileDirItems :items="items"></FileDirItems>
+                    <FileDirItems :items="items" :wikis="wikis"></FileDirItems>
                 </td>
             </tr>
             <tr v-if="subDirs.length==0 && items.length==0">

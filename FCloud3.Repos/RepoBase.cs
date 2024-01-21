@@ -156,7 +156,24 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             return true;
         }
-
+        public virtual bool TryAddRange(List<T> items, out string? errmsg)
+        {
+            errmsg = null;
+            foreach(var item in items)
+            {
+                if (item is null)
+                {
+                    errmsg = $"试图向数据库加入空{nameof(T)}对象";
+                    return false;
+                }
+                if (!TryAddCheck(item, out errmsg))
+                    return false;
+                item.Created = DateTime.Now;
+                _context.Add(item);
+            }
+            _context.SaveChanges();
+            return true;
+        }
         public virtual int TryAddAndGetId(T item, out string? errmsg)
         {
             if (item is null)
@@ -226,6 +243,24 @@ namespace FCloud3.Repos
                 return false;
             item.Deleted = true;
             _context.Update(item);
+            _context.SaveChanges();
+            return true;
+        }
+        public virtual bool TryRemoveRange(List<T> items, out string? errmsg)
+        {
+            errmsg = null;
+            foreach (var item in items)
+            {
+                if (item is null)
+                {
+                    errmsg = $"试图向数据库删除空{nameof(T)}对象";
+                    return false;
+                }
+                if (!TryRemoveCheck(item, out errmsg))
+                    return false;
+                item.Deleted = true;
+                _context.Update(item);
+            }
             _context.SaveChanges();
             return true;
         }
