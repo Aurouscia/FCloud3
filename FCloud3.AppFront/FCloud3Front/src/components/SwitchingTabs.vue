@@ -48,7 +48,6 @@ onMounted(async ()=>{
 
 .tabsContainer{
     position: relative;
-    overflow: auto;
 }
 .switchingTabs{
     display: flex;

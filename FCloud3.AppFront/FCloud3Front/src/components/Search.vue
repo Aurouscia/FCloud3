@@ -9,16 +9,20 @@ const props = defineProps<{
     noResultNotice?:string
 }>()
 
-const doneBtnStatus = ref<boolean>(props.allowFreeInput);
+const doneBtnStatus = ref<boolean>(false);
 const isFreeInput = ref<boolean>(false);
 const searching = ref<string>("");
+const selectedId = ref<number>(0);
 const cands = ref<QuickSearchResult>();
 var timer:number = 0;
 const delay:number = 500;
 function refreshCand(){
+    selectedId.value = 0;
     isFreeInput.value = true;
-    if(!props.allowFreeInput){
+    if(!props.allowFreeInput || !searching.value){
         doneBtnStatus.value = false;
+    }else{
+        doneBtnStatus.value = true;
     }
     if(!searching.value){
         return;
@@ -30,6 +34,7 @@ function refreshCand(){
 }
 function clickCand(c:QuickSearchResultItem){
     searching.value = c.Name;
+    selectedId.value = c.Id;
     doneBtnStatus.value = true;
     isFreeInput.value = false;
     if(cands.value){
@@ -38,13 +43,20 @@ function clickCand(c:QuickSearchResultItem){
 }
 function done(){
     if(doneBtnStatus.value){
-        emits('done',searching.value);
+        emits('done',searching.value,selectedId.value);
     }
+}
+function clear(){
+    searching.value = "";
+    selectedId.value = 0;
+    doneBtnStatus.value = false;
+    cands.value = undefined;
 }
 
 const emits = defineEmits<{
-    (e:'done',value:string):void
+    (e:'done',value:string,id:number):void
 }>();
+defineExpose({clear});
 
 var api:Api;
 onMounted(()=>{
@@ -56,7 +68,7 @@ onMounted(()=>{
 <div class="search">
     <div class="write">
         <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder"/>
-        <button class="confirm" :class="{disabled:!allowFreeInput && !doneBtnStatus}" @click="done">确认</button>
+        <button class="confirm" :class="{disabled:!doneBtnStatus}" @click="done">确认</button>
     </div>
     <div v-if="cands" class="cand">
         <div class="candItem" v-for="c in cands.Items" @click="clickCand(c)">
@@ -109,7 +121,7 @@ onMounted(()=>{
     flex-grow: 1;
     padding: 4px;
     margin:0px;
-    height: 19px;
+    height: 18.5px;
     display: block;
 }
 .write{

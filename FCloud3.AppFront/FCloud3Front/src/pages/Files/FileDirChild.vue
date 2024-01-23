@@ -72,13 +72,12 @@ const props = defineProps<{
 //const data = ref<FileDirIndexResult>();
 const showLoading = ref<boolean>(false);
 var clip:Ref<InstanceType<typeof ClipBoard>>
-onMounted(async()=>{
-    clip = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
+
+async function loadData(){
+    var path = _.filter(props.path, x=>!!x)
     var timer = window.setTimeout(()=>{
         showLoading.value = true;
     },800);
-
-    var path = _.filter(props.path, x=>!!x)
     var data = await props.fetchFrom(unlimitedIndexQueryDefault, path);    
     if(data){
         window.clearTimeout(timer);
@@ -87,6 +86,11 @@ onMounted(async()=>{
         renderSubdirs(data.SubDirs);
         renderWikis(data.Wikis);
     }
+}
+
+onMounted(async()=>{
+    clip = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
+    await loadData();
 })
 function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
     clip.value?.insert({
@@ -120,7 +124,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                 </FileDirChild>
             </div>
         </div>
-        <FileDirItems :items="items" :wikis="wikis"></FileDirItems>
+        <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData"></FileDirItems>
         <div v-if="isEmptyDir()" class="emptyDir">
             空文件夹
         </div>

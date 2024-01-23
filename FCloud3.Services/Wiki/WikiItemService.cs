@@ -17,17 +17,21 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction;
         private readonly WikiItemRepo _wikiRepo;
+        private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly List<WikiParaType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
             DbTransactionService transaction,
-            WikiItemRepo wikiRepo,WikiParaRepo paraRepo,
+            WikiItemRepo wikiRepo,
+            WikiToDirRepo wikiToDirRepo,
+            WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo)
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
+            _wikiToDirRepo = wikiToDirRepo;
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
             _wikiParaTypes = WikiParaTypes.GetListInstance();
@@ -155,19 +159,29 @@ namespace FCloud3.Services.Wiki
             }
             return true;
         }
-        public bool TryAdd(int creator,string? title, out string? errmsg)
+        public bool CreateInDir(string title,int dirId, out string? errmsg)
+        {
+            int id = TryAdd(title, out errmsg);
+            if (id > 0)
+            {
+                return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
+            }
+            return false;
+        }
+        public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
+        {
+            return _wikiToDirRepo.RemoveWikisFromDir(new() { wikiId}, dirId, out errmsg);
+        }
+        public int TryAdd(string? title, out string? errmsg)
         {
             WikiItem w = new()
             {
-                CreatorUserId = creator,
-                OwnerUserId = creator,
                 Title = title
             };
             if (!BasicInfoCheck(w, out errmsg))
-                return false;
-            if (!_wikiRepo.TryAdd(w,out errmsg))
-                return false;
-            return true;
+                return 0;
+            var id = _wikiRepo.TryAddAndGetId(w, out errmsg);
+            return id;
         }
         public bool TryEdit(int id, string? title, out string? errmsg)
         {

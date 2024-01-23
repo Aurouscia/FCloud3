@@ -71,5 +71,6 @@ export interface PutInThingsRequest {
 export interface FileDirPutInResult{
     FileItemSuccess?:number[]
     FileDirSuccess?:number[]
+    WikiItemSuccess?:number[]
     FailMsg?:string
 }

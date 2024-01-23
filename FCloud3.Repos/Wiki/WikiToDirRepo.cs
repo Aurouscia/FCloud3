@@ -19,6 +19,11 @@ namespace FCloud3.Repos.Wiki
         }
         public bool AddWikisToDir(List<int> wikiIds,int dirId,out string? errmsg)
         {
+            if (dirId <= 0)
+            {
+                errmsg = "不能在此放下词条";
+                return false;
+            }
             List<WikiToDir> existingRelation = Existing
                 .Where(x => x.DirId == dirId)
                 .Where(x => wikiIds.Contains(x.WikiId))
@@ -32,6 +37,7 @@ namespace FCloud3.Repos.Wiki
                     WikiId = wikiId,
                     DirId = dirId,
                 };
+                addingRelations.Add(relation);
             }
             return TryAddRange(addingRelations, out errmsg);
         }

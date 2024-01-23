@@ -116,6 +116,28 @@ export class Api{
             if(res.success){
                 return res.data as IndexResult;
             }
+        },
+        createInDir:async(title:string,dirId:number)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/CreateInDir",
+                "postForm",
+                {title,dirId},
+                "创建成功")
+            if(res.success){
+                return true;
+            }
+            return false;
+        },
+        removeFromDir:async(wikiId:number,dirId:number)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/RemoveFromDir",
+                "postForm",
+                {wikiId,dirId},
+                "移出成功")
+            if(res.success){
+                return true;
+            }
+            return false;
         }
     }
     textSection = {
@@ -225,11 +247,14 @@ export class Api{
                 return true;
             }
         },
-        putInThings:async(dirPath:string[], fileItemIds:number[], fileDirIds:number[])=>{
+        putInThings:async(dirPath:string[], fileItemIds:number[], fileDirIds:number[], wikiItemIds:number[])=>{
+            const reqNum = (fileItemIds.length||0) + (fileDirIds.length||0) + (wikiItemIds.length||0)
+            if(!reqNum){return;}
             const reqData:PutInThingsRequest={
                 DirPath:dirPath,
                 FileItemIds:fileItemIds,
-                FileDirIds:fileDirIds
+                FileDirIds:fileDirIds,
+                WikiItemIds:wikiItemIds
             }
             const res = await this.httpClient.request(
                 "/api/FileDir/PutInThings",
@@ -237,7 +262,18 @@ export class Api{
                 reqData
             )
             if(res.success){
-                return res.data as FileDirPutInResult;
+                const data = res.data as FileDirPutInResult;
+                const num = (data.FileDirSuccess?.length||0) + (data.FileItemSuccess?.length||0) + (data.WikiItemSuccess?.length||0)
+                if(num==reqNum){
+                    this.httpClient.httpCallBack("ok",`操作成功`);
+                }
+                if(num<reqNum){
+                    if(num>0){
+                        this.httpClient.httpCallBack("ok",`${num}个操作成功`);
+                    }
+                    this.httpClient.httpCallBack("warn",`${reqNum-num}个操作失败`);
+                }
+                return data
             }
         }
     }

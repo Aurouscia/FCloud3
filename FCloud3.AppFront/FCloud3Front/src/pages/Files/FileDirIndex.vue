@@ -30,7 +30,7 @@ const columns:IndexColumn[] =
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
 const items = ref<FileDirItem[]>([]);
 const wikis = ref<FileDirWiki[]>([]);
-var thisDirId = 0;
+const thisDirId = ref<number>(0);
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     var p = props.path;
@@ -40,7 +40,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     }
     const res = await api.fileDir.index(q,p)
     if(res){
-        thisDirId = res?.ThisDirId || 0;
+        thisDirId.value = res?.ThisDirId || 0;
         renderItems(res.Items);
         renderSubdirs(res.SubDirs);
         renderWikis(res.Wikis);
@@ -161,11 +161,15 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCallBack){
     const fileItemIds = move.filter(x=>x.type=='fileItem').map(x=>x.id);
     const fileDirIds = move.filter(x=>x.type=='fileDir').map(x=>x.id);
-    const res = await api.fileDir.putInThings(pathThis.value,fileItemIds,fileDirIds);
+    const wikiItemIds = move.filter(x=>x.type=='wikiItem').map(x=>x.id);
+    const res = await api.fileDir.putInThings(pathThis.value,fileItemIds,fileDirIds,wikiItemIds);
     if(res){
         const fileItemSuccess:ClipBoardItem[] = res.FileItemSuccess?.map(x=>{return{id:x,type:'fileItem',name:''}})||[]
         const fileDirSuccess:ClipBoardItem[] = res.FileDirSuccess?.map(x=>{return{id:x,type:'fileDir',name:''}})||[]
-        const success = _.concat(fileItemSuccess, fileDirSuccess)
+        const wikiItemSuccess:ClipBoardItem[] = res.WikiItemSuccess?.map(x=>{return{id:x,type:'wikiItem',name:''}})||[]
+        console.log(fileItemSuccess,fileDirSuccess,wikiItemSuccess);
+        const success = _.concat(fileItemSuccess, fileDirSuccess, wikiItemSuccess)
+        console.log(success);
         putEmitCallBack(success,res.FailMsg)
         index.value?.reloadData();
     }
@@ -211,9 +215,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                     </div>
                 </td>
             </tr>
-            <tr v-if="items.length>0">
+            <tr v-if="items.length>0 || wikis.length>0">
                 <td>
-                    <FileDirItems :items="items" :wikis="wikis"></FileDirItems>
+                    <FileDirItems :dir-id="thisDirId" :items="items" :wikis="wikis" @need-refresh="index?.reloadData"></FileDirItems>
                 </td>
             </tr>
             <tr v-if="subDirs.length==0 && items.length==0">

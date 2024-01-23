@@ -44,7 +44,12 @@ export class HttpClient{
             Authorization: `Bearer ${this.jwtToken}`
         }
     }
-    private showErrToUser(_err:AxiosError){
+    private showErrToUser(err:AxiosError){
+        console.log(err);
+        if(err.response?.status==401){
+            this.httpCallBack("err","请登录");
+            return;
+        }
         this.httpCallBack("err","请检查网络连接");
     }
     async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
@@ -90,8 +95,12 @@ export class HttpClient{
                 }
             }
             if(!resp.success){
-                this.httpCallBack('err',resp.errmsg)
-                console.log(`[${type}]${resource}失败`,resp.errmsg)
+                console.log(`[${type}]${resource}失败`,resp.errmsg||res.statusText);
+                if(res.status==401){
+                    this.httpCallBack('err','请登录');
+                }else{
+                    this.httpCallBack('err',resp.errmsg)
+                }
             }
             return resp;
         }else{

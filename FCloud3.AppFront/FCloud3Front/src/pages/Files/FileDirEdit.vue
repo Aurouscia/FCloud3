@@ -5,6 +5,7 @@ import { FileDir } from '../../models/files/fileDir';
 import Loading from '../../components/Loading.vue';
 import FileUpload from '../../components/FileUpload.vue';
 import Search from '../../components/Search.vue';
+import SwitchingTabs from '../../components/SwitchingTabs.vue';
 
 const data = ref<FileDir>();
 const props = defineProps<{
@@ -27,8 +28,25 @@ async function newFile(newFileItemId:number) {
         emit('addedNewFile');
     }
 }
-async function moveInOrCreateWikiItem(wikiTitle:string) {
-    const resp = await api.fileDir
+
+const moveSearch = ref<InstanceType<typeof Search>>();
+const createSearch = ref<InstanceType<typeof Search>>();
+async function createWiki(wikiTitle:string, _id:number) {
+    if(!data.value?.Id){
+        return;
+    }
+    const resp = await api.wiki.createInDir(wikiTitle,data.value.Id)
+    if(resp){
+        createSearch.value?.clear();
+        emit('addedNewFile');
+    }
+}
+async function moveInWiki(_title:string, wikiId:number) {
+    const resp = await api.fileDir.putInThings(props.path,[],[],[wikiId]);
+    if(resp){
+        moveSearch.value?.clear();
+        emit('addedNewFile');
+    }
 }
 
 const emit = defineEmits<{
@@ -54,8 +72,13 @@ onMounted(async()=>{
         </div>
         <div class="section" v-if="data.CanPutWiki">
             <h2>在此新建/移入词条</h2>
-            <Search :placeholder="'词条标题'" :allow-free-input="true"
-                :no-result-notice="'点击确认将新建词条'" @done="(x)=>console.log(x)"></Search>
+            <SwitchingTabs :texts="['移入','新建']">
+                <Search ref="moveSearch" :placeholder="'词条标题'" :allow-free-input="false"
+                :no-result-notice="'无搜索结果'" @done="moveInWiki"></Search>
+
+                <Search ref="createSearch" :placeholder="'词条标题'" :allow-free-input="true"
+                :no-result-notice="'点击确认将新建词条'" @done="createWiki"></Search>
+            </SwitchingTabs>
         </div>
         <div class="section" v-if="data.CanEditInfo">
             <h2>编辑文件夹信息</h2>

@@ -21,9 +21,17 @@ namespace FCloud3.App.Controllers.Wiki
         }
 
         [Authorize]
-        public IActionResult Create(string title)
+        public IActionResult CreateInDir(string title,int dirId)
         {
-            if(!_wikiService.TryAdd(_userInfo.Id,title,out string? errmsg))
+            if(!_wikiService.CreateInDir(title,dirId,out string? errmsg))
+            {
+                return this.ApiFailedResp(errmsg);
+            }
+            return this.ApiResp();
+        }
+        public IActionResult RemoveFromDir(int wikiId, int dirId)
+        {
+            if (!_wikiService.RemoveFromDir(wikiId, dirId, out string? errmsg))
             {
                 return this.ApiFailedResp(errmsg);
             }

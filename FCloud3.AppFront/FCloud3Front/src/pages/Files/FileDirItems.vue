@@ -4,13 +4,16 @@ import { fileSizeStr, getFileIconStyle, getFileExt} from '../../utils/fileUtils'
 import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import { Ref,inject, onMounted } from 'vue';
 import Functions from '../../components/Functions.vue';
+import { Api } from '../../utils/api';
 
 const props = defineProps<{
+    dirId:number,
     items?: Array<FileDirItem>|undefined,
     wikis?: Array<FileDirWiki>|undefined
 }>()
 
 var clipBoard:Ref<InstanceType<typeof ClipBoard>>
+var api:Api;
 function toClipBoard(e:MouseEvent, item:FileDirItem|FileDirWiki, type:ClipBoardItemType){
     clipBoard.value.insert({
         id:item.Id,
@@ -18,22 +21,31 @@ function toClipBoard(e:MouseEvent, item:FileDirItem|FileDirWiki, type:ClipBoardI
         type:type
     },e)
 }
+async function removeWiki(id:number){
+    if(!props.dirId){return}
+    await api.wiki.removeFromDir(id,props.dirId)
+    emit('needRefresh');
+}
 onMounted(()=>{
     clipBoard = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
+    api = inject('api') as Api;
 })
+const emit = defineEmits<{
+    (e:'needRefresh'):void
+}>()
 </script>
 
 <template>
 <div v-if="props.items" class="dirItems">
     <div class="item" v-for="wiki in props.wikis" :key="wiki.Id">
         <div class="iconName">
-            <div class="icon">W</div>
+            <div class="wikiIcon">W</div>
             <div class="name">
                 <a href="#" >{{ wiki.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
-                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">移动</button>
-                <button class="cancel">移出</button>
+                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">复制</button>
+                <button class="cancel" @click="removeWiki(wiki.Id)">移出</button>
             </Functions>
         </div>
         <div class="size">
@@ -96,6 +108,18 @@ onMounted(()=>{
     align-items: center;
     gap:5px;
     flex-grow: 1;
+}
+.wikiIcon{
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    border-radius: 3px;
+    text-align: center;
+    background-color: white;
+    border:1px solid black;
+    color:black;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 15px;
 }
 .icon{
     width: 20px;
