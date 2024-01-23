@@ -44,10 +44,11 @@ function renderSubdirs(i:IndexResult|undefined){
         subDirs.value?.push({
             Id: parseInt(r[0]),
             Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
-            ByteCount:parseInt(r[4]),
-            FileNumber:parseInt(r[5])
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
+            ByteCount:parseInt(r[5]),
+            FileNumber:parseInt(r[6])
         })
     })
 }
@@ -57,8 +58,9 @@ function renderWikis(i:IndexResult|undefined){
         wikis.value?.push({
             Id: parseInt(r[0]),
             Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
         })
     })
 }
@@ -110,7 +112,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                     </div>
                     <div class="foldBtn" v-show="subdir.showChildren" @click="subdir.showChildren = false" style="color:black">▼
                     </div>
-                    <div class="subdirName" @click="jumpToSubDir(subdir.Name)">{{ subdir.Name }}</div>
+                    <div class="subdirName" @click="jumpToSubDir(subdir.UrlPathName)">{{ subdir.Name }}</div>
                     <Functions :entry-size="20" x-align="left">
                         <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>
                         <button class="danger">删除</button>
@@ -120,7 +122,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                 </div>
             </div>
             <div class="detail" v-if="subdir.showChildren">
-                <FileDirChild :dir-id="subdir.Id" :path="_.concat(props.path, subdir.Name)" :fetch-from="props.fetchFrom">
+                <FileDirChild :dir-id="subdir.Id" :path="_.concat(props.path, subdir.UrlPathName)" :fetch-from="props.fetchFrom">
                 </FileDirChild>
             </div>
         </div>

@@ -31,6 +31,9 @@ const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
 const items = ref<FileDirItem[]>([]);
 const wikis = ref<FileDirWiki[]>([]);
 const thisDirId = ref<number>(0);
+const friendlyPath = ref<string[]>([]);
+const friendlyPathAncestors = ref<string[]>([]);
+const friendlyPathThisName = ref<string>();
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     var p = props.path;
@@ -44,6 +47,8 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         renderItems(res.Items);
         renderSubdirs(res.SubDirs);
         renderWikis(res.Wikis);
+        friendlyPath.value = res.FriendlyPath;
+        setFriendlyPathData();
         return res?.SubDirs;
     }
 }
@@ -67,10 +72,11 @@ function renderSubdirs(i:IndexResult|undefined){
         subDirs.value?.push({
             Id: parseInt(r[0]),
             Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
-            ByteCount:parseInt(r[4]),
-            FileNumber:parseInt(r[5])
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
+            ByteCount:parseInt(r[5]),
+            FileNumber:parseInt(r[6])
         })
     })
 }
@@ -80,8 +86,9 @@ function renderWikis(i:IndexResult|undefined){
         wikis.value?.push({
             Id: parseInt(r[0]),
             Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
         })
     })
 }
@@ -96,10 +103,13 @@ function jumpToAncestor(idxInChain:number){
     router.push({name:'files',params:{path: _.take(pathThis.value,idxInChain+1)}})
 }
 function infoUpdated(newInfo:FileDir){
-    if(newInfo.Name && newInfo.Name!=pathThisName.value){
-        var path = _.concat(pathAncestors.value,newInfo.Name);
+    if(newInfo.UrlPathName && newInfo.UrlPathName!=pathThisName.value){
+        var path = _.concat(pathAncestors.value,newInfo.UrlPathName);
         path = _.filter(path, x=>!!x)
         router.replace({name:'files',params:{path}});
+    }
+    if(newInfo.Name && newInfo.Name!=friendlyPathThisName.value){
+        friendlyPathThisName.value = newInfo.Name;
     }
 }
 
@@ -107,7 +117,7 @@ const pathAncestors = ref<string[]>([]);
 const pathThisName = ref<string>("");
 const pathThis = ref<string[]>([]);
 const isRoot = ref<boolean>(false);
-function setPathDisplays(){
+function setPathData(){
     if(typeof props.path==='string' || props.path.length==0){
         pathAncestors.value = [];
         pathThisName.value = '';
@@ -120,6 +130,17 @@ function setPathDisplays(){
         isRoot.value = pathThis.value.length==0;
     }
 }
+function setFriendlyPathData(){
+    if(friendlyPath.value.length==0){
+        friendlyPath.value = [];
+        friendlyPathThisName.value = '';
+        friendlyPathAncestors.value = [];
+    }else{
+        friendlyPath.value = _.filter(friendlyPath.value, x=>!!x)
+        friendlyPathAncestors.value = _.take(friendlyPath.value,friendlyPath.value.length-1)
+        friendlyPathThisName.value = _.last(friendlyPath.value)||"";
+    }
+}
 const sidebar = ref<InstanceType<typeof SideBar>>();
 function startEditDirInfo(){
     sidebar.value?.extend();
@@ -130,13 +151,13 @@ var api:Api;
 const ok = ref<boolean>(false);
 onMounted(async()=>{
     api = inject('api') as Api;
-    setPathDisplays();
+    setPathData();
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
     ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
 })
 watch(props,async(_newVal)=>{
-    setPathDisplays();
-    console.log("isRoot:",isRoot.value);
+    setPathData();
+    sidebar.value?.fold();
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
     await index.value?.reloadData();
 });
@@ -183,12 +204,12 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                 <div>
                     <span @click="jumpToAncestor(-1)">根目录</span>/
                 </div>
-                <div v-for="a,idx in pathAncestors">
+                <div v-for="a,idx in friendlyPathAncestors">
                     <span @click="jumpToAncestor(idx)">{{ a }}</span>/
                 </div> 
             </div>
-            <div v-if="pathThisName" class="thisName">
-                {{ pathThisName }}
+            <div v-if="friendlyPathThisName" class="thisName">
+                {{ friendlyPathThisName }}
                 <img class="settingsBtn" @click="startEditDirInfo" :src='settingsImg'/>
             </div>
             <div v-else class="thisName">根目录</div>
@@ -201,7 +222,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                         <div>
                             <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren=true;hideFnUpdate()" style="color:#999">▶</div>
                             <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren=false;hideFnUpdate()" style="color:black">▼</div>
-                            <div class="subdirName" @click="jumpToSubDir(item.Name)">{{ item.Name }}</div>
+                            <div class="subdirName" @click="jumpToSubDir(item.UrlPathName)">{{ item.Name }}</div>
                             <Functions :entry-size="20" x-align="left">
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
                                 <button class="danger">删除</button>
@@ -211,7 +232,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.Name)" :fetch-from="api.fileDir.index"></FileDirChild>
+                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.UrlPathName)" :fetch-from="api.fileDir.index"></FileDirChild>
                     </div>
                 </td>
             </tr>
@@ -220,7 +241,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                     <FileDirItems :dir-id="thisDirId" :items="items" :wikis="wikis" @need-refresh="index?.reloadData"></FileDirItems>
                 </td>
             </tr>
-            <tr v-if="subDirs.length==0 && items.length==0">
+            <tr v-if="subDirs.length==0 && items.length==0 && wikis.length==0">
                 <td><div class="emptyDir">空文件夹</div></td>
             </tr>
         </IndexMini>
@@ -228,7 +249,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <SideBar ref="sidebar">
         <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
     </SideBar>
-    <ClipBoard ref="clip" :current-dir="pathThisName" @put-down="clipBoardAction"></ClipBoard>
+    <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'?'" @put-down="clipBoardAction"></ClipBoard>
 </template>
 
 <style scoped>

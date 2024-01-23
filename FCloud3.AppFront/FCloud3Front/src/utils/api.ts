@@ -117,11 +117,11 @@ export class Api{
                 return res.data as IndexResult;
             }
         },
-        createInDir:async(title:string,dirId:number)=>{
+        createInDir:async(title:string,urlPathName:string,dirId:number)=>{
             const res = await this.httpClient.request(
                 "/api/WikiItem/CreateInDir",
                 "postForm",
-                {title,dirId},
+                {title,urlPathName,dirId},
                 "创建成功")
             if(res.success){
                 return true;
@@ -286,6 +286,18 @@ export class Api{
             )
             if(res.success){
                 return res.data as QuickSearchResult;
+            }
+        }
+    }
+    utils = {
+        urlPathName:async(input:string)=>{
+            const resp = await this.httpClient.request(
+                "/api/Utils/UrlPathName",
+                "get",
+                {input}
+            )
+            if(resp.success){
+                return resp.data.res as string;
             }
         }
     }

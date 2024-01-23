@@ -10,7 +10,7 @@ namespace FCloud3.Repos
         {
             if (path.Length == 0)
                 return 0;
-            var possible = q.PathMatch(path).Select(x => new { x.Id, x.Name, x.Depth, x.ParentDir }).ToList();
+            var possible = q.PathMatch(path).Select(x => new { x.Id, x.UrlPathName, x.Depth, x.ParentDir }).ToList();
             var currentParent = possible.FirstOrDefault(x => x.Depth == 0);
             if(currentParent is null) { return -1; }
             var k = 0;
@@ -28,11 +28,11 @@ namespace FCloud3.Repos
             }
             return -1;
         }
-        public static List<int>? GetChainByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
+        public static List<int>? GetChainIdsByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             if (path.Length == 0)
                 return new();
-            var possible = q.PathMatch(path).Select(x => new { x.Id, x.Name, x.Depth, x.ParentDir }).ToList();
+            var possible = q.PathMatch(path).Select(x => new { x.Id, x.UrlPathName, x.Depth, x.ParentDir }).ToList();
             var currentParent = possible.FirstOrDefault(x => x.Depth == 0);
             if (currentParent is null) { return null; }
 
@@ -53,11 +53,36 @@ namespace FCloud3.Repos
             }
             return null;
         }
+        public static List<T>? GetChainByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
+        {
+            if (path.Length == 0)
+                return new();
+            var possible = q.PathMatch(path).ToList();
+            var currentParent = possible.FirstOrDefault(x => x.Depth == 0);
+            if (currentParent is null) { return null; }
+
+            var res = new List<T>();
+            var k = 0;
+            while (k++ < 15)
+            {
+                res.Add(currentParent);
+                var child = possible.FirstOrDefault(x => x.ParentDir == currentParent.Id);
+                if (child is null)
+                {
+                    if (res.Count == path.Length)
+                        return res;
+                    else
+                        return null;
+                }
+                currentParent = child;
+            }
+            return null;
+        }
 
         private static IQueryable<T> PathMatch<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             Type t = typeof(T);
-            PropertyInfo? nameProp = t.GetProperty(nameof(IPathable.Name));
+            PropertyInfo? nameProp = t.GetProperty(nameof(IPathable.UrlPathName));
             PropertyInfo? depthProp = t.GetProperty(nameof(IPathable.Depth));
             if(nameProp is null || depthProp is null) { throw new Exception("表达式构建出错(1)"); }
 

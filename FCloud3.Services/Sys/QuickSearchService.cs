@@ -21,11 +21,11 @@ namespace FCloud3.Services.Sys
         public QuickSearchResult SearchWikiItem(string str)
         {
             var q = _wikiItemRepo.QuickSearch(str);
-            var items =  q.Select(x => new { x.Title,x.Updated, x.Id }).Take(maxCount).ToList();
+            var items =  q.Select(x => new { x.Title,x.UrlPathName, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>
             {
-                res.Items.Add(new(x.Title??"N/A", x.Updated.ToString("yy/MM/dd"),x.Id));
+                res.Items.Add(new(x.Title??"N/A",x.UrlPathName ,x.Id));
             });
             return res;
         }

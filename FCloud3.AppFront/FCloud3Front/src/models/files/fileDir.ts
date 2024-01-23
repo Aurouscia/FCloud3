@@ -3,6 +3,7 @@ import { IndexResult } from "../../components/Index";
 export interface FileDir{
     Id:number,
     Name:string,
+    UrlPathName:string,
     Depth:number,
     
     CanEditInfo:boolean,
@@ -14,11 +15,13 @@ export interface FileDirIndexResult{
     SubDirs:IndexResult,//FileDirSubDir
     Items:IndexResult|undefined,//FileDirItem
     Wikis:IndexResult|undefined,//FileDirWiki
-    ThisDirId:number
+    ThisDirId:number,
+    FriendlyPath:string[]
 }
 export interface FileDirSubDir{
     Id:number,
     Name:string,
+    UrlPathName:string,
     Updated:string,
     OwnerName:string,
     ByteCount:number,
@@ -37,25 +40,11 @@ export interface FileDirWiki
 {
     Id:number,
     Name:string,
+    UrlPathName:string,
     Updated:string,
     OwnerName:string,
 }
 
-// export interface TakeContentResItem{
-//     Id:number,
-//     Name:string,
-//     Url:string,
-//     ByteCount:number
-// }
-// export interface TakeContentResSubDir{
-//     Id:number,
-//     Name:string,
-//     showChildren:boolean|undefined
-// }
-// export interface TakeContentResult {
-//     SubDirs:Array<TakeContentResSubDir>;
-//     Items:Array<TakeContentResItem>
-// }
 
 
 export interface PutInFileRequest {

@@ -25,13 +25,6 @@ namespace FCloud3.App.Controllers.Files
             }
             return this.ApiFailedResp(errmsg);
         }
-        //public IActionResult TakeContent(int dirId)
-        //{
-        //    FileDirTakeContentResult res = _fileDirService.TakeContent(dirId);
-        //    if(res is null)
-        //        return this.ApiFailedResp("文件夹内容获取失败");
-        //    return this.ApiResp(res);
-        //}
         public IActionResult Edit(int id)
         {
             var data = _fileDirService.GetById(id);
@@ -41,6 +34,7 @@ namespace FCloud3.App.Controllers.Files
             {
                 Id = data.Id,
                 Name = data.Name,
+                UrlPathName = data.UrlPathName,
                 CanEditInfo = true,
                 CanPutFile = true,
                 CanPutWiki = true,
@@ -51,7 +45,7 @@ namespace FCloud3.App.Controllers.Files
         {
             if (req is null)
                 return BadRequest();
-            if (!_fileDirService.UpdateInfo(req.Id,req.Name, out string? errmsg))
+            if (!_fileDirService.UpdateInfo(req.Id, req.Name, req.UrlPathName, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
@@ -95,6 +89,7 @@ namespace FCloud3.App.Controllers.Files
         {
             public int Id { get; set; }
             public string? Name { get; set; }
+            public string? UrlPathName { get; set; }
             public int Depth { get; set; }
             public bool CanPutFile { get; set; }
             public bool CanPutWiki { get; set; }

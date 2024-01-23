@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FCloud3.Repos.Files
 {
     public class FileDirRepo : RepoBase<FileDir>
     {
+        private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         public FileDirRepo(FCloudContext context) : base(context)
         {
         }
@@ -25,60 +27,19 @@ namespace FCloud3.Repos.Files
                 return GetById(id);
             return null;
         }
-        public List<int>? GetChainByPath(string[] path)
+        public List<int>? GetChainIdsByPath(string[] path)
+        {
+            return Existing.GetChainIdsByPath(path);
+        }
+        public List<FileDir>? GetChainByPath(string[] path)
         {
             return Existing.GetChainByPath(path);
         }
-        public IQueryable<FileDir>? GetChildrenByPath(string[] path,out int thisDirId, out string? errmsg)
+        public IQueryable<FileDir>? GetChildrenById(int id, out string? errmsg)
         {
             errmsg = null;
-            int dirId = GetIdByPath(path);
-            if (dirId == -1)
-            {
-                errmsg = "未找到指定路径的文件夹";
-                thisDirId = 0;
-                return null;
-            }
-            thisDirId = dirId;
-            return Existing.Where(x => x.ParentDir == dirId);
+            return Existing.Where(x => x.ParentDir == id);
         }
-        public bool MoveDirToDir(int movingDirId,int intoDirId, out string? errmsg)
-        {
-            errmsg = null;
-            //if (!LoopCheck(movingDirId, intoDirId, out errmsg))
-            //    return false;
-            int parentDepth = 0;
-            if (intoDirId != 0)
-                parentDepth = Existing.Where(x => x.Id == intoDirId).Select(x => x.Depth).FirstOrDefault();
-
-            int res = Existing.Where(x => x.Id == movingDirId)
-                .ExecuteUpdate(x => x
-                .SetProperty(y => y.ParentDir, intoDirId)
-                .SetProperty(y => y.Depth, parentDepth + 1));
-            if (res == 1)
-                return true;
-            errmsg = "更新失败";
-            return false;
-        }
-        //public bool LoopCheck(int movingDirId, int intoDirId, out string? errmsg)
-        //{
-        //    int lookingAt = intoDirId;
-        //    errmsg = null;
-        //    while (true)
-        //    {
-        //        if (lookingAt == 0)
-        //            return true;
-        //        var parent = Existing.Where(x => x.Id == lookingAt).Select(x=>x.ParentDir).FirstOrDefault();
-        //        if (parent == 0)
-        //            return true;
-        //        if (parent == movingDirId)
-        //        {
-        //            errmsg = "不允许循环嵌套";
-        //            return false;
-        //        }
-        //        lookingAt = parent;
-        //    }
-        //}
 
         public List<FileDir>? GetDescendantsFor(List<int> dirIds, out string? errmsg)
         {
@@ -134,21 +95,34 @@ namespace FCloud3.Repos.Files
 
         public override bool TryAddCheck(FileDir item, out string? errmsg)
         {
+            return InfoCheck(item, out errmsg);
+        }
+        public override bool TryEditCheck(FileDir item, out string? errmsg)
+        {
+            return InfoCheck(item, out errmsg);
+        }
+        public bool InfoCheck(FileDir item, out string? errmsg)
+        {
             errmsg = null;
-            if (string.IsNullOrEmpty(item.Name?.Trim()))
+            if (string.IsNullOrWhiteSpace(item.Name))
             {
                 errmsg = "文件夹名称不能为空";
                 return false;
             }
-            return true;
-        }
-        public override bool TryEditCheck(FileDir item, out string? errmsg)
-        {
-            errmsg = null;
-            if(string.IsNullOrEmpty(item.Name?.Trim()))
-            {
-                errmsg = "文件夹名称不能为空";
+            if (string.IsNullOrWhiteSpace(item.UrlPathName)){
+                errmsg = "文件夹路径名不能为空";
                 return false;
+            }
+            if (!Regex.IsMatch(item.UrlPathName, validUrlPathNamePattern))
+            {
+                errmsg = "路径名只能有英文字母，数字和\"-\"";
+                return false;
+            }
+            var conflict = Existing.Where(x => x.ParentDir == item.ParentDir && x.UrlPathName == item.UrlPathName)
+                .Select(x => x.Name).FirstOrDefault();
+            if (conflict is not null)
+            {
+                errmsg = $"冲突：此处已有同样路径名的其他文件夹【{conflict}】";
             }
             return true;
         }

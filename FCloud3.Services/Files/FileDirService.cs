@@ -40,7 +40,16 @@ namespace FCloud3.Services.Files
 
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
-            var subDirsQ = _fileDirRepo.GetChildrenByPath(path,out int thisDirId ,out errmsg);
+            var chain = _fileDirRepo.GetChainByPath(path);
+            if(chain is null) {
+                errmsg = "找不到指定路径的文件夹";
+                return null;
+            }
+            List<string> friendlyPath = chain.ConvertAll(x => x.Name??"??").ToList();
+            var thisDirId = 0;
+            if(chain.Count>0)
+                thisDirId = chain.Last().Id;
+            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId ,out errmsg);
             if(subDirsQ is null)
                 return null;
             var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ,q);
@@ -48,6 +57,7 @@ namespace FCloud3.Services.Files
             {
                 Id = x.Id,
                 Name = x.Name,
+                UrlPathName = x.UrlPathName,
                 Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                 ByteCount = x.ByteCount,
             });
@@ -97,6 +107,7 @@ namespace FCloud3.Services.Files
                 {
                     Id = x.Id,
                     Name = x.Title,
+                    UrlPathName = x.UrlPathName,
                     OwnerName = "",
                     Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                 });
@@ -105,38 +116,12 @@ namespace FCloud3.Services.Files
                 Items = itemsData,
                 SubDirs = subDirsData,
                 Wikis = wikisData,
-                ThisDirId = thisDirId
+                ThisDirId = thisDirId,
+                FriendlyPath = friendlyPath
             };
         }
-        //public FileDirIndexResult TakeContent(int dirId)
-        //{
-        //    var subDirs = _fileDirRepo.Existing
-        //        .Where(x => x.ParentDir == dirId)
-        //        .Select(x => new { x.Id, x.Name })
-        //        .OrderBy(x => x.Name).ToList();
-        //    var items = _fileItemRepo.Existing
-        //        .Where(x => x.InDir == dirId)
-        //        .Select(x => new { x.Id, x.DisplayName, x.ByteCount, x.StorePathName })
-        //        .OrderBy(x=>x.DisplayName).ToList();
-        //    FileDirIndexResult res = new();
-        //    subDirs.ForEach(x =>
-        //    {
-        //        res.SubDirs.Add(new() { Id = x.Id, Name = x.Name });
-        //    });
-        //    items.ForEach(x =>
-        //    {
-        //        res.Items.Add(new()
-        //        {
-        //            Id = x.Id,
-        //            Name = x.DisplayName,
-        //            Url = _fileItemService.Url(x.StorePathName??"missing"),
-        //            ByteCount = x.ByteCount
-        //        });
-        //    });
-        //    return res;
-        //}
 
-        public bool UpdateInfo(int id,string? name,out string? errmsg)
+        public bool UpdateInfo(int id, string? name, string? urlPathName, out string? errmsg)
         {
             var target = _fileDirRepo.GetById(id);
             if (target is null)
@@ -144,7 +129,10 @@ namespace FCloud3.Services.Files
                 errmsg = "找不到该文件夹";
                 return false;
             }
+
             target.Name = name;
+            target.UrlPathName = urlPathName;
+
             if(!_fileDirRepo.TryEdit(target, out errmsg))
                 return false;
             return true;
@@ -241,7 +229,7 @@ namespace FCloud3.Services.Files
             List<int>? fileDirSuccess = null;
             List<int>? wikiItemSuccess = null;
 
-            List<int>? chain = _fileDirRepo.GetChainByPath(dirPath);
+            List<int>? chain = _fileDirRepo.GetChainIdsByPath(dirPath);
             if(chain is null) { errmsg = "找不到指定路径的文件夹"; return null; }
 
             int distDirId = chain.Count>0 ? chain.Last() : 0;
@@ -289,11 +277,13 @@ namespace FCloud3.Services.Files
         public IndexResult<FileDirItem>? Items { get; set; }
         public IndexResult<FileDirWiki>? Wikis { get; set; }
         public int ThisDirId { get; set; }
+        public List<string>? FriendlyPath { get; set; }
 
         public class FileDirSubDir
         {
             public int Id { get; set; }
             public string? Name { get; set; }
+            public string? UrlPathName { get; set; }
             public string? Updated { get; set; }
             public string? OwnerName { get; set; }
             public int ByteCount { get; set; }
@@ -312,33 +302,11 @@ namespace FCloud3.Services.Files
         {
             public int Id { get; set; }
             public string? Name { get; set; }
+            public string? UrlPathName { get; set; }
             public string? Updated { get; set; }
             public string? OwnerName { get; set; }
         }
     }
-    //public class FileDirTakeContentResult
-    //{
-    //    public List<TakeContentResSubDir> SubDirs { get; set; }
-    //    public List<TakeContentResItem> Items { get; set; }
-    //    public class TakeContentResSubDir
-    //    {
-    //        public int Id { get; set; }
-    //        public string? Name { get; set; }
-    //    }
-    //    public class TakeContentResItem
-    //    {
-    //        public int Id { get; set; }
-    //        public string? Name { get; set; }
-    //        public string? Update { get; set; }
-    //        public int ByteCount { get; set; }
-    //        public string? Url { get; set; }
-    //    }
-    //    public FileDirTakeContentResult()
-    //    {
-    //        SubDirs = new();
-    //        Items = new();
-    //    }
-    //}
     public class FileDirPutInResult
     {
         public List<int>? FileItemSuccess { get; set; }

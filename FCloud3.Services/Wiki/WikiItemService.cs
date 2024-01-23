@@ -144,24 +144,14 @@ namespace FCloud3.Services.Wiki
             return true;
         }
 
-        public static bool BasicInfoCheck(WikiItem w, out string? errmsg)
+        public bool CreateInDir(string title,string urlPathName,int dirId, out string? errmsg)
         {
-            errmsg = null;
-            if (string.IsNullOrEmpty(w.Title))
+            var newWiki = new WikiItem()
             {
-                errmsg = "标题不能为空";
-                return false;
-            }
-            if (w.Title.Length > maxWikiTitleLength)
-            {
-                errmsg = $"标题不能超过{maxWikiTitleLength}字";
-                return false;
-            }
-            return true;
-        }
-        public bool CreateInDir(string title,int dirId, out string? errmsg)
-        {
-            int id = TryAdd(title, out errmsg);
+                Title = title,
+                UrlPathName = urlPathName,
+            };
+            int id = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
             if (id > 0)
             {
                 return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
@@ -171,27 +161,6 @@ namespace FCloud3.Services.Wiki
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
         {
             return _wikiToDirRepo.RemoveWikisFromDir(new() { wikiId}, dirId, out errmsg);
-        }
-        public int TryAdd(string? title, out string? errmsg)
-        {
-            WikiItem w = new()
-            {
-                Title = title
-            };
-            if (!BasicInfoCheck(w, out errmsg))
-                return 0;
-            var id = _wikiRepo.TryAddAndGetId(w, out errmsg);
-            return id;
-        }
-        public bool TryEdit(int id, string? title, out string? errmsg)
-        {
-            WikiItem w = _wikiRepo.GetById(id) ?? throw new Exception("找不到指定id的wiki");
-            w.Title = title;
-            if (!BasicInfoCheck(w, out errmsg))
-                return false;
-            if (!_wikiRepo.TryEdit(w, out errmsg))
-                return false;
-            return true;
         }
         public bool TryRemovePara(int id, int paraId, out string? errmsg)
         {

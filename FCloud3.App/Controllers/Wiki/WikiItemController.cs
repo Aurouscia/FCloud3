@@ -21,9 +21,9 @@ namespace FCloud3.App.Controllers.Wiki
         }
 
         [Authorize]
-        public IActionResult CreateInDir(string title,int dirId)
+        public IActionResult CreateInDir(string title,string urlPathName,int dirId)
         {
-            if(!_wikiService.CreateInDir(title,dirId,out string? errmsg))
+            if(!_wikiService.CreateInDir(title,urlPathName,dirId,out string? errmsg))
             {
                 return this.ApiFailedResp(errmsg);
             }
@@ -46,13 +46,13 @@ namespace FCloud3.App.Controllers.Wiki
                 Title = w.Title,
             });
         }
-        [Authorize]
-        public IActionResult EditExe([FromBody]WikiItemComModel model)
-        {
-            if (!_wikiService.TryEdit(_userInfo.Id, model.Title, out string? errmsg))
-                return this.ApiFailedResp(errmsg);
-            return this.ApiResp();
-        }
+        //[Authorize]
+        //public IActionResult EditExe([FromBody]WikiItemComModel model)
+        //{
+        //    if (!_wikiService.TryEdit(_userInfo.Id, model.Title, out string? errmsg))
+        //        return this.ApiFailedResp(errmsg);
+        //    return this.ApiResp();
+        //}
         public IActionResult LoadSimple(int id)
         {
             var res = _wikiService.GetWikiParaDisplays(id);

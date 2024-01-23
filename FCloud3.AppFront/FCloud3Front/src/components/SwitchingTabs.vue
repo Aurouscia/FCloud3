@@ -56,16 +56,17 @@ onMounted(async ()=>{
     gap:5px
 }
 .controls>div.selected{
-    background-color: #999;
+    background-color: #ccc;
 }
 .controls>div{
-    background-color: #ccc;
+    background-color: #eee;
     flex-grow: 1;
     padding: 10px;
-    color:white;
+    color:black;
     text-align: center;
     cursor: pointer;
     flex-basis: 10px;
+    border-radius: 5px 5px 0px 0px;
     transition: 0.5s;
 }
 .controls{
@@ -75,6 +76,6 @@ onMounted(async ()=>{
     align-items: center;
     user-select: none;
     gap:5px;
-    border-bottom: 10px solid #999;
+    border-bottom: 10px solid #ccc;
 }
 </style>

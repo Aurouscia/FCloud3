@@ -10,6 +10,7 @@ namespace FCloud3.Entities.Files
     {
         public int Id { get; set; }
         public string? Name { get; set; }
+        public string? UrlPathName { get; set; }
         public int ParentDir {  get; set; }
         public int Depth { get; set; }
         public int ByteCount { get; set; }

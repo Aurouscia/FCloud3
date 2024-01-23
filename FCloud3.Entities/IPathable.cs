@@ -9,7 +9,7 @@ namespace FCloud3.Entities
     public interface IPathable
     {
         public int Id { get; }
-        public string? Name { get; }
+        public string? UrlPathName { get; }
         public int Depth { get; }
         public int ParentDir { get; }
     }

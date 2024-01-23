@@ -29,6 +29,7 @@ function refreshCand(){
     }
     window.clearTimeout(timer);
     timer = window.setTimeout(async()=>{
+        emits('stopInput',searching.value);
         cands.value = await api.quickSearch.wikiItem(searching.value);
     },delay)
 }
@@ -55,6 +56,7 @@ function clear(){
 
 const emits = defineEmits<{
     (e:'done',value:string,id:number):void
+    (e:'stopInput',value:string):void
 }>();
 defineExpose({clear});
 
@@ -70,9 +72,10 @@ onMounted(()=>{
         <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder"/>
         <button class="confirm" :class="{disabled:!doneBtnStatus}" @click="done">确认</button>
     </div>
-    <div v-if="cands" class="cand">
+    <div v-if="cands && searching" class="cand">
         <div class="candItem" v-for="c in cands.Items" @click="clickCand(c)">
             {{ c.Name }}
+            <div class="desc">{{ c.Desc }}</div>
         </div>
             <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{ props.noResultNotice }}</div>
             <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length==0">
@@ -83,6 +86,10 @@ onMounted(()=>{
 </template>
 
 <style scoped>
+.desc{
+    font-size: 10px;
+    color:#888
+}
 .candItem:hover{
     background-color: #ccc;
 }
