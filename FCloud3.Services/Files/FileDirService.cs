@@ -196,7 +196,10 @@ namespace FCloud3.Services.Files
             ds.ForEach(x => {
                 x.Depth = setDepth;
                 x.ParentDir = distDirId;});
-            _fileDirRepo.UpdateDescendantsInfoFor(ds,out errmsg);
+            if (!_fileDirRepo.TryEditRange(ds, out errmsg))
+                return null;
+            if (!_fileDirRepo.UpdateDescendantsInfoFor(ds, out errmsg))
+                return null;
             
             return fileDirIds;
         }
@@ -268,6 +271,23 @@ namespace FCloud3.Services.Files
                 FailMsg = failMsg,
             };
             return resp;
+        }
+
+        public bool Create(int parentDir, string? name, string? urlPathName, out string? errmsg)
+        {
+            //TODO验证在父文件夹有没有权限
+            FileDir? parent = _fileDirRepo.GetById(parentDir);
+            int depth = 0;
+            if (parent is not null)
+                depth = parent.Depth + 1;
+            FileDir newDir = new()
+            {
+                ParentDir = parentDir,
+                Name = name,
+                UrlPathName = urlPathName,
+                Depth = depth
+            };
+            return _fileDirRepo.TryAdd(newDir, out errmsg);
         }
     }
 

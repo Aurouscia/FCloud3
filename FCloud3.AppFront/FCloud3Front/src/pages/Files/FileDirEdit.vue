@@ -80,13 +80,9 @@ onMounted(async()=>{
         <div>
             <h1>{{ data.Name }}</h1>
         </div>
-        <div class="section" v-if="data.CanPutFile">
-            <h2>在此上传新文件</h2>
-            <FileUpload @uploaded="newFile" dist="test"></FileUpload>
-        </div>
         <div class="section" v-if="data.CanPutWiki">
-            <h2>在此新建/移入词条</h2>
-            <SwitchingTabs :texts="['移入','新建']">
+            <h2>编辑内容</h2>
+            <SwitchingTabs :texts="['移入词条','新建词条','上传文件']">
                 <div>
                     <Search ref="moveSearch" :placeholder="'词条标题'" :allow-free-input="false"
                         :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
@@ -116,6 +112,9 @@ onMounted(async()=>{
                     <Notice type="warn">
                         请谨慎设置链接名称，每次修改将导致旧链接失效
                     </Notice>
+                </div>
+                <div>
+                    <FileUpload @uploaded="newFile" dist="test"></FileUpload>
                 </div>
             </SwitchingTabs>
         </div>

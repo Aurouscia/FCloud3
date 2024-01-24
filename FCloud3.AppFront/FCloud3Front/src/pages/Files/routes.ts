@@ -9,7 +9,7 @@ export function addFiles(r:Router){
 const routes = [
     {
         name: 'files',
-        path: '/:space(files|wiki)/:path(.*)*',
+        path: '/d/:path(.*)*',
         component: FileDirIndex,
         props:true
     }

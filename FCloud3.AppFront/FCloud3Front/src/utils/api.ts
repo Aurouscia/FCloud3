@@ -7,7 +7,7 @@ import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
 import { StagingFile } from "../models/files/fileItem";
-import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult } from '../models/files/fileDir';
+import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
 import {QuickSearchResult} from '../models/sys/quickSearch';
 
@@ -274,6 +274,22 @@ export class Api{
                     this.httpClient.httpCallBack("warn",`${reqNum-num}个操作失败`);
                 }
                 return data
+            }
+        },
+        create:async(parentDir:number,name:string,urlPathName:string)=>{
+            const reqData:FileDirCreateRequest = {
+                ParentDir:parentDir,
+                Name:name,
+                UrlPathName:urlPathName
+            };
+            const res = await this.httpClient.request(
+                "/api/FileDir/Create",
+                "postRaw",
+                reqData,
+                "创建成功"
+            )
+            if(res.success){
+                return true;
             }
         }
     }

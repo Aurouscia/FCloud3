@@ -11,6 +11,12 @@ export interface FileDir{
     CanPutWiki:boolean
 }
 
+export interface FileDirCreateRequest{
+    ParentDir:number,
+    Name:string,
+    UrlPathName:string,
+}
+
 export interface FileDirIndexResult{
     SubDirs:IndexResult,//FileDirSubDir
     Items:IndexResult|undefined,//FileDirItem

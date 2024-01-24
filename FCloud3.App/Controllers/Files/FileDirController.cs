@@ -57,7 +57,6 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-
         public IActionResult PutInThings([FromBody] PutInThingsRequest req)
         {
             if(req is null || req.DirPath is null)
@@ -66,6 +65,14 @@ namespace FCloud3.App.Controllers.Files
             if (res is null || errmsg is not null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);  
+        }
+        public IActionResult Create([FromBody] FileDirCreateRequest req)
+        {
+            if(!_fileDirService.Create(req.ParentDir, req.Name, req.UrlPathName, out string? errmsg))
+            {
+                return this.ApiFailedResp(errmsg);
+            }
+            return this.ApiResp();
         }
 
         public class FileDirIndexRequest
@@ -94,6 +101,12 @@ namespace FCloud3.App.Controllers.Files
             public bool CanPutFile { get; set; }
             public bool CanPutWiki { get; set; }
             public bool CanEditInfo { get; set; }
+        }
+        public class FileDirCreateRequest
+        {
+            public int ParentDir { get; set; }
+            public string? Name { get; set; }
+            public string? UrlPathName { get; set; } 
         }
     }
 }

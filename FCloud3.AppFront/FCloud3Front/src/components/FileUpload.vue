@@ -226,4 +226,7 @@ onMounted(()=>{
 .fileUpload input[type=file]{
     display: none;
 }
+.fileUpload{
+    margin: 0px auto 0px auto;
+}
 </style>

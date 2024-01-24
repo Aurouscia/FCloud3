@@ -8,16 +8,17 @@ import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import SideBar from '../../components/SideBar.vue';
 import settingsImg from '../../assets/settings.svg';
+import newDirImg from '../../assets/newDir.svg';
 import FileDirEdit from './FileDirEdit.vue';
 import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki } from '../../models/files/fileDir';
 import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '../../components/ClipBoard.vue';
 import Functions from '../../components/Functions.vue';
+import FileDirCreate from './FileDirCreate.vue';
 
 
 const props = defineProps<{
-    path:string[]|string,
-    space:"files"|"wiki"
+    path:string[]|string
 }>();
 const router = useRouter();
 const columns:IndexColumn[] = 
@@ -145,6 +146,14 @@ const sidebar = ref<InstanceType<typeof SideBar>>();
 function startEditDirInfo(){
     sidebar.value?.extend();
 }
+const newDirSidebar = ref<InstanceType<typeof SideBar>>();
+function startCreatingDir(){
+    newDirSidebar.value?.extend();
+}
+function dirCreated(pathUrlName:string){
+    newDirSidebar.value?.fold();
+    jumpToSubDir(pathUrlName);
+}
 
 const index = ref<InstanceType<typeof IndexMini>>();
 var api:Api;
@@ -211,8 +220,12 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
             <div v-if="friendlyPathThisName" class="thisName">
                 {{ friendlyPathThisName }}
                 <img class="settingsBtn" @click="startEditDirInfo" :src='settingsImg'/>
+                <img class="settingsBtn newDirBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
-            <div v-else class="thisName">根目录</div>
+            <div v-else class="thisName">
+                根目录
+                <img class="settingsBtn newDirBtn" @click="startCreatingDir" :src='newDirImg'/>
+            </div>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
             :hide-page="!isRoot" :hide-fn="hideFn">
@@ -249,6 +262,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <SideBar ref="sidebar">
         <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
     </SideBar>
+    <SideBar ref="newDirSidebar">
+        <FileDirCreate :dir-id="thisDirId" :dir-name="friendlyPathThisName||''" @created="dirCreated"></FileDirCreate>
+    </SideBar>
     <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'?'" @put-down="clipBoardAction"></ClipBoard>
 </template>
 
@@ -268,6 +284,11 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     background-color: #bbb;
     border-radius: 5px;
     transition: 0.5s;
+}
+.newDirBtn{
+    width: 18px;
+    height: 18px;
+    padding: 4px;
 }
 .ancestors{
     font-size: small;

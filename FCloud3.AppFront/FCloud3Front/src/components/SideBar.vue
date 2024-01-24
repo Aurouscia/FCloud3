@@ -23,7 +23,8 @@ function extend(){
     }
     barStyle.value = {
         right:'0px',
-        width
+        width,
+        boxShadow: '0px 0px 10px 0px black'
     }
     setTimeout(()=>{
         coverStyle.value={
@@ -39,7 +40,8 @@ function fold(){
     }
     barStyle.value = {
         right: foldedRight,
-        width
+        width,
+        boxShadow:'none'
     }
     window.setTimeout(()=>{
         coverStyle.value = {}
@@ -84,6 +86,7 @@ defineExpose({extend,fold})
     flex-direction: column;
     transition: 0.5s;
     background-color: white;
+    box-shadow: none;
     z-index: 1001;
 }
 .cover{

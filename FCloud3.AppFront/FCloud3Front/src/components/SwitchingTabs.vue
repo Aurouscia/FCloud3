@@ -61,7 +61,7 @@ onMounted(async ()=>{
 .controls>div{
     background-color: #eee;
     flex-grow: 1;
-    padding: 10px;
+    padding: 10px 3px 10px 3px;
     color:black;
     text-align: center;
     cursor: pointer;

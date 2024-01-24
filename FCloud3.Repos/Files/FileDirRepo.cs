@@ -118,11 +118,12 @@ namespace FCloud3.Repos.Files
                 errmsg = "路径名只能有英文字母，数字和\"-\"";
                 return false;
             }
-            var conflict = Existing.Where(x => x.ParentDir == item.ParentDir && x.UrlPathName == item.UrlPathName)
+            var conflict = Existing.Where(x => x.Id!=item.Id && x.ParentDir == item.ParentDir && x.UrlPathName == item.UrlPathName)
                 .Select(x => x.Name).FirstOrDefault();
             if (conflict is not null)
             {
                 errmsg = $"冲突：此处已有同样路径名的其他文件夹【{conflict}】";
+                return false;
             }
             return true;
         }
