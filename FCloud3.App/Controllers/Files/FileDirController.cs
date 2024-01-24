@@ -74,6 +74,12 @@ namespace FCloud3.App.Controllers.Files
             }
             return this.ApiResp();
         }
+        public IActionResult Delete(int dirId)
+        {
+            if (!_fileDirService.Delete(dirId, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
 
         public class FileDirIndexRequest
         {

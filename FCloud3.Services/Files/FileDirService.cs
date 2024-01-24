@@ -40,6 +40,7 @@ namespace FCloud3.Services.Files
 
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
+            errmsg = null;
             var chain = _fileDirRepo.GetChainByPath(path);
             if(chain is null) {
                 errmsg = "找不到指定路径的文件夹";
@@ -49,7 +50,7 @@ namespace FCloud3.Services.Files
             var thisDirId = 0;
             if(chain.Count>0)
                 thisDirId = chain.Last().Id;
-            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId ,out errmsg);
+            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
             if(subDirsQ is null)
                 return null;
             var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ,q);
@@ -288,6 +289,32 @@ namespace FCloud3.Services.Files
                 Depth = depth
             };
             return _fileDirRepo.TryAdd(newDir, out errmsg);
+        }
+        public bool Delete(int dirId,out string? errmsg)
+        {
+            errmsg = null;
+            var item = _fileDirRepo.GetById(dirId);
+            if (item is null)
+                return false;
+            var items = _fileItemRepo.GetByDirId(dirId).Count();
+            if (items > 0) 
+            {
+                errmsg = "只能删除空文件夹";
+                return false;
+            }
+            var wikis = _wikiToDirRepo.GetDirWikiIds(dirId).Count;
+            if (wikis > 0)
+            {
+                errmsg = "只能删除空文件夹";
+                return false;
+            }
+            var subDirs = _fileDirRepo.GetChildrenById(dirId)?.Count() ?? 0;
+            if (subDirs > 0)
+            {
+                errmsg = "只能删除空文件夹";
+                return false;
+            }
+            return _fileDirRepo.TryRemove(item,out errmsg);
         }
     }
 

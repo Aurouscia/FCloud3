@@ -7,10 +7,7 @@ export type ApiResponse = {
     errmsg: string
 }
 export type RequestType = "get"|"postForm"|"postRaw";
-export interface Api{
-    type:RequestType,
-    reletiveUrl:string
-}
+
 export type HttpCallBack = (result:"ok"|"warn"|"err",msg:string)=>void
 export interface ApiRequestHeader{
     Authorization:string|undefined

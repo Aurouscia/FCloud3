@@ -35,9 +35,8 @@ namespace FCloud3.Repos.Files
         {
             return Existing.GetChainByPath(path);
         }
-        public IQueryable<FileDir>? GetChildrenById(int id, out string? errmsg)
+        public IQueryable<FileDir>? GetChildrenById(int id)
         {
-            errmsg = null;
             return Existing.Where(x => x.ParentDir == id);
         }
 

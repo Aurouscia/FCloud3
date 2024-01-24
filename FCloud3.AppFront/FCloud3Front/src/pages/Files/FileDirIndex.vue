@@ -50,6 +50,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         renderWikis(res.Wikis);
         friendlyPath.value = res.FriendlyPath;
         setFriendlyPathData();
+        hideFn.value = false;
         return res?.SubDirs;
     }
 }
@@ -154,6 +155,12 @@ function dirCreated(pathUrlName:string){
     newDirSidebar.value?.fold();
     jumpToSubDir(pathUrlName);
 }
+async function deleteDir(dirId:number){
+    const resp = await api.fileDir.delete(dirId);
+    if(resp){
+        await index.value?.reloadData();
+    }
+}
 
 const index = ref<InstanceType<typeof IndexMini>>();
 var api:Api;
@@ -238,7 +245,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                             <div class="subdirName" @click="jumpToSubDir(item.UrlPathName)">{{ item.Name }}</div>
                             <Functions :entry-size="20" x-align="left">
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
-                                <button class="danger">删除</button>
+                                <button class="danger" @click="deleteDir(item.Id)">删除</button>
                             </Functions>
                         </div>
                         <div>
@@ -265,7 +272,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <SideBar ref="newDirSidebar">
         <FileDirCreate :dir-id="thisDirId" :dir-name="friendlyPathThisName||''" @created="dirCreated"></FileDirCreate>
     </SideBar>
-    <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'?'" @put-down="clipBoardAction"></ClipBoard>
+    <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'根文件夹'" @put-down="clipBoardAction"></ClipBoard>
 </template>
 
 <style scoped>

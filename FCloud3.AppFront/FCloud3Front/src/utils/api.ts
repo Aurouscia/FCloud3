@@ -291,6 +291,17 @@ export class Api{
             if(res.success){
                 return true;
             }
+        },
+        delete:async(dirId:number)=>{
+            const resp = await this.httpClient.request(
+                "/api/FileDir/Delete",
+                "get",
+                {dirId},
+                "成功删除"
+            );
+            if(resp.success){
+                return true;
+            }
         }
     }
     quickSearch = {

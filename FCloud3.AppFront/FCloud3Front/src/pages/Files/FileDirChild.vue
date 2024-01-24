@@ -9,6 +9,7 @@ import Functions from '../../components/Functions.vue';
 import Loading from '../../components/Loading.vue';
 import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki } from '../../models/files/fileDir';
 import { IndexQuery, IndexResult, unlimitedIndexQueryDefault } from '../../components/Index';
+import { Api } from '../../utils/api';
 
 const router = useRouter();
 
@@ -19,6 +20,12 @@ function jumpToSubDir(name:string){
 }
 function isEmptyDir(){
     return items.value.length==0 && subDirs.value.length==0 && wikis.value.length==0;
+}
+async function deleteDir(dirId:number){
+    const resp = await api.fileDir.delete(dirId);
+    if(resp){
+        await loadData();
+    }
 }
 
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
@@ -74,6 +81,7 @@ const props = defineProps<{
 //const data = ref<FileDirIndexResult>();
 const showLoading = ref<boolean>(false);
 var clip:Ref<InstanceType<typeof ClipBoard>>
+var api:Api;
 
 async function loadData(){
     var path = _.filter(props.path, x=>!!x)
@@ -92,6 +100,7 @@ async function loadData(){
 
 onMounted(async()=>{
     clip = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
+    api = inject('api') as Api;
     await loadData();
 })
 function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
@@ -115,7 +124,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                     <div class="subdirName" @click="jumpToSubDir(subdir.UrlPathName)">{{ subdir.Name }}</div>
                     <Functions :entry-size="20" x-align="left">
                         <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>
-                        <button class="danger">删除</button>
+                        <button class="danger" @click="deleteDir(subdir.Id)">删除</button>
                     </Functions>
                 </div>
                 <div>
