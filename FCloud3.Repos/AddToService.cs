@@ -15,6 +15,8 @@ namespace FCloud3.Repos
             services.AddDb();
 
             services.AddScoped<UserRepo>();
+            services.AddScoped<UserToGroupRepo>();
+            services.AddScoped<UserGroupRepo>();
 
             services.AddScoped<WikiItemRepo>();
             services.AddScoped<WikiToDirRepo>();

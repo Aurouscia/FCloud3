@@ -13,7 +13,7 @@ var httpClient:HttpClient;
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
 async function Login(){
-    const token = await api.identites.login({
+    const token = await api.identites.authen.login({
         userName:userName.value,
         password:password.value
     })
@@ -61,8 +61,8 @@ onMounted(async()=>{
                 </td>
             </tr>
         </table>
-        <div>
-            <button @click="Login" class="login">登&nbsp;录</button>
+        <div class="login">
+            <button @click="Login" class="confirm">登&nbsp;录</button>
         </div>
     </div>
     <div class="loginInfo" v-if="identityInfo">
@@ -86,15 +86,9 @@ td{
 input{
     background-color: #eee;
 }
-button.login{
-    background-color: cornflowerblue;
-    margin: auto;
-    font-size: large;
-    color:white;
-    padding: 5px;
-    padding-bottom: 6px;
+.login{
     display: flex;
-    align-items: center;
+    justify-content: center;
 }
 button.logout{
     background-color: gray;

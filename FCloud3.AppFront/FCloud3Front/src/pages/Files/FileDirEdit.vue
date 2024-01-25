@@ -84,7 +84,7 @@ onMounted(async()=>{
             <h2>编辑内容</h2>
             <SwitchingTabs :texts="['移入词条','新建词条','上传文件']">
                 <div>
-                    <Search ref="moveSearch" :placeholder="'词条标题'" :allow-free-input="false"
+                    <Search ref="moveSearch" :source="api.utils.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
                         :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
                     <Notice type="info">移入词条将不会影响词条在其他文件夹的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
                 </div>

@@ -20,7 +20,7 @@
   <div class="right">
     <div class="topbar-item">
       <div>
-        <RouterLink to="/User/Login">登录</RouterLink>
+        <RouterLink to="/Login">登录</RouterLink>
       </div>
     </div>
     <div class="topbar-item">
@@ -37,7 +37,7 @@
   position: fixed;
   top:0px;
   left:0px;
-  height: 50px;
+  height: var(--top-bar-height);
   width: calc(100vw - 20px);
   padding-right: 20px;
   overflow: visible;

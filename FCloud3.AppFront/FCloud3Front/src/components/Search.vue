@@ -6,7 +6,8 @@ import { QuickSearchResult, QuickSearchResultItem } from '../models/sys/quickSea
 const props = defineProps<{
     placeholder?:string,
     allowFreeInput?:boolean|undefined,
-    noResultNotice?:string
+    noResultNotice?:string,
+    source:(s:string)=>Promise<QuickSearchResult|undefined>
 }>()
 
 const doneBtnStatus = ref<boolean>(false);
@@ -30,7 +31,7 @@ function refreshCand(){
     window.clearTimeout(timer);
     timer = window.setTimeout(async()=>{
         emits('stopInput',searching.value);
-        cands.value = await api.quickSearch.wikiItem(searching.value);
+        cands.value = await props.source(searching.value);
     },delay)
 }
 function clickCand(c:QuickSearchResultItem){
@@ -128,7 +129,7 @@ onMounted(()=>{
     flex-grow: 1;
     padding: 4px;
     margin:0px;
-    height: 18.5px;
+    height: 19px;
     display: block;
 }
 .write{

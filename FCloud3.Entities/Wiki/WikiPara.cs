@@ -36,8 +36,8 @@ namespace FCloud3.Entities.Wiki
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
 
-        public int RelationMainId() => WikiItemId;
-        public int RelationSubId() => ObjectId;
+        public int RelationMainId => WikiItemId;
+        public int RelationSubId => ObjectId;
     }
 
     public enum WikiParaType

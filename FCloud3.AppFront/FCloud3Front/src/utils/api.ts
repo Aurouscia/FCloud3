@@ -10,6 +10,7 @@ import { StagingFile } from "../models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
 import {QuickSearchResult} from '../models/sys/quickSearch';
+import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
 
 export class Api{
     private httpClient: HttpClient;
@@ -17,51 +18,141 @@ export class Api{
         this.httpClient = httpClient;
     }
     identites = {
-        login: async(reqObj:{userName:string,password:string})=>{
-            var res = await this.httpClient.request(
-                "/api/Auth/Login",
-                "postForm",
-                reqObj,
-                "已成功登录");
-            if(res.success){
-                return res.data["token"] as string;
+        authen:{
+            login: async(reqObj:{userName:string,password:string})=>{
+                var res = await this.httpClient.request(
+                    "/api/Auth/Login",
+                    "postForm",
+                    reqObj,
+                    "已成功登录");
+                if(res.success){
+                    return res.data["token"] as string;
+                }
+            },
+            identityTest: async()=>{
+                var res = await this.httpClient.request(
+                    "/api/Auth/IdentityTest",
+                    "get")
+                if(res.success){
+                    return res.data as IdentityInfo
+                }
+            },
+        },
+        user:{
+            edit: async()=>{
+                var res = await this.httpClient.request(
+                    "/api/User/Edit",
+                    "get")
+                if(res.success){
+                    return res.data as User
+                }
+            },
+            editExe: async(user:User)=>{
+                var res = await this.httpClient.request(
+                    "/api/User/EditExe",
+                    "postRaw",
+                    user,
+                    "修改成功")
+                if(res.success){
+                    return true
+                }
+            },
+            getInfoByName: async(name:string)=>{
+                var res = await this.httpClient.request(
+                    "/api/User/GetInfoByName",
+                    "get",
+                    {name:name}
+                )
+                if(res.success){
+                    return res.data as User
+                }
             }
         },
-        identityTest: async()=>{
-            var res = await this.httpClient.request(
-                "/api/Auth/IdentityTest",
-                "get")
-            if(res.success){
-                return res.data as IdentityInfo
-            }
-        },
-        edit: async()=>{
-            var res = await this.httpClient.request(
-                "/api/User/Edit",
-                "get")
-            if(res.success){
-                return res.data as User
-            }
-        },
-        editExe: async(user:User)=>{
-            var res = await this.httpClient.request(
-                "/api/User/EditExe",
-                "postRaw",
-                user,
-                "修改成功")
-            if(res.success){
-                return true
-            }
-        },
-        getInfoByName: async(name:string)=>{
-            var res = await this.httpClient.request(
-                "/api/User/GetInfoByName",
-                "get",
-                {name:name}
-            )
-            if(res.success){
-                return res.data as User
-            }
+        userGroup:{
+            getList:async(search?:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/GetList",
+                    "get",
+                    {search:search||null}
+                )
+                if(resp.success){
+                    return resp.data as UserGroupListResult
+                }
+            },
+            getDetail:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/GetDetail",
+                    "get",
+                    {id}
+                )
+                if(resp.success){
+                    return resp.data as UserGroupDetailResult
+                }
+            },
+            edit:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/Edit",
+                    "get",
+                    {id}
+                )
+                if(resp.success){
+                    return resp.data as UserGroup
+                }
+            },
+            editExe:async(data:UserGroup)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/EditExe",
+                    "postRaw",
+                    data,
+                    "保存成功"
+                )
+                return resp.success;
+            },
+            addUserToGroup:async(userId:number,groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/AddUserToGroup",
+                    "get",
+                    {userId,groupId},
+                    "成功邀请"
+                )
+                return resp.success
+            },
+            answerInvitation:async(groupId:number,accept:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/AnswerInvitation",
+                    "get",
+                    {groupId,accept},
+                    "操作成功"
+                )
+                return resp.success
+            },
+            removeUserFromGroup:async(userId:number,groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/RemoveUserFromGroup",
+                    "get",
+                    {userId,groupId},
+                    "操作成功"
+                )
+                return resp.success
+            },
+            leave:async(groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/Leave",
+                    "get",
+                    {groupId},
+                    "操作成功"
+                )
+                return resp.success
+            },
+            dissolve:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/Dissolve",
+                    "get",
+                    {id},
+                    "操作成功"
+                )
+                return resp.success
+            },
         }
     }
     wiki = {
@@ -304,19 +395,29 @@ export class Api{
             }
         }
     }
-    quickSearch = {
-        wikiItem:async(s:string)=>{
-            const res = await this.httpClient.request(
-                "/api/QuickSearch/WikiItem",
-                "get",
-                {s}
-            )
-            if(res.success){
-                return res.data as QuickSearchResult;
-            }
-        }
-    }
     utils = {
+        quickSearch:{
+            wikiItem:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/WikiItem",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
+            userName:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/UserName",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            }
+        },
         urlPathName:async(input:string)=>{
             const resp = await this.httpClient.request(
                 "/api/Utils/UrlPathName",

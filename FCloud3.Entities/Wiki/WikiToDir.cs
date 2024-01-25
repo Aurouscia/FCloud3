@@ -19,7 +19,7 @@ namespace FCloud3.Entities.Wiki
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
 
-        public int RelationMainId() => DirId;
-        public int RelationSubId() => WikiId;
+        public int RelationMainId => DirId;
+        public int RelationSubId=> WikiId;
     }
 }

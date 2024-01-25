@@ -66,7 +66,7 @@ namespace FCloud3.App.Controllers.Identities
             public int Id { get; set; }
             public string? Name { get; set; }
             public string? Pwd { get; set; }
-            public string? AvatarFileName { get; set; }
+            public int AvatarMaterialId { get; set; }
 
             public static UserComModel ExcludePwd(User u)
             {
@@ -74,7 +74,7 @@ namespace FCloud3.App.Controllers.Identities
                 {
                     Id = u.Id,
                     Name = u.Name,
-                    AvatarFileName = u.AvatarFileName
+                    AvatarMaterialId = u.AvatarMaterialId
                 };
             }
         }

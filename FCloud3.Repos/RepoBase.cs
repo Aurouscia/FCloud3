@@ -264,5 +264,18 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             return true;
         }
+        public virtual bool TryRemovePermanent(T item, out string? errmsg) 
+        {
+            if (item is null)
+            {
+                errmsg = $"试图向数据库删除空{nameof(T)}对象";
+                return false;
+            }
+            if (!TryRemoveCheck(item, out errmsg))
+                return false;
+            _context.Remove(item);
+            _context.SaveChanges();
+            return true;
+        }
     }
 }

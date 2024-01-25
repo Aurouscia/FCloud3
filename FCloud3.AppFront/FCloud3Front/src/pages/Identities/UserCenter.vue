@@ -7,27 +7,23 @@ import IndexWikiItem from '../../components/Index/IndexWikiItem.vue'
 import { User } from '../../models/identities/user';
 import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { IdentityInfo, IdentityInfoProvider } from '../../utils/userInfo';
+import { IdentityInfoProvider } from '../../utils/userInfo';
 
 const props = defineProps<{
     username?:string
 }>();
 const user = ref<User>();
 var api:Api;
-var iden:IdentityInfo
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
 onMounted(async()=>{
     api = inject('api') as Api;
     var username = props.username;
     if(!username){
-        iden = await (inject('userInfo') as IdentityInfoProvider).getIdentityInfo();
+        const iden = await (inject('userInfo') as IdentityInfoProvider).getIdentityInfo();
         username = iden.Name
     }
-    if(iden.Id==0){
-        return;
-    }
-    user.value = await api.identites.getInfoByName(username);
+    user.value = await api.identites.user.getInfoByName(username);
     if(user.value){
         ok.value = true;
     }
@@ -38,7 +34,7 @@ onMounted(async()=>{
     <div v-if="ok" class="user">
         <div class="info">
             <img src="/vite.svg"/>
-            <div class="username">{{ props.username }}</div>
+            <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
             <div class="settings"><button @click="editInfoSidebar?.extend">编辑信息</button></div>
         </div>

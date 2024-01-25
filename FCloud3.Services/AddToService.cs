@@ -12,6 +12,7 @@ namespace FCloud3.Services
         public static IServiceCollection AddFCloudServices(this IServiceCollection services)
         {
             services.AddScoped<UserService>();
+            services.AddScoped<UserGroupService>();
             services.AddScoped<WikiItemService>();
             services.AddScoped<TextSectionService>();
             services.AddScoped<IFileItemService, OssFileItemService>();

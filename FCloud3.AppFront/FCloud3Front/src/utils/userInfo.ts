@@ -24,7 +24,7 @@ export class IdentityInfoProvider{
         if(now - this.update < 600000){
             return this.cache;
         }
-        const res = await this.api.identites.identityTest()
+        const res = await this.api.identites.authen.identityTest()
         if (res) {
             const data: IdentityInfo = res;
             this.update = new Date().getTime();

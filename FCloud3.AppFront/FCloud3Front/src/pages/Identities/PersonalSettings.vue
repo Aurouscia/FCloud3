@@ -11,7 +11,7 @@ var pop:Ref<InstanceType<typeof Pop>>
 async function editUserInfo(){
     if(user.value){
         if(user.value.Name){
-            await api.identites.editExe(user.value);
+            await api.identites.user.editExe(user.value);
         }
         else{
             pop.value.show("请填写用户名","failed");
@@ -22,7 +22,7 @@ async function editUserInfo(){
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
-    const userInfo = await api.identites.edit()
+    const userInfo = await api.identites.user.edit()
     if(userInfo){
         user.value = userInfo;
     }

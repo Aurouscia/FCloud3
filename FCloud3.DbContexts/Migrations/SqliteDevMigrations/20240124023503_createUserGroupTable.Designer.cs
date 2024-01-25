@@ -3,6 +3,7 @@ using System;
 using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
 {
     [DbContext(typeof(FCloudSqliteDevContext))]
-    partial class FCloudSqliteDevContextModelSnapshot : ModelSnapshot
+    [Migration("20240124023503_createUserGroupTable")]
+    partial class createUserGroupTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
@@ -104,8 +107,8 @@ namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("AvatarMaterialId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("AvatarFileName")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("TEXT");
@@ -120,7 +123,7 @@ namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PwdEncrypted")
+                    b.Property<string>("PwdMd5")
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
@@ -184,9 +187,6 @@ namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("ShowLabel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Type")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Updated")

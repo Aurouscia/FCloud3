@@ -5,7 +5,7 @@
 
 .main {
   margin: auto;
-  margin-top: 70px;
+  margin-top: var(--main-div-margin-top);
   width: calc(100% - 40px);
   max-width: 1000px;
   overflow-x: auto;
@@ -24,6 +24,7 @@ table td {
 table th{
   background-color: cornflowerblue;
   color:white;
+  padding: 5px;
 }
 table tr.noneBackground td{
   background:none;
@@ -135,4 +136,9 @@ a{
 a:hover{
   color:black;
   text-decoration: underline;
+}
+
+:root{
+  --top-bar-height:50px;
+  --main-div-margin-top:70px;
 }

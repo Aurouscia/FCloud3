@@ -52,7 +52,7 @@ namespace FCloud3.App.Services
         {
             public string? Hash(string? input)
             {
-                return MD5Helper.GetMD5Of(input);
+                return MD5Helper.GetMD5Of($"locHash_{input}");
             }
         }
     }

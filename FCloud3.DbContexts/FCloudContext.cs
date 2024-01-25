@@ -9,6 +9,8 @@ namespace FCloud3.DbContexts
     public class FCloudContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<UserToGroup> UserToGroups { get; set; }
         public DbSet<WikiItem> WikiItems { get; set; }
         public DbSet<WikiToDir> WikiToDirs { get; set; }
         public DbSet<WikiPara> WikiParas { get; set; }

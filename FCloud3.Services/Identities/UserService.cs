@@ -62,7 +62,7 @@ namespace FCloud3.Services.Identities
             User u = new()
             {
                 Name = name,
-                PwdMd5 = MD5Helper.GetMD5Of(pwd)
+                PwdEncrypted = MD5Helper.GetMD5Of(pwd)
             };
 
             if (!_repo.TryAdd(u,out errmsg))
@@ -79,7 +79,7 @@ namespace FCloud3.Services.Identities
 
             u.Name = name;
             if (!string.IsNullOrEmpty(pwd))
-                u.PwdMd5 = MD5Helper.GetMD5Of(pwd);
+                u.PwdEncrypted = MD5Helper.GetMD5Of(pwd);
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;

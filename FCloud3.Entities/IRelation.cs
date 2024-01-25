@@ -9,8 +9,8 @@ namespace FCloud3.Entities
 {
     public interface IRelation
     {
-        public int RelationMainId();
-        public int RelationSubId();
+        public int RelationMainId { get; }
+        public int RelationSubId { get; }
         public int Order { get; set; }
     }
 

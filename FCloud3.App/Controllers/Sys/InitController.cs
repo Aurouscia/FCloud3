@@ -1,4 +1,5 @@
-﻿using FCloud3.DbContexts;
+﻿using FCloud3.App.Services;
+using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
@@ -46,14 +47,49 @@ namespace FCloud3.App.Controllers.Sys
         public IActionResult InitUsers()
         {
             bool anyUsers = _context.Users.Any();
+            bool anyGroups = _context.UserGroups.Any();
             if (!anyUsers)
             {
-                User u = new User()
+                User u1 = new User()
                 {
                     Name = "user1",
-                    PwdMd5 = MD5Helper.GetMD5Of("123456")
+                    PwdEncrypted = new UserPwdEncryption().Run("user1")
                 };
-                _context.Users.Add(u);
+                User u2 = new User()
+                {
+                    Name = "user2",
+                    PwdEncrypted = new UserPwdEncryption().Run("user2")
+                };
+                User u3 = new User()
+                {
+                    Name = "user3",
+                    PwdEncrypted = new UserPwdEncryption().Run("user3")
+                };
+                _context.Users.AddRange(u1,u2,u3);
+                _context.SaveChanges();
+                UserGroup g1 = new UserGroup()
+                {
+                    Name = "群组1",
+                    OwnerUserId = u1.Id,
+                };
+                UserGroup g2 = new UserGroup()
+                {
+                    Name = "群组2",
+                    OwnerUserId = u2.Id,
+                };
+                _context.UserGroups.AddRange(g1, g2);
+                _context.SaveChanges();
+                UserToGroup r1 = new UserToGroup()
+                {
+                    GroupId = g1.Id,
+                    UserId = u1.Id
+                };
+                UserToGroup r2 = new UserToGroup()
+                {
+                    GroupId = g2.Id,
+                    UserId = u2.Id
+                };
+                _context.UserToGroups.AddRange(r1, r2);
                 _context.SaveChanges();
             }
             return this.ApiResp();

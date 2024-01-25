@@ -16,5 +16,10 @@ namespace FCloud3.App.Controllers.Sys
             var res = _quickSearchService.SearchWikiItem(s);
             return this.ApiResp(res);
         }
+        public IActionResult UserName(string s)
+        {
+            var res = _quickSearchService.SearchUser(s);
+            return this.ApiResp(res);
+        }
     }
 }
