@@ -17,6 +17,10 @@ namespace FCloud3.Repos.Wiki
                 .Where(x => x.Title != null && x.Title.Contains(str))
                 .OrderBy(x => x.Updated);//可能要按什么别的办法排序
         }
+        public IQueryable<WikiItem> GetByUrlPathName(string urlPathName)
+        {
+            return Existing.Where(x => x.UrlPathName == urlPathName);
+        }
 
         public override bool TryAddCheck(WikiItem item, out string? errmsg)
         {
@@ -31,7 +35,7 @@ namespace FCloud3.Repos.Wiki
             errmsg = null;
             if (string.IsNullOrWhiteSpace(item.Title))
             {
-                errmsg = "词条名称不能为空";
+                errmsg = "词条标题不能为空";
                 return false;
             }
             if (string.IsNullOrWhiteSpace(item.UrlPathName))

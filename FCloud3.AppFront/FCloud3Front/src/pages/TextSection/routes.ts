@@ -1,6 +1,6 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import textParaEditor from "./textSectionEditor.vue"
+import textParaEditor from "./TextSectionEditor.vue"
 
 export function addTextSection(r:Router){
     addToRouter(r,routes);

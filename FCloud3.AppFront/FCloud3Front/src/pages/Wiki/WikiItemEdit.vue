@@ -6,8 +6,13 @@ import { MouseDragListener } from '../../utils/mouseDrag';
 import Functions from '../../components/Functions.vue';
 import { useRouter } from 'vue-router';
 import { Api } from '../../utils/api';
-import addIconSrc from '../../assets/add.png';
+import addIconSrc from '../../assets/add.svg';
 import dragYIconSrc from '../../assets/dragY.svg';
+import { WikiItem } from '../../models/wiki/wikiItem';
+import { watchWindowWidth } from '../../utils/windowSizeWatcher';
+import SwitchingTabs from '../../components/SwitchingTabs.vue';
+import Loading from '../../components/Loading.vue';
+import Notice from '../../components/Notice.vue';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -15,10 +20,9 @@ const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
 
-//临时测试用
-const props = {
-    wikiId:1
-}
+const props = defineProps<{
+    urlPathName:string
+}>();
 
 function order2PosY(order:number){
     return order*paraYSpace+30;
@@ -58,7 +62,7 @@ var originalOrder:string;
 async function endMoving(){
     const p = paras.value.find(x=>x.isMoveing);
     const others = paras.value.filter(x=>!x.isMoveing);
-    if(p){
+    if(p && info.value){
         const pposY = order2PosY(p.Order) + offsetY;
         const pOrder = posY2order(pposY);
         p.Order = pOrder;
@@ -79,7 +83,7 @@ async function endMoving(){
         if(!originalOrder || newOrder!=originalOrder){
             originalOrder = newOrder;
             const resp = await api.wiki.setParaOrders({
-                id:props.wikiId,
+                id:info.value.Id,
                 orderedParaIds:ids
             })
             setTimeout(()=>{
@@ -89,8 +93,9 @@ async function endMoving(){
     }
 }
 async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
+    if(!info.value){return;}
     const resp = await api.wiki.insertPara({
-        id:props.wikiId,
+        id:info.value.Id,
         afterOrder,
         type
     })
@@ -113,10 +118,10 @@ async function EnterEdit(paraId:number)
 }
 async function RemovePara(paraId:number){
     const target = paras.value.find(x=>x.ParaId == paraId);
-    if(!target){return;}
+    if(!target || !info.value){return;}
     if(window.confirm(`确定要将[${target.Title}]从本词条移除`)){
         const resp = await api.wiki.removePara({
-            id:props.wikiId,
+            id:info.value.Id,
             paraId:paraId,
         });
         refresh(resp);
@@ -124,9 +129,14 @@ async function RemovePara(paraId:number){
 }
 
 async function Load(){
-    const resp = await api.wiki.loadSimple(props.wikiId);
-    originalOrder = JSON.stringify(resp?.map(x=>x.ParaId))
-    refresh(resp);
+    const infoResp = await api.wiki.edit(props.urlPathName)
+    if(!infoResp){
+        return;
+    }
+    info.value = infoResp;
+    const parasResp = await api.wiki.loadSimple(info.value.Id);
+    originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
+    refresh(parasResp);
 }
 async function refresh(p:WikiPara[]|undefined) {
     if(p){
@@ -136,25 +146,64 @@ async function refresh(p:WikiPara[]|undefined) {
     }
     calculatePosY();
 }
+const info = ref<WikiItem>();
+async function autoUrlName(){
+    if(!info.value || !info.value.Title){
+        return;
+    }
+    const res = await api.utils.urlPathName(info.value?.Title)
+    if(res){
+        info.value.UrlPathName = res;
+    }
+}
+async function saveInfoEdit(){
+    if(!info.value){return;}
+    const resp = await api.wiki.editExe(info.value);
+    if(resp){
+        if(props.urlPathName != info.value.UrlPathName){
+            router.replace({name:'wikiEdit',params:{urlPathName:info.value.UrlPathName}})
+        }
+    }
+}
 
 var offsetY = 0;
 var moving:boolean = false;
-var disposeListeners:()=>void|undefined;
-onMounted(async()=>{
-    api = inject('api') as Api;
-    await Load();
-
+var wide = ref<boolean>(false);
+var disposeMouseListener:()=>void|undefined;
+var disposeResizeListener:()=>void|undefined;
+function initLisenters(){
+    console.log('注册侦听器')
     const mouse = new MouseDragListener();
-    disposeListeners = mouse.startListen(
-        (_,y)=>{
+    disposeMouseListener = mouse.startListen(
+        (_x,y)=>{
             offsetY = y;
             calculateOrderForMoving();
         },
-        (_, __)=>{
+        (_x, _y)=>{
             endMoving();
         },
         ()=>moving
     );
+    disposeResizeListener = watchWindowWidth((width)=>{
+        wide.value = width>700;
+    })
+}
+function disposeListeners(){
+    console.log('丢弃侦听器')
+    disposeMouseListener();
+    disposeResizeListener();
+}
+function tabSwitched(idx:number){
+    if(idx==0){
+        initLisenters();
+    }else{
+        disposeListeners();
+    }
+}
+onMounted(async()=>{
+    api = inject('api') as Api;
+    await Load();
+    //initLisenters();
 })
 onUnmounted(()=>{
     disposeListeners();
@@ -162,8 +211,10 @@ onUnmounted(()=>{
 </script>
 
 <template>
+    <h1>{{ info?.Title }}</h1>
+    <SwitchingTabs :texts="['编辑内容','基础信息']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
-        <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
+        <div v-if="paras" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <div class="paraTitle">
                 <h2>{{ p.Title }}</h2>
@@ -172,26 +223,65 @@ onUnmounted(()=>{
             </div>
             <div class="paraContent">{{ p.Content }}</div>
             <div class="paraBottom">
-                <Functions x-align="right">
+                <Functions x-align="right" :entry-size="30">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
                     <button>指定已有</button>
                     <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
                 </Functions>
             </div>
         </div>
-        <div v-for="_,idx in spaces">
+        <div v-if="paras" v-for="_,idx in spaces">
             <div class="btnsBetweenPara">
-                <Functions :img-src="addIconSrc">
+                <Functions :img-src="addIconSrc" :entry-size="30">
                     <button @click="InsertPara(0,idx - 1)">文本</button>
                     <button @click="InsertPara(1,idx - 1)">文件</button>
                     <button @click="InsertPara(2,idx - 1)">表格</button>
                 </Functions>
             </div>
         </div>
+        <Loading v-else></Loading>
     </div>
+    <div>
+        <h1>基础信息</h1>
+        <div class="wikiInfo" v-if="info">
+            <table>
+                <tr>
+                    <td>词条标题</td>
+                    <td>
+                        <input v-model="info.Title"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>词条链接名</td>
+                    <td>
+                        <button @click="autoUrlName" class="minor">由词条标题生成</button><br/>
+                        <input v-model="info.UrlPathName"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button class="confirm" @click="saveInfoEdit">确认</button>
+                    </td>
+                </tr>
+            </table>
+            <div :style="{maxWidth:'300px'}">
+                <Notice :type="'warn'" >
+                    修改链接名称将导致已分享的词条查看链接失效，请谨慎操作。<br/>
+                </Notice>
+            </div>
+        </div>
+        <Loading v-else></Loading>
+    </div>
+    </SwitchingTabs>
 </template>
 
 <style scoped>
+.wikiInfo>*{
+    margin: 0px auto 0px auto;
+}
+
+
+
 .btnsBetweenPara{
     display: flex;
     height: 60px;
@@ -203,8 +293,9 @@ onUnmounted(()=>{
 .paras {
     min-width: 100%;
     max-width: 600px;
-    min-height:1000px;
-    padding-bottom: 300px;
+    max-height: calc(100vh - var(--main-div-margin-top) - 220px);
+    overflow-y: auto;
+    padding-bottom: 100px;
     position: relative;
     background-color: white;
 }
@@ -244,9 +335,9 @@ onUnmounted(()=>{
     height: 30px
 }
 .dragY{
-    width: 44px;
+    width: 30px;
     height: 30px;
     object-fit: contain;
     cursor: pointer;
 }
-</style>../../models/wiki/wikiPara
+</style>

@@ -8,7 +8,9 @@ export function addWiki(r:Router){
 
 const routes = [
     {
-        path:"/Wiki/EditInfo",
-        component:editInfo
+        path:"/w/Edit/:urlPathName",
+        component:editInfo,
+        props:true,
+        name:"wikiEdit"
     }
 ]

@@ -9,8 +9,9 @@ import { IdentityInfo } from "./userInfo";
 import { StagingFile } from "../models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
-import {QuickSearchResult} from '../models/sys/quickSearch';
+import { QuickSearchResult } from '../models/sys/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
+import { WikiItem } from '../models/wiki/wikiItem';
 
 export class Api{
     private httpClient: HttpClient;
@@ -156,9 +157,25 @@ export class Api{
         }
     }
     wiki = {
-        create: undefined,
-        edit:undefined,
-        editExe:undefined,
+        edit: async(urlPathName:string)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/Edit",
+                "get",
+                {urlPathName}
+            )
+            if(res.success){
+                return res.data as WikiItem
+            }
+        },
+        editExe: async(data:WikiItem)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/EditExe",
+                "postRaw",
+                data,
+                "保存成功"
+            )
+            return res.success
+        },
         loadSimple: async(id:number)=>{
             const res = await this.httpClient.request(
                 "/api/WikiItem/LoadSimple",

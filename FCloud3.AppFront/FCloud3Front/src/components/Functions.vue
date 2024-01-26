@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import menuIconSrc from '../assets/menu.png';
+import menuIconSrc from '../assets/menu.svg';
 import {CSSProperties, ref} from 'vue';
 const show = ref<boolean>(false);
 const opaque = ref<boolean>(false);
@@ -10,20 +10,21 @@ const props = defineProps<{
     leaveKeep?:boolean|undefined
 }>();
 const entrySizeDefault = 20;
+const entrySize = props.entrySize||entrySizeDefault;
 
 var btnsXStyle:CSSProperties;
 if(props.xAlign=="left"){btnsXStyle={left:"0px"}}
 else if(props.xAlign=="right"){btnsXStyle={right:"0px"}}
-else{btnsXStyle={right:"-40px"}}
-btnsXStyle.top=props.entrySize+'px'
+else{btnsXStyle={right:(-46+entrySize/2)+'px'}}
+btnsXStyle.top=(entrySize)+'px'
 
 var outerStyle:CSSProperties = {
-    width:(props.entrySize||entrySizeDefault)+'px',
-    height:(props.entrySize||entrySizeDefault)+'px'
+    width:(entrySize)+'px',
+    height:(entrySize)+'px'
 }
 var entryStyle:CSSProperties = {
-    width:(props.entrySize||entrySizeDefault)-2+'px',
-    height:(props.entrySize||entrySizeDefault)-2+'px'
+    width:(entrySize)-2+'px',
+    height:(entrySize)-2+'px'
 }
 
 function toggleShow(){

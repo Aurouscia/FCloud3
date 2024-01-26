@@ -1,4 +1,5 @@
-﻿using FCloud3.DbContexts;
+﻿using Aliyun.OSS;
+using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Entities.Wiki.Paragraph;
@@ -108,8 +109,16 @@ namespace FCloud3.Services.Wiki
                 itsParas.EnsureOrderDense();
                 var moveBackwards = itsParas.FindAll(x => x.Order > afterOrder);
                 moveBackwards.ForEach(x => x.Order++);
-                if (!BuildPara(wikiId, type, afterOrder + 1, out msg))
+
+                WikiPara p = new()
+                {
+                    WikiItemId = wikiId,
+                    Order = afterOrder+1,
+                    Type = type
+                };
+                if(!_paraRepo.TryAdd(p, out msg))
                     return false;
+
                 if (!_paraRepo.TryEditRange(itsParas, out msg))
                     return false;
                 success = true;
@@ -143,30 +152,11 @@ namespace FCloud3.Services.Wiki
                 return false;
             return true;
         }
-
-        public bool CreateInDir(string title,string urlPathName,int dirId, out string? errmsg)
-        {
-            var newWiki = new WikiItem()
-            {
-                Title = title,
-                UrlPathName = urlPathName,
-            };
-            int id = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
-            if (id > 0)
-            {
-                return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
-            }
-            return false;
-        }
-        public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
-        {
-            return _wikiToDirRepo.RemoveWikisFromDir(new() { wikiId}, dirId, out errmsg);
-        }
-        public bool TryRemovePara(int id, int paraId, out string? errmsg)
+        public bool RemovePara(int id, int paraId, out string? errmsg)
         {
             var paras = GetWikiParas(id);
             var target = paras.Find(x => x.Id == paraId);
-            if(target is null)
+            if (target is null)
             {
                 errmsg = "未找到指定Id的目标段落";
                 return false;
@@ -186,28 +176,59 @@ namespace FCloud3.Services.Wiki
             return success;
         }
 
-        private bool BuildPara(int wikiId, WikiParaType type, int order, out string? errmsg)
+        public bool CreateInDir(string title,string urlPathName,int dirId, out string? errmsg)
         {
-            WikiPara p = new()
+            var newWiki = new WikiItem()
             {
-                WikiItemId = wikiId,
-                Order = order,
-                Type = type
+                Title = title,
+                UrlPathName = urlPathName,
             };
-            return _paraRepo.TryAdd(p, out errmsg);
+            int id = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
+            if (id > 0)
+            {
+                return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
+            }
+            return false;
         }
-    }
-
-    public class WikiItemIndexItem
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Update { get; set; }
-        public WikiItemIndexItem(WikiItem w)
+        public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
         {
-            Id = w.Id;
-            Title = w.Title??"";
-            Update = w.Updated.ToString("yy/MM/dd HH:mm");
+            return _wikiToDirRepo.RemoveWikisFromDir(new() { wikiId}, dirId, out errmsg);
+        }
+        public WikiItem? GetInfo(string urlPathName, out string? errmsg)
+        {
+            var res = _wikiRepo.GetByUrlPathName(urlPathName).FirstOrDefault();
+            if(res is null)
+            {
+                errmsg = "未找到指定路径名的词条";
+                return null;
+            }
+            errmsg = null;
+            return res;
+        }
+        public bool EditInfo(int id, string? title,string? urlPathName, out string? errmsg)
+        {
+            var target = _wikiRepo.GetById(id);
+            if (target is null)
+            {
+                errmsg = "未找到指定路径名的词条";
+                return false;
+            }
+            target.Title = title;
+            target.UrlPathName = urlPathName;
+            return _wikiRepo.TryEdit(target, out errmsg);
+        }
+
+        public class WikiItemIndexItem
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string Update { get; set; }
+            public WikiItemIndexItem(WikiItem w)
+            {
+                Id = w.Id;
+                Title = w.Title ?? "";
+                Update = w.Updated.ToString("yy/MM/dd HH:mm");
+            }
         }
     }
 }

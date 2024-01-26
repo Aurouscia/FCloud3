@@ -18,7 +18,11 @@ function switchTo(idx:number){
         }
         counter++;
     }
+    emit('switch',idx);
 }
+const emit = defineEmits<{
+    (e:'switch',idx:number):void
+}>();
 var tabs:HTMLCollection;
 const tabsContainer = ref<HTMLDivElement>();
 onMounted(async ()=>{
