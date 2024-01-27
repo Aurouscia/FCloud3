@@ -52,6 +52,9 @@ export class HttpClient{
     async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
         console.log(`开始发送[${type}]=>[${resource}]`,data)
         var res;
+        var timer = setTimeout(()=>{
+            this.httpCallBack("warn","请稍等")
+        },800)
         try{
             if(type=='get'){
                 res = await this.ax.get(
@@ -77,8 +80,10 @@ export class HttpClient{
                     }
                 );
             }
+            clearTimeout(timer);
         }
         catch(ex){
+            clearTimeout(timer);
             const err = ex as AxiosError;
             console.log(`[${type}]${resource}失败`,err)
             this.showErrToUser(err);

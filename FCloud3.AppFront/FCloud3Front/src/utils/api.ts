@@ -246,6 +246,17 @@ export class Api{
                 return true;
             }
             return false;
+        },
+        para:{
+            setFileParaFileId:async(paraId:number,fileId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiPara/SetFileParaFileId",
+                    "get",
+                    {paraId,fileId},
+                    "成功为段落设置文件"
+                )
+                return resp.success
+            }
         }
     }
     textSection = {
@@ -433,7 +444,17 @@ export class Api{
                 if(res.success){
                     return res.data as QuickSearchResult;
                 }
-            }
+            },
+            fileItem:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/FileItem",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
         },
         urlPathName:async(input:string)=>{
             const resp = await this.httpClient.request(

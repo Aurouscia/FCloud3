@@ -286,6 +286,7 @@ th{
     background-color: white;
     position: relative;
     height: 2em;
+    padding: 0px
 }
 th *{
     white-space: nowrap;

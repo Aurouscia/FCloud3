@@ -5,12 +5,14 @@ import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import { Ref,inject, onMounted } from 'vue';
 import Functions from '../../components/Functions.vue';
 import { Api } from '../../utils/api';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
     dirId:number,
     items?: Array<FileDirItem>|undefined,
     wikis?: Array<FileDirWiki>|undefined
 }>()
+const router = useRouter();
 
 var clipBoard:Ref<InstanceType<typeof ClipBoard>>
 var api:Api;
@@ -25,6 +27,9 @@ async function removeWiki(id:number){
     if(!props.dirId){return}
     await api.wiki.removeFromDir(id,props.dirId)
     emit('needRefresh');
+}
+function jumpToWikiEdit(urlPathName:string){
+    router.push({name:'wikiEdit',params:{urlPathName:urlPathName}})
 }
 onMounted(()=>{
     clipBoard = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
@@ -44,7 +49,8 @@ const emit = defineEmits<{
                 <a href="#" >{{ wiki.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
-                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">复制</button>
+                <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>
+                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">移动</button>
                 <button class="cancel" @click="removeWiki(wiki.Id)">移出</button>
             </Functions>
         </div>

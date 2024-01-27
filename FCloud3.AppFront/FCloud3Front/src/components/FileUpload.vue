@@ -7,7 +7,8 @@ import Pop from './Pop.vue';
 import { Api } from '../utils/api';
 
 const props = defineProps<{
-    dist:FileUploadDist
+    dist:FileUploadDist,
+    single?:boolean
 }>();
 
 const fileInput = ref<HTMLInputElement>();
@@ -62,7 +63,7 @@ onMounted(()=>{
 
 <template>
     <div class="fileUpload">
-        <div class="staging">
+        <div class="staging" :class="{single:props.single}">
             <div class="fileItem" v-for="f,i in fileList" :key="f.file.name">
                 <div class="fileIcon" :style="getFileIconStyle(f.file.name)">{{ getFileExt(f.file.name) }}</div>
                 <div class="fileBody">
@@ -82,10 +83,10 @@ onMounted(()=>{
             </div>
         </div>
         <div class="controls">
-            <div class="uploadBtn" @click="fileInput?.showPicker()">
+            <div class="uploadBtn" :class="{disabled:props.single&&fileList.length>=1}" @click="fileInput?.showPicker()">
                 选择文件
             </div>
-            <div class="uploadBtn" @click="dirInput?.showPicker()">
+            <div v-if="!props.single" class="uploadBtn" @click="dirInput?.showPicker()">
                 选择文件夹
             </div>
         </div>
@@ -188,6 +189,10 @@ onMounted(()=>{
     gap:5px;
     position: relative;
 }
+.staging.single{
+    height: 70px;
+    overflow: hidden;
+}
 .staging{
     width: 220px;
     height: 310px;
@@ -201,12 +206,20 @@ onMounted(()=>{
     gap:5px;
     justify-content: center;
     align-items: center;
+    height: 50px;
 }
 .fileUpload{
     display: flex;
     flex-direction: column;
     width: fit-content;
     gap:10px;
+}
+.uploadBtn.disabled{
+    background-color: #999;
+    cursor:not-allowed;
+}
+.uploadBtn.disabled:hover{
+    background-color: #999;
 }
 .uploadBtn{
     background-color: cornflowerblue;

@@ -9,6 +9,10 @@ namespace FCloud3.Repos.Identities
         {
 
         }
+        public IQueryable<User> GetByName(string name)
+        {
+            return Existing.Where(x => x.Name == name);
+        }
         public override bool TryAddCheck(User item, out string? errmsg)
         {
             errmsg = null;

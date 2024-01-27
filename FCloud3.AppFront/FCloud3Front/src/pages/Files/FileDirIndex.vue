@@ -224,12 +224,15 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                     <span @click="jumpToAncestor(idx)">{{ a }}</span>/
                 </div> 
             </div>
-            <div v-if="friendlyPathThisName" class="thisName">
+            <div v-if="thisDirId<0" class="thisName">
+                {{ friendlyPathThisName }}
+            </div>
+            <div v-else-if="friendlyPathThisName && thisDirId>0" class="thisName">
                 {{ friendlyPathThisName }}
                 <img class="settingsBtn" @click="startEditDirInfo" :src='settingsImg'/>
                 <img class="settingsBtn newDirBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
-            <div v-else class="thisName">
+            <div v-else-if="thisDirId==0" class="thisName">
                 根目录
                 <img class="settingsBtn newDirBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>

@@ -32,6 +32,7 @@ function extend(){
             opacity:0.3
         }
     })
+    emit('extend');
 }
 function fold(){
     coverStyle.value = {
@@ -47,8 +48,13 @@ function fold(){
         coverStyle.value = {}
         showing.value = false;
     },500)
+    emit('fold');
 }
 defineExpose({extend,fold})
+const emit = defineEmits<{
+    (e:'extend'):void
+    (e:'fold'):void
+}>()
 </script>
 
 <template>

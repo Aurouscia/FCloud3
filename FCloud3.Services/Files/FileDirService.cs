@@ -3,6 +3,7 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,8 @@ namespace FCloud3.Services.Files
 {
     public class FileDirService
     {
+        private readonly UserRepo _userRepo;
+        private readonly int _userId;
         private readonly FileDirRepo _fileDirRepo;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
@@ -18,6 +21,8 @@ namespace FCloud3.Services.Files
         private readonly IFileItemService _fileItemService;
 
         public FileDirService(
+            UserRepo userRepo,
+            IOperatingUserIdProvider userIdProvider,
             FileDirRepo fileDirRepo,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
@@ -25,6 +30,8 @@ namespace FCloud3.Services.Files
             DbTransactionService transaction,
             IFileItemService fileItemService)
         {
+            _userRepo = userRepo;
+            _userId = userIdProvider.Get();
             _fileDirRepo = fileDirRepo;
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
@@ -40,6 +47,13 @@ namespace FCloud3.Services.Files
 
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
+            if (path.Length == 1 || path.Length == 2)
+            {
+                if (path[0] == homelessItems)
+                {
+                    return GetHomelessItems(q, path, out errmsg);
+                }
+            }
             errmsg = null;
             var chain = _fileDirRepo.GetChainByPath(path);
             if(chain is null) {
@@ -121,6 +135,61 @@ namespace FCloud3.Services.Files
                 FriendlyPath = friendlyPath
             };
         }
+        public FileDirIndexResult? GetHomelessItems(IndexQuery q, string[] path, out string? errmsg)
+        {
+            string? userName = null;
+            if (path.Length == 0 || path.Length > 2 || path[0] != homelessItems)
+            {
+                errmsg = "内部错误：GetHomelessItems错误调用";
+                return null;
+            }
+            if (path.Length == 2)
+                userName = path[1];
+            var userId = 0;
+            if (!string.IsNullOrEmpty(userName)) 
+            {
+                userId = _userRepo.GetByName(userName).Select(x => x.Id).FirstOrDefault();
+            }
+            if (userId == 0) 
+            {
+                userId = _userId;
+                userName = _userRepo.Existing.Where(x => x.Id == userId).Select(x => x.Name).FirstOrDefault();
+            }
+
+            var homelessFiles =
+                from f in _fileItemRepo.Existing
+                where f.InDir == 0
+                where f.CreatorUserId == userId
+                select f;
+            static string keyReplaceForFileItem(string k)
+            {
+                if (k == nameof(FileDir.Name))
+                    return nameof(FileItem.DisplayName);
+                return k;
+            }
+            var items = _fileItemRepo.IndexFilterOrder(homelessFiles, q, keyReplaceForFileItem);
+            IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
+            itemsData = items.TakePage(q, x => new FileDirIndexResult.FileDirItem()
+            {
+                Id = x.Id,
+                Name = x.DisplayName,
+                OwnerName = "",
+                ByteCount = x.ByteCount,
+                Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
+                Url = _fileItemService.Url(x.StorePathName ?? "missing")
+            });
+
+            FileDirIndexResult res = new()
+            {
+                Wikis = new(new(),1,1,1),
+                Items = itemsData,
+                SubDirs = new(new(),1,1,1),
+                FriendlyPath = new List<string> { $"无归属文件(属于 {userName})" },
+                ThisDirId = -1
+            };
+            errmsg = null;
+            return res;
+        }
 
         public bool UpdateInfo(int id, string? name, string? urlPathName, out string? errmsg)
         {
@@ -128,6 +197,16 @@ namespace FCloud3.Services.Files
             if (target is null)
             {
                 errmsg = "找不到该文件夹";
+                return false;
+            }
+            if(string.IsNullOrEmpty(urlPathName))
+            {
+                errmsg = "文件夹路径名不能为空";
+                return false;
+            }
+            if (PreservedUrlPathNames().Contains(urlPathName))
+            {
+                errmsg = $"请勿使用保留文件夹名[{urlPathName}]";
                 return false;
             }
 
@@ -316,6 +395,13 @@ namespace FCloud3.Services.Files
             }
             return _fileDirRepo.TryRemove(item,out errmsg);
         }
+
+
+        private const string homelessItems = "homeless-items";
+        private static List<string> PreservedUrlPathNames()
+        {
+            return new List<string> { homelessItems };
+        } 
     }
 
     public class FileDirIndexResult

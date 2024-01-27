@@ -14,6 +14,7 @@ namespace FCloud3.Services
             services.AddScoped<UserService>();
             services.AddScoped<UserGroupService>();
             services.AddScoped<WikiItemService>();
+            services.AddScoped<WikiParaService>();
             services.AddScoped<TextSectionService>();
             services.AddScoped<IFileItemService, OssFileItemService>();
             services.AddScoped<FileDirService>();

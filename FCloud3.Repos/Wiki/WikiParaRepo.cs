@@ -13,5 +13,22 @@ namespace FCloud3.Repos.Wiki
         public WikiParaRepo(FCloudContext context) : base(context)
         {
         }
+
+        public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
+        {
+            var p = Existing.Where(x => x.Id == paraId).FirstOrDefault();
+            if (p is null)
+            {
+                errmsg = "找不到指定段落";
+                return false;
+            }
+            if (p.Type != WikiParaType.File)
+            {
+                errmsg = "段落类型异常(不是文件)";
+                return false;
+            }
+            p.ObjectId = fileId;
+            return TryEdit(p, out errmsg);
+        }
     }
 }

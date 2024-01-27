@@ -46,19 +46,28 @@ namespace FCloud3.Entities.Wiki.Paragraph
     public class WikiParaPlaceholder : IWikiParaObject
     {
         public WikiParaType Type { get; set; }
+        private string _title;
         public WikiParaPlaceholder(WikiParaType type)
         {
             Type = type;
+            if (type == WikiParaType.Text)
+                _title = "空文本段落";
+            else if (type == WikiParaType.File)
+                _title = "空文件段落";
+            else if (type == WikiParaType.Table)
+                _title = "空表格段落";
+            else
+                _title = "???";
         }
 
         public WikiParaDisplay ToDisplay(WikiPara para)
         {
-            return new WikiParaDisplay(para, 0, "新段落", "", Type);
+            return new WikiParaDisplay(para, 0, _title,"" , Type);
         }
 
         public WikiParaDisplay ToDisplaySimple(WikiPara para)
         {
-            return new WikiParaDisplay(para, 0, "新段落", "", Type);
+            return new WikiParaDisplay(para, 0, _title, "", Type);
         }
     }
 }

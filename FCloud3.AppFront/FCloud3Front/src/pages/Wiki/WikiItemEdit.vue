@@ -13,6 +13,8 @@ import { watchWindowWidth } from '../../utils/windowSizeWatcher';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import Loading from '../../components/Loading.vue';
 import Notice from '../../components/Notice.vue';
+import SideBar from '../../components/SideBar.vue';
+import WikiFileParaEdit from './WikiFileParaEdit.vue';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -101,19 +103,27 @@ async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
     })
     refresh(resp);
 }
+const fileParaEdit = ref<InstanceType<typeof SideBar>>();
+const fileParaEditingId = ref<number>();
 async function EnterEdit(paraId:number)
 {
     const target = paras.value.find(x=>x.ParaId == paraId);
     if(!target){return;}
-    if(target.UnderlyingId && target.UnderlyingId>0){
-        router.push(`/EditTextSection/${target.UnderlyingId}`);
-        return;
+    if(target.Type==0){
+        if(target.UnderlyingId && target.UnderlyingId>0){
+            router.push(`/EditTextSection/${target.UnderlyingId}`);
+            return;
+        }
+        const resp = await api.textSection.createForPara({paraId:paraId});
+        if(resp){
+            const newlyCreatedId = resp.CreatedId;
+            router.push(`/EditTextSection/${newlyCreatedId}`);
+            return;
+        }
     }
-    const resp = await api.textSection.createForPara({paraId:paraId});
-    if(resp){
-        const newlyCreatedId = resp.CreatedId;
-        router.push(`/EditTextSection/${newlyCreatedId}`);
-        return;
+    else if(target.Type==1){
+        fileParaEditingId.value = paraId;
+        fileParaEdit.value?.extend();
     }
 }
 async function RemovePara(paraId:number){
@@ -128,6 +138,7 @@ async function RemovePara(paraId:number){
     }
 }
 
+const loadComplete = ref<boolean>(false)
 async function Load(){
     const infoResp = await api.wiki.edit(props.urlPathName)
     if(!infoResp){
@@ -135,6 +146,7 @@ async function Load(){
     }
     info.value = infoResp;
     const parasResp = await api.wiki.loadSimple(info.value.Id);
+    loadComplete.value = true;
     originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
     refresh(parasResp);
 }
@@ -169,9 +181,11 @@ async function saveInfoEdit(){
 var offsetY = 0;
 var moving:boolean = false;
 var wide = ref<boolean>(false);
+var listenerOn = false;
 var disposeMouseListener:()=>void|undefined;
 var disposeResizeListener:()=>void|undefined;
 function initLisenters(){
+    if(listenerOn){return;}
     console.log('注册侦听器')
     const mouse = new MouseDragListener();
     disposeMouseListener = mouse.startListen(
@@ -187,11 +201,13 @@ function initLisenters(){
     disposeResizeListener = watchWindowWidth((width)=>{
         wide.value = width>700;
     })
+    listenerOn = true;
 }
 function disposeListeners(){
     console.log('丢弃侦听器')
     disposeMouseListener();
     disposeResizeListener();
+    listenerOn = false;
 }
 function tabSwitched(idx:number){
     if(idx==0){
@@ -214,7 +230,7 @@ onUnmounted(()=>{
     <h1>{{ info?.Title }}</h1>
     <SwitchingTabs :texts="['编辑内容','基础信息']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
-        <div v-if="paras" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
+        <div v-if="loadComplete" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <div class="paraTitle">
                 <h2>{{ p.Title }}</h2>
@@ -225,7 +241,6 @@ onUnmounted(()=>{
             <div class="paraBottom">
                 <Functions x-align="right" :entry-size="30">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
-                    <button>指定已有</button>
                     <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
                 </Functions>
             </div>
@@ -273,6 +288,9 @@ onUnmounted(()=>{
         <Loading v-else></Loading>
     </div>
     </SwitchingTabs>
+    <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters">
+        <WikiFileParaEdit :para-id="fileParaEditingId" @file-id-set="Load"></WikiFileParaEdit>
+    </SideBar>
 </template>
 
 <style scoped>
