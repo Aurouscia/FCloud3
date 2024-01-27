@@ -7,6 +7,10 @@ import { updateScript } from '../../utils/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/textSecSplitLine';
 import { md5 } from 'js-md5'
 
+const locatorHash:(str:string)=>string = (str)=>{
+    return md5("locHash_"+str.trim())
+}
+
 const props = defineProps<{id:string}>()
 var textSecId:number = Number(props.id);
 const previewOn = ref<boolean>(true);
@@ -88,7 +92,7 @@ function calculateLines(){
         if(!same){
             lines[i]={
                 text:newLine,
-                hash:md5(res[i].trim()),
+                hash:locatorHash(res[i]),
                 indexStart:index,
                 indextEnd:indexEnd
             }
