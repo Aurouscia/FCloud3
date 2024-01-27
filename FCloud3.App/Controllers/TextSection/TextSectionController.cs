@@ -13,21 +13,18 @@ namespace FCloud3.App.Controllers.TextSec
     {
         private readonly TextSectionService _textSectionService;
         private readonly HtmlGenParserProvider _genParser;
-        private readonly HttpUserInfoService _user;
 
         public TextSectionController(
-            HttpUserInfoService user,
             TextSectionService textSectionService,
             HtmlGenParserProvider genParser) 
         {
-            _user = user;
             _textSectionService = textSectionService;
             _genParser = genParser;
         }
 
         public IActionResult CreateForPara(int paraId)
         {
-            int createdId = _textSectionService.TryAddAndAttach(_user.Id, paraId, out string? errmsg);
+            int createdId = _textSectionService.TryAddAndAttach(paraId, out string? errmsg);
             if (createdId <= 0)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(new { CreatedId = createdId });
@@ -42,7 +39,7 @@ namespace FCloud3.App.Controllers.TextSec
         [Authorize]
         public IActionResult EditExe([FromBody] TextSectionComModel model)
         {
-            if (!_textSectionService.TryUpdate(model.Id, _user.Id, model.Title, model.Content, out string? errmsg))
+            if (!_textSectionService.TryUpdate(model.Id, model.Title, model.Content, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }

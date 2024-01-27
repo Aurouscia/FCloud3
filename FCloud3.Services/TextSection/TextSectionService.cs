@@ -15,10 +15,13 @@ namespace FCloud3.Services.TextSec
     {
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
-        public TextSectionService(WikiParaRepo paraRepo, TextSectionRepo textsectionRepo)
+        private readonly int _userId;
+
+        public TextSectionService(IOperatingUserIdProvider userIdProvider, WikiParaRepo paraRepo, TextSectionRepo textsectionRepo)
         {
             _paraRepo = paraRepo;
             _textSectionRepo = textsectionRepo;
+            _userId = userIdProvider.Get();
         }
 
         public TextSection? GetById(int id)
@@ -40,14 +43,14 @@ namespace FCloud3.Services.TextSec
         /// 新建一个文本段
         /// </summary>
         /// <returns>新建的文本段Id</returns>
-        public int TryAdd(int user, out string? errmsg)
+        public int TryAdd(out string? errmsg)
         {
             TextSection newSection = new()
             {
                 Title = "新建文本段",
                 Content = "",
                 ContentBrief = "",
-                CreatorUserId = user
+                CreatorUserId = _userId
             };
             if (!ModelCheck(newSection, out errmsg))
                 return 0;
@@ -59,10 +62,10 @@ namespace FCloud3.Services.TextSec
         /// 新建一个文本段并关联指定段落
         /// </summary>
         /// <returns>新建的文本段Id</returns>
-        public int TryAddAndAttach(int user, int paraId, out string? errmsg)
+        public int TryAddAndAttach(int paraId, out string? errmsg)
         {
             var para = _paraRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
-            int createdTextId = TryAdd(user, out errmsg);
+            int createdTextId = TryAdd(out errmsg);
             if (createdTextId <= 0)
                 return 0;
             para.ObjectId = createdTextId;
@@ -74,32 +77,29 @@ namespace FCloud3.Services.TextSec
         /// 更新一个文本段
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="user"></param>
         /// <param name="title"></param>
         /// <param name="content"></param>
         /// <param name="errmsg"></param>
         /// <returns></returns>
-        public bool TryUpdate(int id,int user,string? title, string? content, out string? errmsg)
+        public bool TryUpdate(int id, string? title, string? content, out string? errmsg)
         {
             if (id == 0)
             {
-                throw new Exception("未得到更新文本段Id");
+                errmsg = "未得到更新文本段Id";
+                return false;
             }
-            else
+            if (title is not null)
             {
-                errmsg = null;
-                if(title is not null)
-                {
-                    if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
-                        return false;
-                }
-                if(content is not null)
-                {
-                    if (!_textSectionRepo.TryChangeContent(id, content, out errmsg))
-                        return false;
-                }
-                return true;
+                if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
+                    return false;
             }
+            if (content is not null)
+            {
+                if (!_textSectionRepo.TryChangeContent(id, content, out errmsg))
+                    return false;
+            }
+            errmsg = null;
+            return true;
         }
     }
 }
