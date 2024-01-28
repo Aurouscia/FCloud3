@@ -1,22 +1,17 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
+import { inject, onMounted } from 'vue';
 import { Api } from '../../utils/api';
+import { useUrlPathNameConverter } from '../../utils/urlPathName';
 
 const props = defineProps<{
     dirId:number,
     dirName:string
 }>();
-const creatingDirName = ref<string>("");
-const creatingDirUrlPathName = ref<string>("");
 
-async function autoUrl(){
-    if(!creatingDirName.value){
-        return;
-    }
-    const res = await api.utils.urlPathName(creatingDirName.value)
-    creatingDirUrlPathName.value = res||"";
-}
+const {name:creatingDirName, converted:creatingDirUrlPathName, run:runAutoUrl} = useUrlPathNameConverter();
+
 async function create() {
+    if(!creatingDirName.value||!creatingDirUrlPathName.value){return;}
     const res = await api.fileDir.create(props.dirId,creatingDirName.value,creatingDirUrlPathName.value);
     if(res){
         emit('created',creatingDirUrlPathName.value);
@@ -50,7 +45,7 @@ onMounted(()=>{
                 <tr>
                     <td>路径<br/>名称</td>
                     <td>
-                        <div><button class="minor" @click="autoUrl">由名称自动生成</button></div>
+                        <div><button class="minor" @click="runAutoUrl">由名称自动生成</button></div>
                         <input v-model="creatingDirUrlPathName" placeholder="必填"/>
                     </td>
                 </tr>

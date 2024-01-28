@@ -15,6 +15,7 @@ import Loading from '../../components/Loading.vue';
 import Notice from '../../components/Notice.vue';
 import SideBar from '../../components/SideBar.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
+import { useUrlPathNameConverter } from '../../utils/urlPathName';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -145,6 +146,8 @@ async function Load(){
         return;
     }
     info.value = infoResp;
+    editingWikiTitle.value = info.value.Title;
+    editingUrlPathName.value = info.value.UrlPathName;
     const parasResp = await api.wiki.loadSimple(info.value.Id);
     loadComplete.value = true;
     originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
@@ -158,18 +161,17 @@ async function refresh(p:WikiPara[]|undefined) {
     }
     calculatePosY();
 }
+
 const info = ref<WikiItem>();
-async function autoUrlName(){
-    if(!info.value || !info.value.Title){
-        return;
-    }
-    const res = await api.utils.urlPathName(info.value?.Title)
-    if(res){
-        info.value.UrlPathName = res;
-    }
-}
+const {name:editingWikiTitle, converted:editingUrlPathName, run:autoUrlName} = useUrlPathNameConverter();
+
 async function saveInfoEdit(){
     if(!info.value){return;}
+    if(!editingWikiTitle.value || !editingUrlPathName.value){
+        return;
+    }
+    info.value.Title = editingWikiTitle.value;
+    info.value.UrlPathName = editingUrlPathName.value;
     const resp = await api.wiki.editExe(info.value);
     if(resp){
         if(props.urlPathName != info.value.UrlPathName){
@@ -263,14 +265,14 @@ onUnmounted(()=>{
                 <tr>
                     <td>词条标题</td>
                     <td>
-                        <input v-model="info.Title"/>
+                        <input v-model="editingWikiTitle"/>
                     </td>
                 </tr>
                 <tr>
                     <td>词条链接名</td>
                     <td>
                         <button @click="autoUrlName" class="minor">由词条标题生成</button><br/>
-                        <input v-model="info.UrlPathName"/>
+                        <input v-model="editingUrlPathName"/>
                     </td>
                 </tr>
                 <tr>

@@ -7,6 +7,7 @@ import FileUpload from '../../components/FileUpload.vue';
 import Search from '../../components/Search.vue';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import Notice from '../../components/Notice.vue';
+import { useUrlPathNameConverter } from '../../utils/urlPathName';
 
 const data = ref<FileDir>();
 const props = defineProps<{
@@ -17,6 +18,8 @@ var api:Api;
 
 async function saveEdit(){
     if(data.value){
+        data.value.Name = editingDirName.value||"";
+        data.value.UrlPathName = editingDirUrlPathName.value||""
         const resp = await api.fileDir.editDirExe(data.value)
         if(resp){
             emit('infoUpdated',data.value);
@@ -31,8 +34,6 @@ async function newFile(newFileItemId:number) {
 }
 
 const moveSearch = ref<InstanceType<typeof Search>>();
-const creatingWikiTitle = ref<string>();
-const creatingWikiUrlPathName = ref<string>();
 async function createWiki() {
     if(!data.value?.Id){
         return;
@@ -52,16 +53,8 @@ async function moveInWiki(_title:string, wikiId:number) {
     }
 }
 
-
-async function autoUrl(){
-    if(!creatingWikiTitle.value){
-        return;
-    }
-    const res = await api.utils.urlPathName(creatingWikiTitle.value);
-    if(res){
-        creatingWikiUrlPathName.value = res;
-    }
-}
+const {name:editingDirName, converted:editingDirUrlPathName, run:runForDir} = useUrlPathNameConverter();
+const {name:creatingWikiTitle, converted:creatingWikiUrlPathName, run:runForWiki} = useUrlPathNameConverter();
 
 const emit = defineEmits<{
     (e: 'infoUpdated', newInfo:FileDir): void
@@ -72,6 +65,8 @@ const emit = defineEmits<{
 onMounted(async()=>{
     api = inject('api') as Api;
     data.value = await api.fileDir.editDir(props.id);
+    editingDirName.value = data.value?.Name;
+    editingDirUrlPathName.value = data.value?.UrlPathName;
 })
 </script>
 
@@ -98,7 +93,7 @@ onMounted(async()=>{
                             <td>链接<br/>名称</td>
                             <td>
                                 <div>
-                                    <button class="minor" @click="autoUrl">由标题自动生成</button>
+                                    <button class="minor" @click="runForWiki">由标题自动生成</button>
                                 </div>
                                 <input v-model="creatingWikiUrlPathName" placeholder="必填" spellcheck="false"/>
                             </td>
@@ -123,11 +118,14 @@ onMounted(async()=>{
             <table>
                 <tr>
                     <td>词条<br/>标题</td>
-                    <td><input v-model="data.Name"/></td>
+                    <td><input v-model="editingDirName"/></td>
                 </tr>
                 <tr>
                     <td>链接<br/>名称</td>
-                    <td><input v-model="data.UrlPathName" spellcheck="false"/></td>
+                    <td>
+                        <button @click="runForDir" class="minor">由词条标题生成</button><br/>
+                        <input v-model="editingDirUrlPathName" spellcheck="false"/>
+                    </td>
                 </tr>
                 <tr class="noneBackground">
                     <td colspan="2">

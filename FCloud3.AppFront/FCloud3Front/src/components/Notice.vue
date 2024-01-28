@@ -54,5 +54,7 @@ onMounted(()=>{
     padding: 10px;
     font-size: 14px;
     margin: 5px;
+    white-space: wrap;
+    text-align: left;
 }
 </style>
