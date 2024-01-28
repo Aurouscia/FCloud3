@@ -1,5 +1,3 @@
-using FCloud3.Utils.Utils;
-using FCloud3.Utils.Settings;
 using FCloud3.Repos;
 using FCloud3.App.Services;
 using FCloud3.Services;
@@ -12,19 +10,18 @@ try
 
     //读取配置
     var c = builder.Configuration;
-    _ = new SettingsHelper(builder.Configuration);
 
     //注册服务容器
     //为服务容器和Log静态对象添加Serilog
-    builder.AddSerilog();
+    builder.Services.AddSerilog(c);
     //添加数据库读写功能
-    builder.Services.AddRepos();
+    builder.Services.AddRepos(c);
     //添加业务功能
     builder.Services.AddFCloudServices(c);
-    //添加app本身的功能，例如Controller和用户身份
+    //添加app本身的功能，例如Controller
     builder.Services.AddAppServices();
     //添加jwt鉴权(authentication)
-    builder.Services.AddJwtService();
+    builder.Services.AddJwtService(c);
 
     string localVueCors = "localVueCors";
     builder.Services.AddCors(options =>

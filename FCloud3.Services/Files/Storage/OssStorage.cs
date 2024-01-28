@@ -1,4 +1,5 @@
 ﻿using Aliyun.OSS;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,12 +11,15 @@ namespace FCloud3.Services.Files.Storage
 {
     public class OssStorage : IStorage
     {
-        private readonly IOssConfig _config;
+        private readonly OssConfig _config;
         private readonly Lazy<OssClient> _ossClient;
 
-        public OssStorage(IOssConfigProvider ossConfigProvider)
+        public OssStorage(IConfiguration config)
         {
-            _config = ossConfigProvider.Get();
+            _config = new();
+            config.GetSection("FileStorage:Oss").Bind(_config);
+            _config.SelfCheck();
+
             _ossClient = new Lazy<OssClient>(() => new OssClient(_config.EndPoint, _config.AccessKeyId, _config.AccessKeySecret));
         }
         public bool Save(Stream s, string pathName, out string? errmsg)
@@ -42,16 +46,25 @@ namespace FCloud3.Services.Files.Storage
         }
     }
 
-    public interface IOssConfig
+    internal class OssConfig
     {
-        public string? EndPoint { get; }
-        public string? BucketName { get; }
-        public string? AccessKeyId { get; }
-        public string? AccessKeySecret { get; }
-        public string? DomainName { get; }
-    }
-    public interface IOssConfigProvider
-    {
-        public IOssConfig Get();
+        public string? EndPoint { get; set; }
+        public string? BucketName { get; set; }
+        public string? AccessKeyId { get; set; }
+        public string? AccessKeySecret { get; set; }
+        public string? DomainName { get; set; }
+        public void SelfCheck()
+        {
+            if (string.IsNullOrWhiteSpace(EndPoint))
+                throw new Exception("未找到配置项FileStorage:Oss:EndPoint");
+            if (string.IsNullOrWhiteSpace(BucketName))
+                throw new Exception("未找到配置项FileStorage:Oss:BucketName");
+            if (string.IsNullOrWhiteSpace(AccessKeyId))
+                throw new Exception("未找到配置项FileStorage:Oss:AccessKeyId");
+            if (string.IsNullOrWhiteSpace(AccessKeySecret))
+                throw new Exception("未找到配置项FileStorage:Oss:AccessKeySecret");
+            if (string.IsNullOrWhiteSpace(DomainName))
+                throw new Exception("未找到配置项FileStorage:Oss:DomainName");
+        }
     }
 }

@@ -5,14 +5,15 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
 using FCloud3.Entities.Wiki;
+using Microsoft.Extensions.Configuration;
 
 namespace FCloud3.Repos
 {
     public static class AddToService
     {
-        public static IServiceCollection AddRepos(this IServiceCollection services)
+        public static IServiceCollection AddRepos(this IServiceCollection services, IConfiguration config)
         {
-            services.AddDb();
+            services.AddDb(config);
 
             services.AddScoped<UserRepo>();
             services.AddScoped<UserToGroupRepo>();

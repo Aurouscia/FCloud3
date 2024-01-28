@@ -1,4 +1,4 @@
-﻿using FCloud3.Utils.Settings;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -22,13 +22,16 @@ namespace FCloud3.DbContexts
 
     public static class DbContextSetup
     {
-        public static IServiceCollection AddDb(this IServiceCollection services)
+        public static IServiceCollection AddDb(this IServiceCollection services, IConfiguration config)
         {
-            string dbType = (AppSettings.Db.Type ?? throw new Exception("数据库类型未填")).ToLower();
-            string connStr = AppSettings.Db.ConnStr ?? throw new Exception("数据库连接字符串未填");
+            var section = config.GetSection("Db");
+            string dbType = section["Type"] ?? throw new Exception("Db:Type未填");
+            string connStr = section["ConnStr"] ?? throw new Exception("Db:ConnStr未填");
+            dbType = dbType.ToLower();
 
             DbContextOptions options = new(dbType, connStr);
             services.AddSingleton<DbContextOptions>(options);
+
             if (dbType == "sqlite")
             {
                 services.AddDbContext<FCloudContext, FCloudSqliteContext>();
@@ -42,7 +45,7 @@ namespace FCloud3.DbContexts
                 services.AddDbContext<FCloudContext, FCloudSqlServerContext>();
             }
             else
-                throw new Exception("不支持的数据库类型，请检查配置的Db:Type项");
+                throw new Exception("不支持的数据库类型(配置项Db:Type)");
 
             services.AddScoped<DbTransactionService>();
 

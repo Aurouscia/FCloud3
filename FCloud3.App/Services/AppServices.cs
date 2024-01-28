@@ -1,16 +1,10 @@
-﻿using FCloud3.App.Services.Configs;
-using FCloud3.Repos;
+﻿using FCloud3.Repos;
 using FCloud3.Services;
-using FCloud3.Services.Files;
 using FCloud3.Services.Files.Storage;
 using FCloud3.Services.Identities;
-using FCloud3.Utils.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Serilog.Configuration;
-using Serilog.Core;
-using Serilog.Events;
 using System.Text;
 
 namespace FCloud3.App.Services
@@ -27,21 +21,17 @@ namespace FCloud3.App.Services
             });
             services.AddMemoryCache();
             services.AddScoped<HtmlGenParserProvider>();
-            services.AddSingleton<IOssConfigProvider, OssConfigProvider>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
             return services;
         }
-        public static IServiceCollection AddJwtService(this IServiceCollection services)
+        public static IServiceCollection AddJwtService(this IServiceCollection services, IConfiguration config)
         {
-            string? domain = AppSettings.Jwt.Domain;
-            string? jwtKey = AppSettings.Jwt.SecretKey;
-            if (string.IsNullOrEmpty(domain))
-                throw new Exception("[Jwt域名未配置]");
-            if (string.IsNullOrEmpty(jwtKey))
-                throw new Exception("[JwtKey未配置]");
+            string domain = config["Jwt:Domain"] ?? throw new Exception("未找到配置项Jwt:Domain") ;
+            string jwtKey = config["Jwt:SecretKey"] ?? throw new Exception("未找到配置项Jwt:SecretKey");
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -59,13 +49,14 @@ namespace FCloud3.App.Services
             return services;
         }
 
-        public static void AddSerilog(this WebApplicationBuilder builder)
+        public static IServiceCollection AddSerilog(this IServiceCollection services, IConfiguration config)
         {
             var logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Configuration(config)
                 .CreateLogger();
-            builder.Services.AddSerilog(logger);
+            services.AddSerilog(logger);
             Log.Logger = logger;
+            return services;
         }
     }
 }

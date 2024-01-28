@@ -8,11 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.13.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
-    <ProjectReference Include="..\FCloud3.Utils\FCloud3.Utils.csproj" />
   </ItemGroup>
 
 </Project>

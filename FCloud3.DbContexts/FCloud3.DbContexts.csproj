@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Entities\FCloud3.Entities.csproj" />
-    <ProjectReference Include="..\FCloud3.Utils\FCloud3.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3.Repositories", "3.Reposit
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4.Services", "4.Services", "{693DB33E-A6E4-4E3F-86CA-6977FA2C8AEA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Utils", "FCloud3.Utils\FCloud3.Utils.csproj", "{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.App", "FCloud3.App\FCloud3.App.csproj", "{1049640B-2A2F-45AE-88DC-8332425A7841}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Repos", "FCloud3.Repos\FCloud3.Repos.csproj", "{9F657855-4A73-4D3D-9174-D0F8C6D0113D}"
@@ -27,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.Entities", "2.Entities", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Entities", "FCloud3.Entities\FCloud3.Entities.csproj", "{B691443B-9BF1-44D1-AF04-EA203A653C0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCloud3.DbContexts", "FCloud3.DbContexts\FCloud3.DbContexts.csproj", "{24968350-BC0E-477C-AF4E-2D7D42596BC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.DbContexts", "FCloud3.DbContexts\FCloud3.DbContexts.csproj", "{24968350-BC0E-477C-AF4E-2D7D42596BC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1049640B-2A2F-45AE-88DC-8332425A7841}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1049640B-2A2F-45AE-88DC-8332425A7841}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1049640B-2A2F-45AE-88DC-8332425A7841}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -72,7 +66,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{6FFCE2B5-4AC1-4913-9973-B74D84AB2AA2} = {C5668509-3178-4C88-926B-011963AD6D5F}
 		{1049640B-2A2F-45AE-88DC-8332425A7841} = {762122AF-0FFD-4976-97FE-28CAC535C11D}
 		{9F657855-4A73-4D3D-9174-D0F8C6D0113D} = {C5B6AEA0-A45D-4D11-9D08-9CA5ED4E67AF}
 		{A3A4A698-94BC-4473-BFDD-EF752059637F} = {693DB33E-A6E4-4E3F-86CA-6977FA2C8AEA}

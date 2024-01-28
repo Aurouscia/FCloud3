@@ -8,7 +8,6 @@ using System.Text;
 using FCloud3.Services.Identities;
 using FCloud3.App.Services;
 using FCloud3.Repos.Identities;
-using FCloud3.Utils.Settings;
 using FCloud3.Entities.Identities;
 
 namespace FCloud3.App.Controllers
@@ -17,15 +16,18 @@ namespace FCloud3.App.Controllers
     {
         private readonly UserService _userService;
         private readonly HttpUserInfoService _userInfo;
+        private readonly IConfiguration _config;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserService userService,
             HttpUserInfoService userInfo,
+            IConfiguration config,
             ILogger<AuthController> logger)
         {
             _userService = userService;
             _userInfo = userInfo;
+            _config = config;
             _logger = logger;
         }
         public IActionResult Login(string? userName, string? password)
@@ -38,8 +40,9 @@ namespace FCloud3.App.Controllers
             if (u is null)
                 return this.ApiFailedResp(errmsg);
 
-            string domain = AppSettings.Jwt.Domain ?? throw new Exception("缺少配置[Jwt:Domain]");
-            string secret = AppSettings.Jwt.SecretKey ?? throw new Exception("缺少配置[Jwt:Secret]");
+            string domain = _config["Jwt:Domain"] ?? throw new Exception("未找到配置项Jwt:Domain");
+            string secret = _config["Jwt:SecretKey"] ?? throw new Exception("未找到配置项Jwt:SecretKey");
+
             int expHours = 72;
             var claims = new[]
             {
@@ -58,7 +61,7 @@ namespace FCloud3.App.Controllers
             );
 
             string tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
-            _logger.LogInformation("{userName}登录成功",userName);
+            _logger.LogInformation("[{userId}]{userName}登录成功",u.Id, userName);
             return this.ApiResp(new { token = tokenStr });
         }
         [Authorize]

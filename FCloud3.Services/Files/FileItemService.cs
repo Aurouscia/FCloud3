@@ -1,8 +1,6 @@
-﻿using Aliyun.OSS;
-using FCloud3.Repos.Files;
+﻿using FCloud3.Repos.Files;
 using FCloud3.Entities.Files;
 using System.Text.RegularExpressions;
-using FCloud3.Utils.Utils.FileUtils;
 using FCloud3.Services.Files.Storage;
 
 namespace FCloud3.Services.Files
@@ -22,7 +20,12 @@ namespace FCloud3.Services.Files
 
         public int Save(Stream stream,int byteCount, string displayName, string storePath, string? storeName, out string? errmsg)
         {
-            storeName ??= FileNameUtils.RandRenameFor(displayName);
+            if(storeName is null)
+            {
+                string ext = Path.GetExtension(displayName);
+                string randName = Path.GetRandomFileName();
+                storeName = Path.ChangeExtension(randName, ext);
+            }
             var storePathName = StorePathName(storePath, storeName,out errmsg);
             if(storePathName is null) { return 0; }
             string hash = _fileStreamHasher.Hash(stream, out stream);

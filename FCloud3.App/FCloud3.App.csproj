@@ -22,6 +22,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="TinyPinyin.Net" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +35,6 @@
     <ProjectReference Include="..\FCloud3.HtmlGen\FCloud3.HtmlGen.csproj" />
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
     <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />
-    <ProjectReference Include="..\FCloud3.Utils\FCloud3.Utils.csproj" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
