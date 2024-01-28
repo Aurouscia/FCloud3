@@ -1,4 +1,5 @@
-﻿using FCloud3.Services.Files;
+﻿using FCloud3.App.Utils;
+using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
@@ -16,7 +17,7 @@ namespace FCloud3.App.Controllers.Files
         {
             if (request is null || request.ToSave is null)
                 return BadRequest();
-            if (request.StorePath is null || !ValidPaths.Contains(request.StorePath))
+            if (request.StorePath is null || !ValidFilePathBases.Contains(request.StorePath))
                 return this.ApiFailedResp("不支持的StorePath");
             if (request.DisplayName is null)
                 return this.ApiFailedResp("请填写文件显示名");
@@ -33,7 +34,6 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp(new {CreatedId = id});
         }
 
-        private static List<string> ValidPaths = new List<string> { "upload", "wikiFile", "material", "forum", "test" };
         public class FileUploadRequest
         {
             public IFormFile? ToSave { get; set; }

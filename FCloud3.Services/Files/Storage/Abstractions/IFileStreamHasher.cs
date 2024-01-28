@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Services.Files.Storage
+namespace FCloud3.Services.Files.Storage.Abstractions
 {
     public interface IFileStreamHasher
     {

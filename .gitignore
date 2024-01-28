@@ -373,3 +373,6 @@ FodyWeavers.xsd
 
 # vue build dist
 /FCloud3.App/wwwroot
+
+# default file storage
+/FCloud3.App/Data/FileStorage/*

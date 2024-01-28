@@ -5,7 +5,7 @@ using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Files.Storage;
+using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Files

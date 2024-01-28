@@ -1,11 +1,6 @@
 ﻿using Aliyun.OSS;
+using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FCloud3.Services.Files.Storage
 {
@@ -13,7 +8,7 @@ namespace FCloud3.Services.Files.Storage
     {
         private readonly OssConfig _config;
         private readonly Lazy<OssClient> _ossClient;
-
+        public StorageProvideType ProvideType => StorageProvideType.Redirect;
         public OssStorage(IConfiguration config)
         {
             _config = new();
@@ -43,6 +38,10 @@ namespace FCloud3.Services.Files.Storage
         public string FullUrl(string pathName)
         {
             return _config.DomainName + "/" + pathName;
+        }
+        public Stream? Read(string pathName)
+        {
+            throw new NotImplementedException();
         }
     }
 

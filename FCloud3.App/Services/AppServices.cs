@@ -1,6 +1,7 @@
-﻿using FCloud3.Repos;
+﻿using FCloud3.App.Utils;
+using FCloud3.Repos;
 using FCloud3.Services;
-using FCloud3.Services.Files.Storage;
+using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,7 @@ namespace FCloud3.App.Services
             services.AddControllers(options => {
                 options.Filters.Add<ApiExceptionFilter>();
             });
+            services.AddFilePathBaseConstraint();
             services.AddMemoryCache();
             services.AddScoped<HtmlGenParserProvider>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();

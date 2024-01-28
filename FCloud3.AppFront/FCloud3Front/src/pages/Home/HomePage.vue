@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import FileUpload from '../../components/FileUpload.vue';
 
 </script>
 
@@ -10,5 +9,4 @@ import FileUpload from '../../components/FileUpload.vue';
     <div>
         FCloud(开发版)
     </div>
-    <FileUpload dist="test"></FileUpload>
 </template>

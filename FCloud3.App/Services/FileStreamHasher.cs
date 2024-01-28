@@ -1,5 +1,5 @@
 ﻿using FCloud3.App.Utils;
-using FCloud3.Services.Files.Storage;
+using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.App.Services
 {

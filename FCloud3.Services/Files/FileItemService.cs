@@ -1,7 +1,7 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Entities.Files;
 using System.Text.RegularExpressions;
-using FCloud3.Services.Files.Storage;
+using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.Services.Files
 {
@@ -43,6 +43,8 @@ namespace FCloud3.Services.Files
             stream.Close();
             return _repo.TryAddAndGetId(f, out errmsg);
         }
+
+        private static string[] invalidChars = new[] { "/", "..", "\\" };
         public string? StorePathName(string storePath, string storeName, out string? errmsg)
         {
             string pathName = storePath + "/" + storeName;
@@ -51,14 +53,9 @@ namespace FCloud3.Services.Files
                 errmsg = "存储名过长，请缩短";
                 return null;
             }
-            if (storeName.StartsWith("/") || storeName.StartsWith("\\"))
+            if (invalidChars.Any(storeName.Contains))
             {
-                errmsg = "存储名不能以/或\\开头";
-                return null;
-            }
-            if (Regex.IsMatch(storeName, @"//|\.\.|\\\\"))
-            {
-                errmsg = @"存储名不能有连续的//或..或\\";
+                errmsg = $"存储名不能含有{string.Join('或', invalidChars)}";
                 return null;
             }
             errmsg = null;
