@@ -20,6 +20,7 @@ async function inputChange(e:Event){
     }
     const newFiles = _.differenceWith(tar.files,fileList.value,
         (x,y)=>x.webkitRelativePath+x.name==y.file.webkitRelativePath+y.file.name)
+    tar.value='';
     if(newFiles.length>0){
         const sf = newFiles.map(x=>{return{
             file:x,
