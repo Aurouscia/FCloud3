@@ -5,6 +5,7 @@ using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Files.Storage;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Files
@@ -18,7 +19,7 @@ namespace FCloud3.Services.Files
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly DbTransactionService _transaction;
-        private readonly IFileItemService _fileItemService;
+        private readonly IStorage _storage;
 
         public FileDirService(
             UserRepo userRepo,
@@ -28,7 +29,7 @@ namespace FCloud3.Services.Files
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
             DbTransactionService transaction,
-            IFileItemService fileItemService)
+            IStorage storage)
         {
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
@@ -37,7 +38,7 @@ namespace FCloud3.Services.Files
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
             _transaction = transaction;
-            _fileItemService = fileItemService;
+            _storage = storage;
         }
 
         public FileDir? GetById(int id)
@@ -98,7 +99,7 @@ namespace FCloud3.Services.Files
                     OwnerName = "",
                     ByteCount = x.ByteCount,
                     Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                    Url = _fileItemService.Url(x.StorePathName ?? "missing")
+                    Url = _storage.FullUrl(x.StorePathName ?? "missing")
                 });
             }
 
@@ -176,7 +177,7 @@ namespace FCloud3.Services.Files
                 OwnerName = "",
                 ByteCount = x.ByteCount,
                 Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                Url = _fileItemService.Url(x.StorePathName ?? "missing")
+                Url = _storage.FullUrl(x.StorePathName ?? "missing")
             });
 
             FileDirIndexResult res = new()

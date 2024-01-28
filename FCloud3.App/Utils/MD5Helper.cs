@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace FCloud3.Utils.Utils.Cryptography
+namespace FCloud3.App.Utils
 {
     public static class MD5Helper
     {

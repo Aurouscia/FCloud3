@@ -10,16 +10,17 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    //读取配置文件并存入AppSettings静态类（必须排第一个）
+    //读取配置
+    var c = builder.Configuration;
     _ = new SettingsHelper(builder.Configuration);
 
     //注册服务容器
-    //为服务容器和Log静态对象添加Serilog（必须排第二个）
+    //为服务容器和Log静态对象添加Serilog
     builder.AddSerilog();
     //添加数据库读写功能
     builder.Services.AddRepos();
     //添加业务功能
-    builder.Services.AddFCloudServices();
+    builder.Services.AddFCloudServices(c);
     //添加app本身的功能，例如Controller和用户身份
     builder.Services.AddAppServices();
     //添加jwt鉴权(authentication)

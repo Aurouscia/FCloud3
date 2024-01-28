@@ -2,6 +2,8 @@
 using FCloud3.Repos;
 using FCloud3.Services;
 using FCloud3.Services.Files;
+using FCloud3.Services.Files.Storage;
+using FCloud3.Services.Identities;
 using FCloud3.Utils.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -25,10 +27,11 @@ namespace FCloud3.App.Services
             });
             services.AddMemoryCache();
             services.AddScoped<HtmlGenParserProvider>();
-            services.AddSingleton<IOssConfig, OssConfig>();
+            services.AddSingleton<IOssConfigProvider, OssConfigProvider>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
-            services.AddSingleton<UserPwdEncryption>();
+            services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
+            services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
             return services;
         }
         public static IServiceCollection AddJwtService(this IServiceCollection services)

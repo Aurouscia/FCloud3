@@ -1,6 +1,5 @@
 ﻿using FCloud3.Entities.Identities;
 using FCloud3.Repos.Identities;
-using FCloud3.Utils.Utils.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Services.Identities
@@ -8,9 +7,12 @@ namespace FCloud3.Services.Identities
     public partial class UserService
     {
         private readonly UserRepo _repo;
-        public UserService(UserRepo repo)
+        private readonly IUserPwdEncryption _userPwdEncryption;
+
+        public UserService(UserRepo repo, IUserPwdEncryption userPwdEncryption)
         {
             _repo = repo;
+            _userPwdEncryption = userPwdEncryption;
         }
 
         [GeneratedRegex("^[\\u4E00-\\u9FA5A-Za-z0-9_]+$")]
@@ -29,6 +31,23 @@ namespace FCloud3.Services.Identities
         public User? GetByName(string name)
         {
             return _repo.Existing.Where(x => x.Name == name).FirstOrDefault();
+        }
+
+        public User? TryMatchNamePwd(string name,string pwd, out string? errmsg)
+        {
+            var u = GetByName(name);
+            if(u is null)
+            {
+                errmsg = "用户名不存在";
+                return null;
+            }    
+            if(u.PwdEncrypted != _userPwdEncryption.Run(pwd))
+            {
+                errmsg = "密码错误";
+                return null;
+            }
+            errmsg = null;
+            return u;
         }
 
         public static bool BasicInfoCheck(string? name,string pwd,out string? errmsg,bool allowEmptyPwd=false)
@@ -62,7 +81,7 @@ namespace FCloud3.Services.Identities
             User u = new()
             {
                 Name = name,
-                PwdEncrypted = MD5Helper.GetMD5Of(pwd)
+                PwdEncrypted = _userPwdEncryption.Run(pwd)
             };
 
             if (!_repo.TryAdd(u,out errmsg))
@@ -79,11 +98,16 @@ namespace FCloud3.Services.Identities
 
             u.Name = name;
             if (!string.IsNullOrEmpty(pwd))
-                u.PwdEncrypted = MD5Helper.GetMD5Of(pwd);
+                u.PwdEncrypted = _userPwdEncryption.Run(pwd);
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
             return true;
         }
+    }
+
+    public interface IUserPwdEncryption
+    {
+        public string Run(string password);
     }
 }

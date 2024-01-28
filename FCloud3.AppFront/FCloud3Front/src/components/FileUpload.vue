@@ -212,7 +212,6 @@ onMounted(()=>{
     display: flex;
     flex-direction: column;
     width: fit-content;
-    gap:10px;
 }
 .uploadBtn.disabled{
     background-color: #999;

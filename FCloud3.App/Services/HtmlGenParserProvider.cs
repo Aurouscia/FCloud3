@@ -1,7 +1,7 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Util;
-using FCloud3.Utils.Utils.Cryptography;
+using FCloud3.App.Utils;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.App.Services

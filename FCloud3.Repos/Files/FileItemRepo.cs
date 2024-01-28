@@ -52,6 +52,13 @@ namespace FCloud3.Repos.Files
                 errmsg = $"存储名不能以/开头";
                 return false;
             }
+
+            var sameName = Existing.Where(x=>x.Hash==item.Hash).Select(x=>x.DisplayName).FirstOrDefault();
+            if(sameName is not null)
+            {
+                errmsg = $"已存在内容完全相同的文件({sameName})";
+                return false;
+            }
             errmsg = null;
             return true;
         }

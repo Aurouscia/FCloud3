@@ -10,25 +10,21 @@ using FCloud3.App.Services;
 using FCloud3.Repos.Identities;
 using FCloud3.Utils.Settings;
 using FCloud3.Entities.Identities;
-using FCloud3.Utils.Utils.Cryptography;
 
 namespace FCloud3.App.Controllers
 {
     public class AuthController : Controller
     {
         private readonly UserService _userService;
-        private readonly UserPwdEncryption _userPwdEncryption;
         private readonly HttpUserInfoService _userInfo;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserService userService,
-            UserPwdEncryption userPwdEncryption,
             HttpUserInfoService userInfo,
             ILogger<AuthController> logger)
         {
             _userService = userService;
-            _userPwdEncryption = userPwdEncryption;
             _userInfo = userInfo;
             _logger = logger;
         }
@@ -38,12 +34,9 @@ namespace FCloud3.App.Controllers
 
             if (userName is null || password is null)
                 return this.ApiFailedResp("请填写用户名和密码");
-            var u = _userService.GetByName(userName);
+            var u = _userService.TryMatchNamePwd(userName, password, out string? errmsg);
             if (u is null)
-                return this.ApiFailedResp("不存在的用户名");
-            string pwdmd5 = _userPwdEncryption.Run(password);
-            if (u.PwdEncrypted != pwdmd5)
-                return this.ApiFailedResp("密码错误");
+                return this.ApiFailedResp(errmsg);
 
             string domain = AppSettings.Jwt.Domain ?? throw new Exception("缺少配置[Jwt:Domain]");
             string secret = AppSettings.Jwt.SecretKey ?? throw new Exception("缺少配置[Jwt:Secret]");

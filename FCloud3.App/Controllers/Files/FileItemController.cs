@@ -1,15 +1,14 @@
 ﻿using FCloud3.Services.Files;
-using FCloud3.Utils.Utils.Cryptography;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
     public class FileItemController : Controller
     {
-        private readonly IFileItemService _fileService;
+        private readonly FileItemService _fileService;
         private const int maxUploadLength = 10 * 1000 * 1000;
 
-        public FileItemController(IFileItemService fileService)
+        public FileItemController(FileItemService fileService)
         {
             _fileService = fileService;
         }
@@ -29,7 +28,7 @@ namespace FCloud3.App.Controllers.Files
                 displayName: request.DisplayName,
                 storePath: request.StorePath,
                 storeName: null, out string? errmsg);
-            if (id == 0)
+            if (id <= 0)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(new {CreatedId = id});
         }
