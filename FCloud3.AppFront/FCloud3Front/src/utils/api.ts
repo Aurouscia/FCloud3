@@ -6,7 +6,7 @@ import { WikiPara } from "../models/wiki/wikiPara";
 import { wikiParaType } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
-import { StagingFile } from "../models/files/fileItem";
+import { FileItemDetail, StagingFile } from "../models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
 import { QuickSearchResult } from '../models/sys/quickSearch';
@@ -299,6 +299,16 @@ export class Api{
         }
     }
     fileItem = {
+        getDetail:async(id:number)=>{
+            const resp = await this.httpClient.request(
+                "/api/FileItem/GetDetail",
+                "get",
+                {id}
+            );
+            if(resp.success){
+                return resp.data as FileItemDetail
+            }
+        },
         save:async(req: StagingFile, dist:string)=>{
             const res = await this.httpClient.request(
                 "/api/FileItem/Save",
@@ -315,6 +325,16 @@ export class Api{
         },
     }
     fileDir = {
+        getPathById:async(id:number)=>{
+            const res = await this.httpClient.request(
+                "/api/FileDir/GetPathById",
+                "get",
+                {id}
+            );
+            if(res.success){
+                return res.data as string[]
+            }
+        },
         index:async(q: IndexQuery,path: string[])=>{
             const res = await this.httpClient.request(
                 "/api/FileDir/Index",

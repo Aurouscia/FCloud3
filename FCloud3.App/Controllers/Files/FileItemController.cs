@@ -13,6 +13,14 @@ namespace FCloud3.App.Controllers.Files
         {
             _fileService = fileService;
         }
+
+        public IActionResult GetDetail(int id)
+        {
+            var detail = _fileService.GetDetail(id, out string? errmsg);
+            if (detail is null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(detail);
+        }
         public IActionResult Save(FileUploadRequest request)
         {
             if (request is null || request.ToSave is null)

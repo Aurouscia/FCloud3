@@ -1,10 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Entities.Wiki;
 
 namespace FCloud3.Repos.Files
 {
@@ -62,5 +58,15 @@ namespace FCloud3.Repos.Files
             errmsg = null;
             return true;
         }
+
+        public List<FileItem> GetRangeByParas(List<WikiPara> paras)
+        {
+            var fileParaIds = paras
+                .Where(x => x.Type == WikiParaType.File)
+                .Select(x => x.ObjectId)
+                .ToList();
+            return Existing.Where(x => fileParaIds.Contains(x.Id)).ToList();
+        }
+
     }
 }

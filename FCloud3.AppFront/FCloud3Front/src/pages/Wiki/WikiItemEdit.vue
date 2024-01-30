@@ -16,6 +16,7 @@ import Notice from '../../components/Notice.vue';
 import SideBar from '../../components/SideBar.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
+import { getFileType } from '../../utils/fileUtils';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -105,7 +106,7 @@ async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
     refresh(resp);
 }
 const fileParaEdit = ref<InstanceType<typeof SideBar>>();
-const fileParaEditingId = ref<number>();
+const fileParaEditing = ref<WikiPara>();
 async function EnterEdit(paraId:number)
 {
     const target = paras.value.find(x=>x.ParaId == paraId);
@@ -123,7 +124,7 @@ async function EnterEdit(paraId:number)
         }
     }
     else if(target.Type==1){
-        fileParaEditingId.value = paraId;
+        fileParaEditing.value = target;
         fileParaEdit.value?.extend();
     }
 }
@@ -139,19 +140,32 @@ async function RemovePara(paraId:number){
     }
 }
 
-const loadComplete = ref<boolean>(false)
-async function Load(){
-    const infoResp = await api.wiki.edit(props.urlPathName)
-    if(!infoResp){
-        return;
+var editingFileParaChanged = false;
+async function fileEditFold(){
+    if(editingFileParaChanged){
+        await Load(false,true);
     }
-    info.value = infoResp;
-    editingWikiTitle.value = info.value.Title;
-    editingUrlPathName.value = info.value.UrlPathName;
-    const parasResp = await api.wiki.loadSimple(info.value.Id);
-    loadComplete.value = true;
-    originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
-    refresh(parasResp);
+    editingFileParaChanged = false;
+}
+
+const loadComplete = ref<boolean>(false)
+async function Load(loadInfo:boolean=true, loadParas:boolean=true){
+    if(loadInfo){
+        const infoResp = await api.wiki.edit(props.urlPathName)
+        if(!infoResp){
+            return;
+        }
+        info.value = infoResp;
+        editingWikiTitle.value = info.value.Title;
+        editingUrlPathName.value = info.value.UrlPathName;
+    }
+    if(loadParas){
+        if(!info.value){return;}
+        const parasResp = await api.wiki.loadSimple(info.value.Id);
+        loadComplete.value = true;
+        originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
+        refresh(parasResp);
+    }
 }
 async function refresh(p:WikiPara[]|undefined) {
     if(p){
@@ -234,13 +248,21 @@ onUnmounted(()=>{
     <div class="paras" ref="parasDiv">
         <div v-if="loadComplete" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
-            <div class="paraTitle">
-                <h2>{{ p.Title }}</h2>
-                <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
+            <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
                  class="dragY" :src="dragYIconSrc"/>
+            <div class="paraTitle">
+                <h2 v-if="p.Type==0 || p.Type==2">{{ p.Title }}</h2>
             </div>
-            <div class="paraContent">{{ p.Content }}</div>
-            <div class="paraBottom">
+            <div v-if="p.Type==1" class="filePara">
+                <img v-if="getFileType(p.Content)=='image'" :src="p.Content"/>
+                <div v-else class="fileLink">
+                    <a :href="p.Content">
+                        {{ p.Title }}<br/><span>{{ p.Content }}</span>
+                    </a>
+                </div>
+            </div>
+            <div v-else class="paraContent">{{ p.Content }}</div>
+            <div class="menu">
                 <Functions x-align="right" :entry-size="30">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
                     <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
@@ -290,8 +312,9 @@ onUnmounted(()=>{
         <Loading v-else></Loading>
     </div>
     </SwitchingTabs>
-    <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters">
-        <WikiFileParaEdit :para-id="fileParaEditingId" @file-id-set="Load"></WikiFileParaEdit>
+    <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters();fileEditFold()">
+        <WikiFileParaEdit v-if="fileParaEditing" :para-id="fileParaEditing.ParaId"
+            :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true"></WikiFileParaEdit>
     </SideBar>
 </template>
 
@@ -300,7 +323,24 @@ onUnmounted(()=>{
     margin: 0px auto 0px auto;
 }
 
-
+.filePara img{
+    width: calc(100%);
+    height: 90px;
+    object-fit: contain;
+}
+.filePara{
+    text-align: center;
+    font-size: 18px;
+}
+.fileLink{
+    margin-top: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow:ellipsis
+}
+.fileLink span{
+    font-size: 12px;
+}
 
 .btnsBetweenPara{
     display: flex;
@@ -341,23 +381,35 @@ onUnmounted(()=>{
     overflow: hidden;
     text-overflow: ellipsis;
     height: 2em;
+    position: absolute;
+    top:43px;
+    left:20px;
+    max-width: calc(100% - 60px)
 }
 
+.paraTitle h2{
+    font-size: 20px;
+    font-weight: 600;
+}
 .paraTitle{
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-.paraBottom{
-    display: flex;
-    justify-content: right;
-    align-items: center;
-    height: 30px
+.menu{
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    right: 10px;
+    bottom: 10px;
 }
 .dragY{
     width: 30px;
     height: 30px;
     object-fit: contain;
     cursor: pointer;
+    position: absolute;
+    right:10px;
+    top:10px;
 }
 </style>

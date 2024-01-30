@@ -13,6 +13,7 @@ namespace FCloud3.Repos.Files
     public class FileDirRepo : RepoBase<FileDir>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
+        private const string zeroIdxUrlPathName = "homeless-items";
         public FileDirRepo(FCloudContext context) : base(context)
         {
         }
@@ -26,6 +27,26 @@ namespace FCloud3.Repos.Files
             if (id > 0)
                 return GetById(id);
             return null;
+        }
+        public string[]? GetPathById(int id)
+        {
+            if (id == 0)
+            {
+                return new[] { zeroIdxUrlPathName };
+            }
+            List<string> res = new();
+            var targetId = id;
+            while (true)
+            {
+                var target = Existing.Where(x => x.Id == targetId).Select(x => new { x.ParentDir, x.UrlPathName }).FirstOrDefault();
+                if (target is null)
+                    return null;
+                res.Insert(0, target.UrlPathName??"missing");
+                targetId = target.ParentDir;
+                if (targetId == 0)
+                    break;
+            }
+            return res.ToArray();
         }
         public List<int>? GetChainIdsByPath(string[] path)
         {
@@ -110,6 +131,11 @@ namespace FCloud3.Repos.Files
             }
             if (string.IsNullOrWhiteSpace(item.UrlPathName)){
                 errmsg = "文件夹路径名不能为空";
+                return false;
+            }
+            if (item.UrlPathName == zeroIdxUrlPathName)
+            {
+                errmsg = "请勿使用该路径名";
                 return false;
             }
             if (!Regex.IsMatch(item.UrlPathName, validUrlPathNamePattern))

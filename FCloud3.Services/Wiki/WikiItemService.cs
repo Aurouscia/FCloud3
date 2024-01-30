@@ -1,16 +1,13 @@
-﻿using Aliyun.OSS;
-using FCloud3.DbContexts;
+﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
-using FCloud3.Entities.Wiki.Paragraph;
 using FCloud3.Repos;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Wiki.Paragraph;
 
 namespace FCloud3.Services.Wiki
 {
@@ -21,6 +18,8 @@ namespace FCloud3.Services.Wiki
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
+        private readonly FileItemRepo _fileItemRepo;
+        private readonly IStorage _storage;
         private readonly List<WikiParaType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
@@ -28,13 +27,17 @@ namespace FCloud3.Services.Wiki
             WikiItemRepo wikiRepo,
             WikiToDirRepo wikiToDirRepo,
             WikiParaRepo paraRepo,
-            TextSectionRepo textSectionRepo)
+            TextSectionRepo textSectionRepo,
+            FileItemRepo fileItemRepo,
+            IStorage storage)
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
             _wikiToDirRepo = wikiToDirRepo;
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
+            _fileItemRepo = fileItemRepo;
+            _storage = storage;
             _wikiParaTypes = WikiParaTypes.GetListInstance();
         }
         public WikiItem? GetById(int id)
@@ -79,26 +82,29 @@ namespace FCloud3.Services.Wiki
             var paras = GetWikiParas(wikiId, start, count);
             paras.EnsureOrderDense();
 
-            List<TextSectionMeta> textParas = _textSectionRepo.GetMetaRangeByParas(paras);
+            List<TextSectionMeta> textParaObjs = _textSectionRepo.GetMetaRangeByParas(paras);
+            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByParas(paras);
 
-            List<KeyValuePair<WikiPara, IWikiParaObject>> paraObjs = paras.ConvertAll(x =>
+            List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
                 WikiParaType type = x.Type;
-                IWikiParaObject? para = null;
+                WikiParaDisplay? paraDisplay = null;
                 if (type == WikiParaType.Text)
                 {
-                    para = textParas.Find(p => p.Id==x.ObjectId);
+                    var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
+                    if(obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title, obj.ContentBrief, WikiParaType.Text);
                 }
-                else
+                else if(type == WikiParaType.File)
                 {
-                    //throw new NotImplementedException();
+                    var obj = fileParaObjs.Find(p => p.Id == x.ObjectId);
+                    if (obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName??"missing"), WikiParaType.File);
                 }
-                para ??= new WikiParaPlaceholder(type);
-                return new KeyValuePair<WikiPara, IWikiParaObject>(x, para);
+                paraDisplay ??= new WikiParaPlaceholder(type).ToDisplay(x);
+                return paraDisplay;
             });
-
-            List<WikiParaDisplay> res = paraObjs.ToDisplaySimpleList();
-            return res;
+            return paraObjs;
         }
         public bool InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
         {

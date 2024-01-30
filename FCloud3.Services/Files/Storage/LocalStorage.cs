@@ -13,7 +13,7 @@ namespace FCloud3.Services.Files.Storage
         {
             var section = config.GetSection("FileStorage:Local")??throw new Exception("未找到配置节FileStorage:Local");
             _storeRootPath = section["Path"] ?? throw new Exception("未找到配置FileStorage:Local:Path");
-            _domainName = section["DomainName"] ?? throw new Exception("未找到配置FileStorage:Local:DomainName");
+            _domainName = section["DomainName"] ?? "";
             DirectoryInfo di = new(_storeRootPath);
             if(!di.Exists) { di.Create(); }
         }

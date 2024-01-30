@@ -14,6 +14,14 @@ namespace FCloud3.App.Controllers.Files
             _fileDirService = fileDirService;
         }
 
+        public IActionResult GetPathById(int id)
+        {
+            var res = _fileDirService.GetPathById(id);
+            if (res is null)
+                return this.ApiFailedResp("查找指定id的文件夹时出错");
+            return this.ApiResp(res);
+        }
+
         public IActionResult Index([FromBody]FileDirIndexRequest req)
         {
             if (req.Query is null || req.Path is null)

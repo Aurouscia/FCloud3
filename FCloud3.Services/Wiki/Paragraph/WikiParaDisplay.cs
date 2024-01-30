@@ -1,10 +1,11 @@
-﻿using System;
+﻿using FCloud3.Entities.Wiki;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Entities.Wiki.Paragraph
+namespace FCloud3.Services.Wiki.Paragraph
 {
     public class WikiParaDisplay
     {
@@ -30,20 +31,7 @@ namespace FCloud3.Entities.Wiki.Paragraph
             Type = type;
         }
     }
-    public static class WikiParaDisplayListConverter
-    {
-        public static List<WikiParaDisplay> ToDisplaySimpleList(this List<KeyValuePair<WikiPara, IWikiParaObject>> para)
-        {
-            return para.ConvertAll(x =>
-            {
-                WikiPara para = x.Key;
-                IWikiParaObject paraEntity = x.Value;
-                WikiParaDisplay display = paraEntity.ToDisplaySimple(para);
-                return display;
-            });
-        }
-    }
-    public class WikiParaPlaceholder : IWikiParaObject
+    public class WikiParaPlaceholder
     {
         public WikiParaType Type { get; set; }
         private string _title;
@@ -63,11 +51,6 @@ namespace FCloud3.Entities.Wiki.Paragraph
         public WikiParaDisplay ToDisplay(WikiPara para)
         {
             return new WikiParaDisplay(para, 0, _title,"" , Type);
-        }
-
-        public WikiParaDisplay ToDisplaySimple(WikiPara para)
-        {
-            return new WikiParaDisplay(para, 0, _title, "", Type);
         }
     }
 }

@@ -3,8 +3,6 @@ using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos.Wiki;
-using FCloud3.Entities.Wiki.Paragraph;
 
 namespace FCloud3.Repos.TextSec
 {
@@ -88,7 +86,7 @@ namespace FCloud3.Repos.TextSec
     /// <summary>
     /// 文本段的元数据，只查询元数据可避免加载段落的所有文本，降低数据库负担
     /// </summary>
-    public class TextSectionMeta : IWikiParaObject
+    public class TextSectionMeta
     {
         public int Id { get; set; }
         public string? Title { get; set; }
@@ -98,16 +96,6 @@ namespace FCloud3.Repos.TextSec
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
-
-        public WikiParaDisplay ToDisplay(WikiPara para)
-        {
-            return new WikiParaDisplay(para, Id, Title, ContentBrief, WikiParaType.Text);
-        }
-
-        public WikiParaDisplay ToDisplaySimple(WikiPara para)
-        {
-            return new WikiParaDisplay(para, Id, Title, ContentBrief, WikiParaType.Text);
-        }
     }
     public static class TextSectionParaMetaQuerier
     {

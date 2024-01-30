@@ -121,7 +121,8 @@ onMounted(()=>{
     flex-direction: column;
     justify-content: space-around;
     align-items:start;
-    color:white
+    color:white;
+    box-shadow: black 0px 0px 8px 0px;
 }
 
 .itemControl button,.fileSize{
@@ -192,7 +193,7 @@ onMounted(()=>{
 }
 .staging.single{
     height: 70px;
-    overflow: hidden;
+    overflow: visible;
 }
 .staging{
     width: 220px;
@@ -200,6 +201,8 @@ onMounted(()=>{
     background-color: #ddd;
     border-radius: 5px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 .controls{
     display: flex;

@@ -46,6 +46,11 @@ namespace FCloud3.Services.Files
             return _fileDirRepo.GetById(id);
         }
 
+        public string[]? GetPathById(int id)
+        {
+            return _fileDirRepo.GetPathById(id);
+        }
+
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
             if (path.Length == 1 || path.Length == 2)
