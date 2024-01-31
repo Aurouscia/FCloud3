@@ -10,9 +10,12 @@ namespace FCloud3.Repos
     public abstract class RepoBase<T> where T : class,IDbModel
     {
         protected readonly FCloudContext _context;
-        public RepoBase(FCloudContext context)
+        private readonly ICommitingUserIdProvider _userIdProvider;
+
+        public RepoBase(FCloudContext context, ICommitingUserIdProvider userIdProvider)
         {
             _context = context;
+            _userIdProvider = userIdProvider;
         }
         public IQueryable<T> Existing { get { return _context.Set<T>().Where(x => x.Deleted == false); } }
 
@@ -131,7 +134,6 @@ namespace FCloud3.Repos
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault();
         }
-
         public virtual IQueryable<T> GetRangeByIds(IEnumerable<int> ids)
         {
             return Existing.Where(x => ids.Contains(x.Id));
@@ -151,7 +153,9 @@ namespace FCloud3.Repos
             }
             if(!TryAddCheck(item, out errmsg))
                 return false;
+            item.CreatorUserId = _userIdProvider.Get();
             item.Created = DateTime.Now;
+            item.Updated = DateTime.Now;
             _context.Add(item);
             _context.SaveChanges();
             return true;
@@ -169,6 +173,8 @@ namespace FCloud3.Repos
                 if (!TryAddCheck(item, out errmsg))
                     return false;
                 item.Created = DateTime.Now;
+                item.Updated = DateTime.Now;
+                item.CreatorUserId = _userIdProvider.Get();
                 _context.Add(item);
             }
             _context.SaveChanges();
@@ -187,6 +193,10 @@ namespace FCloud3.Repos
             _context.Add(item);
             _context.SaveChanges();
             return item.Id;
+        }
+        public virtual int TryCreateDefaultAndGetId(out string? errmsg)
+        {
+            throw new NotImplementedException();
         }
 
         public virtual bool TryEditCheck(T item, out string? errmsg)

@@ -8,6 +8,7 @@ import { addHomePage } from './pages/Home/routes';
 import { addWiki } from './pages/Wiki/routes';
 import { addTextSection } from './pages/TextSection/routes';
 import { addFiles } from './pages/Files/routes';
+import { addTable } from './pages/Table/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -22,7 +23,9 @@ addIdentities(router)
 addHomePage(router)
 addWiki(router)
 addTextSection(router)
+addTable(router)
 addFiles(router)
 
+export {router}
 
 createApp(App).use(router).mount('#app')

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.Entities.Wiki;
 
 namespace FCloud3.Services.TextSec
 {
@@ -65,6 +66,11 @@ namespace FCloud3.Services.TextSec
         public int TryAddAndAttach(int paraId, out string? errmsg)
         {
             var para = _paraRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
+            if (para.Type != WikiParaType.Text)
+            {
+                errmsg = "段落类型检查出错";
+                return 0;
+            }
             int createdTextId = TryAdd(out errmsg);
             if (createdTextId <= 0)
                 return 0;

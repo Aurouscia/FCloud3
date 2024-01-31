@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref} from 'vue'
+import { onMounted, onUnmounted, ref} from 'vue'
 import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { wikiParaType} from '../../models/wiki/wikiParaTypes'
 import { MouseDragListener } from '../../utils/mouseDrag';
@@ -17,6 +17,9 @@ import SideBar from '../../components/SideBar.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
 import { getFileType } from '../../utils/fileUtils';
+import { jumpToTextSectionEdit } from '../TextSection/routes';
+import { injectApi } from '../../provides';
+import { jumpToFreeTableEdit } from '../Table/routes';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -113,19 +116,31 @@ async function EnterEdit(paraId:number)
     if(!target){return;}
     if(target.Type==0){
         if(target.UnderlyingId && target.UnderlyingId>0){
-            router.push(`/EditTextSection/${target.UnderlyingId}`);
+            jumpToTextSectionEdit(target.UnderlyingId);
             return;
         }
         const resp = await api.textSection.createForPara({paraId:paraId});
         if(resp){
             const newlyCreatedId = resp.CreatedId;
-            router.push(`/EditTextSection/${newlyCreatedId}`);
+            jumpToTextSectionEdit(newlyCreatedId);
             return;
         }
     }
     else if(target.Type==1){
         fileParaEditing.value = target;
         fileParaEdit.value?.extend();
+    }
+    else if(target.Type==2){
+        if(target.UnderlyingId && target.UnderlyingId>0){
+            jumpToFreeTableEdit(target.UnderlyingId);
+            return;
+        }
+        const resp = await api.table.freeTable.createForPara(paraId);
+        if(resp){
+            const newlyCreatedId = resp.CreatedId;
+            jumpToFreeTableEdit(newlyCreatedId);
+            return;
+        }
     }
 }
 async function RemovePara(paraId:number){
@@ -233,7 +248,7 @@ function tabSwitched(idx:number){
     }
 }
 onMounted(async()=>{
-    api = inject('api') as Api;
+    api = injectApi();
     await Load();
     //initLisenters();
 })

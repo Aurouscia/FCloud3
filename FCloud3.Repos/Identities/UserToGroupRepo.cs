@@ -10,7 +10,7 @@ namespace FCloud3.Repos.Identities
 {
     public class UserToGroupRepo : RepoBase<UserToGroup>
     {
-        public UserToGroupRepo(FCloudContext context) : base(context)
+        public UserToGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
 

@@ -7,7 +7,7 @@ namespace FCloud3.Repos.Wiki
     public class WikiItemRepo : RepoBase<WikiItem>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
-        public WikiItemRepo(FCloudContext context) : base(context)
+        public WikiItemRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
 

@@ -241,8 +241,8 @@ namespace FCloud3.Services.Files
                 errmsg = "不能将文件放到根目录";
                 return null;
             }
-            var fs = _fileItemRepo.GetRangeByIds(fileItemIds);
-            fs.ExecuteUpdate(x => x.SetProperty(f => f.InDir, distDirId));
+            if (!_fileItemRepo.SetInDirForRange(distDirId, fileItemIds, out errmsg))
+                return null;
 
             errmsg = null;
             return fileItemIds;

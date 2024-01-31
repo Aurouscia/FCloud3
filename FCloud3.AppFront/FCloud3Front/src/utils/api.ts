@@ -12,6 +12,8 @@ import { FileDir } from "../models/files/fileDir";
 import { QuickSearchResult } from '../models/sys/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
 import { WikiItem } from '../models/wiki/wikiItem';
+import { FreeTable } from '../models/table/freeTable';
+
 
 export class Api{
     private httpClient: HttpClient;
@@ -295,6 +297,30 @@ export class Api{
                 {id:textSecId,content:content});
             if(res.success){
                 return res.data as TextSectionPreviewResponse;
+            }
+        }
+    }
+    table = {
+        freeTable:{
+            load:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FreeTable/Load",
+                    "get",
+                    {id}
+                )
+                if(resp.success){
+                    return resp.data as FreeTable
+                }
+            },
+            createForPara:async (paraId:number) => {
+                const resp = await this.httpClient.request(
+                    "/api/FreeTable/CreateForPara",
+                    "get",
+                    {'paraId':paraId}
+                )
+                if(resp.success){
+                    return resp.data as {CreatedId:number}
+                }
             }
         }
     }

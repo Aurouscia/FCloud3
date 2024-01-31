@@ -10,7 +10,7 @@ namespace FCloud3.Repos.Wiki
 {
     public class WikiToDirRepo : RepoBase<WikiToDir>
     {
-        public WikiToDirRepo(FCloudContext context) : base(context)
+        public WikiToDirRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
         public List<int> GetDirWikiIds(int dirId)

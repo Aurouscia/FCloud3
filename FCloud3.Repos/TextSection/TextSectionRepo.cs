@@ -8,38 +8,19 @@ namespace FCloud3.Repos.TextSec
 {
     public class TextSectionRepo : RepoBase<TextSection>
     {
-        public TextSectionRepo(FCloudContext context) : base(context)
+        public TextSectionRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
 
-        public TextSection? GetByPara(WikiPara para)
+        public TextSectionMeta? GetMetaById(int id)
         {
-            if (para.Type != WikiParaType.Text)
-                return null;
-            return Existing.Where(x => x.Id == para.ObjectId).FirstOrDefault();
+            return Existing.Where(x => x.Id == id).GetMetaData().FirstOrDefault();
         }
-        public List<TextSection> GetRangeByParas(List<WikiPara> paras)
+        public List<TextSectionMeta> GetMetaRangeByIds(List<int> ids)
         {
-            var textSecIds = paras
-                .Where(x => x.Type == WikiParaType.Text)
-                .Select(x => x.ObjectId)
-                .ToList();
-            return Existing.Where(x => textSecIds.Contains(x.Id)).ToList();
-        }
-
-        public TextSectionMeta? GetMetaByPara(WikiPara para)
-        {
-            if (para.Type != WikiParaType.Text)
-                return null;
-            return Existing.Where(x => x.Id == para.ObjectId).GetMetaData().FirstOrDefault();
-        }
-        public List<TextSectionMeta> GetMetaRangeByParas(List<WikiPara> paras)
-        {
-            var textParaIds = paras
-                .Where(x => x.Type == WikiParaType.Text)
-                .Select(x => x.ObjectId)
-                .ToList();
-            return Existing.Where(x => textParaIds.Contains(x.Id)).GetMetaData().ToList();
+            if (ids.Count == 0)
+                return new();
+            return base.GetRangeByIds(ids).GetMetaData().ToList();
         }
 
         public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
@@ -97,7 +78,7 @@ namespace FCloud3.Repos.TextSec
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
     }
-    public static class TextSectionParaMetaQuerier
+    public static class TextSectionMetaQuerier
     {
         public static IQueryable<TextSectionMeta> GetMetaData(this IQueryable<TextSection> source)
         {

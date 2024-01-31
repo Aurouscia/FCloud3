@@ -1,9 +1,11 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Table;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
@@ -19,6 +21,7 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FileItemRepo _fileItemRepo;
+        private readonly FreeTableRepo _freeTableRepo;
         private readonly IStorage _storage;
         private readonly List<WikiParaType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
@@ -29,6 +32,7 @@ namespace FCloud3.Services.Wiki
             WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo,
             FileItemRepo fileItemRepo,
+            FreeTableRepo freeTableRepo,
             IStorage storage)
         {
             _transaction = transaction;
@@ -37,6 +41,7 @@ namespace FCloud3.Services.Wiki
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
             _fileItemRepo = fileItemRepo;
+            _freeTableRepo = freeTableRepo;
             _storage = storage;
             _wikiParaTypes = WikiParaTypes.GetListInstance();
         }
@@ -82,8 +87,14 @@ namespace FCloud3.Services.Wiki
             var paras = GetWikiParas(wikiId, start, count);
             paras.EnsureOrderDense();
 
-            List<TextSectionMeta> textParaObjs = _textSectionRepo.GetMetaRangeByParas(paras);
-            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByParas(paras);
+            List<int> textIds = paras.Where(x => x.Type == WikiParaType.Text).Select(x=>x.ObjectId).ToList();
+            List<TextSectionMeta> textParaObjs = _textSectionRepo.GetMetaRangeByIds(textIds);
+
+            List<int> fileIds = paras.Where(x => x.Type == WikiParaType.File).Select(x => x.ObjectId).ToList();
+            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds);
+
+            List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
+            List<FreeTableMeta> tableParaObjs = _freeTableRepo.GetMetaRangeByIds(tableIds);
 
             List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
@@ -100,6 +111,12 @@ namespace FCloud3.Services.Wiki
                     var obj = fileParaObjs.Find(p => p.Id == x.ObjectId);
                     if (obj is not null)
                         paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName??"missing"), WikiParaType.File);
+                }
+                else if(type == WikiParaType.Table)
+                {
+                    var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
+                    if (obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name, obj.Brief, WikiParaType.Table);
                 }
                 paraDisplay ??= new WikiParaPlaceholder(type).ToDisplay(x);
                 return paraDisplay;

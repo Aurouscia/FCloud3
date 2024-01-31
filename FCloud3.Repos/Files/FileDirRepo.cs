@@ -14,7 +14,7 @@ namespace FCloud3.Repos.Files
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";
-        public FileDirRepo(FCloudContext context) : base(context)
+        public FileDirRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
         public int GetIdByPath(string[] path)

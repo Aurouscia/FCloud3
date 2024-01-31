@@ -5,7 +5,7 @@ namespace FCloud3.Repos.Identities
 {
     public class UserRepo : RepoBase<User>
     {
-        public UserRepo(FCloudContext context) : base(context)
+        public UserRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
 
         }

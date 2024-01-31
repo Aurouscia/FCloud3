@@ -12,7 +12,7 @@ namespace FCloud3.Repos.Identities
     public class UserGroupRepo : RepoBase<UserGroup>
     {
         private const string userGroupNamePattern = @"^[\u4E00-\u9FA5A-Za-z0-9]{1,}$";
-        public UserGroupRepo(FCloudContext context) : base(context)
+        public UserGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
         public override bool TryAddCheck(UserGroup item, out string? errmsg)

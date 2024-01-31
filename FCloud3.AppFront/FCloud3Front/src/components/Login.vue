@@ -4,6 +4,7 @@ import { HttpClient} from '../utils/httpClient';
 import { IdentityInfo,IdentityInfoProvider } from '../utils/userInfo';
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';
+import { injectUserInfo } from '../provides';
 
 const userName = ref<string>("")
 const password = ref<string>("")
@@ -37,7 +38,7 @@ onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
-    identityInfoProvider = inject('userInfo') as IdentityInfoProvider
+    identityInfoProvider = injectUserInfo();
     identityInfo.value = await identityInfoProvider.getIdentityInfo();
 })
 </script>

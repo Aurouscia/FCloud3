@@ -4,8 +4,8 @@ using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
-using FCloud3.Entities.Wiki;
 using Microsoft.Extensions.Configuration;
+using FCloud3.Repos.Table;
 
 namespace FCloud3.Repos
 {
@@ -22,7 +22,9 @@ namespace FCloud3.Repos
             services.AddScoped<WikiItemRepo>();
             services.AddScoped<WikiToDirRepo>();
             services.AddScoped<WikiParaRepo>();
+
             services.AddScoped<TextSectionRepo>();
+            services.AddScoped<FreeTableRepo>();
 
             services.AddScoped<FileItemRepo>();
             services.AddScoped<FileDirRepo>();

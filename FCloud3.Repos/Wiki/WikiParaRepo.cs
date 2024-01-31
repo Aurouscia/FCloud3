@@ -10,7 +10,7 @@ namespace FCloud3.Repos.Wiki
 {
     public class WikiParaRepo : RepoBase<WikiPara>
     {
-        public WikiParaRepo(FCloudContext context) : base(context)
+        public WikiParaRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
 

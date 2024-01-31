@@ -7,6 +7,7 @@ using FCloud3.Services.Sys;
 using Microsoft.Extensions.Configuration;
 using FCloud3.Services.Files.Storage;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Table;
 
 namespace FCloud3.Services
 {
@@ -16,11 +17,14 @@ namespace FCloud3.Services
         {
             services.AddScoped<UserService>();
             services.AddScoped<UserGroupService>();
+
             services.AddScoped<WikiItemService>();
             services.AddScoped<WikiParaService>();
             services.AddScoped<TextSectionService>();
+            services.AddScoped<FreeTableService>();
             services.AddScoped<FileItemService>();
             services.AddScoped<FileDirService>();
+
             services.AddScoped<QuickSearchService>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";

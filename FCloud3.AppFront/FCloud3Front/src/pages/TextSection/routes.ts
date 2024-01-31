@@ -1,15 +1,22 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import textParaEditor from "./TextSectionEditor.vue"
+import TextParaEditor from "./TextSectionEditor.vue"
+import { router } from "../../main";
 
 export function addTextSection(r:Router){
     addToRouter(r,routes);
 }
 
+const textSectionEditRouteName = 'textSectionEdit';
 const routes = [
     {
         path:"/EditTextSection/:id",
-        component:textParaEditor,
-        props:true
+        component:TextParaEditor,
+        props:true,
+        name:textSectionEditRouteName
     }
 ]
+
+export function jumpToTextSectionEdit(id:number){
+    router.push({name:textSectionEditRouteName, params:{id:id}})
+}

@@ -1,12 +1,13 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Files
 {
     public class FileItemRepo : RepoBase<FileItem>
     {
-        public FileItemRepo(FCloudContext context) : base(context)
+        public FileItemRepo(FCloudContext context,ICommitingUserIdProvider userIdProvider) : base(context,userIdProvider)
         {
         }
         public IQueryable<FileItem> QuickSearch(string str)
@@ -59,14 +60,17 @@ namespace FCloud3.Repos.Files
             return true;
         }
 
-        public List<FileItem> GetRangeByParas(List<WikiPara> paras)
+        public List<FileItem> GetRangeByIds(List<int> ids)
         {
-            var fileParaIds = paras
-                .Where(x => x.Type == WikiParaType.File)
-                .Select(x => x.ObjectId)
-                .ToList();
-            return Existing.Where(x => fileParaIds.Contains(x.Id)).ToList();
+            if (ids.Count == 0)
+                return new();
+            return base.GetRangeByIds(ids).ToList();
         }
-
+        public bool SetInDirForRange(int distDirId, List<int> ids, out string? errmsg)
+        {
+            int affected = base.GetRangeByIds(ids).ExecuteUpdate(x => x.SetProperty(f => f.InDir, distDirId));
+            errmsg = null;
+            return true;
+        }
     }
 }

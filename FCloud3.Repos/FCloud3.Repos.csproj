@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aurouscia.TableEditor.Core" Version="0.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FCloud3.DbContexts\FCloud3.DbContexts.csproj" />
     <ProjectReference Include="..\FCloud3.Entities\FCloud3.Entities.csproj" />
   </ItemGroup>
