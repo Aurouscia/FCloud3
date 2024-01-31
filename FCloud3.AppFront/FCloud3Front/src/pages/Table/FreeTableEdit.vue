@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import Editor,{ TableData } from '@aurouscia/au-table-editor'
+import { Editor, TableData } from '@aurouscia/au-table-editor'
+import '/node_modules/@aurouscia/au-table-editor/dist/style.css'
 import Loading from '../../components/Loading.vue';
 import { onMounted, ref } from 'vue';
 import { injectApi } from '../../provides';
@@ -12,6 +13,7 @@ const props = defineProps<{
 
 const tableInfo = ref<FreeTable>(); 
 const tableData = ref<TableData>();
+
 async function load(){
     tableInfo.value = await api.table.freeTable.load(parseInt(props.id));
     console.log(tableInfo.value);
