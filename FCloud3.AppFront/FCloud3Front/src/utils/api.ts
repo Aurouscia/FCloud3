@@ -321,6 +321,23 @@ export class Api{
                 if(resp.success){
                     return resp.data as {CreatedId:number}
                 }
+            },
+            saveInfo:async(id:number,title:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FreeTable/SaveInfo",
+                    "postForm",
+                    {id,title},
+                    "修改成功"
+                );
+                return resp.success;
+            },
+            saveContent:async(id:number,data:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FreeTable/SaveContent",
+                    "postForm",
+                    {id,data}
+                )
+                return resp
             }
         }
     }

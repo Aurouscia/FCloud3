@@ -119,6 +119,7 @@ namespace FCloud3.Repos.Table
             FreeTable creating = new();
             creating.SetData(table);
             creating.SetBrief(brief);
+            creating.Name = newTableDefaultName;
             return TryAddAndGetId(creating, out errmsg);
         }
 

@@ -15,11 +15,13 @@ import Loading from '../../components/Loading.vue';
 import Notice from '../../components/Notice.vue';
 import SideBar from '../../components/SideBar.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
+import TextParaListItem from './ParaListItem/TextParaListItem.vue';
+import FileParaListItem from './ParaListItem/FileParaListItem.vue';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
-import { getFileType } from '../../utils/fileUtils';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { injectApi } from '../../provides';
 import { jumpToFreeTableEdit } from '../Table/routes';
+import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -264,19 +266,10 @@ onUnmounted(()=>{
         <div v-if="loadComplete" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
-                 class="dragY" :src="dragYIconSrc"/>
-            <div class="paraTitle">
-                <h2 v-if="p.Type==0 || p.Type==2">{{ p.Title }}</h2>
-            </div>
-            <div v-if="p.Type==1" class="filePara">
-                <img v-if="getFileType(p.Content)=='image'" :src="p.Content"/>
-                <div v-else class="fileLink">
-                    <a :href="p.Content">
-                        {{ p.Title }}<br/><span>{{ p.Content }}</span>
-                    </a>
-                </div>
-            </div>
-            <div v-else class="paraContent">{{ p.Content }}</div>
+                class="dragY" :src="dragYIconSrc"/>
+            <TextParaListItem v-if="p.Type==0" :w="p"></TextParaListItem>
+            <FileParaListItem v-else-if="p.Type==1" :w="p"></FileParaListItem>
+            <TableParaListItem v-else :w="p"></TableParaListItem>
             <div class="menu">
                 <Functions x-align="right" :entry-size="30">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
@@ -338,15 +331,6 @@ onUnmounted(()=>{
     margin: 0px auto 0px auto;
 }
 
-.filePara img{
-    width: calc(100%);
-    height: 90px;
-    object-fit: contain;
-}
-.filePara{
-    text-align: center;
-    font-size: 18px;
-}
 .fileLink{
     margin-top: 16px;
     white-space: nowrap;
@@ -426,5 +410,6 @@ onUnmounted(()=>{
     position: absolute;
     right:10px;
     top:10px;
+    z-index: 105;
 }
 </style>

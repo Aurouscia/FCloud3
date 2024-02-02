@@ -28,5 +28,19 @@ namespace FCloud3.App.Controllers.Table
                 return this.ApiFailedResp("未找到指定的表格");
             return this.ApiResp(res);
         }
+
+        public IActionResult SaveInfo(int id, string title)
+        {
+            if (!_freeTableService.TryEditInfo(id, title, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
+        public IActionResult SaveContent(int id, string data)
+        {
+            if (!_freeTableService.TryEditContent(id, data, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
     }
 }
