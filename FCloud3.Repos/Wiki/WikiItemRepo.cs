@@ -22,6 +22,11 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.UrlPathName == urlPathName);
         }
 
+        public override int GetOwnerIdById(int id)
+        {
+            return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
+        }
+
         public override bool TryAddCheck(WikiItem item, out string? errmsg)
         {
             return InfoCheck(item,false,out errmsg);

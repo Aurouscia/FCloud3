@@ -13,7 +13,31 @@ namespace FCloud3.Repos.Identities
         public UserToGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
+        public List<int> GetUserIdsByGroupId(int groupId)
+        {
+            return Existing.Where(x=>x.GroupId==groupId).Select(x=>x.UserId).ToList();
+        }
+        public Dictionary<int,List<int>> GetUserIdDicByGroupIds(List<int> groupIds)
+        {
+            if (groupIds.Count == 0)
+                return new();
 
+            var q = (from g in Existing
+                      where groupIds.Contains(g.GroupId)
+                      group g.UserId by g.GroupId).ToList();
+
+            return q.ToDictionary(x => x.Key, x => x.ToList());
+        }
+        public bool IsInSameGroup(int user1,int user2)
+        {
+            var g1s = Existing.Where(x => x.UserId == user1).Select(x => x.GroupId).ToList();
+            if(g1s.Count==0)
+                return false;
+            var g2s = Existing.Where(x => x.UserId == user2).Select(x => x.GroupId).ToList();
+            if (g2s.Count == 0)
+                return false;
+            return g1s.Intersect(g2s).Any();
+        }
         public bool AddUserToGroup(int userId, int groupId, out string? errmsg)
         {
             var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();

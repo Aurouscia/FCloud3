@@ -10,7 +10,7 @@ namespace FCloud3.Repos
     public abstract class RepoBase<T> where T : class,IDbModel
     {
         protected readonly FCloudContext _context;
-        private readonly ICommitingUserIdProvider _userIdProvider;
+        protected readonly ICommitingUserIdProvider _userIdProvider;
 
         public RepoBase(FCloudContext context, ICommitingUserIdProvider userIdProvider)
         {
@@ -138,6 +138,11 @@ namespace FCloud3.Repos
         {
             return Existing.Where(x => ids.Contains(x.Id));
         } 
+
+        public virtual int GetOwnerIdById(int id)
+        {
+            return Existing.Where(x => x.Id == id).Select(x => x.CreatorUserId).FirstOrDefault();
+        }
 
         public virtual bool TryAddCheck(T item, out string? errmsg)
         {
@@ -286,6 +291,20 @@ namespace FCloud3.Repos
             _context.Remove(item);
             _context.SaveChanges();
             return true;
+        }
+        public virtual bool TryRemovePermanent(int id, out string? errmsg)
+        {
+            var deleted = Existing.Where(x => x.Id == id).ExecuteDelete();
+            if (deleted > 0)
+            {
+                errmsg = null;
+                return true;
+            }
+            else
+            {
+                errmsg = "删除失败(可能未找到指定id)";
+                return false;
+            }
         }
     }
 }

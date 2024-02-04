@@ -9,6 +9,7 @@ namespace FCloud3.Entities
 {
     public interface IRelation
     {
+        public int Id { get; set; }
         public int RelationMainId { get; }
         public int RelationSubId { get; }
         public int Order { get; set; }
@@ -16,15 +17,22 @@ namespace FCloud3.Entities
 
     public static class RelationListExtensions
     {
-        public static void EnsureOrderDense<T>(this List<T> paras) where T:IRelation
+        public static void EnsureOrderDense<T>(this List<T> items) where T:IRelation
         {
-            paras.Sort((x, y) => x.Order - y.Order);
-            paras.ResetOrder();
+            items.Sort((x, y) => x.Order - y.Order);
+            items.ResetOrder();
         }
-        public static void ResetOrder<T>(this List<T> paras) where T:IRelation
+        public static void ResetOrder<T>(this List<T> items) where T:IRelation
         {
-            for (int i = 0; i < paras.Count; i++)
-                paras[i].Order = i;
+            for (int i = 0; i < items.Count; i++)
+                items[i].Order = i;
+        }
+        public static void ResetOrder<T>(this List<T> items, List<int> ids) where T : IRelation
+        {
+            items.Sort((x, y) =>
+            {
+                return ids.IndexOf(x.Id) - ids.IndexOf(y.Id);
+            });
         }
     }
 }
