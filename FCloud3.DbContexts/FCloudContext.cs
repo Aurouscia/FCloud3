@@ -12,6 +12,7 @@ namespace FCloud3.DbContexts
         public DbSet<User> Users { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<UserToGroup> UserToGroups { get; set; }
+        public DbSet<AuthGrant> AuthGrants { get; set; }
         public DbSet<WikiItem> WikiItems { get; set; }
         public DbSet<WikiToDir> WikiToDirs { get; set; }
         public DbSet<WikiPara> WikiParas { get; set; }
@@ -20,4 +21,6 @@ namespace FCloud3.DbContexts
         public DbSet<FileItem> FileItems { get; set; }
         public DbSet<FileDir> FileDirs { get; set; }
     }
+
+    //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations
 }

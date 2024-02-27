@@ -11,7 +11,7 @@ namespace FCloud3.Repos.Identities
         }
         public List<AuthGrant> GetByOn(AuthGrantOn on, int onId)
         {
-            return Existing.OrderByDescending(x => x.Order).Where(x => x.On == on && x.OnId == onId).ToList();
+            return Existing.OrderBy(x => x.Order).Where(x => x.On == on && x.OnId == onId).ToList();
         }
         public override bool TryAdd(AuthGrant item, out string? errmsg)
         {

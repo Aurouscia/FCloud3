@@ -71,21 +71,25 @@ namespace FCloud3.Services.Identities
         public List<AuthGrantViewModel> GetList(AuthGrantOn on, int onId)
         {
             var list = _authGrantRepo.GetByOn(on, onId);
-            var groupIds = list.Where(x=>x.To == AuthGrantTo.UserGroup).Select(x=>x.ToId).ToList();
+            var groupIds = list.Where(x => x.To == AuthGrantTo.UserGroup).Select(x=>x.ToId).ToList();
             var userIds = list.Where(x => x.To == AuthGrantTo.User).Select(x => x.ToId).ToList();
+            var creatorIds = list.Select(x => x.CreatorUserId).ToList();
+            userIds = userIds.Union(creatorIds).ToList();
+
             var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id,x.Name}).ToList();
             var userNames = _userRepo.GetRangeByIds(userIds).Select(x => new { x.Id, x.Name }).ToList();
             return list.ConvertAll(x =>
             {
-                string? name = null;
+                string? toName = null;
                 if (x.To == AuthGrantTo.UserGroup)
-                    name = groupNames.FirstOrDefault(g => g.Id == x.ToId)?.Name;
+                    toName = groupNames.FirstOrDefault(g => g.Id == x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.User)
-                    name = userNames.FirstOrDefault(u => u.Id == x.ToId)?.Name;
+                    toName = userNames.FirstOrDefault(u => u.Id == x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.EveryOne)
-                    name = "所有人";
-                name ??= "N/A";
-                return new AuthGrantViewModel(x, name);
+                    toName = "所有人";
+                toName ??= "N/A";
+                string creatorName = userNames.FirstOrDefault(u=>u.Id==x.CreatorUserId)?.Name ?? "N/A";
+                return new AuthGrantViewModel(x, toName, creatorName);
             });
         }
         public bool Add(AuthGrant newGrant, out string? errmsg)
@@ -164,7 +168,8 @@ namespace FCloud3.Services.Identities
         public class AuthGrantViewModel:AuthGrant
         {
             public string ToName { get; }
-            public AuthGrantViewModel(AuthGrant authGrant, string toName)
+            public string CreatorName { get; }
+            public AuthGrantViewModel(AuthGrant authGrant, string toName, string creatorName)
             {
                 this.Id = authGrant.Id;
                 this.ToId = authGrant.ToId;
@@ -173,6 +178,7 @@ namespace FCloud3.Services.Identities
                 this.On = authGrant.On;
                 this.IsReject = authGrant.IsReject;
                 this.ToName = toName;
+                CreatorName = creatorName;
             }
         }
     }

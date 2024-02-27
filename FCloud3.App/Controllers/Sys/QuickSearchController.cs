@@ -21,6 +21,11 @@ namespace FCloud3.App.Controllers.Sys
             var res = _quickSearchService.SearchUser(s);
             return this.ApiResp(res);
         }
+        public IActionResult UserGroupName(string s)
+        {
+            var res = _quickSearchService.SearchUserGroup(s);
+            return this.ApiResp(res);
+        }
         public IActionResult FileItem(string s)
         {
             var res = _quickSearchService.SearchFileItem(s);

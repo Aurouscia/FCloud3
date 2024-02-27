@@ -13,6 +13,7 @@ import { QuickSearchResult } from '../models/sys/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
 import { WikiItem } from '../models/wiki/wikiItem';
 import { FreeTable } from '../models/table/freeTable';
+import { AuthGrant, AuthGrantOnText, AuthGrantViewModel, authGrantOn } from '../models/identities/authGrant';
 
 
 export class Api{
@@ -156,6 +157,47 @@ export class Api{
                 )
                 return resp.success
             },
+        },
+        authGrant:{
+            getList:async(onType:AuthGrantOnText, onId:number)=>{
+                const on = authGrantOn(onType);
+                const resp = await this.httpClient.request(
+                    "/api/AuthGrant/GetList",
+                    "get",
+                    {on,onId}
+                )
+                if(resp.success){
+                    return resp.data as AuthGrantViewModel[];
+                }
+            },
+            setOrder:async(onType:AuthGrantOnText, onId:number, ids:number[])=>{
+                const on = authGrantOn(onType);
+                const resp = await this.httpClient.request(
+                    "/api/AuthGrant/SetOrder",
+                    "postRaw",
+                    {on,onId,ids},
+                    "设置顺序成功"
+                )
+                return resp.success;
+            },
+            add:async(authGrant:AuthGrant)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AuthGrant/Add",
+                    "postRaw",
+                    authGrant,
+                    "新增成功"
+                )
+                return resp.success;
+            },
+            remove:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AuthGrant/Remove",
+                    "get",
+                    {id},
+                    "删除成功"
+                )
+                return resp.success;
+            }
         }
     }
     wiki = {
@@ -501,6 +543,16 @@ export class Api{
             userName:async(s:string)=>{
                 const res = await this.httpClient.request(
                     "/api/QuickSearch/UserName",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
+            userGroupName:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/UserGroupName",
                     "get",
                     {s}
                 )

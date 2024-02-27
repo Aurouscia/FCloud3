@@ -22,6 +22,7 @@ import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { injectApi } from '../../provides';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
+import AuthGrants from '../../components/AuthGrants.vue';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -261,7 +262,7 @@ onUnmounted(()=>{
 
 <template>
     <h1>{{ info?.Title }}</h1>
-    <SwitchingTabs :texts="['编辑内容','基础信息']" @switch="tabSwitched">
+    <SwitchingTabs :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
         <div v-if="loadComplete" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
@@ -289,7 +290,6 @@ onUnmounted(()=>{
         <Loading v-else></Loading>
     </div>
     <div>
-        <h1>基础信息</h1>
         <div class="wikiInfo" v-if="info">
             <table>
                 <tr>
@@ -318,6 +318,9 @@ onUnmounted(()=>{
             </div>
         </div>
         <Loading v-else></Loading>
+    </div>
+    <div>
+        <AuthGrants v-if="info" :on="'Wiki'" :on-id="info.Id"></AuthGrants>
     </div>
     </SwitchingTabs>
     <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters();fileEditFold()">

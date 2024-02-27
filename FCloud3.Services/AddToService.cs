@@ -17,6 +17,7 @@ namespace FCloud3.Services
         {
             services.AddScoped<UserService>();
             services.AddScoped<UserGroupService>();
+            services.AddScoped<AuthGrantService>();
 
             services.AddScoped<WikiItemService>();
             services.AddScoped<WikiParaService>();

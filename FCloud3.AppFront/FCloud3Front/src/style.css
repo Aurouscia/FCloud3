@@ -104,6 +104,13 @@ button.off{
 button.off:hover{
   background-color: #222;
 }
+button.lite{
+  background-color: transparent;
+  border: none;
+  color:#666;
+  padding: 0px;
+  margin: 0px;
+}
 
 .section{
   margin: 5px;

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
-import { Api } from '../utils/api';
+import { onMounted, ref } from 'vue';
 import { QuickSearchResult, QuickSearchResultItem } from '../models/sys/quickSearch';
 
 const props = defineProps<{
@@ -61,9 +60,9 @@ const emits = defineEmits<{
 }>();
 defineExpose({clear});
 
-var api:Api;
+//var api:Api;
 onMounted(()=>{
-    api = inject('api') as Api;
+    //api = inject('api') as Api;
 })
 </script>
 
@@ -121,6 +120,7 @@ onMounted(()=>{
     border-radius: 0px 5px 5px 0px;
     padding: 5px;
     margin: 0px;
+    height: 100%;
     transition: 0.5s;
 }
 .write input{
@@ -129,7 +129,7 @@ onMounted(()=>{
     flex-grow: 1;
     padding: 4px;
     margin:0px;
-    height: 19px;
+    height: 100%;
     display: block;
 }
 .write{

@@ -14,15 +14,18 @@ namespace FCloud3.Services.Sys
         private const int maxCount = 8;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly UserRepo _userRepo;
+        private readonly UserGroupRepo _userGroupRepo;
         private readonly FileItemRepo _fileItemRepo;
 
         public QuickSearchService(
             WikiItemRepo wikiItemRepo,
             UserRepo userRepo,
+            UserGroupRepo userGroupRepo,
             FileItemRepo fileItemRepo)
         {
             _wikiItemRepo = wikiItemRepo;
             _userRepo = userRepo;
+            _userGroupRepo = userGroupRepo;
             _fileItemRepo = fileItemRepo;
         }
 
@@ -41,6 +44,17 @@ namespace FCloud3.Services.Sys
         {
             var q = _userRepo.QuickSearch(str);
             var items = q.Select(x => new {x.Name,x.Id}).Take(maxCount).ToList();
+            QuickSearchResult res = new();
+            items.ForEach(x =>
+            {
+                res.Items.Add(new(x.Name ?? "N/A", null, x.Id));
+            });
+            return res;
+        }
+        public QuickSearchResult SearchUserGroup(string str)
+        {
+            var q = _userGroupRepo.QuickSearch(str);
+            var items = q.Select(x => new { x.Name, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>
             {

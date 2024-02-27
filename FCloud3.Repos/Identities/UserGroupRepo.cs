@@ -15,6 +15,12 @@ namespace FCloud3.Repos.Identities
         public UserGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
+
+        public IQueryable<UserGroup> QuickSearch(string s)
+        {
+            return Existing.Where(x => x.Name != null && x.Name.Contains(s))
+                .OrderBy(x => x.Updated);
+        }
         public override bool TryAddCheck(UserGroup item, out string? errmsg)
         {
             return InfoCheck(item, out errmsg);
