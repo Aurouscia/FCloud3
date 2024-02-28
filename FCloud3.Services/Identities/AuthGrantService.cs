@@ -36,6 +36,8 @@ namespace FCloud3.Services.Identities
         public bool Test(AuthGrantOn on, int onId)
         {
             int userId = _userIdProvider.Get();
+            if (userId == 0)
+                return false;
 
             var gs = _authGrantRepo.GetByOn(on, onId);//按order从下到上的顺序，下面覆盖上面，所以先检验
             var ownerId = GetOwnerId(on, onId);

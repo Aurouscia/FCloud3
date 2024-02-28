@@ -43,9 +43,12 @@ export class HttpClient{
     }
     private showErrToUser(err:AxiosError){
         console.log(err);
-        if(err.response?.status==401){
-            this.httpCallBack("err","请登录");
-            return;
+        if(err.status){
+            const codeText = statusCodeText(err.status);
+            if(codeText){
+                this.httpCallBack("err", codeText);
+                return;
+            }
         }
         this.httpCallBack("err","请检查网络连接");
     }
@@ -98,10 +101,11 @@ export class HttpClient{
             }
             if(!resp.success){
                 console.log(`[${type}]${resource}失败`,resp.errmsg||res.statusText);
-                if(res.status==401){
-                    this.httpCallBack('err','请登录');
+                if(resp.errmsg){
+                    this.httpCallBack('err',resp.errmsg);
                 }else{
-                    this.httpCallBack('err',resp.errmsg)
+                    const codeText = statusCodeText(res.status);
+                    this.httpCallBack('err',codeText||"未知错误")
                 }
             }
             return resp;
@@ -109,4 +113,17 @@ export class HttpClient{
             return defaultFailResp;
         }
     }
+}
+
+export function statusCodeText(code:number|undefined|null){
+    if(code == 401){
+        return "请登录";
+    }
+    if(code == 403){
+        return "无权限";
+    }
+    if(code||0 >= 500){
+        return "服务器未知错误";
+    }
+    return undefined;
 }

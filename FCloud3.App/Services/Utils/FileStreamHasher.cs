@@ -1,7 +1,7 @@
 ﻿using FCloud3.App.Utils;
 using FCloud3.Services.Files.Storage.Abstractions;
 
-namespace FCloud3.App.Services
+namespace FCloud3.App.Services.Utils
 {
     public class FileStreamHasher : IFileStreamHasher
     {
@@ -10,7 +10,7 @@ namespace FCloud3.App.Services
             return MD5Helper.GetMD5Of(s);
         }
 
-        //严重性能瓶颈
+        //TODO严重性能瓶颈
         //算多大的文件就要占走多少内存
         public string Hash(Stream s, out Stream originalData)
         {

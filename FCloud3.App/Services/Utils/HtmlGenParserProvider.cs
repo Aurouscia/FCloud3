@@ -4,14 +4,14 @@ using FCloud3.HtmlGen.Util;
 using FCloud3.App.Utils;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace FCloud3.App.Services
+namespace FCloud3.App.Services.Utils
 {
     public class HtmlGenParserProvider
     {
         private readonly IMemoryCache _cache;
         private readonly HttpUserInfoService _userInfo;
 
-        public HtmlGenParserProvider(IMemoryCache cache,HttpUserInfoService userInfo)
+        public HtmlGenParserProvider(IMemoryCache cache, HttpUserInfoService userInfo)
         {
             _cache = cache;
             _userInfo = userInfo;
@@ -26,12 +26,12 @@ namespace FCloud3.App.Services
             {
                 SlidingExpiration = TimeSpan.FromMinutes(5),
             };
-            entryOption.RegisterPostEvictionCallback((key,value,reason,state) =>
+            entryOption.RegisterPostEvictionCallback((key, value, reason, state) =>
             {
                 if (value is Parser parser)
                     parser.Dispose();
             });
-            _cache.Set<Parser>(Key(textSecId), p, entryOption);
+            _cache.Set(Key(textSecId), p, entryOption);
             return p;
         }
         private Parser BuildParser()

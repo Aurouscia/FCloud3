@@ -4,7 +4,7 @@ using FCloud3.Services;
 using FCloud3.Services.Identities;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace FCloud3.App.Services
+namespace FCloud3.App.Services.Utils
 {
     public class HttpUserInfoService
     {
@@ -36,7 +36,7 @@ namespace FCloud3.App.Services
             }
         }
     }
-    public class HttpUserIdProvider: ICommitingUserIdProvider, IOperatingUserIdProvider
+    public class HttpUserIdProvider : ICommitingUserIdProvider, IOperatingUserIdProvider
     {
         private int Id { get; }
         public int Get() => Id;

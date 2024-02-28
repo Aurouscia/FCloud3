@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities.Files;
+﻿using FCloud3.App.Models.COM;
+using FCloud3.App.Services.Filters;
 using FCloud3.Repos;
 using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,7 @@ namespace FCloud3.App.Controllers.Files
             };
             return this.ApiResp(resp);
         }
+        [AuthGranted]
         public IActionResult EditExe([FromBody]FileDirComModel req)
         {
             if (req is null)
@@ -106,7 +108,7 @@ namespace FCloud3.App.Controllers.Files
             public List<int>? FileDirIds { get; set; }
             public List<int>? WikiItemIds { get; set; }
         }
-        public class FileDirComModel
+        public class FileDirComModel : IAuthGrantableRequestModel
         {
             public int Id { get; set; }
             public string? Name { get; set; }
@@ -115,6 +117,7 @@ namespace FCloud3.App.Controllers.Files
             public bool CanPutFile { get; set; }
             public bool CanPutWiki { get; set; }
             public bool CanEditInfo { get; set; }
+            public int AuthGrantOnId => Id;
         }
         public class FileDirCreateRequest
         {

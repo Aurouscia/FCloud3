@@ -1,7 +1,9 @@
 using FCloud3.Repos;
 using FCloud3.App.Services;
+using FCloud3.App.Services.Logging;
 using FCloud3.Services;
 using Serilog;
+using FCloud3.App.Services.Authentication;
 
 try
 {
@@ -21,7 +23,7 @@ try
     //添加app本身的功能，例如Controller
     builder.Services.AddAppServices();
     //添加jwt鉴权(authentication)
-    builder.Services.AddJwtService(c);
+    builder.Services.AddJwtAuthentication(c);
 
     string localVueCors = "localVueCors";
     builder.Services.AddCors(options =>
@@ -55,10 +57,10 @@ try
 
     app.MapControllerRoute(
         name: "default",
-        pattern: "{controller}/{action}/{id?}");
+        pattern: "{controller}/{action}");
     app.MapControllerRoute(
         name: "api",
-        pattern: "api/{controller}/{action}/{id?}");
+        pattern: "api/{controller}/{action}");
 
     Log.Information("FCloud3.App启用成功=============================================");
     app.Run();

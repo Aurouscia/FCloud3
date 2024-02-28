@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace FCloud3.App.Services
+namespace FCloud3.App.Services.Filters
 {
-    public class ApiExceptionFilter:ExceptionFilterAttribute
+    public class ApiExceptionFilter : ExceptionFilterAttribute
     {
         private readonly ILogger<ApiExceptionFilter> _logger;
 
@@ -24,14 +24,10 @@ namespace FCloud3.App.Services
                 string path = context.HttpContext.Request.Path;
                 string method = context.HttpContext.Request.Method;
 
-                _logger.LogError(ex, "未经处理的异常 {Method} {path}",method,path);
+                _logger.LogError(ex, "未经处理的异常 {Method} {path}", method, path);
 
-                context.Result = new ContentResult()
-                {
-                    StatusCode = 200,
-                    Content = JsonConvert.SerializeObject(new ApiResponse(null, false, "未知错误："+msg)),
-                    ContentType = Application.Json
-                };
+                ApiResponse resp = new(null, false, "未知错误:" + msg);
+                context.Result = resp.BuildResult();
             }
             // 设置为true，表示异常已经被处理了
             context.ExceptionHandled = true;

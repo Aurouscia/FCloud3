@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FCloud3.App.Models.COM
 {
@@ -20,6 +23,15 @@ namespace FCloud3.App.Models.COM
             if (!success && errmsg is null)
                 this.errmsg = "服务器内部错误";
             this.code = code;
+        }
+        public ContentResult BuildResult()
+        {
+            return new ContentResult()
+            {
+                StatusCode = 200,
+                Content = JsonConvert.SerializeObject(new ApiResponse(null, false, this.errmsg)),
+                ContentType = Application.Json
+            };
         }
     }
 }
