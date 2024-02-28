@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref, Ref, onMounted, inject, computed} from 'vue'
+import {ref, Ref, onMounted, inject, computed, onUnmounted} from 'vue'
 import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/textSecSplitLine';
 import { md5 } from 'js-md5'
+import { SetTopbarFunc, injectSetTopbar } from '../../provides';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5("locHash_"+str.trim())
@@ -116,13 +117,19 @@ async function init(){
         loadComplete.value = true;
     }
 }
+
+let setTopbar:SetTopbarFunc|undefined;
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
-    const hideTopbar = inject('hideTopbar') as ()=>void;
-    hideTopbar();
+    setTopbar = injectSetTopbar();
+    setTopbar(false);
 
     await init();
+})
+onUnmounted(()=>{
+    if(setTopbar)
+        setTopbar(true);
 })
 
 function leftToRight(e:MouseEvent){

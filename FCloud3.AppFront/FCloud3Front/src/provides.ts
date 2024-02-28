@@ -8,7 +8,9 @@ const popKey = 'pop';
 const httpKey = 'http';
 const apiKey = 'api';
 const userInfoKey = 'userInfo';
-const hideTopbarKey = 'hideTopbar';
+const setTopBarKey = 'setTopbar';
+
+export type SetTopbarFunc = (display:boolean)=>void
 
 export function useProvidesSetup() {
     const pop = ref<InstanceType<typeof Pop> | null>(null);
@@ -26,7 +28,7 @@ export function useProvidesSetup() {
     provide(userInfoKey, new IdentityInfoProvider(api))
 
     const displayTopbar = ref<boolean>(true);
-    provide(hideTopbarKey, () => { displayTopbar.value = false })
+    provide(setTopBarKey, (display:boolean) => { displayTopbar.value = display })
     return { pop, displayTopbar }
 }
 
@@ -42,6 +44,6 @@ export function injectApi(){
 export function injectUserInfo(){
     return inject(userInfoKey) as IdentityInfoProvider
 }
-export function injectHideTopbar(){
-    return inject(hideTopbarKey) as ()=>void
+export function injectSetTopbar(){
+    return inject(setTopBarKey) as SetTopbarFunc
 }

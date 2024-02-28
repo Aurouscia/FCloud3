@@ -2,8 +2,8 @@
 import { Editor, TableData } from '@aurouscia/au-table-editor'
 import '/node_modules/@aurouscia/au-table-editor/dist/style.css'
 import Loading from '../../components/Loading.vue';
-import { onMounted, ref } from 'vue';
-import { injectApi, injectHideTopbar } from '../../provides';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { SetTopbarFunc, injectApi, injectSetTopbar } from '../../provides';
 import { Api } from '../../utils/api';
 import { FreeTable } from '../../models/table/freeTable';
 
@@ -36,14 +36,19 @@ async function editContent(val:TableData, callBack:(success:boolean,msg:string)=
     }
 }
 
-var api:Api;
+let api:Api;
+let setTopBar: SetTopbarFunc|undefined;
 const loadComplete = ref<boolean>(false);
 onMounted(async()=>{
     api = injectApi();
-    var hideTopbar = injectHideTopbar();
-    hideTopbar();
+    setTopBar = injectSetTopbar();
+    setTopBar(false);
     await load();
     loadComplete.value = true;
+})
+onUnmounted(()=>{
+    if(setTopBar)
+        setTopBar(true);
 })
 </script>
 
