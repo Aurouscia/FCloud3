@@ -8,6 +8,7 @@ import { User } from '../../models/identities/user';
 import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import { IdentityInfoProvider } from '../../utils/userInfo';
+import { injectApi, injectPop } from '../../provides';
 
 const props = defineProps<{
     username?:string
@@ -17,10 +18,15 @@ var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
 onMounted(async()=>{
-    api = inject('api') as Api;
+    api = injectApi();
+    const pop = injectPop();
     var username = props.username;
     if(!username){
         const iden = await (inject('userInfo') as IdentityInfoProvider).getIdentityInfo();
+        if(iden.Id==0){
+            pop.value.show("请登录","failed");
+            return;
+        }
         username = iden.Name
     }
     user.value = await api.identites.user.getInfoByName(username);

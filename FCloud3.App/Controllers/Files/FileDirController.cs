@@ -2,6 +2,7 @@
 using FCloud3.App.Services.Filters;
 using FCloud3.Repos;
 using FCloud3.Services.Files;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
@@ -50,6 +51,7 @@ namespace FCloud3.App.Controllers.Files
             };
             return this.ApiResp(resp);
         }
+        [Authorize]
         [AuthGranted]
         public IActionResult EditExe([FromBody]FileDirComModel req)
         {

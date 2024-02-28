@@ -64,7 +64,6 @@ namespace FCloud3.App.Controllers
             _logger.LogInformation("[{userId}]{userName}登录成功",u.Id, userName);
             return this.ApiResp(new { token = tokenStr });
         }
-        [Authorize]
         public IActionResult IdentityTest()
         {
             return this.ApiResp(_userInfo);
