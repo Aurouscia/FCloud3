@@ -26,6 +26,4 @@ addTextSection(router)
 addTable(router)
 addFiles(router)
 
-export {router}
-
 createApp(App).use(router).mount('#app')

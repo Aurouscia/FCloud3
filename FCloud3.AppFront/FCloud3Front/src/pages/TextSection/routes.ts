@@ -1,10 +1,12 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
 import TextParaEditor from "./TextSectionEditor.vue"
-import { router } from "../../main";
+
+let router:Router|undefined = undefined;
 
 export function addTextSection(r:Router){
     addToRouter(r,routes);
+    router = r;
 }
 
 const textSectionEditRouteName = 'textSectionEdit';
@@ -18,5 +20,5 @@ const routes = [
 ]
 
 export function jumpToTextSectionEdit(id:number){
-    router.push({name:textSectionEditRouteName, params:{id:id}})
+    router?.push({name:textSectionEditRouteName, params:{id:id}})
 }

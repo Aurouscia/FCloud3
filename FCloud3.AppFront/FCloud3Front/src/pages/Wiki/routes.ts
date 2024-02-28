@@ -1,6 +1,6 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import editInfo from "./WikiItemEdit.vue"
+import WikiItemEdit from "./WikiItemEdit.vue"
 
 export function addWiki(r:Router){
     addToRouter(r,routes);
@@ -9,7 +9,7 @@ export function addWiki(r:Router){
 const routes = [
     {
         path:"/w/Edit/:urlPathName",
-        component:editInfo,
+        component:WikiItemEdit,
         props:true,
         name:"wikiEdit"
     }

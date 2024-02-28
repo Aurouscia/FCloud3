@@ -2,7 +2,6 @@ import { Ref, provide, inject, ref} from 'vue';
 import { HttpCallBack, HttpClient } from './utils/httpClient';
 import { IdentityInfoProvider } from './utils/userInfo';
 import Pop from './components/Pop.vue';
-import { router } from './main';
 import { Api } from './utils/api';
 
 const popKey = 'pop';
@@ -28,10 +27,6 @@ export function useProvidesSetup() {
 
     const displayTopbar = ref<boolean>(true);
     provide(hideTopbarKey, () => { displayTopbar.value = false })
-
-    router.afterEach(() => {
-        displayTopbar.value = true;
-    })
     return { pop, displayTopbar }
 }
 
