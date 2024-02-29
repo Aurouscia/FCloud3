@@ -12,8 +12,6 @@ namespace FCloud3.HtmlGen.Util
         public const char escapeChar = '\\';
         public static string HideEscapeMark(string input)
         {
-            if (!input.Contains(escapeChar))
-                return input;
             return RemoveEscapeChar().Replace(input, string.Empty);
         }
 

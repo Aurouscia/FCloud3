@@ -354,7 +354,7 @@ namespace FCloud3.HtmlGen.Rules
                 new ListBlockRule(),
                 new SepBlockRule(),
                 new MiniTableBlockRule(),
-                new PrefixBlockRule(">","<div class=\"quote\">","</div>","引用"),
+                new PrefixBlockRule("&gt;","<div class=\"quote\">","</div>","引用"),
             };
         }
     }

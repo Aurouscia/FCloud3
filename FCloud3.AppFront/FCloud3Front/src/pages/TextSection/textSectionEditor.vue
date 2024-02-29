@@ -115,6 +115,7 @@ async function init(){
     if(resp){
         data.value = resp;
         loadComplete.value = true;
+        await contentInput();
     }
 }
 

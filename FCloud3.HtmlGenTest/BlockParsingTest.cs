@@ -19,7 +19,7 @@ namespace FCloud3.HtmlGenTest
         public BlockParsingTest()
         {
             var parserBuilder = new ParserBuilder().Block.AddMoreRule(
-                new PrefixBlockRule(">", "<div q>", "</div>", "引用")
+                new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
                 );
             _parser = parserBuilder.BuildParser();
         }

@@ -38,7 +38,9 @@ namespace FCloud3.HtmlGen.Mechanics
                     return new CachedElement(res.Content,res.UsedRules);
                 }
             }
+            
             var lines = LineSplitter.Split(input,_ctx.Options.LocatorHash);
+            //在此处已经对每行进行了HtmlEncode，Hash值为encode前的Hash值
 
             if (lines.Count == 0)
                 return new EmptyElement();

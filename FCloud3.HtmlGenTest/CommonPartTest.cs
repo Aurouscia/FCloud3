@@ -17,7 +17,7 @@ namespace FCloud3.HtmlGenTest
         {
             ParserBuilder parserBuilder = new ParserBuilder()
                 .Block.AddMoreRule(new PrefixBlockRule(
-                        ">", "<div class=\"quote\">", "</div>", "引用", ".quote{font-size:small}"
+                        "&gt;", "<div class=\"quote\">", "</div>", "引用", ".quote{font-size:small}"
                     ))
                 .Inline.AddMoreRule(new CustomInlineRule(
                         "\\red", "\\red", "<span class=\"red\">", "</span>", "红色字体", ".red{color:red}"

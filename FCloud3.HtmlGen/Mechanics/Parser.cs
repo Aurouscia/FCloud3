@@ -51,10 +51,9 @@ namespace FCloud3.HtmlGen.Mechanics
             if (input.Length > maxInputLength)
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input);
-            string resultStr = htmlable.ToHtml();
-            ScriptExtract.Run(resultStr, out string content, out string extractedScripts);
+            string content = htmlable.ToHtml();
             string preScripts = PreScripts(false);
-            string postScripts = $"{extractedScripts}\n{PostScripts(false)}";
+            string postScripts = PostScripts(false);
             string styles = Styles(false);
             if (_ctx.Options.Debug)
             {
