@@ -7,6 +7,8 @@ import { updateScript } from '../../utils/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/textSecSplitLine';
 import { md5 } from 'js-md5'
 import { SetTopbarFunc, injectSetTopbar } from '../../provides';
+import { clone } from 'lodash';
+import { TitleClickFold } from '../../utils/titleClickFold';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5("locHash_"+str.trim())
@@ -43,9 +45,10 @@ async function togglePreview(){
         contentInput();
     }
 }
-var timer:number=0;
-//var lastInputTime:number=0;
-const refreshThrs=750;
+let timer:number=0;
+const refreshThrs=750;//这么多毫秒后还没有新的输入，则发送preview请求
+const saveThrs=50;//输入这么多次后自动保存
+let inputCounter:number = 0;
 async function contentInput(){
     if(!previewContent.value){
         previewContent.value="加载中..."
@@ -56,12 +59,18 @@ async function contentInput(){
         calculateLines();
         await refreshProm;
     },refreshThrs);
+
+    inputCounter+=1;
+    if(inputCounter>saveThrs){
+        replaceContent();
+        inputCounter=0;
+    }
 }
 async function refreshPreview() {
     if(!previewOn.value){
         return;
     }
-    const res = await api.textSection.preview(textSecId,data.value.Content);
+    const res = await api.textSection.preview(textSecId,data.value.Content||"");
     if(res && preScriptsDiv.value){
         stylesContent.value = res.Styles;
         updateScript(preScriptsDiv.value, res.PreScripts);
@@ -78,7 +87,7 @@ function calculateLines(){
     if(!writeArea.value){
         return;
     }
-    const content = data.value.Content;
+    const content = data.value.Content||"";
     const res = split(content,false,false);
     var searchStart = 0
     var same = true;
@@ -107,7 +116,12 @@ async function replaceTitle() {
         pop.value.show("段落标题不可为空","failed");
         return;
     }
-    api.textSection.editExe(data.value)
+    const send = clone(data.value);
+    send.Content = null;//不更新正文，只更新标题
+    api.textSection.editExe(send)
+}
+async function replaceContent() {
+    api.textSection.editExe(data.value);
 }
 
 async function init(){
@@ -120,17 +134,22 @@ async function init(){
 }
 
 let setTopbar:SetTopbarFunc|undefined;
+let titleClickFold:TitleClickFold|undefined;
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
     setTopbar = injectSetTopbar();
     setTopbar(false);
+    titleClickFold = new TitleClickFold();
+    titleClickFold.listen();
 
     await init();
 })
 onUnmounted(()=>{
     if(setTopbar)
         setTopbar(true);
+    if(titleClickFold)
+        titleClickFold.dispose();
 })
 
 function leftToRight(e:MouseEvent){
@@ -186,7 +205,7 @@ function rightToLeft(e:MouseEvent){
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
     </div>
     <div>
-        <button @click="()=>{}">
+        <button @click="replaceContent">
             保存
         </button>
     </div>
@@ -195,7 +214,7 @@ function rightToLeft(e:MouseEvent){
     <div class="invisible" v-html="styles"></div>
     <div ref="preScriptsDiv" class="invisible"></div>
     <div @click="leftToRight" v-show="previewOn"
-        ref="previewArea" class="preview" v-html="previewContent">
+        ref="previewArea" class="preview wikiView" v-html="previewContent">
     </div>
     <div ref="postScriptsDiv" class="invisible"></div>
 
@@ -203,7 +222,7 @@ function rightToLeft(e:MouseEvent){
         ref="writeArea" placeholder="请输入内容"
         @input="contentInput" @click="rightToLeft"
         class="write" :class="{writeNoPreview:!previewOn}"
-        :style="{lineHeight:writeAreaLineHeight+'px'}">
+        :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">
     </textarea>
 </div>
 </template>

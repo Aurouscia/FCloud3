@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import './style.css'
+import './wikiViewStyles.css'
 import App from './App.vue'
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { addIdentities } from './pages/Identities/routes'

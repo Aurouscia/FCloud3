@@ -327,7 +327,7 @@ export class Api{
                 "/api/TextSection/EditExe",
                 "postRaw",
                 textSection,
-                "编辑成功")
+                "已保存修改")
             if(res.success){
                 return res.data as boolean;
             }

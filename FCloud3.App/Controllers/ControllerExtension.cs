@@ -6,26 +6,15 @@ namespace FCloud3.App.Controllers
 {
     public static class ControllerExtension
     {
-        private const string jsonContentType = "application/json";
-        public static ContentResult ApiResp(this Controller controller, object? obj=null, bool success = true)
+        public static ContentResult ApiResp(this Controller _, object? obj=null, bool success = true)
         {
-            ContentResult result = new()
-            {
-                StatusCode = 200,
-                Content = JsonConvert.SerializeObject(new ApiResponse(obj, success)),
-                ContentType = jsonContentType
-            };
-            return result;
+            var resp = new ApiResponse(obj, success);
+            return resp.BuildResult();
         }
-        public static ContentResult ApiFailedResp(this Controller controller, string? errmsg)
+        public static ContentResult ApiFailedResp(this Controller _, string? errmsg)
         {
-            ContentResult result = new()
-            {
-                StatusCode = 200,
-                Content = JsonConvert.SerializeObject(new ApiResponse(null, false, errmsg)),
-                ContentType = jsonContentType
-            };
-            return result;
+            var resp = new ApiResponse(null, false, errmsg);
+            return resp.BuildResult();
         }
         public static ContentResult ApiResp(this Controller controller, string? errmsg)
         {

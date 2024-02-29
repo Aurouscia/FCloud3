@@ -1,7 +1,7 @@
 export interface TextSection{
     Id:number,
-    Title:string,
-    Content:string
+    Title:string|null,
+    Content:string|null
 }
 export interface TextSectionPreviewResponse{
     HtmlSource:string,
