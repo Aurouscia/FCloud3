@@ -19,7 +19,7 @@ namespace FCloud3.HtmlGen.Models
         private readonly string _message;
         public ErrorElement(string? msg)
         {
-            _message = "[[解析错误]]"+msg;
+            _message = "[[解析错误]]__"+msg;
         } 
         public override string ToHtml()
         {

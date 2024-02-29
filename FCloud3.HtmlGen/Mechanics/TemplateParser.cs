@@ -50,7 +50,7 @@ namespace FCloud3.HtmlGen.Mechanics
             return res;
         }
 
-        private static readonly string[] valuesSep = new string[] { "&&" };
+        private static readonly string[] valuesSep = new string[] { "&amp;&amp;" };
         private static readonly string[] keyValueSep = new string[] { "::", "：：" };
         public Element ParseSingleCall(string templateCallSource,out Template? detected)
         {

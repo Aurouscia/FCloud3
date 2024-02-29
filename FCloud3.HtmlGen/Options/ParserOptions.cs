@@ -61,6 +61,7 @@ namespace FCloud3.HtmlGen.Options
 
             Block.AddMoreRules(InternalBlockRules.GetInstances());
             Inline.AddMoreRules(InternalInlineRules.GetInstances());
+            Template.AddTemplates(InternalTemplates.GetInstances());
         }
         
         public ParserBuilder EnableDebugInfo()

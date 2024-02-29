@@ -279,6 +279,7 @@ namespace FCloud3.HtmlGen.Rules
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("***","***","<u>","</u>","下划线"),
                 new CustomInlineRule("****","****","<s>","</s>","删除线"),
+                new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
 
                 new CustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
                 new CustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),

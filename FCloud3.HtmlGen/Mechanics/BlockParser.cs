@@ -4,7 +4,6 @@ using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Data;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
