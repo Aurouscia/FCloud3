@@ -120,5 +120,34 @@ namespace FCloud3.HtmlGenTest
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
+
+        [TestMethod]
+        [DataRow(
+            "abc[^1]de \n [^1]:c是第三个*英文*字母",
+            "<p>abc<sup><a id=\"refentry_1\" class=\"refentry\">[1]</a></sup>de</p>",
+            "<div class=\"refbodies\"><div><a id=\"ref_1\" class=\"ref\">[1]</a>c是第三个<i>英文</i>字母</div></div>"
+            )]
+        [DataRow(
+            "abc[^1]d[^2b]e \n [^1]:c是第三个*英文*字母 \n 666 \n [^2b]:d是第四个英文字母",
+
+            "<p>abc<sup><a id=\"refentry_1\" class=\"refentry\">[1]</a></sup>" +
+            "d<sup><a id=\"refentry_2b\" class=\"refentry\">[2b]</a></sup>e</p>" +
+            "<p>666</p>",
+
+            "<div class=\"refbodies\">" +
+            "<div><a id=\"ref_1\" class=\"ref\">[1]</a>c是第三个<i>英文</i>字母</div>" +
+            "<div><a id=\"ref_2b\" class=\"ref\">[2b]</a>d是第四个英文字母</div>" +
+            "</div>"
+            )]
+        public void FootNote(string content, string answerMain, string answerFootNotes)
+        {
+            var res = _parser.RunToStructured(content);
+            Assert.AreEqual(answerMain, res.Content);
+            Assert.AreEqual(answerFootNotes, res.FootNotes);
+
+            var res2 = _parser.RunToStructured(content);
+            Assert.AreEqual(answerMain, res2.Content);
+            Assert.AreEqual(answerFootNotes, res2.FootNotes);
+        }
     }
 }

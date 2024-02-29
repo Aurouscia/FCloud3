@@ -1,10 +1,12 @@
 ﻿using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Models;
+using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FCloud3.HtmlGen.Rules
@@ -39,7 +41,7 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="inlineParser">行内解析器</param>
         /// <param name="blockParser">块解析器</param>
         /// <returns>按本规则解析得的块元素</returns>
-        public IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines,IInlineParser inlineParser,IRuledBlockParser blockParser);
+        public IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines,IInlineParser inlineParser,IRuledBlockParser blockParser, ParserContext context);
     }
 
     public abstract class BlockRule : IBlockRule
@@ -60,7 +62,7 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string Apply(IHtmlable content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
         public abstract bool LineMatched(string line);
         public abstract string GetPureContentOf(string line);
-        public abstract IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser);
+        public abstract IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context);
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
@@ -84,7 +86,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return false;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             //可以确定lines是没有块标记的，直接分别解析每行
             var resContent = lines.ToList().ConvertAll(inlineParser.RunForLine);
@@ -129,7 +131,7 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Trim().Substring(Mark.Length).Trim();
             return line;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             //lines仅去除了本规则的块标记，不清楚里面是否有第二层块标记，需要调用blockParser得到内容ElementCollection
             var resContent = blockParser.Run(lines.ToList());
@@ -163,7 +165,7 @@ namespace FCloud3.HtmlGen.Rules
             : base("-","<ul>","</ul>","列表","")
         {
         }
-        public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             var items = new ElementCollection();
             foreach (var line in lines)
@@ -212,13 +214,12 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool LineMatched(string line)
         {
-            line = line.Trim();
             if (line.Length >= 3 && line.All(c => c == aLineOfChar))
                 return true;
             return false;
         }
 
-        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             var res = new ElementCollection();
             lines.ToList().ForEach(x => res.Add(new SepElement(this)));
@@ -278,7 +279,7 @@ namespace FCloud3.HtmlGen.Rules
                 return line.Substring(1,line.Length-2).Trim();
             return line;
         }
-        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser)
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             ElementCollection rows = new();
 
@@ -342,6 +343,48 @@ namespace FCloud3.HtmlGen.Rules
         }
     }
 
+    public partial class FootNoteBodyRule : BlockRule
+    {
+        public override string GetPureContentOf(string line)
+        {
+            //保留标记，否则名称信息丢失
+            return line;
+        }
+
+        public override bool LineMatched(string line)
+        {
+            return FootBodyLineMarkRegex().IsMatch(line);
+        }
+
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
+        {
+            var resContent = lines.ToList().ConvertAll(x=> {
+                var match = FootBodyLineMarkRegex().Match(x.Text);
+                if(match is null || !match.Success)
+                    return null;
+                var head = match.Value;
+                var body = x.Text.Remove(0,head.Length);
+                var name = head.Trim()[2..^2];
+                return new FootNoteBodyElement(name, inlineParser.Run(body, false), x.RawLineHash);
+            });
+            context.FootNote.AddFootNoteBodies(resContent);
+            var placeholders = new List<FootNoteBodyPlaceholderElement>();
+            resContent.ForEach(x =>
+            {
+                if(x is not null)
+                    placeholders.Add(new FootNoteBodyPlaceholderElement(x));
+            });
+            return new ElementCollection(placeholders);
+        }
+        public override bool Equals(IBlockRule? other)
+        {
+            throw new NotImplementedException();
+        }
+
+        [GeneratedRegex("^\\s*\\[\\^.{1,}\\][:：]{1}")]
+        private static partial Regex FootBodyLineMarkRegex();
+    }
+
     /// <summary>
     /// 一次性获取所有系统提供的特殊块规则实例
     /// </summary>
@@ -355,6 +398,7 @@ namespace FCloud3.HtmlGen.Rules
                 new SepBlockRule(),
                 new MiniTableBlockRule(),
                 new PrefixBlockRule("&gt;","<div class=\"quote\">","</div>","引用"),
+                new FootNoteBodyRule()
             };
         }
     }

@@ -26,6 +26,7 @@ namespace FCloud3.HtmlGenTest
             var answer = new List<Template> { template3, template2, template4 };
 
             ParserBuilder builder = new();
+            builder.Template.ClearTemplates();
             builder.Template.AddTemplates(original);
             builder.Template.AddTemplates(extra);
             var options = builder.GetCurrentOptions();

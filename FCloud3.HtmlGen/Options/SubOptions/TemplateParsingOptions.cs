@@ -23,5 +23,10 @@ namespace FCloud3.HtmlGen.Options.SubOptions
             Templates.AddRange(templates);  
             return _master;
         }
+        public ParserBuilder ClearTemplates()
+        {
+            Templates.Clear();
+            return _master;
+        }
     }
 }

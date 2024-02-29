@@ -68,14 +68,29 @@ namespace FCloud3.HtmlGen.Models
             return $"<a href=\"{Href}\">{Content}</a>";
         }
     }
+    public class FootNoteEntryElement : TextElement
+    {
+        public string Name { get; }
+        public FootNoteEntryElement(string name):base(name) 
+        {
+            Name = name;
+        }
+        public override string ToHtml()
+        {
+            return $"<sup><a id=\"refentry_{Name}\" class=\"refentry\">[{Name}]</a></sup>";
+        }
+    }
     public sealed class CachedElement : InlineElement
     {
         public string Content { get; }
-        public List<IRule> UsedRules { get; }
-        public CachedElement(string content, List<IRule> usedRules)
+        public List<IRule>? UsedRules { get; }
+        public List<IHtmlable>? FootNotes { get; }
+
+        public CachedElement(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes)
         {
             Content = content;
             UsedRules = usedRules;
+            FootNotes = footNotes;
         }
 
         public override string ToHtml()
@@ -85,6 +100,10 @@ namespace FCloud3.HtmlGen.Models
         public override List<IRule>? ContainRules()
         {
             return UsedRules;
+        }
+        public override List<IHtmlable>? ContainFootNotes()
+        {
+            return FootNotes;
         }
     }
 }

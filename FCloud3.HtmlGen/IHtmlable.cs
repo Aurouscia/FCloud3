@@ -11,5 +11,6 @@ namespace FCloud3.HtmlGen
     {
         public string ToHtml();
         public List<IRule>? ContainRules();
+        public List<IHtmlable>? ContainFootNotes();
     }
 }

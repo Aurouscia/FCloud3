@@ -21,6 +21,7 @@ namespace FCloud3.HtmlGen.Options
         public TemplateSlotInfo TemplateSlotInfo { get; }
         public ParserCacheContext Caches { get; }
         public ParserRuleUsageContext RuleUsage { get; }
+        public ParserFootNoteContext FootNote { get; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -32,6 +33,7 @@ namespace FCloud3.HtmlGen.Options
             TemplateSlotInfo = new();
             Options = options;
             Caches = new(options.CacheOptions);
+            FootNote = new();
         }
         /// <summary>
         /// 在同一个Parser对象多次反复运行之间，将一些参数设回初始值。
@@ -41,6 +43,7 @@ namespace FCloud3.HtmlGen.Options
             UniqueSlotIncre = 0;
             RuleUsage.Reset();
             Caches.Reset();
+            FootNote.Clear();
         }
         public string DebugInfo()
         {
@@ -69,9 +72,9 @@ namespace FCloud3.HtmlGen.Options
             UsedRulesLog.TryAdd(rule, 0);
             UsedRulesLog[rule] += 1;
         }
-        public void ReportUsage(List<IRule> rules)
+        public void ReportUsage(List<IRule>? rules)
         {
-            rules.ForEach(ReportUsage);
+            rules?.ForEach(ReportUsage);
         }
         public List<IRule> GetUsedRules()
         {
@@ -135,11 +138,11 @@ namespace FCloud3.HtmlGen.Options
         }
 
         public int ParsedSavedScanChar { get;private set; }
-        public void SaveParseResult(string input, string output,List<IRule> usedRules)
+        public void SaveParseResult(string input, string output,List<IRule>? usedRules, List<IHtmlable>? footNotes)
         {
             if (string.IsNullOrEmpty(input))
                 return;
-            var cache = new CacheValue(output, usedRules);
+            var cache = new CacheValue(output, usedRules,footNotes);
             _cache.Set<CacheValue>(input, cache, new MemoryCacheEntryOptions()
             {
                 SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
@@ -159,11 +162,13 @@ namespace FCloud3.HtmlGen.Options
         public class CacheValue
         {
             public string Content { get; }
-            public List<IRule> UsedRules { get; }
-            public CacheValue(string content, List<IRule> usedRules)
+            public List<IRule>? UsedRules { get; }
+            public List<IHtmlable>? FootNotes { get; }
+            public CacheValue(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes)
             {
                 Content = content;
                 UsedRules = usedRules;
+                FootNotes = footNotes;
             }
         }
 
@@ -183,6 +188,31 @@ namespace FCloud3.HtmlGen.Options
                 info += "未开启缓存";
             }
             return HtmlLabel.DebugInfo(info);
+        }
+    }
+    public class ParserFootNoteContext
+    {
+        public List<IHtmlable> FootNoteBodys { get; }
+        public ParserFootNoteContext() 
+        {
+            FootNoteBodys = new();
+        }
+        public void Clear()
+        {
+            FootNoteBodys.Clear();
+        }
+        public void AddFootNoteBody(IHtmlable body)
+        {
+            FootNoteBodys.Add(body);
+        }
+        public void AddFootNoteBodies(IEnumerable<IHtmlable?>? bodies)
+        {
+            if(bodies is not null)
+                foreach (var b in bodies)
+                {
+                    if(b is not null)
+                        AddFootNoteBody(b);
+                }
         }
     }
 }

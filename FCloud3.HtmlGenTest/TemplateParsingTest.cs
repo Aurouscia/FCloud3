@@ -102,7 +102,7 @@ namespace FCloud3.HtmlGenTest
             "{{名称信息}\n中文名::充电宝}",
             "<div><b>充电宝</b><i></i></div>")]
         [DataRow(
-            "{{名称信息}\n中文名::充电宝\n&&英文名：：Power Baby}",
+            "{{名称信息}\n中文名::充电宝\n &amp;&amp; 英文名：：Power Baby}",
             "<div><b>充电宝</b><i>Power Baby</i></div>")]
         [DataRow(
             "{{好看的图表}\n数据::172,163,105*144*97}",
@@ -170,7 +170,7 @@ namespace FCloud3.HtmlGenTest
             "123{哼哼}456",
             "123<a href=\"/w/114514\">恶臭</a>456")]
         [DataRow(
-            "{{名称信息}\n中文名::充电宝\n&&英文名：：Power{哼哼}Baby}",
+            "{{名称信息}\n中文名::充电宝\n &amp;&amp; 英文名：：Power{哼哼}Baby}",
             "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]
         public void ParseImplant(string input,string answer)
         {

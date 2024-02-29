@@ -55,11 +55,12 @@ namespace FCloud3.HtmlGen.Mechanics
             string preScripts = PreScripts(false);
             string postScripts = PostScripts(false);
             string styles = Styles(false);
+            string footNotes = FootNotes();
             if (_ctx.Options.Debug)
             {
                 content = _ctx.DebugInfo() + content;
             }
-            ParserResult result = new(content, preScripts, postScripts, styles);
+            ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
             return result;
         }
         public IHtmlable RunToRaw(string? input)
@@ -112,6 +113,17 @@ namespace FCloud3.HtmlGen.Mechanics
                 return HtmlLabel.Script(res);
             return res;
         }
+        private string FootNotes()
+        {
+            var allFootNotes = _ctx.FootNote.FootNoteBodys;
+            StringBuilder sb = new("<div class=\"refbodies\">");
+            allFootNotes.ForEach(x =>
+            {
+                sb.Append(x.ToHtml());
+            });
+            sb.Append("</div>");
+            return sb.ToString();
+        }
         ~Parser()
         {
             Dispose();
@@ -129,12 +141,14 @@ namespace FCloud3.HtmlGen.Mechanics
         public string PreScript { get; }
         public string PostScript { get; }
         public string Style { get; }
-        public ParserResult(string content="", string preScript="", string postScript="",string style="")
+        public string FootNotes { get; }
+        public ParserResult(string content="", string preScript="", string postScript="",string style="",string footNotes="")
         {
             Content = content;
             PreScript = preScript;
             PostScript = postScript;
             Style = style;
+            FootNotes = footNotes;
         }
     }
 }

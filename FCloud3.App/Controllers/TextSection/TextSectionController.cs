@@ -82,7 +82,7 @@ namespace FCloud3.App.Controllers.TextSec
             }
             public TextSectionPreviewResponse(ParserResult parserResult)
             {
-                HtmlSource = parserResult.Content;
+                HtmlSource = parserResult.Content + parserResult.FootNotes;
                 PreScripts = parserResult.PreScript;
                 PostScripts = parserResult.PostScript;
                 Styles = parserResult.Style;

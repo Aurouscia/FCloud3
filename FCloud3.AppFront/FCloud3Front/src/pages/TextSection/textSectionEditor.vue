@@ -3,12 +3,13 @@ import {ref, Ref, onMounted, inject, computed, onUnmounted} from 'vue'
 import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
-import { updateScript } from '../../utils/dynamicScriptUpdate';
-import { LineAndHash,split } from '../../utils/textSecSplitLine';
+import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
+import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
 import { md5 } from 'js-md5'
 import { SetTopbarFunc, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
-import { TitleClickFold } from '../../utils/titleClickFold';
+import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
+import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5("locHash_"+str.trim())
@@ -135,6 +136,7 @@ async function init(){
 
 let setTopbar:SetTopbarFunc|undefined;
 let titleClickFold:TitleClickFold|undefined;
+const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
@@ -142,6 +144,11 @@ onMounted(async()=>{
     setTopbar(false);
     titleClickFold = new TitleClickFold();
     titleClickFold.listen();
+    footNoteJumpCallBack.value = (top)=>{
+        console.log("滚到",top)
+        previewArea.value?.scrollTo({top: top, behavior: 'smooth'})
+    };
+    listenFootNoteJump();
 
     await init();
 })
@@ -150,6 +157,7 @@ onUnmounted(()=>{
         setTopbar(true);
     if(titleClickFold)
         titleClickFold.dispose();
+    disposeFootNoteJump();
 })
 
 function leftToRight(e:MouseEvent){
@@ -162,7 +170,7 @@ function leftToRight(e:MouseEvent){
         if(!attr){
             lookingAt = lookingAt.parentElement
         }
-        if(!lookingAt || lookingAt.attributes.getNamedItem("class")?.value=='preview'){
+        if(!lookingAt || lookingAt.classList.contains('preview')){
             break;
         }
     }

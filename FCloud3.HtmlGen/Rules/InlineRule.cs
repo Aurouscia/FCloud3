@@ -129,6 +129,19 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override bool FulFill(string span)=>true;
     }
+    public class FootNoteAnchorRule : InlineRule
+    {
+        public FootNoteAnchorRule()
+            : base("[^","]","","","","脚注") { }
+        public override bool FulFill(string span)
+        {
+            return span.Length > 0 && span.Length <= 20;
+        }
+        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        {
+            return new FootNoteEntryElement(span.Trim());
+        }
+    }
     public class ManualAnchorRule : InlineRule
     {
         public ManualAnchorRule()
@@ -273,6 +286,7 @@ namespace FCloud3.HtmlGen.Rules
             var mqRule2 = new RelyInlineRule("\\滚", "\\滚", mqRule1);
             var instances = new List<IInlineRule>()
             {
+                new FootNoteAnchorRule(),
                 new ManualAnchorRule(),
                 new ManualTextedAnchorRule(),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),

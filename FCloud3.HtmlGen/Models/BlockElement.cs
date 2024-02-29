@@ -25,6 +25,10 @@ namespace FCloud3.HtmlGen.Models
         {
             return Content.ContainRules();
         }
+        public override List<IHtmlable>? ContainFootNotes()
+        {
+            return Content.ContainFootNotes();
+        }
     }
     public class TitledBlockElement : BlockElement
     {
@@ -81,6 +85,37 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             return $"{PutLeft}{base.ToHtml()}{PutRight}";
+        }
+    }
+    public class FootNoteBodyElement : BlockElement
+    {
+        public string Name { get; }
+        public string? Hash { get; }
+        public FootNoteBodyElement(string name, IHtmlable content, string? hash) :base(content)
+        {
+            Name = name;
+            Hash = hash;
+        }
+        public override string ToHtml()
+        {
+            string main = $"<a id=\"ref_{Name}\" class=\"ref\">[{Name}]</a>{base.ToHtml()}";
+            if(Hash is not null)
+                return $"<div loc=\"{Hash}\">{main}</div>";
+            else
+                return $"<div>{main}</div>";
+        }
+    }
+    public class FootNoteBodyPlaceholderElement:BlockElement
+    {
+        public FootNoteBodyElement Body { get; }
+        public FootNoteBodyPlaceholderElement(FootNoteBodyElement body)
+        {
+            Body = body;
+        }
+        public override string ToHtml() => string.Empty;
+        public override List<IHtmlable>? ContainFootNotes()
+        {
+            return new() { Body };
         }
     }
 }

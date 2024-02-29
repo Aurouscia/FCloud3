@@ -122,3 +122,26 @@ h2:hover+div.indent {
     width: 2em;
     background-color: #000;
 }
+
+.wikiView .refbodies{
+    color:#666;
+    font-size: small;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+    padding: 10px;
+    margin-top: 30px;
+}
+.wikiView a.ref{
+    cursor: pointer;
+    margin-right: 5px;
+}
+.wikiView a.ref:hover{
+    text-decoration: underline;
+}
+.wikiView a.refentry{
+    cursor: pointer;
+}
+.wikiView a.refentry:hover{
+    text-decoration: underline;
+}

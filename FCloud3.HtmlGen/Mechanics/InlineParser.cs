@@ -39,7 +39,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (res is not null)
                 {
                     _ctx.RuleUsage.ReportUsage(res.UsedRules);
-                    return new CachedElement(res.Content,res.UsedRules);
+                    return new CachedElement(res.Content,res.UsedRules, null);
                 }
             }
             try
@@ -69,8 +69,8 @@ namespace FCloud3.HtmlGen.Mechanics
                 {
                     string content = res.ToHtml();
                     List<IRule> usedRules = res.ContainRules() ?? new();
-                    _ctx.Caches.SaveParseResult(input, content, usedRules);
-                    return new CachedElement(content,usedRules);
+                    _ctx.Caches.SaveParseResult(input, content, usedRules, null);
+                    return new CachedElement(content,usedRules, null);
                 }
                 return res;
             }

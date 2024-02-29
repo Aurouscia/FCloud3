@@ -34,7 +34,8 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (res is not null)
                 {
                     _ctx.RuleUsage.ReportUsage(res.UsedRules);
-                    return new CachedElement(res.Content,res.UsedRules);
+                    _ctx.FootNote.AddFootNoteBodies(res.FootNotes);
+                    return new CachedElement(res.Content,res.UsedRules,res.FootNotes);
                 }
             }
             
@@ -58,9 +59,10 @@ namespace FCloud3.HtmlGen.Mechanics
             if (_useCache)
             {
                 string content = resElement.ToHtml();
-                List<IRule> usedRules = resElement.ContainRules() ?? new();
-                _ctx.Caches.SaveParseResult(input, content, usedRules);
-                return new CachedElement(content,usedRules);
+                List<IRule>? usedRules = resElement.ContainRules();
+                List<IHtmlable>? footNotes = resElement.ContainFootNotes();
+                _ctx.Caches.SaveParseResult(input, content, usedRules, footNotes);
+                return new CachedElement(content,usedRules, footNotes);
             }
             return resElement;
         }
@@ -246,7 +248,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (generating.Count > 0)
                     {
                         var pureLines = generating.Select(x => x.PureContent).ToList();
-                        IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines,_inlineParser.Value,this);
+                        IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines,_inlineParser.Value, this, _ctx);
                         res.AddFlat(htmlable);
                         generating.Clear();
                     }
@@ -257,7 +259,7 @@ namespace FCloud3.HtmlGen.Mechanics
             if (generating.Count > 0)
             {
                 var pureLines = generating.Select(x => x.PureContent).ToList();
-                IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines, _inlineParser.Value, this);
+                IHtmlable htmlable = tracking.MakeBlockFromLines(pureLines, _inlineParser.Value, this, _ctx);
                 res.AddFlat(htmlable);
             }
             return res.Simplify();

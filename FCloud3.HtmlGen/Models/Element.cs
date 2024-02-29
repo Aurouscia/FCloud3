@@ -12,6 +12,7 @@ namespace FCloud3.HtmlGen.Models
     {
         public abstract string ToHtml();
         public virtual List<IRule>? ContainRules() => null;
+        public virtual List<IHtmlable>? ContainFootNotes() => null;
     }
 
     public class ErrorElement : Element
@@ -61,6 +62,17 @@ namespace FCloud3.HtmlGen.Models
             foreach(var e in this)
             {
                 var r = e.ContainRules();
+                if (r is not null)
+                    res.AddRange(r);
+            }
+            return res;
+        }
+        public virtual List<IHtmlable> ContainFootNotes()
+        {
+            List<IHtmlable> res = new();
+            foreach (var e in this)
+            {
+                var r = e.ContainFootNotes();
                 if (r is not null)
                     res.AddRange(r);
             }
