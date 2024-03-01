@@ -10,6 +10,7 @@ namespace FCloud3.HtmlGen
     public interface IHtmlable
     {
         public string ToHtml();
+        public void WriteHtml(StringBuilder sb);
         public List<IRule>? ContainRules();
         public List<IHtmlable>? ContainFootNotes();
     }

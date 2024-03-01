@@ -27,13 +27,8 @@ namespace FCloud3.HtmlGen.Models
             _slotInfo = slotInfo;
             _uniqueSlotIncre = uniqueSlotIncre;
         }
-        public override string ToHtml()
+        private void ReplaceUniqueSlots(List<TemplateSlot> slots)
         {
-            string? code = _template.Source;
-            if (code is null) 
-                return ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码");
-            List<TemplateSlot> slots = _slotInfo.Get(_template);
-
             foreach (var slot in slots)
             {
                 if (slot is UniqueSlot u)
@@ -43,10 +38,19 @@ namespace FCloud3.HtmlGen.Models
                         _values[slot] = replace;
                 }
             }
+        }
+        public override string ToHtml()
+        {
+            string? code = _template.Source;
+            if (code is null) 
+                return ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码");
 
+            List<TemplateSlot> slots = _slotInfo.Get(_template);
             if (slots is null || slots.Count==0)
                 return code;
+            else
             {
+                ReplaceUniqueSlots(slots);
                 foreach (var slot in slots)
                 {
                     _ = _values.TryGetValue(slot, out var value);
@@ -55,6 +59,36 @@ namespace FCloud3.HtmlGen.Models
                 }
             }
             return code;
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            string? code = _template.Source;
+            if (code is null)
+            {
+                sb.Append(ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码"));
+                return;
+            }
+            List<TemplateSlot> slots = _slotInfo.Get(_template);
+            if (slots is null || slots.Count == 0)
+                return;
+            else
+            {
+                ReplaceUniqueSlots(slots);
+                slots.Sort((x, y) => x.Start - y.Start);
+                int pointer = 0;
+                slots.ForEach(slot =>
+                {
+                    sb.Append(code.AsSpan(pointer, slot.Start));
+                    _ = _values.TryGetValue(slot, out var value);
+                    value ??= slot.DefaultContent();
+                    value.WriteHtml(sb);
+                    pointer = slot.Start + slot.Value.Length;
+                });
+                if(pointer<code.Length)
+                {
+                    sb.Append(code.AsSpan(pointer));
+                }
+            }
         }
         public override List<IRule>? ContainRules()
         {
@@ -108,19 +142,17 @@ namespace FCloud3.HtmlGen.Models
             List<TemplateSlot> slots = new();
             if (template.Source is null)
                 return slots;
-            MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, x => new PlainSlot(x));
-            MatchAndCollect(template.Source, ParseSlot.MatchRegex, slots, x => new ParseSlot(x));
-            MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, x => new UniqueSlot(x));
+            MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, (x,y) => new PlainSlot(x, y));
+            MatchAndCollect(template.Source, ParseSlot.MatchRegex, slots, (x,y) => new ParseSlot(x, y));
+            MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, (x,y) => new UniqueSlot(x, y));
             return slots;
         }
-        private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,TemplateSlot> constructor)
+        private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,int,TemplateSlot> constructor)
         {
             var matches = Regex.Matches(source, regex);
             foreach (var match in matches.AsEnumerable<Match>())
             {
-                string val = match.Value;
-                if (!data.Any(x => x.Value == val))
-                    data.Add(constructor(val));
+                data.Add(constructor(match.Value, match.Index));
             }
         }
     }
@@ -138,10 +170,12 @@ namespace FCloud3.HtmlGen.Models
         /// 去除了匹配符号的插槽名
         /// </summary>
         public string PureValue { get; }
-        public TemplateSlot(string value,string pureValue)
+        public int Start { get; }
+        public TemplateSlot(string value,string pureValue, int start)
         {
             Value = value;
             PureValue = pureValue;
+            Start = start;
         }
         public abstract IHtmlable DealWithContent(string content, IBlockParser parser);
         public virtual IHtmlable DefaultContent() => new EmptyElement();
@@ -167,7 +201,7 @@ namespace FCloud3.HtmlGen.Models
     public class PlainSlot : TemplateSlot
     {
         public const string MatchRegex = @"\[\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]\]";
-        public PlainSlot(string value) : base(value, value[5..^5])
+        public PlainSlot(string value, int start) : base(value, value[5..^5],start)
         {
         }
 
@@ -182,7 +216,7 @@ namespace FCloud3.HtmlGen.Models
     public class ParseSlot : TemplateSlot
     {
         public const string MatchRegex = @"\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]";
-        public ParseSlot(string value) : base(value,value[4..^4])
+        public ParseSlot(string value, int start) : base(value,value[4..^4],start)
         {
         }
         public override IHtmlable DealWithContent(string content, IBlockParser parser)
@@ -197,7 +231,7 @@ namespace FCloud3.HtmlGen.Models
     {
         public const string MatchRegex = @"\[\[__%[\u4E00-\u9FA5A-Za-z0-9]{1,10}%__\]\]";
 
-        public UniqueSlot(string value) : base(value,value[5..^5])
+        public UniqueSlot(string value, int start) : base(value,value[5..^5], start)
         {
         }
 

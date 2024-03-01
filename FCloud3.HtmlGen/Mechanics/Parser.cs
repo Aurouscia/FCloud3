@@ -33,7 +33,9 @@ namespace FCloud3.HtmlGen.Mechanics
             if (input.Length > maxInputLength)
                 return input;
             IHtmlable result = _blockParser.Run(input);
-            string resStr = result.ToHtml();
+            StringBuilder resSb = new();
+            result.WriteHtml(resSb);
+            string resStr = resSb.ToString();
             if (_ctx.Options.Debug)
             {
                 resStr = _ctx.DebugInfo() + resStr;
@@ -51,7 +53,9 @@ namespace FCloud3.HtmlGen.Mechanics
             if (input.Length > maxInputLength)
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input);
-            string content = htmlable.ToHtml();
+            StringBuilder resSb = new();
+            htmlable.WriteHtml(resSb);
+            string content = resSb.ToString();
             string preScripts = PreScripts(false);
             string postScripts = PostScripts(false);
             string styles = Styles(false);

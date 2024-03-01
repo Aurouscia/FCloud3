@@ -32,6 +32,17 @@ namespace FCloud3.HtmlGen.Models
                 return Content.ToHtml();
             return $"{Rule.PutLeft}{Content.ToHtml()}{Rule.PutRight}";
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            if (Rule is null)
+                Content.WriteHtml(sb);
+            else
+            {
+                sb.Append(Rule.PutLeft);
+                Content.WriteHtml(sb);
+                sb.Append(Rule.PutRight);
+            }
+        }
         public override List<IRule>? ContainRules()
         {
             var res = Content.ContainRules() ?? new();
@@ -51,10 +62,15 @@ namespace FCloud3.HtmlGen.Models
         {
             return Content;
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append(Content);
+        }
     }
     public class EmptyElement : InlineElement
     {
         public override string ToHtml() => string.Empty;
+        public override void WriteHtml(StringBuilder sb) { }
     }
     public class AnchorElement : TextElement
     {
@@ -67,6 +83,14 @@ namespace FCloud3.HtmlGen.Models
         {
             return $"<a href=\"{Href}\">{Content}</a>";
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<a href=\"");
+            sb.Append(Href);
+            sb.Append("\">");
+            sb.Append(Content);
+            sb.Append("</a>");
+        }
     }
     public class FootNoteEntryElement : TextElement
     {
@@ -78,6 +102,14 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             return $"<sup><a id=\"refentry_{Name}\" class=\"refentry\">[{Name}]</a></sup>";
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<sup><a id=\"refentry_");
+            sb.Append(Name);
+            sb.Append("\" class=\"refentry\">[");
+            sb.Append(Name);
+            sb.Append("]</a></sup>");
         }
     }
     public sealed class CachedElement : InlineElement
@@ -96,6 +128,10 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             return Content;
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append(Content);
         }
         public override List<IRule>? ContainRules()
         {

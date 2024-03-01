@@ -216,6 +216,13 @@ namespace FCloud3.HtmlGen.Mechanics
                     return base.ToHtml();
                 return HtmlLabel.Custom(Content.ToHtml(),"p", Consts.locatorAttrName, _rawLineHash);
             }
+            public override void WriteHtml(StringBuilder sb)
+            {
+                if (_rawLineHash is null)
+                    base.WriteHtml(sb);
+                else
+                    HtmlLabel.CustomWrite(sb, Content, "p", Consts.locatorAttrName, _rawLineHash);
+            }
         }
     }
     public class InlineMark

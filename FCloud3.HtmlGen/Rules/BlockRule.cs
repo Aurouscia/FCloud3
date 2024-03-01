@@ -22,6 +22,7 @@ namespace FCloud3.HtmlGen.Rules
         /// <param name="content"></param>
         /// <returns></returns>
         public string Apply(IHtmlable content);
+        public void ApplyWrite(StringBuilder sb, IHtmlable content);
         /// <summary>
         /// 检测某行是否属于该类型的块
         /// </summary>
@@ -60,6 +61,12 @@ namespace FCloud3.HtmlGen.Rules
             IsSingleUse = isSingleUse;
         }
         public virtual string Apply(IHtmlable content) => $"{PutLeft}{content.ToHtml()}{PutRight}";
+        public virtual void ApplyWrite(StringBuilder sb, IHtmlable content)
+        {
+            sb.Append(PutLeft);
+            content.WriteHtml(sb);
+            sb.Append(PutRight);
+        }
         public abstract bool LineMatched(string line);
         public abstract string GetPureContentOf(string line);
         public abstract IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context);
@@ -238,6 +245,10 @@ namespace FCloud3.HtmlGen.Rules
             {
                 return $"<div class=\"{htmlClassName}\"></div>";
             }
+            public override void WriteHtml(StringBuilder sb)
+            {
+                sb.Append($"<div class=\"{htmlClassName}\"></div>");
+            }
             public override List<IRule>? ContainRules()
             {
                 return new() { _fromRule };
@@ -339,6 +350,21 @@ namespace FCloud3.HtmlGen.Rules
                 if (!IsHead)
                     return $"<td>{base.ToHtml()}</td>";
                 return $"<th>{base.ToHtml()}</th>";
+            }
+            public override void WriteHtml(StringBuilder sb)
+            {
+                if(!IsHead)
+                {
+                    sb.Append("<td>");
+                    base.WriteHtml(sb);
+                    sb.Append("</td>");
+                }
+                else
+                {
+                    sb.Append("<th>");
+                    base.WriteHtml(sb);
+                    sb.Append("</th>");
+                }
             }
         }
     }

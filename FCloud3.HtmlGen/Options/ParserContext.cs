@@ -111,12 +111,14 @@ namespace FCloud3.HtmlGen.Options
         private readonly IMemoryCache _cache;
         private readonly CacheOptions _options;
         private readonly ParserContext _ctx;
+        private readonly StringBuilder _tempSb;
 
         public  bool IsSelfHostedCache { get; }
         public ParserCacheContext(CacheOptions options, ParserContext ctx)
         {
             _options = options;
             _ctx = ctx;
+            _tempSb = new();
             //未提供缓存实例，自己造，自己回收
             if (options.CacheInstance is null)
             {
@@ -161,7 +163,10 @@ namespace FCloud3.HtmlGen.Options
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
-            string content = resElement.ToHtml();
+            _tempSb.Clear();
+            resElement.WriteHtml(_tempSb);
+            string content = _tempSb.ToString();
+            _tempSb.Clear();
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
             SaveParseResult(input, content, usedRules, footNotes);

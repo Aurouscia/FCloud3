@@ -13,6 +13,10 @@ namespace FCloud3.HtmlGen.Models
         public abstract string ToHtml();
         public virtual List<IRule>? ContainRules() => null;
         public virtual List<IHtmlable>? ContainFootNotes() => null;
+        public virtual void WriteHtml(StringBuilder sb)
+        { 
+            sb.Append(ToHtml());
+        }
     }
 
     public class ErrorElement : Element
@@ -55,6 +59,10 @@ namespace FCloud3.HtmlGen.Models
         public virtual string ToHtml()
         {
             return string.Concat(this.ConvertAll(x => x.ToHtml()));
+        }
+        public virtual void WriteHtml(StringBuilder sb)
+        {
+            this.ForEach(x => x.WriteHtml(sb));
         }
         public virtual List<IRule> ContainRules()
         {

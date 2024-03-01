@@ -269,6 +269,16 @@ namespace FCloud3.HtmlGen.Rules
             {
                 return $"<span class=\"{ClassName}\" style=\"{Style}\">{Content.ToHtml()}</span>";
             }
+            public override void WriteHtml(StringBuilder sb)
+            {
+                sb.Append("<span class=\"");
+                sb.Append(ClassName);
+                sb.Append("\" style=\"");
+                sb.Append(Style);
+                sb.Append("\">");
+                Content.WriteHtml(sb);
+                sb.Append("</span>");
+            }
             public override List<IRule>? ContainRules()
             {
                 var res = Content.ContainRules()??new();

@@ -24,5 +24,19 @@ namespace FCloud3.HtmlGen.Util
         {
             return $"<{name} {attrName}=\"{attrValue}\">{content}</{name}>";
         }
+        public static void CustomWrite(StringBuilder sb, IHtmlable content, string name,string attrName,string attrValue)
+        {
+            sb.Append('<');
+            sb.Append(name);
+            sb.Append(' ');
+            sb.Append(attrName);
+            sb.Append("=\"");
+            sb.Append(attrValue);
+            sb.Append("\">");
+            content.WriteHtml(sb);
+            sb.Append("</");
+            sb.Append(name);
+            sb.Append('>');
+        }
     }
 }

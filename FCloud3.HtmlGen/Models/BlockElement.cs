@@ -21,6 +21,10 @@ namespace FCloud3.HtmlGen.Models
         {
             return Content.ToHtml();
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            Content.WriteHtml(sb);
+        }
         public override List<IRule>? ContainRules()
         {
             return Content.ContainRules();
@@ -51,6 +55,25 @@ namespace FCloud3.HtmlGen.Models
             else
                 return $"{HtmlLabel.Custom(Title.ToHtml(), $"h{Level}", Consts.locatorAttrName, _rawLineHash)}{body}";
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            if (_rawLineHash is null)
+            {
+                sb.Append("<h");sb.Append(Level);sb.Append('>');
+            }
+            else
+            {
+                sb.Append("<h"); sb.Append(Level);
+                sb.Append(' '); sb.Append(Consts.locatorAttrName);
+                sb.Append("=\""); sb.Append(_rawLineHash);
+                sb.Append("\">");
+            }
+            Title.WriteHtml(sb);
+            sb.Append("</h"); sb.Append(Level); sb.Append('>');
+            sb.Append("<div class=\"indent\">");
+            Content.WriteHtml(sb);
+            sb.Append("</div>");
+        }
     }
     public class RuledBlockElement: BlockElement
     {
@@ -64,6 +87,13 @@ namespace FCloud3.HtmlGen.Models
             if(GenByRule is not null)
                 return GenByRule.Apply(Content);
             return base.ToHtml();
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            if (GenByRule is not null)
+                GenByRule.ApplyWrite(sb, Content);
+            else
+                base.WriteHtml(sb);
         }
         public override List<IRule>? ContainRules()
         {
@@ -85,6 +115,12 @@ namespace FCloud3.HtmlGen.Models
         public override string ToHtml()
         {
             return $"{PutLeft}{base.ToHtml()}{PutRight}";
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append(PutLeft);
+            base.WriteHtml(sb);
+            sb.Append(PutRight);
         }
     }
     public class FootNoteBodyElement : BlockElement
