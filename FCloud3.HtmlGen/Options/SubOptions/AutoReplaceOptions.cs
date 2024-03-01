@@ -8,7 +8,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
 {
     public class AutoReplaceOptions
     {
-        public List<string> Detects { get; private set; }
+        public List<ReplaceTarget> Detects { get; private set; }
         public Func<string, string> Replace { get; private set; }
         private readonly ParserBuilder _master;
         public AutoReplaceOptions(ParserBuilder master)
@@ -17,11 +17,20 @@ namespace FCloud3.HtmlGen.Options.SubOptions
             Replace = x => x;
             _master = master;
         }
-
-        public ParserBuilder AddReplacing(List<string> targets, Func<string, string> replace)
+        public readonly struct ReplaceTarget
         {
-            Detects.RemoveAll(targets.Contains);
-            Detects.AddRange(targets);
+            public string Text { get; }
+            public bool IsSingleUse { get; }
+            public ReplaceTarget(string text, bool isSingleUse) { Text = text; IsSingleUse = isSingleUse; }
+        }
+
+        public ParserBuilder AddReplacing(List<string> targets, Func<string, string> replace, bool isSingle = true)
+        {
+            Detects.RemoveAll(x=> targets.Contains(x.Text));
+            targets.ForEach(x =>
+            {
+                Detects.Add(new ReplaceTarget(x, isSingle));
+            });
             var original = Replace;
             Replace = (d) =>
             {

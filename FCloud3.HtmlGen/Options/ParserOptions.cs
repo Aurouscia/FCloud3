@@ -97,10 +97,14 @@ namespace FCloud3.HtmlGen.Options
             if (autoReplaceOptions is not null && autoReplaceOptions.Detects.Count > 0)
             {
                 var detects = autoReplaceOptions.Detects;
-                detects.RemoveAll(x => x.Length < 2);
-                detects.Sort((x, y) => y.Length - x.Length);
+                detects.RemoveAll(x => x.Text.Length < 2);
+                detects.Sort((x, y) => y.Text.Length - x.Text.Length);
                 var rules = detects.ConvertAll(x =>
-                    new LiteralInlineRule(x, () => autoReplaceOptions.Replace(x)));
+                    new LiteralInlineRule(
+                        target: x.Text,
+                        getReplacement: () => autoReplaceOptions.Replace(x.Text),
+                        isSingle: x.IsSingleUse
+                    ));
                 inlineRules.InsertRange
                 (
                     index: 0,

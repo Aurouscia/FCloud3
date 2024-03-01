@@ -132,7 +132,7 @@ namespace FCloud3.HtmlGenTest
             builder.AutoReplace.AddReplacing(detect2, replace2);
             var options = builder.GetCurrentOptions();
 
-            CollectionAssert.AreEquivalent(options.AutoReplaceOptions.Detects,new List<string>() { "abc","iop","qwe" });
+            CollectionAssert.AreEquivalent(options.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
             Assert.AreEqual(options.AutoReplaceOptions.Replace("abc"), "ABC2");
             Assert.AreEqual(options.AutoReplaceOptions.Replace("qwe"), "QWE2");
             Assert.AreEqual(options.AutoReplaceOptions.Replace("iop"), "IOP1");

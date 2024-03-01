@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static FCloud3.HtmlGen.Rules.SepBlockRule;
 
 namespace FCloud3.HtmlGen.Options
 {
@@ -32,7 +33,7 @@ namespace FCloud3.HtmlGen.Options
             RuleUsage = new();
             TemplateSlotInfo = new();
             Options = options;
-            Caches = new(options.CacheOptions);
+            Caches = new(options.CacheOptions, this);
             FootNote = new();
         }
         /// <summary>
@@ -85,6 +86,13 @@ namespace FCloud3.HtmlGen.Options
             _ = UsedRulesLog.TryGetValue(rule, out int times);
             return times;
         }
+        public bool ViolateSingleUsage(IEnumerable<IRule> usingRules)
+        {
+            var usingSingles = usingRules.Where(x => x.IsSingleUse);
+            if (usingSingles.Count() == 0) return false;
+            var usedSingles = UsedRulesLog.Keys.Where(x => x.IsSingleUse);
+            return usedSingles.Intersect(usingSingles).Any();
+        }
         public string DebugInfo()
         {
             int rulesCount = UsedRulesLog.Count;
@@ -102,10 +110,13 @@ namespace FCloud3.HtmlGen.Options
         public int CacheReadCount { get; private set; }
         private readonly IMemoryCache _cache;
         private readonly CacheOptions _options;
+        private readonly ParserContext _ctx;
+
         public  bool IsSelfHostedCache { get; }
-        public ParserCacheContext(CacheOptions options)
+        public ParserCacheContext(CacheOptions options, ParserContext ctx)
         {
             _options = options;
+            _ctx = ctx;
             //未提供缓存实例，自己造，自己回收
             if (options.CacheInstance is null)
             {
@@ -148,6 +159,14 @@ namespace FCloud3.HtmlGen.Options
                 SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
             });
         }
+        public CachedElement SaveParsedElement(string input, IHtmlable resElement)
+        {
+            string content = resElement.ToHtml();
+            List<IRule>? usedRules = resElement.ContainRules();
+            List<IHtmlable>? footNotes = resElement.ContainFootNotes();
+            SaveParseResult(input, content, usedRules, footNotes);
+            return new CachedElement(content, usedRules, footNotes);
+        }
         public CacheValue? ReadParseResult(string input)
         {
             var cache = _cache.Get<CacheValue>(input);
@@ -157,6 +176,21 @@ namespace FCloud3.HtmlGen.Options
                 ParsedSavedScanChar += input.Length;
             }
             return cache;
+        }
+        public CachedElement? ReadParsedElement(string input)
+        {
+            var res = ReadParseResult(input);
+            if (res is not null)
+            {
+                //如果缓存里使用的一次性规则已经在前面被用过了，那么缓存失效，重新算
+                if (res.UsedRules is null || !_ctx.RuleUsage.ViolateSingleUsage(res.UsedRules))
+                {
+                    _ctx.RuleUsage.ReportUsage(res.UsedRules);
+                    _ctx.FootNote.AddFootNoteBodies(res.FootNotes);
+                    return new CachedElement(res.Content, res.UsedRules, res.FootNotes);
+                }
+            }
+            return null;
         }
 
         public class CacheValue

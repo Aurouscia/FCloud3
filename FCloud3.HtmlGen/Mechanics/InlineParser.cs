@@ -35,12 +35,9 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (_useCache)
             {
-                var res = _ctx.Caches.ReadParseResult(input);
-                if (res is not null)
-                {
-                    _ctx.RuleUsage.ReportUsage(res.UsedRules);
-                    return new CachedElement(res.Content,res.UsedRules, null);
-                }
+                var cache = _ctx.Caches.ReadParsedElement(input);
+                if (cache is not null)
+                    return cache;
             }
             try
             {
@@ -66,12 +63,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     }
                 }
                 if (_useCache)
-                {
-                    string content = res.ToHtml();
-                    List<IRule> usedRules = res.ContainRules() ?? new();
-                    _ctx.Caches.SaveParseResult(input, content, usedRules, null);
-                    return new CachedElement(content,usedRules, null);
-                }
+                    res = _ctx.Caches.SaveParsedElement(input, res);
                 return res;
             }
             catch(Exception ex)

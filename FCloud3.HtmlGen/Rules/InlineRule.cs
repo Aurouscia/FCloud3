@@ -38,7 +38,7 @@ namespace FCloud3.HtmlGen.Rules
         public string PutLeft { get; }
         public string PutRight { get; }
         public string Style { get; }
-        public bool IsSingleUse { get; }
+        public bool IsSingleUse { get; protected set; }
 
         protected InlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="",bool isSingleUse = false)
         {
@@ -117,15 +117,17 @@ namespace FCloud3.HtmlGen.Rules
     public class LiteralInlineRule : InlineRule
     {
         public Func<string> GetReplacement { get; }
-        public LiteralInlineRule(string target,Func<string> getReplacement) 
+        public LiteralInlineRule(string target, Func<string> getReplacement, bool isSingle = true) 
             : base(markLeft:target, markRight:"", putLeft:"", putRight:"", "", "",
                   isSingleUse:true)
         {
             GetReplacement = getReplacement;
+            IsSingleUse = isSingle;
         }
         public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            return new TextElement(GetReplacement());
+            var t = new TextElement(GetReplacement());
+            return new RuledInlineElement(t, this);
         }
         public override bool FulFill(string span)=>true;
     }

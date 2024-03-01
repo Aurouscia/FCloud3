@@ -30,13 +30,9 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             if (_useCache)
             {
-                var res = _ctx.Caches.ReadParseResult(input);
-                if (res is not null)
-                {
-                    _ctx.RuleUsage.ReportUsage(res.UsedRules);
-                    _ctx.FootNote.AddFootNoteBodies(res.FootNotes);
-                    return new CachedElement(res.Content,res.UsedRules,res.FootNotes);
-                }
+                var cache = _ctx.Caches.ReadParsedElement(input);
+                if (cache is not null) 
+                    return cache;
             }
             
             var lines = LineSplitter.Split(input,_ctx.Options.LocatorHash);
@@ -57,13 +53,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 resElement = _titledBlockParser.Value.Run(lines);
 
             if (_useCache)
-            {
-                string content = resElement.ToHtml();
-                List<IRule>? usedRules = resElement.ContainRules();
-                List<IHtmlable>? footNotes = resElement.ContainFootNotes();
-                _ctx.Caches.SaveParseResult(input, content, usedRules, footNotes);
-                return new CachedElement(content,usedRules, footNotes);
-            }
+                resElement = _ctx.Caches.SaveParsedElement(input, resElement);
             return resElement;
         }
     }
