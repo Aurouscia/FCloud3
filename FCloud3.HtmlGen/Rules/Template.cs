@@ -16,13 +16,13 @@ namespace FCloud3.HtmlGen.Rules
         public string Styles { get; }
         public bool IsSingleUse => false;
 
-        public Template(string name, string source,string styles="", string preScripts = "", string postScripts = "")
+        public Template(string? name, string? source,string? styles="", string? preScripts = "", string? postScripts = "")
         {
-            Name = name;
-            Source = source;
-            Styles = styles;
-            PreCommons = preScripts;
-            PostCommons = postScripts;
+            Name = name ?? "";
+            Source = source ?? "";
+            Styles = styles ?? "";
+            PreCommons = preScripts ?? "";
+            PostCommons = postScripts ?? "";
         }
 
         public string GetPreScripts() => PreCommons;
@@ -45,6 +45,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return this.Name.GetHashCode();
         }
+        public string UniqueName => Name;
     }
 
     public static class InternalTemplates

@@ -6,6 +6,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
 using Microsoft.Extensions.Configuration;
 using FCloud3.Repos.Table;
+using FCloud3.Repos.WikiParsing;
 
 namespace FCloud3.Repos
 {
@@ -23,6 +24,8 @@ namespace FCloud3.Repos
             services.AddScoped<WikiItemRepo>();
             services.AddScoped<WikiToDirRepo>();
             services.AddScoped<WikiParaRepo>();
+
+            services.AddScoped<WikiTemplateRepo>();
 
             services.AddScoped<TextSectionRepo>();
             services.AddScoped<FreeTableRepo>();

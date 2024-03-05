@@ -14,6 +14,7 @@ import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models
 import { WikiItem } from '../models/wiki/wikiItem';
 import { FreeTable } from '../models/table/freeTable';
 import { AuthGrant, AuthGrantOnText, AuthGrantViewModel, authGrantOn } from '../models/identities/authGrant';
+import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 
 
 export class Api{
@@ -300,6 +301,65 @@ export class Api{
                     "成功为段落设置文件"
                 )
                 return resp.success
+            }
+        }
+    }
+    wikiParsing={
+        wikiTemplate:{
+            getList:async()=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/GetList",
+                    "get"
+                )
+                if(res.success){
+                    return res.data as WikiTemplateListItem[]
+                }
+            },
+            add:async(name:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/Add",
+                    "postForm",
+                    {name},
+                    "成功添加")
+                return res.success
+            },
+            edit:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/Edit",
+                    "get",
+                    {id}
+                )
+                if(res.success){
+                    return res.data as WikiTemplate
+                }
+            },
+            editExe:async(data:WikiTemplate)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/EditExe",
+                    "postRaw",
+                    data,
+                    "保存成功"
+                )
+                return res.success
+            },
+            remove:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/Remove",
+                    "get",
+                    {id},
+                    "删除成功"
+                )
+                return res.success
+            },
+            preview:async(data:WikiTemplate)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTemplate/Preview",
+                    "postRaw",
+                    data
+                );
+                if(res.success){
+                    return res.data as WikiTemplatePreviewResponse
+                }
             }
         }
     }

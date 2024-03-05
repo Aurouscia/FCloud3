@@ -74,6 +74,7 @@ namespace FCloud3.HtmlGen.Rules
         public virtual string GetPreScripts() => string.Empty;
         public virtual string GetPostScripts() => string.Empty;
         public abstract bool Equals(IBlockRule? other);
+        public abstract string UniqueName { get; }
     }
 
     /// <summary>
@@ -114,6 +115,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return other is EmptyBlockRule;
         }
+        public override string UniqueName => "空块规则";
     }
 
     /// <summary>
@@ -161,6 +163,7 @@ namespace FCloud3.HtmlGen.Rules
                 return rule.Mark == this.Mark;
             return false;
         }
+        public override string UniqueName => $"前缀块规则_{Mark}";
     }
 
     /// <summary>
@@ -267,6 +270,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return nameof(SepBlockRule).GetHashCode();
         }
+        public override string UniqueName => "内置_分隔线";
     }
     /// <summary>
     /// 表示一个迷你表格，例子：
@@ -330,6 +334,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             return (other is MiniTableBlockRule);
         }
+        public override string UniqueName => "内置_表格";
 
         public class TableRowElement : SimpleBlockElement
         {
@@ -406,6 +411,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             throw new NotImplementedException();
         }
+        public override string UniqueName => "内置_脚注";
 
         [GeneratedRegex("^\\s*\\[\\^.{1,}\\][:：]{1}")]
         private static partial Regex FootBodyLineMarkRegex();

@@ -141,11 +141,11 @@ namespace FCloud3.HtmlGenTest
             )]
         public void FootNote(string content, string answerMain, string answerFootNotes)
         {
-            var res = _parser.RunToStructured(content);
+            var res = _parser.RunToParserResult(content);
             Assert.AreEqual(answerMain, res.Content);
             Assert.AreEqual(answerFootNotes, res.FootNotes);
 
-            var res2 = _parser.RunToStructured(content);
+            var res2 = _parser.RunToParserResult(content);
             Assert.AreEqual(answerMain, res2.Content);
             Assert.AreEqual(answerFootNotes, res2.FootNotes);
         }

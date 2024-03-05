@@ -26,9 +26,16 @@ namespace FCloud3.App.Services.Filters
             }
             public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
             {
-                var model = context.ActionArguments.Values.FirstOrDefault(x => x is IAuthGrantableRequestModel) as IAuthGrantableRequestModel
-                    ?? throw new Exception("无法验证提交数据");
-                int id = model.AuthGrantOnId;
+                int id;
+                var firstArg = context.ActionArguments.Values.FirstOrDefault();
+
+                if (firstArg is int v)
+                    id = v;
+                else if (firstArg is IAuthGrantableRequestModel authReq)
+                    id = authReq.AuthGrantOnId;
+                else
+                    throw new Exception("权限验证参数无效");
+
                 var controller = context.Controller;
 
                 AuthGrantOn on = AuthGrantOn.None;

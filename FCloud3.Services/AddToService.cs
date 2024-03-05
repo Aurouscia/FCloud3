@@ -1,13 +1,14 @@
-﻿using FCloud3.Services.Identities;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using FCloud3.Services.Identities;
 using FCloud3.Services.Wiki;
 using FCloud3.Services.TextSec;
-using Microsoft.Extensions.DependencyInjection;
 using FCloud3.Services.Files;
 using FCloud3.Services.Sys;
-using Microsoft.Extensions.Configuration;
 using FCloud3.Services.Files.Storage;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Table;
+using FCloud3.Services.WikiParsing;
 
 namespace FCloud3.Services
 {
@@ -22,6 +23,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiItemService>();
             services.AddScoped<WikiParaService>();
             services.AddScoped<TextSectionService>();
+            services.AddScoped<WikiTemplateService>();
             services.AddScoped<FreeTableService>();
             services.AddScoped<FileItemService>();
             services.AddScoped<FileDirService>();

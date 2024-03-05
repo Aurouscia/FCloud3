@@ -10,6 +10,7 @@ import { addWiki } from './pages/Wiki/routes';
 import { addTextSection } from './pages/TextSection/routes';
 import { addFiles } from './pages/Files/routes';
 import { addTable } from './pages/Table/routes';
+import { addWikiParsing } from './pages/WikiParsing/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -23,6 +24,7 @@ const router = createRouter({
 addIdentities(router)
 addHomePage(router)
 addWiki(router)
+addWikiParsing(router)
 addTextSection(router)
 addTable(router)
 addFiles(router)

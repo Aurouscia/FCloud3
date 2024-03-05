@@ -15,6 +15,7 @@ namespace FCloud3.HtmlGen.Mechanics
         private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
         public const int maxInputLength = 5000;
+        public ParserContext Context { get { return _ctx; } }
         public Parser(ParserOptions options)
         {
             _ctx = new(options);
@@ -34,18 +35,24 @@ namespace FCloud3.HtmlGen.Mechanics
                 return input;
             IHtmlable result = _blockParser.Run(input);
             StringBuilder resSb = new();
-            result.WriteHtml(resSb);
-            string resStr = resSb.ToString();
             if (_ctx.Options.Debug)
-            {
-                resStr = _ctx.DebugInfo() + resStr;
-            }
+                    resSb.AppendLine(_ctx.DebugInfo());
             if (!putCommon)
-                return resStr;
+            {
+                result.WriteHtml(resSb);
+                return resSb.ToString();
+            }
             else
-                return $"{Styles()}{PreScripts()}{resStr}{PostScripts()}";
+            {
+                Styles(resSb);
+                PreScripts(resSb);
+                result.WriteHtml(resSb);
+                PostScripts(resSb);
+                FootNotes(resSb);
+            }
+            return resSb.ToString();
         }
-        public ParserResult RunToStructured(string? input)
+        public ParserResult RunToParserResult(string? input)
         {
             _ctx.Reset();
             if (string.IsNullOrWhiteSpace(input))
@@ -54,20 +61,39 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input);
             StringBuilder resSb = new();
-            htmlable.WriteHtml(resSb);
-            string content = resSb.ToString();
-            string preScripts = PreScripts(false);
-            string postScripts = PostScripts(false);
-            string styles = Styles(false);
-            string footNotes = FootNotes();
             if (_ctx.Options.Debug)
-            {
-                content = _ctx.DebugInfo() + content;
-            }
+                resSb.AppendLine(_ctx.DebugInfo());
+            htmlable.WriteHtml(resSb);
+            string content = resSb.ToString();resSb.Clear();
+            PreScripts(resSb, false);
+            string preScripts = resSb.ToString();resSb.Clear();
+            PostScripts(resSb, false);
+            string postScripts = resSb.ToString();resSb.Clear();
+            Styles(resSb, false);
+            string styles = resSb.ToString();resSb.Clear();
+            FootNotes(resSb);
+            string footNotes = resSb.ToString();
+
             ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
             return result;
         }
-        public IHtmlable RunToRaw(string? input)
+        public ParserResultRaw RunToParserResultRaw(string? input)
+        {
+            _ctx.Reset();
+            if (string.IsNullOrWhiteSpace(input))
+                return new();
+            if (input.Length > maxInputLength)
+                return new(input);
+            IHtmlable htmlable = _blockParser.Run(input);
+            StringBuilder resSb = new();
+            if (_ctx.Options.Debug)
+                resSb.AppendLine(_ctx.DebugInfo());
+            htmlable.WriteHtml(resSb);
+
+            ParserResultRaw result = new(input, _ctx.RuleUsage.GetUsedRules(), _ctx.FootNote.AllToString());
+            return result;
+        }
+        public IHtmlable RunToObject(string? input)
         {
             _ctx.Reset();
             if(input is null)
@@ -77,56 +103,65 @@ namespace FCloud3.HtmlGen.Mechanics
             IHtmlable htmlable = _blockParser.Run(input);
             return htmlable;
         }
-        public string RunMutiple(List<string?> inputs)
-        {
-            List<string> res = inputs.ConvertAll(x=>RunToPlain(x,false));
-            throw new NotImplementedException();
-            //return $"{Styles()}{PreScripts()}{string.Concat(res)}{PostScripts()}";
-        }
-        private string Styles(bool withLabel=true)
+
+        private void Styles(StringBuilder sb, bool withLabel=true)
         {
             var allStyles = _ctx.RuleUsage.GetUsedRules().Select(x => x.GetStyles()).ToList();
             if (allStyles.Count == 0 || allStyles.All(s => s == ""))
-                return "";
+                return;
             allStyles = allStyles.Distinct().ToList();
+            if (withLabel)
+                sb.Append("<style>");
             allStyles.Sort();
-            string res = string.Concat(allStyles);
-            if(withLabel)
-                return HtmlLabel.Style(res);
-            return res;
+            allStyles.ForEach(s =>
+            {
+                sb.Append(s);
+            });
+            if (withLabel)
+                sb.Append("</style>");
         }
-        private string PreScripts(bool withLabel= true)
+        private void PreScripts(StringBuilder sb, bool withLabel= true)
         { 
             var allPre = _ctx.RuleUsage.GetUsedRules().Select(x=>x.GetPreScripts()).ToList();
             if (allPre.Count == 0 || allPre.All(x=>x==""))
-                return "";
+                return;
             allPre = allPre.Where(x=>x!="").Distinct().ToList();
-            string res = string.Join('\n',allPre);
-            if(withLabel)
-                return HtmlLabel.Script(res);
-            return res;
+            if (withLabel)
+                sb.Append("<script>");
+            allPre.ForEach(s =>
+            {
+                sb.Append(s);
+                sb.Append('\n');
+            });
+            if (withLabel)
+                sb.Append("</script>");
         }
-        private string PostScripts(bool withLabel= true)
+        private void PostScripts(StringBuilder sb, bool withLabel= true)
         {
             var allPost = _ctx.RuleUsage.GetUsedRules().Select(x => x.GetPostScripts()).ToList();
             if (allPost.Count == 0 || allPost.All(x => x == ""))
-                return "";
+                return;
             allPost = allPost.Distinct().ToList();
-            string res = string.Join('\n',allPost);
-            if(withLabel)
-                return HtmlLabel.Script(res);
-            return res;
+            if (withLabel)
+                sb.Append("<script>");
+            allPost.ForEach(s =>
+            {
+                sb.Append(s);
+                sb.Append('\n');
+            });
+            if (withLabel)
+                sb.Append("</script>");
         }
-        private string FootNotes()
+        private void FootNotes(StringBuilder sb)
         {
             var allFootNotes = _ctx.FootNote.FootNoteBodys;
-            StringBuilder sb = new("<div class=\"refbodies\">");
+            if (allFootNotes.Count == 0) return;
+            sb.Append("<div class=\"refbodies\">");
             allFootNotes.ForEach(x =>
             {
-                sb.Append(x.ToHtml());
+                x.WriteHtml(sb);
             });
             sb.Append("</div>");
-            return sb.ToString();
         }
         ~Parser()
         {
@@ -153,6 +188,41 @@ namespace FCloud3.HtmlGen.Mechanics
             PostScript = postScript;
             Style = style;
             FootNotes = footNotes;
+        }
+    }
+
+    public class ParserResultRaw
+    {
+        public string Content { get; }
+        public List<IRule> UsedRules { get; private set; }
+        public List<string> FootNotes { get; private set; }
+        public ParserResultRaw(string content="", List<IRule>? usedRules=null, List<string>? footNotes=null)
+        {
+            Content = content;
+            UsedRules = usedRules ?? new();
+            FootNotes = footNotes ?? new();
+        }
+        public List<IRule> UsedRulesWithCommons()
+        {
+            return UsedRules.Where(x =>
+            {
+                if (!string.IsNullOrEmpty(x.GetStyles()))
+                    return true;
+                if (!string.IsNullOrEmpty(x.GetPostScripts()))
+                    return true;
+                if (!string.IsNullOrEmpty(x.GetPreScripts()))
+                    return true;
+                return false;
+            }).ToList();
+        }
+        public List<string> UsedRuleWithCommonsNames()
+        {
+            return UsedRulesWithCommons().ConvertAll(x => x.UniqueName);
+        }
+        public void MergeIn(ParserResultRaw another)
+        {
+            UsedRules = UsedRules.Union(another.UsedRules).ToList();
+            FootNotes = FootNotes.Union(another.FootNotes).ToList();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
+using FCloud3.HtmlGen.Util;
 using FCloud3.Repos;
 using FCloud3.Services;
 using FCloud3.Services.Files.Storage.Abstractions;
@@ -23,7 +24,8 @@ namespace FCloud3.App.Services
             services.AddAuthGrantedActionFilter();
             services.AddFilePathBaseConstraint();
             services.AddMemoryCache();
-            services.AddScoped<HtmlGenParserProvider>();
+            services.AddSingleton<ILocatorHash, LocatorHash>();
+            services.AddScoped<WikiParserProviderService>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();

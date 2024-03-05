@@ -140,6 +140,20 @@ namespace FCloud3.HtmlGen.Models
             else
                 return $"<div>{main}</div>";
         }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            if (Hash is not null)
+            {
+                sb.Append("<div loc=\"");
+                sb.Append(Hash);
+                sb.Append("\">");
+            }
+            else
+                sb.Append("<div>");
+            sb.Append($"<a id=\"ref_{Name}\" class=\"ref\">[{Name}]</a>");
+            base.WriteHtml(sb);
+            sb.Append("</div>");
+        }
     }
     public class FootNoteBodyPlaceholderElement:BlockElement
     {

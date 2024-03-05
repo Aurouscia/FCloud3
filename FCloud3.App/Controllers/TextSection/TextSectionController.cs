@@ -1,8 +1,6 @@
-﻿using FCloud3.Repos.TextSec;
-using FCloud3.Services.TextSec;
+﻿using FCloud3.Services.TextSec;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.Entities.TextSection;
 using FCloud3.App.Services.Utils;
@@ -12,11 +10,11 @@ namespace FCloud3.App.Controllers.TextSec
     public class TextSectionController:Controller
     {
         private readonly TextSectionService _textSectionService;
-        private readonly HtmlGenParserProvider _genParser;
+        private readonly WikiParserProviderService _genParser;
 
         public TextSectionController(
             TextSectionService textSectionService,
-            HtmlGenParserProvider genParser) 
+            WikiParserProviderService genParser) 
         {
             _textSectionService = textSectionService;
             _genParser = genParser;
@@ -47,8 +45,9 @@ namespace FCloud3.App.Controllers.TextSec
         [Authorize]
         public IActionResult Preview(int id, string content)
         {
-            var parser = _genParser.GetParser(id);
-            var res = new TextSectionPreviewResponse(parser.RunToStructured(content));
+            string cacheKey = $"tse_{id}";
+            var parser = _genParser.GetParser(cacheKey);
+            var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return this.ApiResp(res);
         }
 

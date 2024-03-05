@@ -3,6 +3,7 @@ using System.Text;
 
 namespace FCloud3.App.Utils
 {
+    //TODO：替换为nuget MD5包
     public static class MD5Helper
     {
         public static string GetMD5Of(string input)

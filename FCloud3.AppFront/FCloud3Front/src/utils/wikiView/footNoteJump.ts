@@ -28,9 +28,7 @@ export function useFootNoteJump(){
         }else{
             return;
         }
-        console.log("跳转到", search);
         const target = document.querySelector("#"+search) as HTMLElement;
-        console.log(target.offsetTop);
         if(target && target.offsetTop){
             footNoteJumpCallBack.value(target.offsetTop);
             window.setTimeout(async()=>{

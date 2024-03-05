@@ -27,7 +27,7 @@ namespace FCloud3.HtmlGenTest
         public void Inline(string input,string answerStr)
         {
             var parser = new ParserBuilder().BuildParser();
-            var element = parser.RunToRaw(input);
+            var element = parser.RunToObject(input);
             var rules = element.ContainRules()??new();
             var inlineRules = rules.ConvertAll(x=>
             {

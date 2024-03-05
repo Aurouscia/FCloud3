@@ -151,12 +151,14 @@ namespace FCloud3.HtmlGen.Options
         }
 
         public int ParsedSavedScanChar { get;private set; }
-        public void SaveParseResult(string input, string output,List<IRule>? usedRules, List<IHtmlable>? footNotes)
+
+        private int CacheKey(string input) => this.GetHashCode() + input.GetHashCode();
+        private void SaveParseResult(string input, string output,List<IRule>? usedRules, List<IHtmlable>? footNotes)
         {
             if (string.IsNullOrEmpty(input))
                 return;
             var cache = new CacheValue(output, usedRules,footNotes);
-            _cache.Set<CacheValue>(input, cache, new MemoryCacheEntryOptions()
+            _cache.Set<CacheValue>(CacheKey(input), cache, new MemoryCacheEntryOptions()
             {
                 SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
             });
@@ -169,12 +171,15 @@ namespace FCloud3.HtmlGen.Options
             _tempSb.Clear();
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
+            var element = new CachedElement(content, usedRules, footNotes);
+            if(usedRules is not null && usedRules.Any(r => _options.NoCacheRules.Contains(r.UniqueName)))
+                return element;
             SaveParseResult(input, content, usedRules, footNotes);
-            return new CachedElement(content, usedRules, footNotes);
+            return element;
         }
-        public CacheValue? ReadParseResult(string input)
+        private CacheValue? ReadParseResult(string input)
         {
-            var cache = _cache.Get<CacheValue>(input);
+            var cache = _cache.Get<CacheValue>(CacheKey(input));
             if (cache is not null)
             {
                 CacheReadCount++;
@@ -252,6 +257,16 @@ namespace FCloud3.HtmlGen.Options
                     if(b is not null)
                         AddFootNoteBody(b);
                 }
+        }
+        public List<string> AllToString()
+        {
+            StringBuilder sb = new();
+            return FootNoteBodys.ConvertAll(f =>
+            {
+                sb.Clear();
+                f.WriteHtml(sb);
+                return sb.ToString();
+            });
         }
     }
 }

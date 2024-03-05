@@ -74,15 +74,14 @@ namespace FCloud3.HtmlGen.Models
             else
             {
                 ReplaceUniqueSlots(slots);
-                slots.Sort((x, y) => x.Start - y.Start);
                 int pointer = 0;
                 slots.ForEach(slot =>
                 {
-                    sb.Append(code.AsSpan(pointer, slot.Start));
+                    sb.Append(code.AsSpan(pointer, slot.Start - pointer));
                     _ = _values.TryGetValue(slot, out var value);
                     value ??= slot.DefaultContent();
                     value.WriteHtml(sb);
-                    pointer = slot.Start + slot.Value.Length;
+                    pointer = slot.End;
                 });
                 if(pointer<code.Length)
                 {
@@ -137,7 +136,7 @@ namespace FCloud3.HtmlGen.Models
             this.Add(template.Name, slots);
             return slots;
         }
-        private List<TemplateSlot> GetSlots(Template template)
+        private static List<TemplateSlot> GetSlots(Template template)
         {
             List<TemplateSlot> slots = new();
             if (template.Source is null)
@@ -145,6 +144,8 @@ namespace FCloud3.HtmlGen.Models
             MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, (x,y) => new PlainSlot(x, y));
             MatchAndCollect(template.Source, ParseSlot.MatchRegex, slots, (x,y) => new ParseSlot(x, y));
             MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, (x,y) => new UniqueSlot(x, y));
+            slots.Sort((x, y) => x.Start - y.Start);
+            slots.RemoveAll(x => slots.Any(y => y.Start < x.Start && x.Overlapped(y)));
             return slots;
         }
         private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,int,TemplateSlot> constructor)
@@ -171,6 +172,7 @@ namespace FCloud3.HtmlGen.Models
         /// </summary>
         public string PureValue { get; }
         public int Start { get; }
+        public int End => Start + Value.Length;
         public TemplateSlot(string value,string pureValue, int start)
         {
             Value = value;
@@ -193,6 +195,11 @@ namespace FCloud3.HtmlGen.Models
         public override int GetHashCode()
         {
             return Value.GetHashCode();
+        }
+
+        public bool Overlapped(TemplateSlot other)
+        {
+            return Start >= other.Start && Start < other.End;
         }
     }
     /// <summary>

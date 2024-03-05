@@ -46,13 +46,13 @@ namespace FCloud3.HtmlGenTest
             "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div></p><p>很高兴认识你！</p></div>")]
         [DataRow(
             "{{哼唧}}",
-            "<style>.hj{color:gray}</style><script>console.log('哼唧')</script><p><div class=\"hj\"></div></p>")]
+            "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\"></div></p>")]
         [DataRow(
             "{{哼唧}噜噜}",
-            "<style>.hj{color:gray}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜噜</div></p>")]
+            "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜噜</div></p>")]
         [DataRow(
             "{{哼唧}噜\\red噜\\red}",
-            "<style>.hj{color:gray}.red{color:red}</style><script>console.log('哼唧')</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
+            "<style>.hj{color:gray}.red{color:red}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
         public void TestOne(string input,string answer)
         {
             var res = _parser.RunToPlain(input,true);

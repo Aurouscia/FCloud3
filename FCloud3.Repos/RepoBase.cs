@@ -261,6 +261,20 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             return true;
         }
+        public virtual bool TryRemove(int id, out string? errmsg)
+        {
+            var deleted = Existing.Where(x => x.Id == id).ExecuteUpdate(x => x.SetProperty(t => t.Deleted, true));
+            if (deleted > 0)
+            {
+                errmsg = null;
+                return true;
+            }
+            else
+            {
+                errmsg = "删除失败(可能未找到指定id)";
+                return false;
+            }
+        }
         public virtual bool TryRemoveRange(List<T> items, out string? errmsg)
         {
             errmsg = null;

@@ -67,7 +67,6 @@ namespace FCloud3.HtmlGen.Rules
         {
             return $"{MarkLeft}{MarkRight}".GetHashCode();
         }
-
         public bool Equals(IInlineRule? other)
         {
             if(other is InlineRule otherRule)
@@ -75,6 +74,7 @@ namespace FCloud3.HtmlGen.Rules
                     return true;
             return false;
         }
+        public string UniqueName => $"{MarkLeft}x{MarkRight}";
     }
     public class CustomInlineRule : InlineRule
     {
@@ -113,6 +113,7 @@ namespace FCloud3.HtmlGen.Rules
         public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
             => RelyOn.MakeElementFromSpan(span, marks, inlineParser);
         public bool FulFill(string span) => RelyOn.FulFill(span);
+        public string UniqueName => RelyOn.Name;
     }
     public class LiteralInlineRule : InlineRule
     {
@@ -286,6 +287,7 @@ namespace FCloud3.HtmlGen.Rules
                 return res;
             }
         }
+        public string UniqueName => "彩色字";
     }
 
     public static class InternalInlineRules
