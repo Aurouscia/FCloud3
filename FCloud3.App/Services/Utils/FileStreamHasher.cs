@@ -1,5 +1,6 @@
 ﻿using FCloud3.App.Utils;
 using FCloud3.Services.Files.Storage.Abstractions;
+using MD5Hash;
 
 namespace FCloud3.App.Services.Utils
 {
@@ -7,7 +8,7 @@ namespace FCloud3.App.Services.Utils
     {
         public string Hash(Stream s)
         {
-            return MD5Helper.GetMD5Of(s);
+            return s.GetMD5();
         }
 
         //TODO严重性能瓶颈

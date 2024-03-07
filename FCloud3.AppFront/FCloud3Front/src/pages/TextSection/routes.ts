@@ -1,6 +1,6 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import TextParaEditor from "./TextSectionEditor.vue"
+import TextParaEditor from "./TextSectionEdit.vue"
 
 let router:Router|undefined = undefined;
 

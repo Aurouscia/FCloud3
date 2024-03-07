@@ -12,7 +12,7 @@ import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 
 const locatorHash:(str:string)=>string = (str)=>{
-    return md5("locHash_"+str.trim())
+    return md5(str)
 }
 
 const props = defineProps<{id:string}>()

@@ -1,17 +1,13 @@
-﻿using FCloud3.HtmlGen.Mechanics;
-using FCloud3.HtmlGen.Options;
-using FCloud3.HtmlGen.Util;
-using FCloud3.App.Utils;
-using Microsoft.Extensions.Caching.Memory;
+﻿using FCloud3.HtmlGen.Util;
+using MD5Hash;
 
 namespace FCloud3.App.Services.Utils
 {
     public class LocatorHash : ILocatorHash
     {
-        //TODO：去掉Trim()
         public string? Hash(string? input)
         {
-            return MD5Helper.GetMD5Of($"locHash_{input?.Trim()}");
+            return (input ?? "").GetMD5(EncodingType.UTF8);
         }
     }
 }

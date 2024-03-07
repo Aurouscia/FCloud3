@@ -1,5 +1,5 @@
-﻿using FCloud3.App.Utils;
-using FCloud3.Services.Identities;
+﻿using FCloud3.Services.Identities;
+using MD5Hash;
 
 namespace FCloud3.App.Services.Utils
 {
@@ -12,7 +12,7 @@ namespace FCloud3.App.Services.Utils
         /// <returns>加密后的密码</returns>
         public string Run(string password)
         {
-            return MD5Helper.GetMD5Of($"fcloud_{password}");
+            return $"fcloud_{password}".GetMD5(EncodingType.UTF8);
         }
     }
 }
