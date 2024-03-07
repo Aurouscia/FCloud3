@@ -1,5 +1,5 @@
-﻿using FCloud3.HtmlGen.Util;
-using MD5Hash;
+﻿using FCloud3.App.Utils;
+using FCloud3.HtmlGen.Util;
 
 namespace FCloud3.App.Services.Utils
 {
@@ -7,7 +7,7 @@ namespace FCloud3.App.Services.Utils
     {
         public string? Hash(string? input)
         {
-            return (input ?? "").GetMD5(EncodingType.UTF8);
+            return (input ?? "").GetMD5();
         }
     }
 }
