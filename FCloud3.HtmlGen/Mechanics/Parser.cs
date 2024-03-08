@@ -1,4 +1,6 @@
-﻿using FCloud3.HtmlGen.Models;
+﻿using FCloud3.HtmlGen.Context;
+using FCloud3.HtmlGen.Context.SubContext;
+using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
@@ -90,7 +92,11 @@ namespace FCloud3.HtmlGen.Mechanics
                 resSb.AppendLine(_ctx.DebugInfo());
             htmlable.WriteHtml(resSb);
 
-            ParserResultRaw result = new(input, _ctx.RuleUsage.GetUsedRules(), _ctx.FootNote.AllToString());
+            ParserResultRaw result = new(
+                content: resSb.ToString(),
+                usedRules: _ctx.RuleUsage.GetUsedRules(),
+                footNotes: _ctx.FootNote.AllToString(),
+                titles: _ctx.TitleGathering.GetTitles());
             return result;
         }
         public IHtmlable RunToObject(string? input)
@@ -196,11 +202,13 @@ namespace FCloud3.HtmlGen.Mechanics
         public string Content { get; }
         public List<IRule> UsedRules { get; private set; }
         public List<string> FootNotes { get; private set; }
-        public ParserResultRaw(string content="", List<IRule>? usedRules=null, List<string>? footNotes=null)
+        public List<ParserTitleTreeNode> Titles { get; private set; }
+        public ParserResultRaw(string content="", List<IRule>? usedRules=null, List<string>? footNotes=null, List<ParserTitleTreeNode>? titles=null)
         {
             Content = content;
             UsedRules = usedRules ?? new();
             FootNotes = footNotes ?? new();
+            Titles = titles ?? new();
         }
         public List<IRule> UsedRulesWithCommons()
         {
@@ -223,6 +231,7 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             UsedRules = UsedRules.Union(another.UsedRules).ToList();
             FootNotes = FootNotes.Union(another.FootNotes).ToList();
+            Titles.AddRange(another.Titles);
         }
     }
 }

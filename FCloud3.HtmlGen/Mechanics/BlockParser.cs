@@ -1,5 +1,5 @@
-﻿using FCloud3.HtmlGen.Models;
-using FCloud3.HtmlGen.Options;
+﻿using FCloud3.HtmlGen.Context;
+using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System.Data;
@@ -97,18 +97,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (targetLevel == l.Level)
                 {
                     //将其之前的部分纳入上一个同级标题麾下
-                    if (title is not null && !string.IsNullOrEmpty(title.Text))
-                    {
-                        IHtmlable generated = Run(generating);
-                        IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
-                        TitledBlockElement titledBlock = new(titleParsed, title.RawLineHash, targetLevel+titleLevelOffset, generated);
-                        res.Add(titledBlock);
-                    }
-                    else
-                    {
-                        IHtmlable ruled = _ruledBlockParser.Value.Run(generating.Select(x => x.PureContent).ToList());
-                        res.AddFlat(ruled);
-                    }
+                    CommitBelonging();
                     generating.Clear();
                     title = l.PureContent;
                 }
@@ -117,19 +106,32 @@ namespace FCloud3.HtmlGen.Mechanics
                     generating.Add(l);
                 }
             }
-            if (title is not null && !string.IsNullOrEmpty(title.Text))
-            {
-                IHtmlable generated = Run(generating);
-                IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
-                TitledBlockElement titledBlock = new(titleParsed,title.RawLineHash, targetLevel+titleLevelOffset, generated);
-                res.Add(titledBlock);
-            }
-            else
-            {
-                IHtmlable ruled = _ruledBlockParser.Value.Run(generating.Select(x => x.PureContent).ToList());
-                res.AddFlat(ruled);
-            }
+            //到结尾了收集最后一个标题的所属
+            CommitBelonging();
             return res.Simplify();
+
+            void CommitBelonging()
+            {
+                if (title is not null && !string.IsNullOrEmpty(title.Text))
+                {
+                    int newTitleLevel = targetLevel + titleLevelOffset;
+                    int titleId = 0;
+                    if (_ctx.Options.TitleGatheringOptions.Enabled)
+                    {
+                        titleId = _ctx.TitleGathering.GenerateTitleId();
+                        _ctx.TitleGathering.ReportTitle(newTitleLevel, title.Text, titleId);
+                    }
+                    IHtmlable generated = Run(generating);
+                    IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
+                    TitledBlockElement titledBlock = new(titleParsed, title.RawLineHash, newTitleLevel, generated, titleId);
+                    res.Add(titledBlock);
+                }
+                else
+                {
+                    IHtmlable ruled = _ruledBlockParser.Value.Run(generating.Select(x => x.PureContent).ToList());
+                    res.AddFlat(ruled);
+                }
+            }
         }
 
         public class LineWithTitleLevel

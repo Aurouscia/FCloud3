@@ -18,5 +18,6 @@ namespace FCloud3.HtmlGen.Util
         public const char titleLevelMark = '#';
 
         public const string locatorAttrName = "loc";
+        public const string titleIdAttrName = "id";
     }
 }

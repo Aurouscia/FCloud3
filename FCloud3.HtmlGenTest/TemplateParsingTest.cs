@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Mechanics;
+﻿using FCloud3.HtmlGen.Context;
+using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

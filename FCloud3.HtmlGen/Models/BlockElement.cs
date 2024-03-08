@@ -38,13 +38,15 @@ namespace FCloud3.HtmlGen.Models
     {
         public IHtmlable Title { get; }
         public int Level { get; }
+        public int TitleId { get; }
         private readonly string? _rawLineHash;
         
-        public TitledBlockElement(IHtmlable title,string? rawLineHash, int level, IHtmlable content):base(content)
+        public TitledBlockElement(IHtmlable title,string? rawLineHash, int level, IHtmlable content, int titleId = 0):base(content)
         {
             Title = title;
             Level = level;
             _rawLineHash = rawLineHash;
+            TitleId = titleId;
         }
 
         public override string ToHtml()
@@ -57,17 +59,21 @@ namespace FCloud3.HtmlGen.Models
         }
         public override void WriteHtml(StringBuilder sb)
         {
-            if (_rawLineHash is null)
+            sb.Append("<h"); 
+            sb.Append(Level);
+            if(_rawLineHash is not null)
             {
-                sb.Append("<h");sb.Append(Level);sb.Append('>');
-            }
-            else
-            {
-                sb.Append("<h"); sb.Append(Level);
                 sb.Append(' '); sb.Append(Consts.locatorAttrName);
                 sb.Append("=\""); sb.Append(_rawLineHash);
-                sb.Append("\">");
+                sb.Append('\"');
             }
+            if(TitleId > 0)
+            {
+                sb.Append(' '); sb.Append(Consts.titleIdAttrName);
+                sb.Append("=\""); sb.Append(TitleId);
+                sb.Append('\"');
+            }
+            sb.Append('>');
             Title.WriteHtml(sb);
             sb.Append("</h"); sb.Append(Level); sb.Append('>');
             sb.Append("<div class=\"indent\">");
