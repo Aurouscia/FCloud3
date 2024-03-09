@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Options;
+﻿using FCloud3.HtmlGen.Context.SubContext;
+using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System;
@@ -37,13 +38,15 @@ namespace FCloud3.HtmlGen.Models
     public class TitledBlockElement : BlockElement
     {
         public IHtmlable Title { get; }
+        public string TitleOriginal { get; }
         public int Level { get; }
         public int TitleId { get; }
         private readonly string? _rawLineHash;
         
-        public TitledBlockElement(IHtmlable title,string? rawLineHash, int level, IHtmlable content, int titleId = 0):base(content)
+        public TitledBlockElement(IHtmlable title,string titleOriginal, string? rawLineHash, int level, IHtmlable content, int titleId = 0):base(content)
         {
             Title = title;
+            TitleOriginal = titleOriginal;
             Level = level;
             _rawLineHash = rawLineHash;
             TitleId = titleId;
@@ -79,6 +82,15 @@ namespace FCloud3.HtmlGen.Models
             sb.Append("<div class=\"indent\">");
             Content.WriteHtml(sb);
             sb.Append("</div>");
+        }
+        public override List<ParserTitleTreeNode>? ContainTitleNodes()
+        {
+            var node = new ParserTitleTreeNode(Level, TitleOriginal, TitleId);
+            node.Subs = Content.ContainTitleNodes();
+            return new()
+            {
+                node
+            };
         }
     }
     public class RuledBlockElement: BlockElement
@@ -164,14 +176,23 @@ namespace FCloud3.HtmlGen.Models
     public class FootNoteBodyPlaceholderElement:BlockElement
     {
         public FootNoteBodyElement Body { get; }
-        public FootNoteBodyPlaceholderElement(FootNoteBodyElement body)
+        public FootNoteBodyRule Rule { get; }
+
+        public FootNoteBodyPlaceholderElement(FootNoteBodyElement body, FootNoteBodyRule ruleInstance)
         {
             Body = body;
+            Rule = ruleInstance;
         }
         public override string ToHtml() => string.Empty;
         public override List<IHtmlable>? ContainFootNotes()
         {
             return new() { Body };
+        }
+        public override List<IRule>? ContainRules()
+        {
+            var res = Body.ContainRules() ?? new();
+            res.Add(Rule);
+            return res;
         }
     }
 }

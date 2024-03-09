@@ -403,7 +403,7 @@ namespace FCloud3.HtmlGen.Rules
             resContent.ForEach(x =>
             {
                 if(x is not null)
-                    placeholders.Add(new FootNoteBodyPlaceholderElement(x));
+                    placeholders.Add(new FootNoteBodyPlaceholderElement(x,this));
             });
             return new ElementCollection(placeholders);
         }

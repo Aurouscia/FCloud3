@@ -119,11 +119,10 @@ namespace FCloud3.HtmlGen.Mechanics
                     if (_ctx.Options.TitleGatheringOptions.Enabled)
                     {
                         titleId = _ctx.TitleGathering.GenerateTitleId();
-                        _ctx.TitleGathering.ReportTitle(newTitleLevel, title.Text, titleId);
                     }
                     IHtmlable generated = Run(generating);
                     IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
-                    TitledBlockElement titledBlock = new(titleParsed, title.RawLineHash, newTitleLevel, generated, titleId);
+                    TitledBlockElement titledBlock = new(titleParsed, title.Text, title.RawLineHash, newTitleLevel, generated, titleId);
                     res.Add(titledBlock);
                 }
                 else

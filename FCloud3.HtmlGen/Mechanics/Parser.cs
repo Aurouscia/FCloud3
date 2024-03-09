@@ -96,7 +96,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 content: resSb.ToString(),
                 usedRules: _ctx.RuleUsage.GetUsedRules(),
                 footNotes: _ctx.FootNote.AllToString(),
-                titles: _ctx.TitleGathering.GetTitles());
+                titles: htmlable.ContainTitleNodes());
             return result;
         }
         public IHtmlable RunToObject(string? input)
@@ -108,6 +108,19 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new TextElement(input);
             IHtmlable htmlable = _blockParser.Run(input);
             return htmlable;
+        }
+
+        public string WrapSection(
+            string title, string content, 
+            List<ParserTitleTreeNode> subTitles, out ParserTitleTreeNode processed)
+        {
+            int titleId = Context.TitleGathering.GenerateTitleId();
+            StringBuilder sb = new();
+            HtmlLabel.CustomWrite(sb, title, "h1", Consts.titleIdAttrName, titleId.ToString());
+            sb.Append(content);
+            processed = new(0, title, titleId);
+            processed.Subs = subTitles;
+            return sb.ToString();
         }
 
         private void Styles(StringBuilder sb, bool withLabel=true)
@@ -231,7 +244,6 @@ namespace FCloud3.HtmlGen.Mechanics
         {
             UsedRules = UsedRules.Union(another.UsedRules).ToList();
             FootNotes = FootNotes.Union(another.FootNotes).ToList();
-            Titles.AddRange(another.Titles);
         }
     }
 }

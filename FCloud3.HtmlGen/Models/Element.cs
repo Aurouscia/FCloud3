@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Rules;
+﻿using FCloud3.HtmlGen.Context.SubContext;
+using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace FCloud3.HtmlGen.Models
         public abstract string ToHtml();
         public virtual List<IRule>? ContainRules() => null;
         public virtual List<IHtmlable>? ContainFootNotes() => null;
+        public virtual List<ParserTitleTreeNode>? ContainTitleNodes() => null;
         public virtual void WriteHtml(StringBuilder sb)
         { 
             sb.Append(ToHtml());
@@ -81,6 +83,17 @@ namespace FCloud3.HtmlGen.Models
             foreach (var e in this)
             {
                 var r = e.ContainFootNotes();
+                if (r is not null)
+                    res.AddRange(r);
+            }
+            return res;
+        }
+        public virtual List<ParserTitleTreeNode> ContainTitleNodes()
+        {
+            List<ParserTitleTreeNode> res = new();
+            foreach (var e in this)
+            {
+                var r = e.ContainTitleNodes();
                 if (r is not null)
                     res.AddRange(r);
             }

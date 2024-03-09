@@ -38,6 +38,20 @@ namespace FCloud3.HtmlGen.Util
             sb.Append(name);
             sb.Append('>');
         }
+        public static void CustomWrite(StringBuilder sb, string content, string name, string attrName, string attrValue)
+        {
+            sb.Append('<');
+            sb.Append(name);
+            sb.Append(' ');
+            sb.Append(attrName);
+            sb.Append("=\"");
+            sb.Append(attrValue);
+            sb.Append("\">");
+            sb.Append(content);
+            sb.Append("</");
+            sb.Append(name);
+            sb.Append('>');
+        }
         public static void CustomWrite(
             StringBuilder sb, IHtmlable content, string name, 
             string attr1Name, string attr1Value, string attr2Name, string attr2Value)

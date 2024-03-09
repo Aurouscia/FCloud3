@@ -142,7 +142,7 @@ namespace FCloud3.HtmlGen.Rules
         }
         public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            return new FootNoteEntryElement(span.Trim());
+            return new FootNoteEntryElement(span.Trim(), this);
         }
     }
     public class ManualAnchorRule : InlineRule
@@ -159,7 +159,7 @@ namespace FCloud3.HtmlGen.Rules
         //TODO: 有图片后缀名的话变成行内图片
         public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
         {
-            return new AnchorElement(span.Trim(), span.Trim());
+            return new AnchorElement(span.Trim(), span.Trim(), this);
         }
     }
     public class ManualTextedAnchorRule : InlineRule
@@ -181,7 +181,7 @@ namespace FCloud3.HtmlGen.Rules
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
                 throw new Exception($"{Name}解析异常");
-            return new AnchorElement(parts[0].Trim(), parts[1].Trim());
+            return new AnchorElement(parts[0].Trim(), parts[1].Trim(), this);
         }
     }
 

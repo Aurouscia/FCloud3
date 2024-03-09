@@ -8,25 +8,14 @@ namespace FCloud3.HtmlGen.Context.SubContext
 {
     public class ParserTitleGatheringContext
     {
-        public ParserTitleTreeNode Root { get; }
-        private Random _random;
+        private readonly Random _random;
         public ParserTitleGatheringContext() 
         {
-            Root = new(int.MinValue, string.Empty, 0);
             _random = new();
         }
         public int GenerateTitleId()
         {
             return _random.Next(1000000,9999999);
-        }
-        public void ReportTitle(int level, string text, int id)
-        {
-            ParserTitleTreeNode newNode = new(level, text, id);
-            Root.Insert(newNode);
-        }
-        public List<ParserTitleTreeNode>? GetTitles()
-        {
-            return Root.Subs;
         }
     }
     public class ParserTitleTreeNode
@@ -34,7 +23,7 @@ namespace FCloud3.HtmlGen.Context.SubContext
         public string Text { get; }
         public int Id { get; }
         public int Level { get; }
-        public List<ParserTitleTreeNode>? Subs { get; private set; }
+        public List<ParserTitleTreeNode>? Subs { get; set; }
         public ParserTitleTreeNode(int level, string text, int id)
         {
             Level = level;

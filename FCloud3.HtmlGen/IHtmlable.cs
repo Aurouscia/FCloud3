@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Rules;
+﻿using FCloud3.HtmlGen.Context.SubContext;
+using FCloud3.HtmlGen.Rules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,6 @@ namespace FCloud3.HtmlGen
         public void WriteHtml(StringBuilder sb);
         public List<IRule>? ContainRules();
         public List<IHtmlable>? ContainFootNotes();
+        public List<ParserTitleTreeNode>? ContainTitleNodes();
     }
 }

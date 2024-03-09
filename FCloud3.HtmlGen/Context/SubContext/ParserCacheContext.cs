@@ -55,11 +55,12 @@ namespace FCloud3.HtmlGen.Context.SubContext
         public int ParsedSavedScanChar { get; private set; }
 
         private int CacheKey(string input) => GetHashCode() + input.GetHashCode();
-        private void SaveParseResult(string input, string output, List<IRule>? usedRules, List<IHtmlable>? footNotes)
+        private void SaveParseResult(string input, string output, 
+            List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
         {
             if (string.IsNullOrEmpty(input))
                 return;
-            var cache = new CacheValue(output, usedRules, footNotes);
+            var cache = new CacheValue(output, usedRules, footNotes, titleNodes);
             _cache.Set(CacheKey(input), cache, new MemoryCacheEntryOptions()
             {
                 SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
@@ -73,10 +74,12 @@ namespace FCloud3.HtmlGen.Context.SubContext
             _tempSb.Clear();
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
-            var element = new CachedElement(content, usedRules, footNotes);
+            List<ParserTitleTreeNode>? titleNodes = _ctx.Options.TitleGatheringOptions.Enabled ? resElement.ContainTitleNodes() : null;
+            
+            var element = new CachedElement(content, usedRules, footNotes, titleNodes);
             if (usedRules is not null && usedRules.Any(r => _options.NoCacheRules.Contains(r.UniqueName)))
                 return element;
-            SaveParseResult(input, content, usedRules, footNotes);
+            SaveParseResult(input, content, usedRules, footNotes, titleNodes);
             return element;
         }
         private CacheValue? ReadParseResult(string input)
@@ -99,7 +102,7 @@ namespace FCloud3.HtmlGen.Context.SubContext
                 {
                     _ctx.RuleUsage.ReportUsage(res.UsedRules);
                     _ctx.FootNote.AddFootNoteBodies(res.FootNotes);
-                    return new CachedElement(res.Content, res.UsedRules, res.FootNotes);
+                    return new CachedElement(res.Content, res.UsedRules, res.FootNotes, res.TitleNodes);
                 }
             }
             return null;
@@ -110,11 +113,13 @@ namespace FCloud3.HtmlGen.Context.SubContext
             public string Content { get; }
             public List<IRule>? UsedRules { get; }
             public List<IHtmlable>? FootNotes { get; }
-            public CacheValue(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes)
+            public List<ParserTitleTreeNode>? TitleNodes { get; }
+            public CacheValue(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
             {
                 Content = content;
                 UsedRules = usedRules;
                 FootNotes = footNotes;
+                TitleNodes = titleNodes;
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using FCloud3.HtmlGen.Options;
+﻿using FCloud3.HtmlGen.Context.SubContext;
+using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using System;
@@ -75,9 +76,11 @@ namespace FCloud3.HtmlGen.Models
     public class AnchorElement : TextElement
     {
         public string Href { get; }
-        public AnchorElement(string content, string href) : base(content)
+        public IRule Rule { get; }
+        public AnchorElement(string content, string href, IRule ruleInstance) : base(content)
         {
             Href = href;
+            Rule = ruleInstance;
         }
         public override string ToHtml()
         {
@@ -91,13 +94,19 @@ namespace FCloud3.HtmlGen.Models
             sb.Append(Content);
             sb.Append("</a>");
         }
+        public override List<IRule>? ContainRules()
+        {
+            return new() { Rule };
+        }
     }
     public class FootNoteEntryElement : TextElement
     {
         public string Name { get; }
-        public FootNoteEntryElement(string name):base(name) 
+        public IRule Rule { get; }
+        public FootNoteEntryElement(string name, IRule ruleInstance):base(name) 
         {
             Name = name;
+            Rule = ruleInstance;
         }
         public override string ToHtml()
         {
@@ -111,18 +120,24 @@ namespace FCloud3.HtmlGen.Models
             sb.Append(Name);
             sb.Append("]</a></sup>");
         }
+        public override List<IRule>? ContainRules()
+        {
+            return new() { Rule }; 
+        }
     }
     public sealed class CachedElement : InlineElement
     {
         public string Content { get; }
         public List<IRule>? UsedRules { get; }
         public List<IHtmlable>? FootNotes { get; }
+        public List<ParserTitleTreeNode>? TitleNodes { get; }
 
-        public CachedElement(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes)
+        public CachedElement(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
         {
             Content = content;
             UsedRules = usedRules;
             FootNotes = footNotes;
+            TitleNodes = titleNodes;
         }
 
         public override string ToHtml()
@@ -140,6 +155,10 @@ namespace FCloud3.HtmlGen.Models
         public override List<IHtmlable>? ContainFootNotes()
         {
             return FootNotes;
+        }
+        public override List<ParserTitleTreeNode>? ContainTitleNodes()
+        {
+            return TitleNodes;
         }
     }
 }
