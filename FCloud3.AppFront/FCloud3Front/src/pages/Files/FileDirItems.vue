@@ -6,6 +6,7 @@ import { Ref,inject, onMounted } from 'vue';
 import Functions from '../../components/Functions.vue';
 import { Api } from '../../utils/api';
 import { useRouter } from 'vue-router';
+import { jumpToViewWiki } from '../WikiParsing/routes';
 
 const props = defineProps<{
     dirId:number,
@@ -46,7 +47,7 @@ const emit = defineEmits<{
         <div class="iconName">
             <div class="wikiIcon">W</div>
             <div class="name">
-                <a href="#" >{{ wiki.Name }}</a> 
+                <a @click="jumpToViewWiki(wiki.UrlPathName)">{{ wiki.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
                 <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>

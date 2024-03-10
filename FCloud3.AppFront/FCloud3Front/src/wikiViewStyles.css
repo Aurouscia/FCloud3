@@ -1,14 +1,15 @@
 .wikiView * {
     word-break: break-all;
     transition: 0.5s;
+    border:none;
 }
 
-.wikiView h2,h3,h4,h5,h6 {
+.wikiView h1,h2,h3,h4,h5,h6 {
     cursor: pointer;
     padding-bottom: 0.2rem;
     padding-top: 0.1rem;
     font-weight: bold;
-    font-size: 110%;
+    font-size: 120%;
     margin-top: 0.5rem;
     padding-left: 0.3rem;
 }
@@ -18,14 +19,10 @@
     border:none;
 }
 
-.wikiView h3 {
-    font-size: 130%;
-    border-bottom: 1px solid #aaa;
-}
-
-.wikiView h2 {
-    font-size: 160%;
-    border-bottom: 1px solid #aaa;
+.wikiView h1 {
+    font-size: 140%;
+    margin-top: 20px;
+    margin-bottom: 0px;
 }
 
 .wikiView .para {
@@ -61,8 +58,10 @@
     height: 0px;
 }
 
-.wikiView h3:hover+div.indent,
-h2:hover+div.indent {
+.wikiView 
+h3:hover+div.indent,
+h2:hover+div.indent,
+h1:hover+div.indent {
     border-left: 1.5px solid #aaa;
 }
 

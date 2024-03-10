@@ -117,7 +117,9 @@ namespace FCloud3.HtmlGen.Mechanics
             int titleId = Context.TitleGathering.GenerateTitleId();
             StringBuilder sb = new();
             HtmlLabel.CustomWrite(sb, title, "h1", Consts.titleIdAttrName, titleId.ToString());
+            sb.Append("<div class=\"indent\">");
             sb.Append(content);
+            sb.Append("</div>");
             processed = new(0, title, titleId);
             processed.Subs = subTitles;
             return sb.ToString();

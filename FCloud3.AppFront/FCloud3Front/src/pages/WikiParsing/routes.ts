@@ -2,6 +2,7 @@ import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
 import WikiTemplateList from "./WikiTemplateList.vue"
 import WikiTemplateEditor from "./WikiTemplateEditor.vue";
+import ViewWiki from "./ViewWiki.vue";
 
 let router:Router|undefined = undefined;
 
@@ -11,6 +12,12 @@ export function addWikiParsing(r:Router){
 }
 
 const routes = [
+    {
+        path:"/w/:wikiPathName",
+        component: ViewWiki,
+        props:true,
+        name:"viewWiki",
+    },
     {
         path:"/templates",
         component:WikiTemplateList,
@@ -23,6 +30,11 @@ const routes = [
     }
 ]
 
+export function jumpToViewWiki(wikiPathName:string){
+    if(router){
+        router.push({name:"viewWiki",params:{wikiPathName}});
+    }
+}
 export function jumpToWikiTemplateList(){
     if(router){
         router.push({name:"wikiTemplateList"});

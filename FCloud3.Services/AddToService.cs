@@ -23,10 +23,13 @@ namespace FCloud3.Services
             services.AddScoped<WikiItemService>();
             services.AddScoped<WikiParaService>();
             services.AddScoped<TextSectionService>();
-            services.AddScoped<WikiTemplateService>();
             services.AddScoped<FreeTableService>();
             services.AddScoped<FileItemService>();
             services.AddScoped<FileDirService>();
+
+            services.AddScoped<WikiParserProviderService>();
+            services.AddScoped<WikiTemplateService>();
+            services.AddScoped<WikiParsingService>();
 
             services.AddScoped<QuickSearchService>();
 

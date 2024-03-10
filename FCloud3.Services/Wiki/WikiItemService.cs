@@ -3,11 +3,13 @@ using FCloud3.Entities;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.Wiki;
+using FCloud3.HtmlGen.Options;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
+using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Paragraph;
 
@@ -91,7 +93,7 @@ namespace FCloud3.Services.Wiki
             List<TextSectionMeta> textParaObjs = _textSectionRepo.GetMetaRangeByIds(textIds);
 
             List<int> fileIds = paras.Where(x => x.Type == WikiParaType.File).Select(x => x.ObjectId).ToList();
-            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds);
+            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds).ToList();
 
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTableMeta> tableParaObjs = _freeTableRepo.GetMetaRangeByIds(tableIds);

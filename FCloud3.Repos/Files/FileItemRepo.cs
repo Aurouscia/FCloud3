@@ -59,13 +59,6 @@ namespace FCloud3.Repos.Files
             errmsg = null;
             return true;
         }
-
-        public List<FileItem> GetRangeByIds(List<int> ids)
-        {
-            if (ids.Count == 0)
-                return new();
-            return base.GetRangeByIds(ids).ToList();
-        }
         public bool SetInDirForRange(int distDirId, List<int> ids, out string? errmsg)
         {
             int affected = base.GetRangeByIds(ids).ExecuteUpdate(x => x.SetProperty(f => f.InDir, distDirId));

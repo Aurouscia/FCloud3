@@ -10,11 +10,11 @@ namespace FCloud3.App.Controllers.WikiParsing
     public class WikiTemplateController : Controller
     {
         private readonly WikiTemplateService _wikiTemplateService;
-        private readonly WikiParserProviderService _wikiParserProviderService;
+        private readonly Services.Utils.WikiParserProviderService _wikiParserProviderService;
 
         public WikiTemplateController(
-            WikiTemplateService wikiTemplateService, 
-            WikiParserProviderService wikiParserProviderService) 
+            WikiTemplateService wikiTemplateService,
+            Services.Utils.WikiParserProviderService wikiParserProviderService) 
         {
             _wikiTemplateService = wikiTemplateService;
             _wikiParserProviderService = wikiParserProviderService;
