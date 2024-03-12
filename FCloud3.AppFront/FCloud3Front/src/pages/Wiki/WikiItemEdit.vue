@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref} from 'vue'
 import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
-import { wikiParaType} from '../../models/wiki/wikiParaTypes'
+import { WikiParaTypes} from '../../models/wiki/wikiParaTypes'
 import { MouseDragListener } from '../../utils/mouseDrag';
 import Functions from '../../components/Functions.vue';
 import { useRouter } from 'vue-router';
@@ -102,7 +102,7 @@ async function endMoving(){
         }
     }
 }
-async function InsertPara(type:keyof typeof wikiParaType,afterOrder:number){
+async function InsertPara(type:WikiParaTypes,afterOrder:number){
     if(!info.value){return;}
     const resp = await api.wiki.insertPara({
         id:info.value.Id,
@@ -281,9 +281,9 @@ onUnmounted(()=>{
         <div v-if="paras" v-for="_,idx in spaces">
             <div class="btnsBetweenPara">
                 <Functions :img-src="addIconSrc" :entry-size="30">
-                    <button @click="InsertPara(0,idx - 1)">文本</button>
-                    <button @click="InsertPara(1,idx - 1)">文件</button>
-                    <button @click="InsertPara(2,idx - 1)">表格</button>
+                    <button @click="InsertPara(WikiParaTypes.Text, idx - 1)">文本</button>
+                    <button @click="InsertPara(WikiParaTypes.File, idx - 1)">文件</button>
+                    <button @click="InsertPara(WikiParaTypes.Table, idx - 1)">表格</button>
                 </Functions>
             </div>
         </div>

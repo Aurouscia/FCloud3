@@ -1,5 +1,5 @@
-export const wikiParaType = {
-    0:"Text",
-    1:"File",
-    2:"Table"
+export enum WikiParaTypes{
+    Text = 0,
+    File = 1,
+    Table = 2
 }

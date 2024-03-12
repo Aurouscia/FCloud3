@@ -3,7 +3,7 @@ import { IndexQuery, IndexResult } from "../components/Index/index";
 import { User } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
 import { WikiPara } from "../models/wiki/wikiPara";
-import { wikiParaType } from "../models/wiki/wikiParaTypes";
+import { WikiParaTypes } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
 import { FileItemDetail, StagingFile } from "../models/files/fileItem";
@@ -231,7 +231,7 @@ export class Api{
                 return res.data as Array<WikiPara>
             }
         },
-        insertPara:async(req:{id:number,afterOrder:number,type:keyof typeof wikiParaType}) => {
+        insertPara:async(req:{id:number,afterOrder:number,type:WikiParaTypes}) => {
             const res = await this.httpClient.request(
                 "/api/WikiItem/InsertPara",
                 "postForm",

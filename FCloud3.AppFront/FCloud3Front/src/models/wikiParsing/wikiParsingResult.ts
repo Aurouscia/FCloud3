@@ -1,4 +1,4 @@
-import { wikiParaType } from "../wiki/wikiParaTypes";
+import { WikiParaTypes } from "../wiki/wikiParaTypes";
 
 export interface WikiParsingResult {
     Title: string;
@@ -10,8 +10,9 @@ export interface WikiParsingResult {
 
 export interface WikiParsingResultItem {
     Title?: string;
+    TitleId: number
     Content?: string;
-    ParaType: keyof typeof wikiParaType
+    ParaType: WikiParaTypes
 }
 
 export interface ParserTitleTreeNode {
