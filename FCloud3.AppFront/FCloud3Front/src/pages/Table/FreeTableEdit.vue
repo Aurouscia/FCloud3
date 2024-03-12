@@ -65,7 +65,7 @@ onUnmounted(()=>{
 .name{
     position: absolute;
     top:2px;
-    right: 45px;
+    right: 40px;
     width: 100px;
     z-index: 10000;
     border-radius: 5px;
@@ -74,5 +74,9 @@ onUnmounted(()=>{
 <style>
     .tableEditor .author{
         padding-right: 10px;
+    }
+    .tableEditor .control{
+        height: 38px;
+        box-sizing: border-box;
     }
 </style>

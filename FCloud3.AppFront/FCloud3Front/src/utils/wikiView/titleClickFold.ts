@@ -1,28 +1,52 @@
+import foldImg from '../../assets/fold.svg';
 const clickables = ['H1','H2','H3','H4','H5','H6']
 const clickableFoldedClass = 'hFolded'
 const nextIdentifyClass = 'indent'
 const nextFoldedClass = 'indentFolded'
 
 export class TitleClickFold{
-    listen(){
-        window.addEventListener("click",this.clickHandler)
+    listen(target?:HTMLDivElement){
+        window.addEventListener("click",this.clickHandler);
+        if(!target)return [];
+        const titles:HTMLElement[] = [];
+        clickables.forEach(tag=>{
+            const hs = target.getElementsByTagName(tag);
+            for(const h of hs){
+                if(!isClickableTitle(h)){continue;}
+                titles.push(h as HTMLElement);
+                const img = document.createElement('img');
+                img.src = foldImg;
+                img.className = 'foldImg';
+                h.prepend(img);
+            }
+        })
+        titles.sort((x,y)=>x.offsetTop - y.offsetTop)
+        return titles;
     }
     dispose(){
         window.removeEventListener("click",this.clickHandler)
     }
     clickHandler(e:MouseEvent){
-        const ele = e.target as HTMLElement;
-        const tagName = ele.tagName;
-        if(!tagName || !clickables.includes(tagName)){
-            return;
+        let ele = e.target as HTMLElement;
+        if(ele.tagName == "IMG"){
+            ele = ele.parentElement as HTMLElement;
         }
-        const next = ele.nextSibling as HTMLElement;
-        if(!next){
-            return;
-        }
-        if(next.classList.contains(nextIdentifyClass)){
-            next.classList.toggle(nextFoldedClass);
+        if(isClickableTitle(ele)){
+            (ele.nextSibling as Element).classList.toggle(nextFoldedClass);
             ele.classList.toggle(clickableFoldedClass);
         }
     }
+}
+
+function isClickableTitle(ele:Element):boolean{
+    if(!ele){return false}
+    const tagName = ele.tagName;
+    if(!tagName || !clickables.includes(tagName)){
+        return false;
+    }
+    const next = ele.nextSibling as Element;
+    if(!next || next.tagName !== 'DIV' || !next.classList.contains(nextIdentifyClass)){
+        return false;
+    }
+    return true;
 }

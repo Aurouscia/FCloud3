@@ -94,11 +94,11 @@ namespace FCloud3.Services.WikiParsing
                     if (model is null)
                         return;
                     var resOfP = ParseText(model, parser);
-                    string wrapped = parser.WrapSection(model.Title ?? "", resOfP.Content, resOfP.Titles, out var title);
+                    parser.WrapSection(model.Title, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Title ?? "", wrapped, p.Type));
+                    result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Type));
                 }
                 else if (p.Type == WikiParaType.Table)
                 {
@@ -106,18 +106,18 @@ namespace FCloud3.Services.WikiParsing
                     if (model is null)
                         return;
                     var resOfP = ParseTable(model, parser);
-                    string wrapped = parser.WrapSection(model.Name ?? "", resOfP.Content, resOfP.Titles, out var title);
+                    parser.WrapSection(model.Name, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Name ?? "", wrapped, p.Type));
+                    result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Type));
                 }
                 else if (p.Type == WikiParaType.File)
                 {
                     FileItem? model = fileParaObjs.FirstOrDefault(x => x.Id == p.ObjectId);
                     if (model is null)
                         return;
-                    result.Paras.Add(new(model.DisplayName ?? "", _storage.FullUrl(model.StorePathName ?? "??"), p.Type));
+                    result.Paras.Add(new(model.DisplayName, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Type));
                 }
             });
             return result;
@@ -134,7 +134,9 @@ namespace FCloud3.Services.WikiParsing
             {
                 CellConverter = (s) =>
                 {
-                    var res = parser.RunToParserResultRaw(s);
+                    if (string.IsNullOrWhiteSpace(s))
+                        return "　";
+                    var res = parser.RunToParserResultRaw(s, false);
                     usedRules.AddRange(res.UsedRules);
                     return res.Content;
                 }
@@ -167,11 +169,13 @@ namespace FCloud3.Services.WikiParsing
             public class WikiParsingResultItem
             {
                 public string? Title { get; set; }
+                public int TitleId { get; set; }
                 public string? Content { get; set; }
                 public WikiParaType ParaType { get; set; }
-                public WikiParsingResultItem(string title, string content, WikiParaType type)
+                public WikiParsingResultItem(string? title,int titleId, string content, WikiParaType type)
                 {
                     Title = title;
+                    TitleId = titleId;
                     Content = content;
                     ParaType = type;
                 }
@@ -183,7 +187,7 @@ namespace FCloud3.Services.WikiParsing
                     {
                         Paras = new()
                         {
-                            new("找不到指定路径名的词条", "可能是词条不存在或已被移走，请确认后重试", WikiParaType.Text)
+                            new("找不到指定路径名的词条", 0, "可能是词条不存在或已被移走，请确认后重试", WikiParaType.Text)
                         }
                     };
                 }

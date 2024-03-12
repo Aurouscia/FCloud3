@@ -1,0 +1,211 @@
+.wikiView{
+    * {
+        word-break: break-all;
+        transition: 0.5s;
+        border: none;
+    }
+
+    .masterTitle{
+        font-size: 180%;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    h1,h2,h3,h4,h5,h6 {
+        user-select: none;
+        cursor: pointer;
+        padding-bottom: 0.2rem;
+        padding-top: 0.1rem;
+        font-weight: bold;
+        font-size: 110%;
+        margin-top: 0.3rem;
+        display: flex;
+        align-items: center;
+        gap:5px;
+        color:#333;
+        letter-spacing: normal;
+    }
+    .foldImg{
+        width: 15px;
+        height: 15px;
+        object-fit: contain;
+        transition: 0.2s;
+    }
+    .hFolded {
+        color: #aaa;
+        border: none;
+        .foldImg{
+            transform: rotate(-90deg);
+        }
+    }
+
+    h1 {
+        font-size: 120%;
+        margin-top: 20px;
+        margin-bottom: 0px;
+        .h1Sep{
+            height: 0.5px;
+            background-color: #ccc;
+            flex-grow: 2;
+        }
+        .editBtn{
+            font-size:14px;
+            color:#666;
+            font-weight: normal;
+            margin-right: 20px;
+        }
+        .editBtn:hover{
+            color:cornflowerblue
+        }
+    }
+
+    .para {
+        max-width: 1000px;
+        min-width: 200px;
+        overflow-x: auto;
+        margin: auto;
+    }
+
+    i {
+        color: gray
+    }
+
+    p {
+        text-indent: 0.8em;
+        margin-top: 0.4em;
+        margin-bottom: 0.4em;
+        line-height: 1.7rem
+    }
+
+    a {
+        color: cornflowerblue;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+
+    div.indent {
+        margin-left: 6px;
+        padding-left: 3px;
+        height: fit-content;
+        overflow: hidden;
+    }
+
+    h1+div.indent{
+        margin-left: 0px;
+        padding-left: 0px;   
+    }
+
+    div.indent.indentFolded {
+        height: 0px;
+    }
+
+    h3+div.indent,
+    h2+div.indent {
+        border-left: 1px solid #aaa;
+    }
+
+    table * {
+        text-indent: 0px !important;
+    }
+
+    ul {
+        list-style-type: none !important;
+        margin-bottom: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+    }
+
+    li {
+        margin-bottom: 5px;
+        background-color: #aaa;
+        color: white;
+        border-radius: 5px;
+        padding: 3px;
+    }
+
+    img.wikiInlineImg {
+        object-fit: contain;
+        display: inline;
+        height: 2rem;
+        border-radius: 0px;
+        max-width: 1000px;
+    }
+
+    div.imgAnno {
+        color: #aaa;
+        text-align: center;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    div.quote {
+        margin: 10px;
+        margin-left: 1em;
+        padding: 5px;
+        border-left: 5px solid #888;
+        color: #888;
+        background-color: #ddd;
+    }
+
+    .sep {
+        background-color: black;
+        height: 2px;
+        margin: 10px 0px 10px 0px
+    }
+
+    .coloredBlock {
+        display: inline-block;
+        height: 1em;
+        width: 2em;
+        background-color: #000;
+    }
+
+    .refbodies {
+        color: #666;
+        font-size: small;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        margin-top: 30px;
+    }
+
+    a.ref {
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    a.ref:hover {
+        text-decoration: underline;
+    }
+
+    a.refentry {
+        cursor: pointer;
+    }
+
+    a.refentry:hover {
+        text-decoration: underline;
+    }
+
+    table{
+        td{
+            min-width: 50px;
+            min-height: 20px;
+        }
+        tr{
+            min-height: 20px;
+        }
+    }
+
+    .footNotes{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        margin-top: 30px;
+    }
+}

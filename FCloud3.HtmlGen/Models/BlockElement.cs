@@ -73,7 +73,7 @@ namespace FCloud3.HtmlGen.Models
             if(TitleId > 0)
             {
                 sb.Append(' '); sb.Append(Consts.titleIdAttrName);
-                sb.Append("=\""); sb.Append(TitleId);
+                sb.Append("=\"t_"); sb.Append(TitleId);
                 sb.Append('\"');
             }
             sb.Append('>');

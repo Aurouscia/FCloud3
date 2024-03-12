@@ -79,14 +79,14 @@ namespace FCloud3.HtmlGen.Mechanics
             ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
             return result;
         }
-        public ParserResultRaw RunToParserResultRaw(string? input)
+        public ParserResultRaw RunToParserResultRaw(string? input, bool enforceBlock = true)
         {
             _ctx.Reset();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
             if (input.Length > maxInputLength)
                 return new(input);
-            IHtmlable htmlable = _blockParser.Run(input);
+            IHtmlable htmlable = _blockParser.Run(input, enforceBlock);
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
@@ -110,19 +110,12 @@ namespace FCloud3.HtmlGen.Mechanics
             return htmlable;
         }
 
-        public string WrapSection(
-            string title, string content, 
-            List<ParserTitleTreeNode> subTitles, out ParserTitleTreeNode processed)
+        public void WrapSection(
+            string? title, List<ParserTitleTreeNode> subTitles, out ParserTitleTreeNode processed, out int titleId)
         {
-            int titleId = Context.TitleGathering.GenerateTitleId();
-            StringBuilder sb = new();
-            HtmlLabel.CustomWrite(sb, title, "h1", Consts.titleIdAttrName, titleId.ToString());
-            sb.Append("<div class=\"indent\">");
-            sb.Append(content);
-            sb.Append("</div>");
-            processed = new(0, title, titleId);
+            titleId = Context.TitleGathering.GenerateTitleId();
+            processed = new(0, title ?? "??", titleId);
             processed.Subs = subTitles;
-            return sb.ToString();
         }
 
         private void Styles(StringBuilder sb, bool withLabel=true)

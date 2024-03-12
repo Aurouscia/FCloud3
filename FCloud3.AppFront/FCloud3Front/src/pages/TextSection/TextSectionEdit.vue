@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, Ref, onMounted, inject, computed, onUnmounted} from 'vue'
+import {ref, Ref, onMounted, inject, computed, onUnmounted, nextTick} from 'vue'
 import Pop from '../../components/Pop.vue';
 import {TextSection} from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
@@ -8,7 +8,7 @@ import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
 import { md5 } from 'js-md5'
 import { SetTopbarFunc, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
-import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
+//import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 
 const locatorHash:(str:string)=>string = (str)=>{
@@ -135,28 +135,23 @@ async function init(){
 }
 
 let setTopbar:SetTopbarFunc|undefined;
-let titleClickFold:TitleClickFold|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
     setTopbar = injectSetTopbar();
     setTopbar(false);
-    titleClickFold = new TitleClickFold();
-    titleClickFold.listen();
     footNoteJumpCallBack.value = (top)=>{
         console.log("滚到",top)
         previewArea.value?.scrollTo({top: top, behavior: 'smooth'})
     };
     listenFootNoteJump();
-
     await init();
+    await nextTick();
 })
 onUnmounted(()=>{
     if(setTopbar)
         setTopbar(true);
-    if(titleClickFold)
-        titleClickFold.dispose();
     disposeFootNoteJump();
 })
 
