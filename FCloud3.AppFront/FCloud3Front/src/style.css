@@ -146,6 +146,10 @@ a:hover{
   text-decoration: underline;
 }
 
+.invisible{
+  display: none;
+}
+
 :root{
   --top-bar-height:50px;
   --main-div-margin-top:70px;

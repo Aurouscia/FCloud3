@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Services.WikiParsing
+namespace FCloud3.Services.WikiParsing.Support
 {
     public class WikiParserProviderService
     {

@@ -301,9 +301,6 @@ function rightToLeft(e:MouseEvent){
         display: flex;
         padding: 0px 10px 0px 10px;
     }
-    .invisible{
-        display: none;
-    }
 </style>
 
 <style>

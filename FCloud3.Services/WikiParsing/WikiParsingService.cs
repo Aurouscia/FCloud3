@@ -14,6 +14,7 @@ using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.WikiParsing.Support;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 
@@ -26,7 +27,6 @@ namespace FCloud3.Services.WikiParsing
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo;
         private readonly FileItemRepo _fileItemRepo;
-        private readonly WikiTemplateRepo _wikiTemplateRepo;
         private readonly WikiParserProviderService _wikiParserProvider;
         private readonly IStorage _storage;
         private readonly IMemoryCache _cache;
@@ -37,7 +37,6 @@ namespace FCloud3.Services.WikiParsing
             TextSectionRepo textSectionRepo,
             FreeTableRepo freeTableRepo,
             FileItemRepo fileItemRepo,
-            WikiTemplateRepo wikiTemplateRepo,
             WikiParserProviderService wikiParserProvider,
             IStorage storage,
             IMemoryCache cache)
@@ -47,7 +46,6 @@ namespace FCloud3.Services.WikiParsing
             _textSectionRepo = textSectionRepo;
             _freeTableRepo = freeTableRepo;
             _fileItemRepo = fileItemRepo;
-            _wikiTemplateRepo = wikiTemplateRepo;
             _wikiParserProvider = wikiParserProvider;
             _storage = storage;
             _cache = cache;

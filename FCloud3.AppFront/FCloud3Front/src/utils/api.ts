@@ -16,6 +16,7 @@ import { FreeTable } from '../models/table/freeTable';
 import { AuthGrant, AuthGrantOnText, AuthGrantViewModel, authGrantOn } from '../models/identities/authGrant';
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
+import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
 
 
 export class Api{
@@ -370,6 +371,15 @@ export class Api{
                     "get",{pathName})
                 if(res.success){
                     return res.data as WikiParsingResult
+                }
+            },
+            getRulesCommons: async(ruleNames:string[])=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiParsing/GetRulesCommons",
+                    "postRaw",
+                    ruleNames)
+                if(res.success){
+                    return res.data as WikiRulesCommonsResult
                 }
             }
         }

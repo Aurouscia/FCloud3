@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
 import { WikiParsingResult } from '../../models/wikiParsing/wikiParsingResult';
@@ -7,14 +7,38 @@ import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import Loading from '../../components/Loading.vue';
 import TitleTree from '../../components/Wiki/TitleTree.vue';
+import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 
 const props = defineProps<{
     wikiPathName: string;
 }>()
 
 const data = ref<WikiParsingResult>();
+const stylesContent = ref<string>("");
+const preScripts = ref<HTMLDivElement>();
+const postScripts = ref<HTMLDivElement>();
+const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 async function load(){
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
+    const rulesNames = data.value?.UsedRules;
+    if(rulesNames){
+        const rulesCommons = await api.wikiParsing.wikiParsing.getRulesCommons(rulesNames);
+        if(rulesCommons){
+            let preScriptsContent = "";
+            let postScriptsContent = "";
+            rulesCommons.Items.forEach(r=>{
+                stylesContent.value += r.Styles;
+                preScriptsContent += r.PreScripts;
+                postScriptsContent += r.PostScripts;
+            });
+            if(preScripts.value){
+                updateScript(preScripts.value,preScriptsContent);
+            }
+            if(postScripts.value){
+                updateScript(postScripts.value,postScriptsContent);
+            }
+        }
+    }
 }
 
 const titles = ref<InstanceType<typeof TitleTree>>();
@@ -37,13 +61,6 @@ function viewAreaScrollHandler(){
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
         t.offsetTop > wikiViewArea.value!.scrollTop - 20);
-    // if(currentTitleIdx<=0){
-    //     currentTitleIdx = 0
-    // }else if(currentTitleIdx >= titlesInContent.length-1){
-    //     currentTitleIdx = titlesInContent.length-1;
-    // }else{
-    //     currentTitleIdx--;
-    // }
     let currentTitle = titlesInContent[currentTitleIdx];
     titles.value?.highlight(getIdFromElementId(currentTitle));
 }
@@ -77,6 +94,8 @@ onUnmounted(()=>{
 <template>
 <div class="wikiViewFrame">
     <div v-if="data" class="wikiView" ref="wikiViewArea">
+        <div class="invisible" v-html="styles"></div>
+        <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
             {{data.Title}}
         </div>
@@ -93,6 +112,7 @@ onUnmounted(()=>{
             <div v-for="f in data.FootNotes" v-html="f" class="footNote">
             </div>
         </div>
+        <div class="invisible" ref="postScripts"></div>
     </div>
     <div class="wikiView" v-else>
         <Loading></Loading>
