@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Editor, TableData } from '@aurouscia/au-table-editor'
-import '/node_modules/@aurouscia/au-table-editor/dist/style.css'
+import '@aurouscia/au-table-editor/style.css'
 import Loading from '../../components/Loading.vue';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { SetTopbarFunc, injectApi, injectSetTopbar } from '../../provides';
