@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { provide, ref } from 'vue';
 import { ParserTitleTreeNode } from '../../models/wikiParsing/wikiParsingResult';
 
 const props = defineProps<{
@@ -36,6 +35,7 @@ defineExpose({
     <div v-for="t in props.titleTree">
         <div class="titleTreeNodeText" :class="{master:props.isMaster}" 
             @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
+            <div class="currentMark"></div>
             {{ t.Text }}
         </div>
         <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)" ref="subs"></TitleTree>
@@ -44,6 +44,13 @@ defineExpose({
 </template>
 
 <style scoped>
+.currentTitleInCatalog .currentMark{
+    background-color: cornflowerblue;
+    position: absolute;
+    left: 0px;
+    height: 20px;
+    width: 10px;
+}
 .titleTreeNodes div.currentTitleInCatalog{
     color:cornflowerblue;
     font-weight: bold;
@@ -55,19 +62,23 @@ defineExpose({
 }
 .titleTreeNodes.master{
     border-left: 0.5px solid #ccc;
+    padding-left: 18px;
 }
 .titleTreeNodeText{
     color: #666;
-    margin: 10px 0px 10px 0px
+    margin: 10px 0px 10px 0px;
+    height: 22px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
 }
 .titleTreeNodeText:hover{
-    color: #333;
-    text-decoration: underline;
+    color: black;
     cursor: pointer;
 }
 .titleTreeNodeText.master{
     font-weight: 600;
-    font-size: 1.1em;
+    font-size: 18px;
     color: #333;
 }
 </style>

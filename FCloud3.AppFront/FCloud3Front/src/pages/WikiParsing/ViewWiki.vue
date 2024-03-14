@@ -42,6 +42,7 @@ async function load(){
 }
 
 const titles = ref<InstanceType<typeof TitleTree>>();
+const subTitles = ref<HTMLDivElement>();
 function titleElementId(id:number):string|undefined{
     if(id>0)
         return 't_'+id;
@@ -62,7 +63,10 @@ function viewAreaScrollHandler(){
     let currentTitleIdx = titlesInContent.findIndex(t=>
         t.offsetTop > wikiViewArea.value!.scrollTop - 20);
     let currentTitle = titlesInContent[currentTitleIdx];
-    titles.value?.highlight(getIdFromElementId(currentTitle));
+    const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
+    if(titleInCatalogOffsetTop){
+        subTitles.value?.scrollTo({top: titleInCatalogOffsetTop - 50, behavior: 'smooth'});
+    }
 }
 
 let api:Api;
@@ -118,7 +122,7 @@ onUnmounted(()=>{
         <Loading></Loading>
     </div>
 
-    <div class="subTitles">
+    <div class="subTitles" ref="subTitles">
         <TitleTree v-if="data" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
@@ -128,7 +132,7 @@ onUnmounted(()=>{
 
 <style scoped>
 .wikiViewFrame{
-    height:calc(96vh - var(--top-bar-height));
+    height:calc(96vh - var(--main-div-margin-top));
     display: flex;
     gap:20px;
 }
@@ -138,6 +142,7 @@ onUnmounted(()=>{
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
+    position: relative;
 }
 .wikiView{
     max-width: 800px;

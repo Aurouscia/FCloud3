@@ -20,7 +20,7 @@ async function Load(){
 }
 async function save() {
     if(data.value){
-        const resp = await api.wikiParsing.wikiTemplate.editExe(data.value)
+        await api.wikiParsing.wikiTemplate.editExe(data.value)
     }
 }
 
