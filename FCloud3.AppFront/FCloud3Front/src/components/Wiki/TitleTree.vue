@@ -49,7 +49,7 @@ defineExpose({
     position: absolute;
     left: 0px;
     height: 20px;
-    width: 10px;
+    width: 5px;
 }
 .titleTreeNodes div.currentTitleInCatalog{
     color:cornflowerblue;

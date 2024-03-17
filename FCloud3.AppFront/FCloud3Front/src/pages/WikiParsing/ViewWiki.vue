@@ -8,6 +8,7 @@ import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import Loading from '../../components/Loading.vue';
 import TitleTree from '../../components/Wiki/TitleTree.vue';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
+import menuImg from '../../assets/menu.svg';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -69,6 +70,8 @@ function viewAreaScrollHandler(){
     }
 }
 
+const subtitlesFolded = ref<boolean>(true);
+
 let api:Api;
 let clickFold:TitleClickFold;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
@@ -122,40 +125,73 @@ onUnmounted(()=>{
         <Loading></Loading>
     </div>
 
-    <div class="subTitles" ref="subTitles">
+    <div class="subTitles" :class="{folded:subtitlesFolded}" ref="subTitles">
         <TitleTree v-if="data" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
     </div>
+    <div class="subTitlesFoldBtn" @click="subtitlesFolded = !subtitlesFolded">
+        <img :src="menuImg" alt="目录">
+    </div>
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .wikiViewFrame{
     height:calc(96vh - var(--main-div-margin-top));
     display: flex;
     gap:20px;
 }
 .subTitles{
-    width: 160px;
+    width: 180px;
     height:100%;
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
     position: relative;
+    transition: 0.5s;
+    background-color: white;
+}
+.subTitlesFoldBtn{
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 25px;
+    height: 25px;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    display: none;
+    box-shadow: 0px 0px 3px 0px black;
+    img{
+        object-fit: contain;
+    }
 }
 .wikiView{
-    max-width: 800px;
+    max-width: 900px;
     position: relative;
     height:100%;
     flex-grow: 1;
     overflow-y: scroll;
     overflow-x: hidden;
+    scrollbar-width: none;
 }
 
 @media screen and (max-width: 700px){
     .subTitles{
-        display: none;
+        position: fixed;
+        right: 0px;
+        top: 0px;
+        padding-top: var(--main-div-margin-top);
+        box-shadow: 0px 0px 12px 0px black;
+    }
+    .subTitles.folded{
+        right: -180px;
+        box-shadow: none;
+    }
+    .subTitlesFoldBtn{
+        display: block;
     }
 }
 </style>
