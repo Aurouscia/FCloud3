@@ -14,6 +14,8 @@ const isFreeInput = ref<boolean>(false);
 const searching = ref<string>("");
 const selectedId = ref<number>(0);
 const cands = ref<QuickSearchResult>();
+const isSearching = ref<boolean>(false);
+const inputing = ref<boolean>(false);
 var timer:number = 0;
 const delay:number = 500;
 function refreshCand(){
@@ -27,10 +29,16 @@ function refreshCand(){
     if(!searching.value){
         return;
     }
+    inputing.value = true;
     window.clearTimeout(timer);
     timer = window.setTimeout(async()=>{
         emits('stopInput',searching.value);
+        inputing.value = false;
+        isSearching.value = true;
+        if(cands.value)
+            cands.value.Items = [];
         cands.value = await props.source(searching.value);
+        isSearching.value = false;
     },delay)
 }
 function clickCand(c:QuickSearchResultItem){
@@ -60,9 +68,10 @@ const emits = defineEmits<{
 }>();
 defineExpose({clear});
 
-//var api:Api;
 onMounted(()=>{
-    //api = inject('api') as Api;
+    cands.value = {
+        Items:[]
+    }
 })
 </script>
 
@@ -79,7 +88,9 @@ onMounted(()=>{
         </div>
             <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{ props.noResultNotice }}</div>
             <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length==0">
-                没有匹配结果
+                <div v-if="inputing">请继续输入...</div>
+                <div v-else-if="isSearching">搜索中...</div>
+                <div v-else>没有匹配结果</div>
             </div>
     </div>
 </div>
@@ -107,10 +118,11 @@ onMounted(()=>{
 }
 .cand{
     position: absolute;
-    top:30px;
+    top:32px;
     left:10px;right:50px;
-    box-shadow: 0px 0px 5px 0px;
+    box-shadow: 0px 0px 6px 0px black;
     background-color: white;
+    z-index: 200;
 }
 .write button.disabled{
     background-color: #aaa;

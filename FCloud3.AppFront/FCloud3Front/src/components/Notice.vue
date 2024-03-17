@@ -23,13 +23,13 @@ onMounted(()=>{
 
 <template>
     <div class="notice" :class="props.type">
-        <div class="title">{{ title }}</div>
+        <div class="noticeTitle">{{ title }}</div>
         <slot></slot>
     </div>
 </template>
 
 <style scoped>
-.title{
+.noticeTitle{
     font-size: 20px;
     padding-bottom: 3px;
     margin-bottom: 3px;
