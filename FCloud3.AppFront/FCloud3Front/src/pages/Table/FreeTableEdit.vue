@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Editor, TableData } from '@aurouscia/au-table-editor'
+import { AuTableEditor, AuTableData } from '@aurouscia/au-table-editor'
 import '@aurouscia/au-table-editor/style.css'
 import Loading from '../../components/Loading.vue';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -12,7 +12,7 @@ const props = defineProps<{
 }>();
 
 const tableInfo = ref<FreeTable>(); 
-const tableData = ref<TableData>();
+const tableData = ref<AuTableData>();
 
 async function load(){
     const id = parseInt(props.id);
@@ -26,7 +26,7 @@ async function editName() {
     if(!tableInfo.value?.Name){return;}
     await api.table.freeTable.saveInfo(parseInt(props.id),tableInfo.value.Name);
 }
-async function editContent(val:TableData, callBack:(success:boolean,msg:string)=>void) {
+async function editContent(val:AuTableData, callBack:(success:boolean,msg:string)=>void) {
     const data = JSON.stringify(val);
     const resp = await api.table.freeTable.saveContent(parseInt(props.id),data);
     if(resp.success){
@@ -54,8 +54,8 @@ onUnmounted(()=>{
 
 <template>
 <div v-if="tableInfo" class="freeTableEdit">
-    <Editor v-if="loadComplete" :table-data="tableData" @save="editContent">
-    </Editor>
+    <AuTableEditor v-if="loadComplete" :table-data="tableData" @save="editContent">
+    </AuTableEditor>
     <Loading v-else></Loading>
     <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
 </div>
