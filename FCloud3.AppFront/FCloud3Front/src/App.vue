@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Pop from './components/Pop.vue';
-import Topbar from './components/Topbar.vue';
+import TopbarParent from './components/Topbar/TopbarParent.vue';
 import { useProvidesSetup } from './provides';
 
 const{pop, displayTopbar} = useProvidesSetup();
@@ -9,7 +9,7 @@ const{pop, displayTopbar} = useProvidesSetup();
 
 <template>
   <Pop ref="pop"></Pop>
-  <Topbar v-if="displayTopbar"></Topbar>
+  <TopbarParent v-if="displayTopbar"></TopbarParent>
   <div class="main">
     <RouterView></RouterView>
   </div>
