@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CSSProperties, ref } from 'vue';
+import { SwipeListener } from '../utils/swipeListener';
 
 const coverStyle = ref<CSSProperties>();
 const barStyle = ref<CSSProperties>();
@@ -15,6 +16,7 @@ barStyle.value = {
     right:foldedRight
 }
 
+let swl: SwipeListener|undefined
 function extend(){
     showing.value = true;
     coverStyle.value = {
@@ -33,6 +35,12 @@ function extend(){
         }
     })
     emit('extend');
+    swl = new SwipeListener((n) => {
+        if (n == "right") {
+            fold()
+        }
+    }, "hor", 100)
+    swl.startListen()
 }
 function fold(){
     coverStyle.value = {
@@ -49,6 +57,8 @@ function fold(){
         showing.value = false;
     },500)
     emit('fold');
+    swl?.stopListen()
+    swl = undefined
 }
 defineExpose({extend,fold})
 const emit = defineEmits<{
@@ -59,7 +69,7 @@ const emit = defineEmits<{
 
 <template>
 <div class="sidebarOuter">
-    <div class="cover" :style="coverStyle"></div>
+    <div class="cover" :style="coverStyle" @click="fold"></div>
     <div class="sideBar" :style="barStyle">
         <div class="offBtn"><button class="cancel" @click="fold">关闭</button></div>
         <div class="body">
