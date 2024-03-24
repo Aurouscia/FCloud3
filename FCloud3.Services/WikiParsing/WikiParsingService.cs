@@ -96,7 +96,7 @@ namespace FCloud3.Services.WikiParsing
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Type));
+                    result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId));
                 }
                 else if (p.Type == WikiParaType.Table)
                 {
@@ -108,14 +108,14 @@ namespace FCloud3.Services.WikiParsing
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Type));
+                    result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId));
                 }
                 else if (p.Type == WikiParaType.File)
                 {
                     FileItem? model = fileParaObjs.FirstOrDefault(x => x.Id == p.ObjectId);
                     if (model is null)
                         return;
-                    result.Paras.Add(new(model.DisplayName, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Type));
+                    result.Paras.Add(new(model.DisplayName, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type, p.ObjectId));
                 }
             });
             return result;
@@ -169,13 +169,17 @@ namespace FCloud3.Services.WikiParsing
                 public string? Title { get; set; }
                 public int TitleId { get; set; }
                 public string? Content { get; set; }
+                public int ParaId { get; set; }
                 public WikiParaType ParaType { get; set; }
-                public WikiParsingResultItem(string? title,int titleId, string content, WikiParaType type)
+                public int UnderlyingId { get; set; }
+                public WikiParsingResultItem(string? title,int titleId, string content, int paraId, WikiParaType type, int underlyingId)
                 {
                     Title = title;
                     TitleId = titleId;
                     Content = content;
                     ParaType = type;
+                    ParaId = paraId;
+                    UnderlyingId = underlyingId;
                 }
             }
             public static WikiParsingResult FallToInstance
@@ -185,7 +189,7 @@ namespace FCloud3.Services.WikiParsing
                     {
                         Paras = new()
                         {
-                            new("找不到指定路径名的词条", 0, "可能是词条不存在或已被移走，请确认后重试", WikiParaType.Text)
+                            new("找不到指定路径名的词条", 0, "可能是词条不存在或已被移走，请确认后重试", 0, WikiParaType.Text, 0)
                         }
                     };
                 }

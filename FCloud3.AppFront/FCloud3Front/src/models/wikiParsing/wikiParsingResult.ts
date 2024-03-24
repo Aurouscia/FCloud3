@@ -12,7 +12,9 @@ export interface WikiParsingResultItem {
     Title?: string;
     TitleId: number
     Content?: string;
-    ParaType: WikiParaTypes
+    ParaId: number;
+    ParaType: WikiParaTypes;
+    UnderlyingId: number;
 }
 
 export interface ParserTitleTreeNode {

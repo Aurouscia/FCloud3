@@ -9,6 +9,9 @@ import Loading from '../../components/Loading.vue';
 import TitleTree from '../../components/Wiki/TitleTree.vue';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import menuImg from '../../assets/menu.svg';
+import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
+import { jumpToTextSectionEdit } from '../TextSection/routes';
+import { jumpToFreeTableEdit } from '../Table/routes';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -70,6 +73,14 @@ function viewAreaScrollHandler(){
     }
 }
 
+function enterEdit(type:WikiParaTypes, underlyingId:number){
+    if(type == WikiParaTypes.Text && underlyingId){
+        jumpToTextSectionEdit(underlyingId)
+    }else if(type == WikiParaTypes.Table && underlyingId){
+        jumpToFreeTableEdit(underlyingId)
+    }
+}
+
 const subtitlesFolded = ref<boolean>(true);
 
 let api:Api;
@@ -110,7 +121,7 @@ onUnmounted(()=>{
             <h1 :id="titleElementId(p.TitleId)">
                 {{ p.Title }}
                 <div class="h1Sep"></div>
-                <div class="editBtn">编辑</div>
+                <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
             </h1>
             <div class="indent" v-html="p.Content">
             </div>
