@@ -152,8 +152,7 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool FulFill(string span)
         {
-            string trimmed = span.Trim();
-            return trimmed.StartsWith("http") || trimmed.StartsWith("/");
+            return UrlUtil.IsUrl(span);
         }
 
         //TODO: 有图片后缀名的话变成行内图片
@@ -173,7 +172,7 @@ namespace FCloud3.HtmlGen.Rules
             string[] parts = trimmed.Split(partsSep);
             if (parts.Length != 2)
                 return false;
-            return (parts[1].StartsWith("http") || parts[1].StartsWith("/"));
+            return UrlUtil.IsUrl(parts[1]);
         }
 
         public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
@@ -182,6 +181,47 @@ namespace FCloud3.HtmlGen.Rules
             if (parts.Length != 2)
                 throw new Exception($"{Name}解析异常");
             return new AnchorElement(parts[0].Trim(), parts[1].Trim(), this);
+        }
+    }
+    public class InlineObjectRule : InlineRule
+    {
+        private const string partsSep = "|";
+        private const string defaultHeight = "5em";
+        public InlineObjectRule() 
+            : base("[", "]", "", "", "", "行内float对象", false)
+        {
+        }
+
+        public override bool FulFill(string span)
+        {
+            if (span.Length <= 4) 
+                return false;
+            string[] parts = span.Split(partsSep);
+            string first = parts[0];
+            return UrlUtil.IsUrl(first) && UrlUtil.IsObject(first);
+        }
+
+        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        {
+            string[] parts = span.Split(partsSep);
+            string url = "";
+            string height = defaultHeight;
+            string? command = null;
+            if(parts.Length >= 1)
+            {
+                url = parts[0].Trim();
+            }
+            if (parts.Length >= 2)
+            {
+                height = parts[1].Trim();
+                if(int.TryParse(height,out _))
+                    height += "em";
+            }
+            if (parts.Length >= 3)
+            {
+                command = parts[2].Trim();
+            }
+            return new InlineObjectElement(url, height, command);
         }
     }
 
@@ -301,6 +341,7 @@ namespace FCloud3.HtmlGen.Rules
             var instances = new List<IInlineRule>()
             {
                 new FootNoteAnchorRule(),
+                new InlineObjectRule(),
                 new ManualAnchorRule(),
                 new ManualTextedAnchorRule(),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),

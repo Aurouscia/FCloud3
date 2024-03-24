@@ -99,6 +99,40 @@ namespace FCloud3.HtmlGen.Models
             return new() { Rule };
         }
     }
+    public class InlineObjectElement : InlineElement
+    {
+        public string Src { get; }
+        public string Height { get; }
+        public string? Command { get; }
+        public InlineObjectElement(string src, string height, string? command)
+        {
+            Src = src;
+            Height = height;
+            Command = command;
+        }
+
+        public override string ToHtml()
+        {
+            string style1;
+            if (Command is not null && Command.ToLower() == "left")
+                style1 = "float:left;";
+            else
+                style1 = "float:right;";
+            string style2 = $"height:{Height};";
+
+            if (UrlUtil.IsImage(Src))
+                return $"<img src=\"{Src}\" style=\"{style1}{style2}\"/>";
+            else if (UrlUtil.IsAudio(Src))
+                return $"<audio controls src=\"{Src}\" style=\"{style1}{style2}\"></audio>";
+            else if (UrlUtil.IsVideo(Src))
+                return $"<video controls src=\"{Src}\" style=\"{style1}{style2}\"></video>";
+            return "";
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append(ToHtml());
+        }
+    }
     public class FootNoteEntryElement : TextElement
     {
         public string Name { get; }

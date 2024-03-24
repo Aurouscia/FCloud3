@@ -81,5 +81,25 @@ namespace FCloud3.HtmlGenTest
             var html3 = res.ToHtml();
             Assert.AreEqual(answer, html3);
         }
+
+        [TestMethod]
+        [DataRow("看看这个[ http://img.png]", "看看这个<img src=\"http://img.png\" style=\"float:right;height:5em;\"/>")]
+        [DataRow("看看这个[http://img.png|8]", "看看这个<img src=\"http://img.png\" style=\"float:right;height:8em;\"/>")]
+        [DataRow("看看这个[http://img.png|9 |xxx]", "看看这个<img src=\"http://img.png\" style=\"float:right;height:9em;\"/>")]
+        [DataRow("看看这个[http://img.png|9 | leFt]", "看看这个<img src=\"http://img.png\" style=\"float:left;height:9em;\"/>")]
+        [DataRow("看看这个[http://img.svg|100px]", "看看这个<img src=\"http://img.svg\" style=\"float:right;height:100px;\"/>")]
+        [DataRow("看看这个[http://ad.mp3]", "看看这个<audio controls src=\"http://ad.mp3\" style=\"float:right;height:5em;\"></audio>")]
+        [DataRow("看看这个[http://vd.webm]", "看看这个<video controls src=\"http://vd.webm\" style=\"float:right;height:5em;\"></video>")]
+        public void InlineImageParse(string input,string answer)
+        {
+            InlineParser parser = new(_ctx);
+            var res = parser.Run(input);
+            var html = res.ToHtml();
+            Assert.AreEqual(answer, html);
+            var html2 = res.ToHtml();
+            Assert.AreEqual(answer, html2);
+            var html3 = res.ToHtml();
+            Assert.AreEqual(answer, html3);
+        }
     }
 }
