@@ -12,6 +12,7 @@ import menuImg from '../../assets/menu.svg';
 import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
+import { isImageFile } from '../../utils/fileUtils';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -118,12 +119,26 @@ onUnmounted(()=>{
             {{data.Title}}
         </div>
         <div v-for="p in data.Paras">
-            <h1 :id="titleElementId(p.TitleId)">
-                {{ p.Title }}
-                <div class="h1Sep"></div>
-                <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
-            </h1>
-            <div class="indent" v-html="p.Content">
+            <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
+                <h1 :id="titleElementId(p.TitleId)">
+                    {{ p.Title }}
+                    <div class="h1Sep"></div>
+                    <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                </h1>
+                <div class="indent" v-html="p.Content">
+                </div>
+            </div>
+            <div v-if="p.ParaType==WikiParaTypes.File && p.Content">
+                <div v-if="isImageFile(p.Content)" class="imgPara">
+                    <a :href="p.Content" target="_blank">
+                        <img :src="p.Content"/>
+                    </a>
+                    <div>{{ p.Title }}</div>
+                </div>
+                <div v-else class="filePara">
+                    <span class="fileHint">点击下载文件：</span>
+                    <a :href="p.Content" target="_blank">{{ p.Title }}</a>
+                </div>
             </div>
         </div>
         <div class="footNotes">

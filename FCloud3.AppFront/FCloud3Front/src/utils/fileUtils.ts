@@ -17,6 +17,9 @@ export function getFileType(fileName:string):FileType{
     }
     return "unknown"
 }
+export function isImageFile(fileName:string):boolean{
+    return getFileType(fileName)=="image"
+}
 
 export const imageFileExts=[
     '.png',

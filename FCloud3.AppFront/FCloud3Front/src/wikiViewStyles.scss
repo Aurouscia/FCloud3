@@ -136,6 +136,41 @@
         max-width: 1000px;
     }
 
+    .imgPara{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 8px;
+        gap: 5px;
+        img{
+            max-height: 200px;
+            max-width: 300px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        div{
+            color:#aaa;
+            text-align: center;
+        }
+    }
+    .filePara{
+        text-align: center;
+        margin: 15px;
+        .fileHint{
+            color:#aaa;
+            font-size: 16px;
+        }
+        a{
+            color: cornflowerblue;
+            font-size: 20px;
+            &:hover{
+                text-decoration: underline;
+            }
+        }
+    }
+
+
     div.imgAnno {
         color: #aaa;
         text-align: center;
