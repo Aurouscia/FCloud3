@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ParserTitleTreeNode } from '../../models/wikiParsing/wikiParsingResult';
+import { removeDefaultFoldedMark } from '../../utils/wikiView/titleClickFold';
 
 const props = defineProps<{
     titleTree: ParserTitleTreeNode[];
@@ -32,11 +33,11 @@ defineExpose({
 
 <template>
 <div class="titleTreeNodes" :class="{master:props.isMaster}">
-    <div v-for="t in props.titleTree">
+    <div v-for="t in props.titleTree" :key="t.Id">
         <div class="titleTreeNodeText" :class="{master:props.isMaster}" 
             @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
             <div class="currentMark"></div>
-            {{ t.Text }}
+            {{ removeDefaultFoldedMark(t.Text) }}
         </div>
         <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)" ref="subs"></TitleTree>
     </div>

@@ -17,6 +17,11 @@ export class TitleClickFold{
                 const img = document.createElement('img');
                 img.src = foldImg;
                 img.className = 'foldImg';
+                if(isDefaultFolded(h.innerHTML)){
+                    h.classList.add(clickableFoldedClass);
+                    (h.nextSibling as Element).classList.add(nextFoldedClass);
+                    h.innerHTML = removeDefaultFoldedMark(h.innerHTML);
+                }
                 h.prepend(img);
             }
         })
@@ -49,4 +54,14 @@ function isClickableTitle(ele:Element):boolean{
         return false;
     }
     return true;
+}
+
+export function isDefaultFolded(title:string){
+    return title.startsWith("^");
+}
+export function removeDefaultFoldedMark(title:string):string{
+    if(!isDefaultFolded(title)){
+        return title;
+    }
+    return title.slice(1);
 }

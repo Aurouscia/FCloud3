@@ -67,6 +67,9 @@ function viewAreaScrollHandler(){
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
         t.offsetTop > wikiViewArea.value!.scrollTop - 20);
+    if(currentTitleIdx == -1){
+        return
+    }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
     if(titleInCatalogOffsetTop){
