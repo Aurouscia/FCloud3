@@ -262,6 +262,16 @@ namespace FCloud3.Services.Files
                 return false;
             return true;
         }
+        public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
+        {
+            var list = new List<int>() { fileItemId };
+            _ = MoveFilesIn(distDirId, list, out string? failMsg, out errmsg);
+            if (errmsg is null && failMsg is not null)
+                errmsg = failMsg;
+            if (errmsg is not null)
+                return false;
+            return true;
+        }
 
         public List<int>? MoveDirsIn(int distDirId, List<int> fileDirIds, out string? failMsg, out string? errmsg)
         {
@@ -309,7 +319,18 @@ namespace FCloud3.Services.Files
             return wikiItemIds;
         }
 
+
+        public FileDirPutInResult? MoveThingsIn(int dirId, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
+        {
+            List<int>? chain = _fileDirRepo.GetChainIdsById(dirId);
+            return MoveThingsIn(chain, fileItemIds, fileDirIds, wikiItemIds, out errmsg);
+        }
         public FileDirPutInResult? MoveThingsIn(string[] dirPath, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
+        {
+            List<int>? chain = _fileDirRepo.GetChainIdsByPath(dirPath);
+            return MoveThingsIn(chain, fileItemIds,fileDirIds, wikiItemIds,out errmsg);
+        }
+        private FileDirPutInResult? MoveThingsIn(List<int>? dirIdsChain, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
         {
             errmsg = null;
             string? failMsg = null;
@@ -318,14 +339,13 @@ namespace FCloud3.Services.Files
             List<int>? fileDirSuccess = null;
             List<int>? wikiItemSuccess = null;
 
-            List<int>? chain = _fileDirRepo.GetChainIdsByPath(dirPath);
-            if(chain is null) { errmsg = "找不到指定路径的文件夹"; return null; }
+            if (dirIdsChain is null) { errmsg = "找不到指定路径的文件夹"; return null; }
 
-            int distDirId = chain.Count>0 ? chain.Last() : 0;
+            int distDirId = dirIdsChain.Count > 0 ? dirIdsChain.Last() : 0;
 
             if (fileDirIds is not null && fileDirIds.Count > 0)
             {
-                if (fileDirIds.Any(x => chain.Contains(x)))
+                if (fileDirIds.Any(x => dirIdsChain.Contains(x)))
                 {
                     errmsg = "检测到循环，请勿将文件夹移入自身或子级";
                     return null;
@@ -358,7 +378,6 @@ namespace FCloud3.Services.Files
             };
             return resp;
         }
-
         public bool Create(int parentDir, string? name, string? urlPathName, out string? errmsg)
         {
             //TODO验证在父文件夹有没有权限

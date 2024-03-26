@@ -1,5 +1,6 @@
 ﻿using FCloud3.App.Utils;
 using FCloud3.Services.Files;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
@@ -21,6 +22,7 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(detail);
         }
+        [Authorize]
         public IActionResult Save(FileUploadRequest request)
         {
             if (request is null || request.ToSave is null)

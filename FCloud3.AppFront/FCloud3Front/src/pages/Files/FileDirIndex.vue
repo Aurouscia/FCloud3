@@ -199,7 +199,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     const fileItemIds = move.filter(x=>x.type=='fileItem').map(x=>x.id);
     const fileDirIds = move.filter(x=>x.type=='fileDir').map(x=>x.id);
     const wikiItemIds = move.filter(x=>x.type=='wikiItem').map(x=>x.id);
-    const res = await api.fileDir.putInThings(pathThis.value,fileItemIds,fileDirIds,wikiItemIds);
+    const res = await api.fileDir.putInThings(thisDirId.value,fileItemIds,fileDirIds,wikiItemIds);
     if(res){
         const fileItemSuccess:ClipBoardItem[] = res.FileItemSuccess?.map(x=>{return{id:x,type:'fileItem',name:''}})||[]
         const fileDirSuccess:ClipBoardItem[] = res.FileDirSuccess?.map(x=>{return{id:x,type:'fileDir',name:''}})||[]

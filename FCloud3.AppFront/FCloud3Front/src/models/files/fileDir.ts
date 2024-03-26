@@ -7,8 +7,8 @@ export interface FileDir{
     Depth:number,
     
     CanEditInfo:boolean,
-    CanPutFile:boolean,
-    CanPutWiki:boolean
+    CanPutThings:boolean,
+    CanCreateSub:boolean
 }
 
 export interface FileDirCreateRequest{
@@ -54,11 +54,11 @@ export interface FileDirWiki
 
 
 export interface PutInFileRequest {
-    DirPath:string[]
+    DirId:number
     FileItemId:number
 }
 export interface PutInThingsRequest {
-    DirPath:string[]
+    DirId:number
     FileItemIds?:number[]
     FileDirIds?:number[]
     WikiItemIds?:number[]

@@ -48,6 +48,26 @@ namespace FCloud3.Repos.Files
             }
             return res.ToArray();
         }
+        public List<int>? GetChainIdsById(int id)
+        {
+            if (id == 0)
+            {
+                return null;
+            }
+            List<int> res = new();
+            var targetId = id;
+            while (true)
+            {
+                var target = Existing.Where(x => x.Id == targetId).Select(x => new { x.ParentDir, x.Id }).FirstOrDefault();
+                if (target is null)
+                    return null;
+                res.Insert(0, target.Id);
+                targetId = target.ParentDir;
+                if (targetId == 0)
+                    break;
+            }
+            return res;
+        }
         public List<int>? GetChainIdsByPath(string[] path)
         {
             return Existing.GetChainIdsByPath(path);

@@ -1,24 +1,28 @@
 ﻿using FCloud3.App.Models.COM;
+using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Wiki;
+using FCloud3.Entities.Identities;
 using FCloud3.Services.Wiki;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Wiki
 {
-    public class WikiItemController:Controller
+    public class WikiItemController : Controller, IAuthGrantTypeProvidedController
     {
         private readonly WikiItemService _wikiService;
         private readonly HttpUserInfoService _userInfo;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.Wiki;
 
-        public WikiItemController(WikiItemService wikiService,HttpUserInfoService userInfo)
+        public WikiItemController(WikiItemService wikiService, HttpUserInfoService userInfo)
         {
             _wikiService = wikiService;
             _userInfo = userInfo;
         }
 
         [Authorize]
+        [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
         public IActionResult CreateInDir(string title,string urlPathName,int dirId)
         {
             if(!_wikiService.CreateInDir(title,urlPathName,dirId,out string? errmsg))
@@ -27,6 +31,8 @@ namespace FCloud3.App.Controllers.Wiki
             }
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
         public IActionResult RemoveFromDir(int wikiId, int dirId)
         {
             if (!_wikiService.RemoveFromDir(wikiId, dirId, out string? errmsg))

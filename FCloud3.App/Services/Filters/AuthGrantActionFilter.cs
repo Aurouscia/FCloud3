@@ -11,42 +11,77 @@ namespace FCloud3.App.Services.Filters
     public class AuthGrantedAttribute : Attribute, IFilterFactory
     {
         public bool IsReusable => false;
+        public AuthGrantOn OnType { get; }
+        public string? FormKey { get; }
+        public bool IgnoreZero { get; }
+
+        public AuthGrantedAttribute(AuthGrantOn onType = AuthGrantOn.None, string? formKey = null, bool ignoreZero = false)
+        {
+            this.OnType = onType;
+            this.FormKey = formKey;
+            this.IgnoreZero = ignoreZero;
+        }
+        public AuthGrantedAttribute(bool ignoreZero)
+        {
+            IgnoreZero = ignoreZero;
+        }
 
         public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
         {
-            return serviceProvider.GetRequiredService<AuthGrantActionFilter>();
+            var f = serviceProvider.GetRequiredService<AuthGrantActionFilter>();
+            f.OnType = this.OnType;
+            f.FormKey = this.FormKey;
+            f.IgnoreZero = this.IgnoreZero;
+            return f;
         }
 
         public class AuthGrantActionFilter : IAsyncActionFilter
         {
             private readonly AuthGrantService _authGrantService;
+            public AuthGrantOn OnType { get; set; }
+            public string? FormKey { get; set; }
+            public bool IgnoreZero { get; set; }
             public AuthGrantActionFilter(AuthGrantService authGrantService)
             {
                 _authGrantService = authGrantService;
             }
             public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
             {
-                int id;
-                var firstArg = context.ActionArguments.Values.FirstOrDefault();
+                int id = default;
+                var args = context.ActionArguments.Values;
+                var firstArg = args.FirstOrDefault();
 
-                if (firstArg is int v)
+                if (FormKey is not null)
+                {
+                    if (context.ActionArguments.TryGetValue(FormKey, out var val))
+                    {
+                        if (val is int numVal)
+                            id = numVal;
+                    }
+                }
+                else if (firstArg is int v)
                     id = v;
                 else if (firstArg is IAuthGrantableRequestModel authReq)
                     id = authReq.AuthGrantOnId;
-                else
+                if (id == default)
+                {
+                    if (IgnoreZero)
+                    {
+                        await next();
+                        return;
+                    }
                     throw new Exception("权限验证参数无效");
+                }
 
-                var controller = context.Controller;
+                var controller = context.Controller as IAuthGrantTypeProvidedController;
 
-                AuthGrantOn on = AuthGrantOn.None;
-                if (controller is FileDirController)
-                    on = AuthGrantOn.Dir;
-                else if (controller is WikiItemController)
-                    on = AuthGrantOn.Wiki;
-                if (on == AuthGrantOn.None)
+                if(OnType == AuthGrantOn.None && controller is not null)
+                    OnType = controller.AuthGrantOnType;
+
+                if (OnType == AuthGrantOn.None)
                     throw new Exception("权限验证未找到匹配类型");
 
-                if (!_authGrantService.Test(on, id))
+                if (!_authGrantService.Test(OnType, id))
                 {
                     var resp = new ApiResponse(null, false, "无权限");
                     context.Result = resp.BuildResult();
@@ -64,5 +99,10 @@ namespace FCloud3.App.Services.Filters
             services.AddScoped<AuthGrantedAttribute.AuthGrantActionFilter>();
             return services;
         }
+    }
+
+    public interface IAuthGrantTypeProvidedController
+    {
+        public AuthGrantOn AuthGrantOnType { get; }
     }
 }

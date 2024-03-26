@@ -1,19 +1,24 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
+using FCloud3.Entities.Identities;
 using FCloud3.Repos;
 using FCloud3.Services.Files;
+using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
-    public class FileDirController: Controller
+    public class FileDirController: Controller, IAuthGrantTypeProvidedController
     {
         private readonly FileDirService _fileDirService;
+        private readonly AuthGrantService _authGrantService;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.Dir;
 
-        public FileDirController(FileDirService fileDirService)
+        public FileDirController(FileDirService fileDirService, AuthGrantService authGrantService)
         {
             _fileDirService = fileDirService;
+            _authGrantService = authGrantService;
         }
 
         public IActionResult GetPathById(int id)
@@ -40,14 +45,15 @@ namespace FCloud3.App.Controllers.Files
             var data = _fileDirService.GetById(id);
             if(data is null)
                 return BadRequest();
+            bool authGranted = _authGrantService.Test(AuthGrantOn.Dir, id);
             FileDirComModel resp = new()
             {
                 Id = data.Id,
                 Name = data.Name,
                 UrlPathName = data.UrlPathName,
-                CanEditInfo = true,
-                CanPutFile = true,
-                CanPutWiki = true,
+                CanEditInfo = authGranted,
+                CanPutThings = authGranted,
+                CanCreateSub = authGranted
             };
             return this.ApiResp(resp);
         }
@@ -61,23 +67,29 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult PutInFile([FromBody] PutInFileRequest req)
         {
-            if(req is null || req.DirPath is null) 
+            if(req is null || req.DirId == default) 
                 return BadRequest();
-            if (!_fileDirService.MoveFileIn(req.DirPath, req.FileItemId, out string? errmsg))
+            if (!_fileDirService.MoveFileIn(req.DirId, req.FileItemId, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult PutInThings([FromBody] PutInThingsRequest req)
         {
-            if(req is null || req.DirPath is null)
+            if(req is null || req.DirId == default)
                 return BadRequest();
-            var res = _fileDirService.MoveThingsIn(req.DirPath,req.FileItemIds,req.FileDirIds,req.WikiItemIds,out string? errmsg);
+            var res = _fileDirService.MoveThingsIn(req.DirId,req.FileItemIds,req.FileDirIds,req.WikiItemIds,out string? errmsg);
             if (res is null || errmsg is not null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);  
         }
+        [Authorize]
+        [AuthGranted(ignoreZero: true)]
         public IActionResult Create([FromBody] FileDirCreateRequest req)
         {
             if(!_fileDirService.Create(req.ParentDir, req.Name, req.UrlPathName, out string? errmsg))
@@ -86,6 +98,8 @@ namespace FCloud3.App.Controllers.Files
             }
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult Delete(int dirId)
         {
             if (!_fileDirService.Delete(dirId, out string? errmsg))
@@ -98,17 +112,19 @@ namespace FCloud3.App.Controllers.Files
             public string[]? Path { get; set; }
             public IndexQuery? Query { get; set; }
         }
-        public class PutInFileRequest
+        public class PutInFileRequest : IAuthGrantableRequestModel
         {
-            public string[]? DirPath { get; set; }
+            public int DirId { get; set; }
             public int FileItemId { get; set; }
+            public int AuthGrantOnId => DirId;
         }
-        public class PutInThingsRequest
+        public class PutInThingsRequest : IAuthGrantableRequestModel
         {
-            public string[]? DirPath { get; set; }
+            public int DirId { get; set; }
             public List<int>? FileItemIds { get; set; }
             public List<int>? FileDirIds { get; set; }
             public List<int>? WikiItemIds { get; set; }
+            public int AuthGrantOnId => DirId;
         }
         public class FileDirComModel : IAuthGrantableRequestModel
         {
@@ -116,16 +132,17 @@ namespace FCloud3.App.Controllers.Files
             public string? Name { get; set; }
             public string? UrlPathName { get; set; }
             public int Depth { get; set; }
-            public bool CanPutFile { get; set; }
-            public bool CanPutWiki { get; set; }
+            public bool CanPutThings { get; set; }
+            public bool CanCreateSub { get; set; }
             public bool CanEditInfo { get; set; }
             public int AuthGrantOnId => Id;
         }
-        public class FileDirCreateRequest
+        public class FileDirCreateRequest : IAuthGrantableRequestModel
         {
             public int ParentDir { get; set; }
             public string? Name { get; set; }
-            public string? UrlPathName { get; set; } 
+            public string? UrlPathName { get; set; }
+            public int AuthGrantOnId => ParentDir;
         }
     }
 }

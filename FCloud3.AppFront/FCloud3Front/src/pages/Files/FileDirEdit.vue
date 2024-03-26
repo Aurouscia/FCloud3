@@ -8,6 +8,7 @@ import Search from '../../components/Search.vue';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import Notice from '../../components/Notice.vue';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
+import AuthProblem from '../../components/AuthProblem.vue';
 
 const data = ref<FileDir>();
 const props = defineProps<{
@@ -27,7 +28,7 @@ async function saveEdit(){
     }
 } 
 async function newFile(newFileItemId:number) {
-    const resp = await api.fileDir.putInFile(props.path, newFileItemId);
+    const resp = await api.fileDir.putInFile(props.id, newFileItemId);
     if(resp){
         emit('addedNewFile');
     }
@@ -46,7 +47,7 @@ async function createWiki() {
     }
 }
 async function moveInWiki(_title:string, wikiId:number) {
-    const resp = await api.fileDir.putInThings(props.path,[],[],[wikiId]);
+    const resp = await api.fileDir.putInThings(props.id,[],[],[wikiId]);
     if(resp){
         moveSearch.value?.clear();
         emit('addedNewFile');
@@ -75,64 +76,75 @@ onMounted(async()=>{
         <div>
             <h1>{{ data.Name }}</h1>
         </div>
-        <div class="section" v-if="data.CanPutWiki">
-            <h2>编辑内容</h2>
-            <SwitchingTabs :texts="['移入词条','新建词条','上传文件']">
+        <div class="section">
+            <SwitchingTabs :texts="['新词条','放词条','传文件','设置']">
                 <div>
-                    <Search ref="moveSearch" :source="api.utils.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
-                        :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
-                    <Notice type="info">移入词条将不会影响词条在其他文件夹的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
+                    <div v-if="data.CanPutThings">
+                        <table>
+                            <tr>
+                                <td>词条<br/>标题</td>
+                                <td><input v-model="creatingWikiTitle" placeholder="必填"/></td>
+                            </tr>
+                            <tr>
+                                <td>链接<br/>名称</td>
+                                <td>
+                                    <div>
+                                        <button class="minor" @click="runForWiki">由标题自动生成</button>
+                                    </div>
+                                    <input v-model="creatingWikiUrlPathName" placeholder="必填" spellcheck="false"/>
+                                </td>
+                            </tr>
+                            <tr class="noneBackground">
+                                <td colspan="2">
+                                    <button class="confirm" @click="createWiki">确认</button>
+                                </td>
+                            </tr>
+                        </table>
+                        <Notice type="warn">
+                            请谨慎设置链接名称，每次修改将导致旧链接失效
+                        </Notice>
+                    </div>
+                    <AuthProblem v-else></AuthProblem>
                 </div>
                 <div>
-                    <table>
-                        <tr>
-                            <td>词条<br/>标题</td>
-                            <td><input v-model="creatingWikiTitle" placeholder="必填"/></td>
-                        </tr>
-                        <tr>
-                            <td>链接<br/>名称</td>
-                            <td>
-                                <div>
-                                    <button class="minor" @click="runForWiki">由标题自动生成</button>
-                                </div>
-                                <input v-model="creatingWikiUrlPathName" placeholder="必填" spellcheck="false"/>
-                            </td>
-                        </tr>
-                        <tr class="noneBackground">
-                            <td colspan="2">
-                                <button class="confirm" @click="createWiki">确认</button>
-                            </td>
-                        </tr>
-                    </table>
-                    <Notice type="warn">
-                        请谨慎设置链接名称，每次修改将导致旧链接失效
-                    </Notice>
+                    <div v-if="data.CanPutThings">
+                        <Search ref="moveSearch" :source="api.utils.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
+                            :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
+                        <Notice type="info">移入词条将不会影响词条在其他文件夹的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
+                    </div>
+                    <AuthProblem v-else></AuthProblem>
                 </div>
                 <div>
-                    <FileUpload @uploaded="newFile" dist="test"></FileUpload>
+                    <div v-if="data.CanPutThings">
+                        <FileUpload @uploaded="newFile" dist="test"></FileUpload>
+                        <Notice type="info">文件不能同时放在多个文件夹内</Notice>
+                    </div>
+                    <AuthProblem v-else></AuthProblem>
+                </div>
+                <div>
+                    <div v-if="data.CanEditInfo">
+                        <table>
+                            <tr>
+                                <td>词条<br/>标题</td>
+                                <td><input v-model="editingDirName"/></td>
+                            </tr>
+                            <tr>
+                                <td>链接<br/>名称</td>
+                                <td>
+                                    <button @click="runForDir" class="minor">由词条标题生成</button><br/>
+                                    <input v-model="editingDirUrlPathName" spellcheck="false"/>
+                                </td>
+                            </tr>
+                            <tr class="noneBackground">
+                                <td colspan="2">
+                                    <button class="confirm" @click="saveEdit">保存</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <AuthProblem v-else></AuthProblem>
                 </div>
             </SwitchingTabs>
-        </div>
-        <div class="section" v-if="data.CanEditInfo">
-            <h2>编辑文件夹信息</h2>
-            <table>
-                <tr>
-                    <td>词条<br/>标题</td>
-                    <td><input v-model="editingDirName"/></td>
-                </tr>
-                <tr>
-                    <td>链接<br/>名称</td>
-                    <td>
-                        <button @click="runForDir" class="minor">由词条标题生成</button><br/>
-                        <input v-model="editingDirUrlPathName" spellcheck="false"/>
-                    </td>
-                </tr>
-                <tr class="noneBackground">
-                    <td colspan="2">
-                        <button class="confirm" @click="saveEdit">保存</button>
-                    </td>
-                </tr>
-            </table>
         </div>
     </div>
     <Loading v-else></Loading>

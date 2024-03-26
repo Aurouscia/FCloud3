@@ -537,9 +537,9 @@ export class Api{
                 return true;
             }
         },
-        putInFile:async(dirPath:string[], fileItemId:number)=>{
+        putInFile:async(dirId:number, fileItemId:number)=>{
             const reqData:PutInFileRequest={
-                DirPath:dirPath,
+                DirId:dirId,
                 FileItemId:fileItemId
             }
             const res = await this.httpClient.request(
@@ -552,11 +552,11 @@ export class Api{
                 return true;
             }
         },
-        putInThings:async(dirPath:string[], fileItemIds:number[], fileDirIds:number[], wikiItemIds:number[])=>{
+        putInThings:async(dirId:number, fileItemIds:number[], fileDirIds:number[], wikiItemIds:number[])=>{
             const reqNum = (fileItemIds.length||0) + (fileDirIds.length||0) + (wikiItemIds.length||0)
             if(!reqNum){return;}
             const reqData:PutInThingsRequest={
-                DirPath:dirPath,
+                DirId:dirId,
                 FileItemIds:fileItemIds,
                 FileDirIds:fileDirIds,
                 WikiItemIds:wikiItemIds
