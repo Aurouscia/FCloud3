@@ -25,6 +25,10 @@ namespace FCloud3.App.Services.Filters
         {
             IgnoreZero = ignoreZero;
         }
+        public AuthGrantedAttribute(string formKey)
+        {
+            FormKey = formKey;
+        }
 
         public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
         {

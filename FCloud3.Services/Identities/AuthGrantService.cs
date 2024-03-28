@@ -129,6 +129,13 @@ namespace FCloud3.Services.Identities
                 errmsg = null;
                 return true;
             }
+            int userId = _userIdProvider.Get();
+            int owner = GetOwnerId(on, onId);
+            if (userId != owner)
+            {
+                errmsg = "只有所有者能设置权限";
+                return false;
+            }
             if (ids.Count > AuthGrant.maxCountOnSameOn)
             {
                 errmsg = "数量超出上限";
@@ -156,7 +163,7 @@ namespace FCloud3.Services.Identities
 
         private int GetOwnerId(AuthGrantOn on, int onId)
         {
-            if (on == AuthGrantOn.Wiki)
+            if (on == AuthGrantOn.WikiItem)
             {
                 return _wikiItemRepo.GetOwnerIdById(onId);
             }
@@ -178,9 +185,10 @@ namespace FCloud3.Services.Identities
                 this.To = authGrant.To;
                 this.OnId = authGrant.OnId;
                 this.On = authGrant.On;
+                this.Order = authGrant.Order;
                 this.IsReject = authGrant.IsReject;
                 this.ToName = toName;
-                CreatorName = creatorName;
+                this.CreatorName = creatorName;
             }
         }
     }

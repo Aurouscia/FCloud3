@@ -13,7 +13,7 @@ namespace FCloud3.App.Controllers.Wiki
     {
         private readonly WikiItemService _wikiService;
         private readonly HttpUserInfoService _userInfo;
-        public AuthGrantOn AuthGrantOnType => AuthGrantOn.Wiki;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.WikiItem;
 
         public WikiItemController(WikiItemService wikiService, HttpUserInfoService userInfo)
         {
@@ -53,17 +53,23 @@ namespace FCloud3.App.Controllers.Wiki
                 UrlPathName = w.UrlPathName,
             });
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult EditExe([FromBody] WikiItemComModel model)
         {
             if (!_wikiService.EditInfo(_userInfo.Id, model.Title, model.UrlPathName, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult LoadSimple(int id)
         {
             var res = _wikiService.GetWikiParaDisplays(id);
             return this.ApiResp(res);
         }
+        [Authorize]
+        [AuthGranted(nameof(id))]
         public IActionResult InsertPara(int id, int afterOrder, WikiParaType type)
         {
             var res = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
@@ -72,6 +78,8 @@ namespace FCloud3.App.Controllers.Wiki
             var newList = _wikiService.GetWikiParaDisplays(id);
             return this.ApiResp(newList);
         }
+        [Authorize]
+        [AuthGranted]
         public IActionResult SetParaOrders([FromBody]WikiItemParaOrdersComModel model)
         {
             var orderedParaIds = model.OrderedParaIds ?? throw new Exception("Ids参数为空");
@@ -81,6 +89,8 @@ namespace FCloud3.App.Controllers.Wiki
             var newList = _wikiService.GetWikiParaDisplays(model.Id);
             return this.ApiResp(newList);
         }
+        [Authorize]
+        [AuthGranted(nameof(id))]
         public IActionResult RemovePara(int id,int paraId)
         {
             if (id == 0 || paraId == 0)
@@ -97,16 +107,18 @@ namespace FCloud3.App.Controllers.Wiki
             return this.ApiResp(res);
         }
 
-        public class WikiItemComModel
+        public class WikiItemComModel : IAuthGrantableRequestModel
         {
             public int Id { get; set; }
             public string? Title { get; set; }
             public string? UrlPathName { get; set; }
+            public int AuthGrantOnId => Id;
         }
-        public class WikiItemParaOrdersComModel
+        public class WikiItemParaOrdersComModel : IAuthGrantableRequestModel
         {
             public int Id { get; set; }
             public List<int>? OrderedParaIds { get; set; }
+            public int AuthGrantOnId => Id;
         }
     }
 }

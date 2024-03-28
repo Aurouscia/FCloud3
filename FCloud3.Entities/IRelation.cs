@@ -33,6 +33,7 @@ namespace FCloud3.Entities
             {
                 return ids.IndexOf(x.Id) - ids.IndexOf(y.Id);
             });
+            items.ResetOrder();
         }
     }
 }

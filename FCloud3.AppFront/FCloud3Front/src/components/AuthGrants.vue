@@ -4,6 +4,7 @@ import { injectApi } from '../provides';
 import { Api } from '../utils/api';
 import { AuthGrantOnText, AuthGrantToText, AuthGrantViewModel, authGrantOn, authGrantTo } from '../models/identities/authGrant';
 import Search from './Search.vue';
+import { elementBlinkClass } from '../utils/elementBlink';
 
 const props = defineProps<{
     on:AuthGrantOnText
@@ -45,13 +46,24 @@ async function remove(id:number) {
         await load();
     }
 }
-function moveUp(id:number) {
+
+const rowId = (id:number)=>`auth_grant_row_${id}`;
+async function moveUp(id:number) {
     if(!data.value){return;}
     const idx = data.value.findIndex(x=>x.Id==id);
     if(idx>0){
+        const ele = document.getElementById(rowId(id));
+        if(ele){
+            await elementBlinkClass(ele, 'blinking', 1);
+        }
         const it = data.value.splice(idx,1);
         data.value.splice(idx-1,0,...it);
         touchedOrder.value = true;
+        if(ele){
+            setTimeout(()=>{
+                elementBlinkClass(ele, 'blinking', 1);
+            }, 10);
+        }
     }
 }
 async function saveOrder() {
@@ -107,7 +119,7 @@ onMounted(()=>{
         </div>
     </div>
     <table v-if="data && data.length>0">
-        <tr v-for="ag in data">
+        <tr v-for="ag in data" :key="ag.Id" :id="rowId(ag.Id)">
             <td class="creator">
                 {{ ag.CreatorName }}
             </td>
@@ -168,8 +180,12 @@ table{
     width: 100%;
     max-width: 500px;
 }
+tr.blinking td{
+    background-color: #bbb;
+}
 td{
     white-space: wrap;
     word-break: break-all;
+    transition: 0.2s;
 }
 </style>

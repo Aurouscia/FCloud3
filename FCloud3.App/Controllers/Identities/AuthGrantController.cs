@@ -1,9 +1,12 @@
-﻿using FCloud3.Entities.Identities;
+﻿using FCloud3.App.Services.Filters;
+using FCloud3.Entities.Identities;
 using FCloud3.Services.Identities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Identities
 {
+    [Authorize]
     public class AuthGrantController : Controller
     {
         private readonly AuthGrantService _authGrantService;
@@ -11,7 +14,7 @@ namespace FCloud3.App.Controllers.Identities
         {
             _authGrantService = authGrantService;
         }
-
+        
         public IActionResult GetList(AuthGrantOn on,int onId)
         {
             return this.ApiResp(_authGrantService.GetList(on, onId));

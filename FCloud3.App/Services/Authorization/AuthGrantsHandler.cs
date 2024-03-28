@@ -34,7 +34,7 @@ namespace FCloud3.App.Services.Auth
                         case "filedir":
                             onType = AuthGrantOn.Dir;break;
                         case "wikiitem":
-                            onType = AuthGrantOn.Wiki;break;
+                            onType = AuthGrantOn.WikiItem;break;
                     }
                     if (_authGrantService.Test(onType, id))
                     {

@@ -180,7 +180,9 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
     if(loadParas){
         if(!info.value){return;}
         const parasResp = await api.wiki.loadSimple(info.value.Id);
-        loadComplete.value = true;
+        if(parasResp){
+            loadComplete.value = true;
+        }
         originalOrder = JSON.stringify(parasResp?.map(x=>x.ParaId))
         refresh(parasResp);
     }
@@ -262,9 +264,9 @@ onUnmounted(()=>{
 
 <template>
     <h1>{{ info?.Title }}</h1>
-    <SwitchingTabs :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
+    <SwitchingTabs v-if="loadComplete" :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
-        <div v-if="loadComplete" v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
+        <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
                 class="dragY" :src="dragYIconSrc"/>

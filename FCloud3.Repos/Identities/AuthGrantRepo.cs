@@ -30,5 +30,17 @@ namespace FCloud3.Repos.Identities
             }
             return base.TryAdd(item, out errmsg);
         }
+        public override bool TryRemove(AuthGrant item, out string? errmsg)
+        {
+            var sameOn = GetByOn(item.On, item.OnId);
+            if (!sameOn.Contains(item))
+            {
+                errmsg = "找不到要删除的对象";
+                return false;
+            }
+            sameOn.Remove(item);
+            sameOn.EnsureOrderDense();
+            return base.TryRemovePermanent(item, out errmsg);
+        }
     }
 }
