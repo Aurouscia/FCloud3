@@ -17,10 +17,11 @@ export class TitleClickFold{
                 const img = document.createElement('img');
                 img.src = foldImg;
                 img.className = 'foldImg';
-                if(isDefaultFolded(h.innerHTML)){
+                const textNode = h.childNodes[0];
+                if(textNode && isDefaultFolded(textNode.textContent || "")){
                     h.classList.add(clickableFoldedClass);
                     (h.nextSibling as Element).classList.add(nextFoldedClass);
-                    h.innerHTML = removeDefaultFoldedMark(h.innerHTML);
+                    textNode.textContent = removeDefaultFoldedMark(textNode.textContent || "");
                 }
                 h.prepend(img);
             }
