@@ -218,9 +218,8 @@ namespace FCloud3.HtmlGen.Mechanics
             FootNotes = footNotes ?? new();
             Titles = titles ?? new();
         }
-        public List<IRule> UsedRulesWithCommons()
-        {
-            return UsedRules.Where(x =>
+        public List<IRule> UsedRulesWithCommons => 
+            UsedRules.Where(x =>
             {
                 if (!string.IsNullOrEmpty(x.GetStyles()))
                     return true;
@@ -230,11 +229,9 @@ namespace FCloud3.HtmlGen.Mechanics
                     return true;
                 return false;
             }).ToList();
-        }
-        public List<string> UsedRuleWithCommonsNames()
-        {
-            return UsedRulesWithCommons().ConvertAll(x => x.UniqueName);
-        }
+        public List<string> UsedRuleWithCommonsNames => 
+            UsedRulesWithCommons.ConvertAll(x => x.UniqueName);
+
         public void MergeIn(ParserResultRaw another)
         {
             UsedRules = UsedRules.Union(another.UsedRules).ToList();

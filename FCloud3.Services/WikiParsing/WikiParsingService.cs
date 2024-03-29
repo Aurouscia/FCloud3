@@ -101,7 +101,7 @@ namespace FCloud3.Services.WikiParsing
                     var resOfP = ParseText(model, parser);
                     parser.WrapSection(model.Title, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
-                    result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
+                    result.AddRules(resOfP.UsedRuleWithCommonsNames);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId));
                 }
@@ -113,7 +113,7 @@ namespace FCloud3.Services.WikiParsing
                     var resOfP = ParseTable(model, parser);
                     parser.WrapSection(model.Name, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
-                    result.AddRules(resOfP.UsedRules.ConvertAll(x => x.UniqueName));
+                    result.AddRules(resOfP.UsedRuleWithCommonsNames);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId));
                 }
