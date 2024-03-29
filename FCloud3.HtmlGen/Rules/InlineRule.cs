@@ -152,7 +152,7 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool FulFill(string span)
         {
-            return UrlUtil.IsUrl(span);
+            return !InlineObjectRule.FulFillInlineObj(span) && UrlUtil.IsUrl(span);
         }
 
         //TODO: 有图片后缀名的话变成行内图片
@@ -194,7 +194,11 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool FulFill(string span)
         {
-            if (span.Length <= 4) 
+            return FulFillInlineObj(span);
+        }
+        public static bool FulFillInlineObj(string span)
+        {
+            if (span.Length <= 4)
                 return false;
             string[] parts = span.Split(partsSep);
             string first = parts[0];

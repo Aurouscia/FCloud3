@@ -36,7 +36,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
 
         private void SortRules()
         {
-            InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkRight.Length);
+            InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkLeft.Length);
         }
     }
 }
