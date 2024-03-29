@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {ref, Ref, onMounted, inject, computed, onUnmounted, nextTick} from 'vue'
 import Pop from '../../components/Pop.vue';
-import {TextSection} from '../../models/textSection/textSection'
+import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
+import { TextSection } from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
@@ -10,6 +11,8 @@ import { SetTopbarFunc, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
 //import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
+import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
+import SideBar from '../../components/SideBar.vue';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str)
@@ -197,6 +200,8 @@ function rightToLeft(e:MouseEvent){
         target.style.backgroundColor="";
     },1000)
 }
+
+const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 </script>
 
 <template>
@@ -208,11 +213,20 @@ function rightToLeft(e:MouseEvent){
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
     </div>
     <div>
+        <div>
+            <button class="minor" @click="wikiTitleContainSidebar?.extend">
+                链接
+            </button>
+        </div>
         <button @click="replaceContent">
             保存
         </button>
     </div>
 </div>
+<SideBar ref="wikiTitleContainSidebar">
+    <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content">
+    </WikiTitleContain>
+</SideBar>
 <div v-if="loadComplete" class="background">
     <div class="invisible" v-html="styles"></div>
     <div ref="preScriptsDiv" class="invisible"></div>

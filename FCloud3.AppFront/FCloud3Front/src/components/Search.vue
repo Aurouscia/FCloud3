@@ -6,7 +6,8 @@ const props = defineProps<{
     placeholder?:string,
     allowFreeInput?:boolean|undefined,
     noResultNotice?:string,
-    source:(s:string)=>Promise<QuickSearchResult|undefined>
+    source:(s:string)=>Promise<QuickSearchResult|undefined>,
+    dontClearAfterDone?:boolean
 }>()
 
 const doneBtnStatus = ref<boolean>(false);
@@ -53,6 +54,9 @@ function clickCand(c:QuickSearchResultItem){
 function done(){
     if(doneBtnStatus.value){
         emits('done',searching.value,selectedId.value);
+        if(!props.dontClearAfterDone){
+            clear()
+        }
     }
 }
 function clear(){

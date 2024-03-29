@@ -6,6 +6,10 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { SetTopbarFunc, injectApi, injectSetTopbar } from '../../provides';
 import { Api } from '../../utils/api';
 import { FreeTable } from '../../models/table/freeTable';
+import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
+import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
+import { join } from 'lodash';
+import SideBar from '../../components/SideBar.vue';
 
 const props = defineProps<{
     id:string
@@ -35,10 +39,15 @@ async function editContent(val:AuTableData, callBack:(success:boolean,msg:string
         callBack(false,resp.errmsg);
     }
 }
+function getContent() {
+    if(!tableData.value){return;}
+    return join(tableData.value.cells.map(row=>join(row, ',')), ',')
+}
 
 let api:Api;
 let setTopBar: SetTopbarFunc|undefined;
 const loadComplete = ref<boolean>(false);
+const titleContainSidebar = ref<InstanceType<typeof SideBar>>();
 onMounted(async()=>{
     api = injectApi();
     setTopBar = injectSetTopbar();
@@ -58,16 +67,28 @@ onUnmounted(()=>{
     </AuTableEditor>
     <Loading v-else></Loading>
     <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
+    <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链接</button>
+    <SideBar ref="titleContainSidebar">
+        <WikiTitleContain :type="WikiTitleContainType.FreeTable" :object-id="tableInfo.Id" :get-content="getContent">
+        </WikiTitleContain>
+    </SideBar>
 </div>
 </template>
 
 <style scoped>
+.titleContainBtn{
+    position: absolute;
+    top: 1px;
+    padding: 3px;
+    right: 155px;
+    z-index: 900;
+}
 .name{
     position: absolute;
-    top:2px;
+    top:1px;
     right: 40px;
     width: 100px;
-    z-index: 10000;
+    z-index: 900;
     border-radius: 5px;
 }
 </style>

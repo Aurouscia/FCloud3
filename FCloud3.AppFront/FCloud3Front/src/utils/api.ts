@@ -17,6 +17,7 @@ import { AuthGrant, AuthGrantOnText, AuthGrantViewModel, authGrantOn } from '../
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
+import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest } from '../models/wiki/wikiTitleContain';
 
 
 export class Api{
@@ -303,6 +304,35 @@ export class Api{
                     "成功为段落设置文件"
                 )
                 return resp.success
+            }
+        },
+        wikiTitleContain:{
+            getAll:async(req:WikiTitleContainGetAllRequest)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTitleContain/GetAll",
+                    "postRaw",
+                    req)
+                if(res.success){
+                    return res.data as WikiTitleContainListModel
+                }
+            },
+            setAll:async(req:WikiTitleContainSetAllRequest)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTitleContain/SetAll",
+                    "postRaw",
+                    req,
+                    "设置成功")
+                return res.success
+            },
+            autoFill:async(content:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiTitleContain/AutoFill",
+                    "postForm",
+                    {content},
+                    "已自动添加")
+                if(res.success){
+                    return res.data as WikiTitleContainAutoFillResult
+                }
             }
         }
     }

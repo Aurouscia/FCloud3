@@ -24,6 +24,7 @@ namespace FCloud3.Repos
             services.AddScoped<WikiItemRepo>();
             services.AddScoped<WikiToDirRepo>();
             services.AddScoped<WikiParaRepo>();
+            services.AddScoped<WikiTitleContainRepo>();
 
             services.AddScoped<WikiTemplateRepo>();
 

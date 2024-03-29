@@ -322,5 +322,22 @@ namespace FCloud3.Repos
                 return false;
             }
         }
+        public virtual bool TryRemoveRangePermanent(List<T> items, out string? errmsg)
+        {
+            errmsg = null;
+            foreach (var item in items)
+            {
+                if (item is null)
+                {
+                    errmsg = $"试图向数据库删除空{nameof(T)}对象";
+                    return false;
+                }
+                if (!TryRemoveCheck(item, out errmsg))
+                    return false;
+                _context.Remove(item);
+            }
+            _context.SaveChanges();
+            return true;
+        }
     }
 }
