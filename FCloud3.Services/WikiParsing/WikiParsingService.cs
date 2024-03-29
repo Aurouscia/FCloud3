@@ -78,7 +78,14 @@ namespace FCloud3.Services.WikiParsing
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTable> tableParaObjs = _freeTableRepo.GetRangeByIds(tableIds).ToList();
 
-            var parser = _wikiParserProvider.Get($"w_{wiki.Id}");
+            Func<string, string, string> wikiLink = (pathName, title) => $"<a pathName=\"{pathName}\">{title}</a>";
+            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", builder =>
+            {
+                var textSecIds = textParaObjs.ConvertAll(x => x.Id);
+                _wikiParserProvider.ConfigureWikiLink(builder, WikiTitleContainType.TextSection, textSecIds, wikiLink);
+                var tableIds = tableParaObjs.ConvertAll(x => x.Id);
+                _wikiParserProvider.ConfigureWikiLink(builder, WikiTitleContainType.FreeTable, tableIds, wikiLink);
+            });
 
             WikiParsingResult result = new()
             {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
 import { WikiParsingResult } from '../../models/wikiParsing/wikiParsingResult';
 import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
+import { WikiLinkClick } from '../../utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import Loading from '../../components/Loading.vue';
 import TitleTree from '../../components/Wiki/TitleTree.vue';
@@ -13,10 +14,14 @@ import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import { isImageFile } from '../../utils/fileUtils';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
     wikiPathName: string;
 }>()
+watch(()=>props.wikiPathName,async()=>{
+    await init();
+})
 
 const data = ref<WikiParsingResult>();
 const stylesContent = ref<string>("");
@@ -89,11 +94,16 @@ const subtitlesFolded = ref<boolean>(true);
 
 let api:Api;
 let clickFold:TitleClickFold;
+let wikiLinkClick:WikiLinkClick;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
+const router = useRouter();
 onMounted(async()=>{
     api = injectApi();
+    await init();
+})
+async function init(){
     await load();
 
     listenFootNoteJump();
@@ -106,7 +116,12 @@ onMounted(async()=>{
     titlesInContent = clickFold.listen(wikiViewArea.value);
 
     wikiViewArea.value?.addEventListener('scroll',viewAreaScrollHandler);
-})
+
+    wikiLinkClick = new WikiLinkClick(pathName => {
+        router.push(`/w/${pathName}`)
+    });
+    wikiLinkClick.listen(wikiViewArea.value);
+}
 onUnmounted(()=>{
     clickFold.dispose();
     disposeFootNoteJump();

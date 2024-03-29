@@ -1,5 +1,7 @@
-﻿using FCloud3.HtmlGen.Mechanics;
+﻿using FCloud3.Entities.Wiki;
+using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.Repos.Wiki;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -12,10 +14,17 @@ namespace FCloud3.Services.WikiParsing.Support
     public class WikiParserProviderService
     {
         private readonly IMemoryCache _cache;
+        private readonly WikiTitleContainRepo _wikiTitleContainRepo;
+        private readonly WikiItemRepo _wikiItemRepo;
 
-        public WikiParserProviderService(IMemoryCache cache)
+        public WikiParserProviderService(
+            IMemoryCache cache,
+            WikiTitleContainRepo wikiTitleContainRepo,
+            WikiItemRepo wikiItemRepo)
         {
             _cache = cache;
+            _wikiTitleContainRepo = wikiTitleContainRepo;
+            _wikiItemRepo = wikiItemRepo;
         }
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null)
         {
@@ -31,14 +40,34 @@ namespace FCloud3.Services.WikiParsing.Support
         }
         private Parser Get(Action<ParserBuilder>? configure = null)
         {
-            ParserBuilder pb = new();
-            pb.Cache.UseCacheInstance(_cache);
-            pb.Block.SetTitleLevelOffset(1);
-            pb.TitleGathering.Enable();
+            var pb = DefaultConfigureBuilder();
             if (configure is not null)
                 configure(pb);
             Parser parser = pb.BuildParser();
             return parser;
+        }
+        private ParserBuilder DefaultConfigureBuilder()
+        {
+            ParserBuilder pb = new();
+            pb.Cache.UseCacheInstance(_cache);
+            pb.Block.SetTitleLevelOffset(1);
+            pb.TitleGathering.Enable();
+            return pb;
+        }
+
+        public void ConfigureWikiLink(ParserBuilder pb, WikiTitleContainType type, List<int> objectIds, Func<string, string, string> wikiLink)
+        {
+            var contains = _wikiTitleContainRepo.GetIdsByTypeAndObjIds(type, objectIds);
+            var wikis = _wikiItemRepo.GetRangeByIds(contains).Select(x => new { x.UrlPathName, x.Title }).ToList();
+            Func<string, string> func = (title) =>
+            {
+                var w = wikis.FirstOrDefault(x => x.Title == title);
+                if (w != null && w.UrlPathName != null && w.Title != null)
+                    return wikiLink(w.UrlPathName, w.Title);
+                return title;
+            };
+            var reps = wikis.Where(x=>x.Title != null).Select(x=>x.Title).ToList();
+            pb.AutoReplace.AddReplacing(reps!, func);
         }
     }
 }

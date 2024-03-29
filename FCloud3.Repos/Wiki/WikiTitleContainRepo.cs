@@ -13,5 +13,15 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing.Where(x=>x.Type == type && x.ObjectId == objId).ToList();
         }
+        public List<WikiTitleContain> GetByTypeAndObjIds(WikiTitleContainType type, List<int> objIds) 
+        {
+            var res = Existing.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).ToList();
+            return res.DistinctBy(x=>x.WikiId).ToList();
+        }
+        public List<int> GetIdsByTypeAndObjIds(WikiTitleContainType type, List<int> objIds)
+        {
+            var res = Existing.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).Select(x=>x.WikiId).ToList();
+            return res.Distinct().ToList();
+        }
     }
 }

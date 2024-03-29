@@ -22,7 +22,6 @@
         margin-top: 0.3rem;
         display: flex;
         align-items: center;
-        gap:5px;
         color:#333;
         letter-spacing: normal;
     }
@@ -31,6 +30,7 @@
         height: 15px;
         object-fit: contain;
         transition: 0.2s;
+        margin-right: 5px;
     }
     .hFolded {
         color: #aaa;
@@ -41,9 +41,9 @@
     }
 
     h1 {
-        font-size: 120%;
+        font-size: 140%;
         margin-top: 20px;
-        margin-bottom: 0px;
+        margin-bottom: 5px;
         .h1Sep{
             height: 0.5px;
             background-color: #ccc;
