@@ -35,6 +35,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiParsingService>();
 
             services.AddScoped<QuickSearchService>();
+            services.AddSingleton<CacheExpTokenService>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")

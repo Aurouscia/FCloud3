@@ -11,6 +11,7 @@ using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Sys;
 using FCloud3.Services.Wiki.Paragraph;
 
 namespace FCloud3.Services.Wiki
@@ -24,8 +25,8 @@ namespace FCloud3.Services.Wiki
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FileItemRepo _fileItemRepo;
         private readonly FreeTableRepo _freeTableRepo;
+        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IStorage _storage;
-        private readonly List<WikiParaType> _wikiParaTypes;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
             DbTransactionService transaction,
@@ -35,6 +36,7 @@ namespace FCloud3.Services.Wiki
             TextSectionRepo textSectionRepo,
             FileItemRepo fileItemRepo,
             FreeTableRepo freeTableRepo,
+            CacheExpTokenService cacheExpTokenService,
             IStorage storage)
         {
             _transaction = transaction;
@@ -44,8 +46,8 @@ namespace FCloud3.Services.Wiki
             _textSectionRepo = textSectionRepo;
             _fileItemRepo = fileItemRepo;
             _freeTableRepo = freeTableRepo;
+            _cacheExpTokenService = cacheExpTokenService;
             _storage = storage;
-            _wikiParaTypes = WikiParaTypes.GetListInstance();
         }
         public WikiItem? GetById(int id)
         {
@@ -238,8 +240,11 @@ namespace FCloud3.Services.Wiki
                 errmsg = "未找到指定路径名的词条";
                 return false;
             }
+            bool changed = target.Title != title || target.UrlPathName != urlPathName;
             target.Title = title;
             target.UrlPathName = urlPathName;
+            if (changed)
+                _cacheExpTokenService.WikiItemInfo.CancelAll();
             return _wikiRepo.TryEdit(target, out errmsg);
         }
 

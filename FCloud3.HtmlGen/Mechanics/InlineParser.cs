@@ -123,31 +123,34 @@ namespace FCloud3.HtmlGen.Mechanics
                         break;
 
                     pointer = left + r.MarkLeft.Length;
-                    int right;
-                    while (true)
+                    int right = pointer;
+                    if (r.MarkRight.Length != 0)
                     {
-                        right = input.IndexOf(r.MarkRight, pointer);
-                        if (right == -1)
+                        while (true)
                         {
-                            noMoreForThisRule = true;
-                            break;
+                            right = input.IndexOf(r.MarkRight, pointer);
+                            if (right == -1)
+                            {
+                                noMoreForThisRule = true;
+                                break;
+                            }
+                            //检查该右规则是否被escape
+                            if (input[right - 1] == '\\')
+                                pointer = left + 1;
+                            //检查该位置是否被占
+                            else if (res.Any(x => x.OccupiedAt(right)))
+                                pointer = right + 1;//如果被占了，那就从下一个开始找
+                            else
+                                break;//如果没被占用，那right就是正确的右标记索引
+                            if (pointer >= input.Length - 1)
+                            {
+                                noMoreForThisRule = true;
+                                break;
+                            }
                         }
-                        //检查该右规则是否被escape
-                        if (input[right - 1] == '\\')
-                            pointer = left + 1;
-                        //检查该位置是否被占
-                        else if (res.Any(x => x.OccupiedAt(right)))
-                            pointer = right + 1;//如果被占了，那就从下一个开始找
-                        else
-                            break;//如果没被占用，那right就是正确的右标记索引
-                        if (pointer >= input.Length - 1)
-                        {
-                            noMoreForThisRule = true;
+                        if (noMoreForThisRule)
                             break;
-                        }
                     }
-                    if (noMoreForThisRule)
-                        break;
                     InlineMark m = new(r, left, right);
                     string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
                     if (r.FulFill(span))

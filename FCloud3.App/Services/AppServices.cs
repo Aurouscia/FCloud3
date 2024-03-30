@@ -13,8 +13,9 @@ namespace FCloud3.App.Services
 {
     public static class AppServices
     {
-        public static IServiceCollection AddAppServices(this IServiceCollection services)
+        public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration config)
         {
+            var debug = config["Debug"] == "on";
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped<HttpUserIdProvider>();
             services.AddScoped<HttpUserInfoService>();
@@ -23,7 +24,10 @@ namespace FCloud3.App.Services
             });
             services.AddAuthGrantedActionFilter();
             services.AddFilePathBaseConstraint();
-            services.AddMemoryCache();
+            services.AddMemoryCache(option =>
+            {
+                option.TrackStatistics = debug;
+            });
             services.AddSingleton<ILocatorHash, LocatorHash>();
             services.AddScoped<WikiParserProviderService>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();

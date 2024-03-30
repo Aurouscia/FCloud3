@@ -26,6 +26,7 @@ async function set() {
     const resp = await api.wiki.wikiTitleContain.setAll({Type: props.type, ObjectId: props.objectId, WikiIds: ids})
     if(resp){
         await load();
+        emits('changed');
     }
 }
 
@@ -73,6 +74,10 @@ function keepOrder(){
     if(!data.value){return;}
     data.value.Items.sort((x,y)=>x.WikiTitle.localeCompare(y.WikiTitle));
 }
+
+const emits = defineEmits<{
+    (e:'changed'):void
+}>();
 
 let api:Api;
 onMounted(async() => {

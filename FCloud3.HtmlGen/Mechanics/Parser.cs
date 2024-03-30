@@ -35,7 +35,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 return string.Empty;
             if (input.Length > maxInputLength)
                 return input;
-            IHtmlable result = _blockParser.Run(input);
+            IHtmlable result = _blockParser.Run(input, true, true);
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                     resSb.AppendLine(_ctx.DebugInfo());
@@ -61,7 +61,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new();
             if (input.Length > maxInputLength)
                 return new(input);
-            IHtmlable htmlable = _blockParser.Run(input);
+            IHtmlable htmlable = _blockParser.Run(input, true, true);
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
@@ -86,7 +86,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new();
             if (input.Length > maxInputLength)
                 return new(input);
-            IHtmlable htmlable = _blockParser.Run(input, enforceBlock);
+            IHtmlable htmlable = _blockParser.Run(input, enforceBlock, true);
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
@@ -106,7 +106,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 return new EmptyElement();
             if (input.Length > maxInputLength)
                 return new TextElement(input);
-            IHtmlable htmlable = _blockParser.Run(input);
+            IHtmlable htmlable = _blockParser.Run(input, true, true);
             return htmlable;
         }
 

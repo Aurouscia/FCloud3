@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Sys;
 
 namespace FCloud3.Services.Wiki
 {
@@ -9,15 +10,18 @@ namespace FCloud3.Services.Wiki
         private readonly WikiTitleContainRepo _wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly DbTransactionService _dbTransactionService;
+        private readonly CacheExpTokenService _cacheExpTokenService;
 
         public WikiTitleContainService(
             WikiTitleContainRepo wikiTitleContainRepo,
             WikiItemRepo wikiItemRepo,
-            DbTransactionService dbTransactionService)
+            DbTransactionService dbTransactionService,
+            CacheExpTokenService cacheExpTokenService)
         {
             _wikiTitleContainRepo = wikiTitleContainRepo;
             _wikiItemRepo = wikiItemRepo;
             _dbTransactionService = dbTransactionService;
+            _cacheExpTokenService = cacheExpTokenService;
         }
 
         public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
@@ -71,6 +75,12 @@ namespace FCloud3.Services.Wiki
                 ObjectId = objectId,
             });
             _wikiTitleContainRepo.TryAddRange(newObjs, out errmsg);
+
+            if(newObjs.Count > 0 || needRemove.Count > 0)
+            {
+                _cacheExpTokenService.WikiTitleContain.CancelAll();
+            }
+
             if(errmsg is not null)
             {
                 _dbTransactionService.RollbackTransaction();

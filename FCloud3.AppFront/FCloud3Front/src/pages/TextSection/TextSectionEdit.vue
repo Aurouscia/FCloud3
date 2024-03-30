@@ -224,7 +224,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     </div>
 </div>
 <SideBar ref="wikiTitleContainSidebar">
-    <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content">
+    <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content" @changed="refreshPreview">
     </WikiTitleContain>
 </SideBar>
 <div v-if="loadComplete" class="background">

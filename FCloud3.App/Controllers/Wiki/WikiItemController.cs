@@ -57,7 +57,7 @@ namespace FCloud3.App.Controllers.Wiki
         [AuthGranted]
         public IActionResult EditExe([FromBody] WikiItemComModel model)
         {
-            if (!_wikiService.EditInfo(_userInfo.Id, model.Title, model.UrlPathName, out string? errmsg))
+            if (!_wikiService.EditInfo(model.Id, model.Title, model.UrlPathName, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }

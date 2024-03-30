@@ -21,7 +21,7 @@ try
     //添加业务功能
     builder.Services.AddFCloudServices(c);
     //添加app本身的功能，例如Controller
-    builder.Services.AddAppServices();
+    builder.Services.AddAppServices(c);
     //添加jwt鉴权(authentication)
     builder.Services.AddJwtAuthentication(c);
 

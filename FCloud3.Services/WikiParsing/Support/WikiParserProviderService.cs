@@ -2,6 +2,7 @@
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Sys;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using System;
@@ -16,27 +17,37 @@ namespace FCloud3.Services.WikiParsing.Support
     public class WikiParserProviderService
     {
         private readonly IMemoryCache _cache;
-        private readonly WikiTitleContainRepo _wikiTitleContainRepo;
+        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly WikiItemRepo _wikiItemRepo;
 
         public WikiParserProviderService(
             IMemoryCache cache,
-            WikiTitleContainRepo wikiTitleContainRepo,
+            CacheExpTokenService cacheExpTokenService,
             WikiItemRepo wikiItemRepo)
         {
             _cache = cache;
-            _wikiTitleContainRepo = wikiTitleContainRepo;
+            _cacheExpTokenService = cacheExpTokenService;
             _wikiItemRepo = wikiItemRepo;
         }
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
-                p = Get(configure, containInfos);
-                _cache.Set(cacheKey, p, new MemoryCacheEntryOptions()
-                {
-                    SlidingExpiration = TimeSpan.FromMinutes(5)
-                });
+                var titleContainToken = _cacheExpTokenService.WikiTitleContain.GetCancelToken();
+                var wikiItemInfoToken = _cacheExpTokenService.WikiItemInfo.GetCancelToken();
+                var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken);
+                var token = linkedSource.Token;
+                Action<ParserBuilder> configureAndToken = b => {
+                    if(configure is not null)
+                        configure(b);
+                    b.Cache.SetExpireToken(token);
+                };
+                var changeToken = new CancellationChangeToken(token);
+                p = Get(configureAndToken, containInfos);
+                var options = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(5))
+                    .AddExpirationToken(changeToken);
+                _cache.Set(cacheKey, p, options);
             }
             return p;
         }
@@ -46,6 +57,7 @@ namespace FCloud3.Services.WikiParsing.Support
             var allWikis = _wikiItemRepo.Existing.Select(x => new { x.Id, x.UrlPathName, x.Title }).ToList();
             if (containInfos != null)
             {
+                //自动链接，需要在词条包含标题信息有变更时丢弃缓存
                 var containWikiIds = containInfos.ConvertAll(x => x.WikiId);
                 var wikis = allWikis.FindAll(x => containWikiIds.Contains(x.Id));
                 Func<string, string> func = (title) =>
@@ -60,6 +72,7 @@ namespace FCloud3.Services.WikiParsing.Support
             }
             pb.Implant.AddImplantsHandler(x =>
             {
+                //词条路径名嵌入，需要在词条信息有变更时丢弃缓存
                 var w = allWikis.FirstOrDefault(w => w.UrlPathName == x);
                 if (w is not null && w.UrlPathName != null && w.Title != null)
                     return WikiLink(w.UrlPathName, w.Title);
@@ -78,33 +91,6 @@ namespace FCloud3.Services.WikiParsing.Support
             pb.TitleGathering.Enable();
             return pb;
         }
-
-        //public void ConfigureWikiLink(ParserBuilder pb, WikiTitleContainType type, List<int> objectIds, Func<string, string, string> wikiLink)
-        //{
-        //    var contains = _wikiTitleContainRepo.GetIdsByTypeAndObjIds(type, objectIds);
-        //    var wikis = _wikiItemRepo.GetRangeByIds(contains).Select(x => new { x.UrlPathName, x.Title }).ToList();
-        //    Func<string, string> func = (title) =>
-        //    {
-        //        var w = wikis.FirstOrDefault(x => x.Title == title);
-        //        if (w != null && w.UrlPathName != null && w.Title != null)
-        //            return wikiLink(w.UrlPathName, w.Title);
-        //        return title;
-        //    };
-        //    var reps = wikis.Where(x=>x.Title != null).Select(x=>x.Title).ToList();
-        //    pb.AutoReplace.AddReplacing(reps!, func);
-        //}
-
-        //public void ConfigureReplacement(ParserBuilder pb, Func<string, string, string> wikiLink)
-        //{
-        //    var wikis = _wikiItemRepo.Existing.Select(x => new { x.UrlPathName, x.Title });
-        //    pb.Implant.AddImplantsHandler(x =>
-        //    {
-        //        var w = wikis.FirstOrDefault(w => w.UrlPathName == x);
-        //        if(w is not null && w.UrlPathName != null && w.Title != null)
-        //            return wikiLink(w.UrlPathName, w.Title);
-        //        return x;
-        //    });
-        //}
 
         public static string WikiLink(string urlPathName, string title) => $"<a pathName=\"{urlPathName}\">{title}</a>";
     }

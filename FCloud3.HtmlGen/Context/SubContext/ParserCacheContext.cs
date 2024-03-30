@@ -3,6 +3,7 @@ using FCloud3.HtmlGen.Options.SubOptions;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using System.Text;
 
 namespace FCloud3.HtmlGen.Context.SubContext
@@ -25,7 +26,10 @@ namespace FCloud3.HtmlGen.Context.SubContext
             if (options.CacheInstance is null)
             {
                 IsSelfHostedCache = true;
-                _cache = new MemoryCache(new MemoryCacheOptions());
+                _cache = new MemoryCache(new MemoryCacheOptions()
+                {
+                    TrackStatistics = _ctx.Options.Debug
+                });
             }
             else
             {
@@ -61,10 +65,13 @@ namespace FCloud3.HtmlGen.Context.SubContext
             if (string.IsNullOrEmpty(input))
                 return;
             var cache = new CacheValue(output, usedRules, footNotes, titleNodes);
-            _cache.Set(CacheKey(input), cache, new MemoryCacheEntryOptions()
-            {
-                SlidingExpiration = TimeSpan.FromMinutes(_options.SlideExpirationMins),
-            });
+
+            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_options.ExpToken);
+            var token = new CancellationChangeToken(tokenSource.Token);
+            var options = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(_options.SlideExpirationMins))
+                .AddExpirationToken(token);
+            _cache.Set(CacheKey(input), cache, options);
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
@@ -133,6 +140,12 @@ namespace FCloud3.HtmlGen.Context.SubContext
             if (_options.UseCache)
             {
                 info += $"缓存被读取{CacheReadCount}次，避免{ParsedSavedScanChar}字符被重新解析";
+                var s = _cache.GetCurrentStatistics();
+                if (s is not null)
+                {
+                    info += $"<br/> EntryCount：{s.CurrentEntryCount}";
+                    info += $"<br/> EstimatedSize: {s.CurrentEstimatedSize}";
+                }
             }
             else
             {

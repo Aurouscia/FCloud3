@@ -10,9 +10,10 @@ namespace FCloud3.HtmlGen.Options.SubOptions
     public class CacheOptions
     {
         public bool UseCache { get; private set; }
-        public int SlideExpirationMins { get; private set; }
+        public float SlideExpirationMins { get; private set; }
         public IMemoryCache? CacheInstance { get; private set; }
         public List<string> NoCacheRules { get; private set; }
+        public CancellationToken ExpToken { get; private set; }
 
         private readonly ParserBuilder _master;
 
@@ -28,7 +29,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
             UseCache = false;
             return _master;
         }
-        public ParserBuilder SetSlideExpirationMins(int mins)
+        public ParserBuilder SetSlideExpirationMins(float mins)
         {
             SlideExpirationMins = mins;
             return _master;
@@ -41,6 +42,12 @@ namespace FCloud3.HtmlGen.Options.SubOptions
         public ParserBuilder SetNoCacheRules(List<string> strs)
         {
             NoCacheRules = NoCacheRules.Union(strs).ToList();
+            return _master;
+        }
+
+        public ParserBuilder SetExpireToken(CancellationToken token)
+        {
+            ExpToken = token;
             return _master;
         }
     }

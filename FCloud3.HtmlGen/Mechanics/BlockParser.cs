@@ -9,7 +9,7 @@ namespace FCloud3.HtmlGen.Mechanics
 {
     public interface IBlockParser
     {
-        public IHtmlable Run(string input, bool enforceBlock = true);
+        public IHtmlable Run(string input, bool enforceBlock = true, bool isMasterCall = false);
     }
     public class BlockParser:IBlockParser
     {
@@ -26,9 +26,9 @@ namespace FCloud3.HtmlGen.Mechanics
             _ctx = ctx;
         }
 
-        public IHtmlable Run(string input, bool enforceBlock = true)
+        public IHtmlable Run(string input, bool enforceBlock = true, bool isMasterCall = false)
         {
-            if (_useCache)
+            if (_useCache && !isMasterCall)
             {
                 var cache = _ctx.Caches.ReadParsedElement(input);
                 if (cache is not null) 
@@ -52,7 +52,7 @@ namespace FCloud3.HtmlGen.Mechanics
             else
                 resElement = _titledBlockParser.Value.Run(lines);
 
-            if (_useCache)
+            if (_useCache && !isMasterCall)
                 resElement = _ctx.Caches.SaveParsedElement(input, resElement);
             return resElement;
         }
