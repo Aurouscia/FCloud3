@@ -60,7 +60,8 @@ namespace FCloud3.App.Controllers.TextSec
             {
                 builder.UseLocatorHash(_locatorHash);
                 builder.EnableDebugInfo();
-            }, contains);
+                builder.ClearUsageInfoOnCall();
+            }, contains, false);
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return this.ApiResp(res);
         }

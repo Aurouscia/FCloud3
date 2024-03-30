@@ -84,7 +84,10 @@ namespace FCloud3.Services.WikiParsing
             List<WikiTitleContain> tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.FreeTable, tableIds);
 
             var contains = textContains.UnionBy(tableContains, x => x.WikiId).ToList();
-            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", null, contains);
+            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
+                configure: builder => builder.Cache.DisableCache(),
+                contains);
+            parser.Context.Reset(true);
 
             WikiParsingResult result = new()
             {
@@ -134,16 +137,21 @@ namespace FCloud3.Services.WikiParsing
         {
             AuTable data = model.GetData();
             List<IRule> usedRules = new();
-            var html = data.ConvertToHtml(new()
-            {
-                CellConverter = (s) =>
+            Func<string?, string> cellConverter;
+            if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 100)
+                cellConverter = (s) =>
                 {
                     if (string.IsNullOrWhiteSpace(s))
                         return "　";
                     var res = parser.RunToParserResultRaw(s, false);
                     usedRules.AddRange(res.UsedRules);
                     return res.Content;
-                }
+                };
+            else
+                cellConverter = x => x ?? "　";
+            var html = data.ConvertToHtml(new()
+            {
+                CellConverter = cellConverter
             });
             return new(html, usedRules);
         }

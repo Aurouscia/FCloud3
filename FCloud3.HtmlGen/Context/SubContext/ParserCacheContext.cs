@@ -104,13 +104,15 @@ namespace FCloud3.HtmlGen.Context.SubContext
             var res = ReadParseResult(input);
             if (res is not null)
             {
-                //如果缓存里使用的一次性规则已经在前面被用过了，那么缓存失效，重新算
-                if (res.UsedRules is null || !_ctx.RuleUsage.ViolateSingleUsage(res.UsedRules))
-                {
+                //不再管这个，有缓存的地方没法确保单次使用
+
+                ////如果缓存里使用的一次性规则已经在前面被用过了，那么缓存失效，重新算
+                //if (res.UsedRules is null || !_ctx.RuleUsage.ViolateSingleUsage(res.UsedRules))
+                //{
                     _ctx.RuleUsage.ReportUsage(res.UsedRules);
                     _ctx.FootNote.AddFootNoteBodies(res.FootNotes);
                     return new CachedElement(res.Content, res.UsedRules, res.FootNotes, res.TitleNodes);
-                }
+                //}
             }
             return null;
         }
@@ -144,7 +146,6 @@ namespace FCloud3.HtmlGen.Context.SubContext
                 if (s is not null)
                 {
                     info += $"<br/> EntryCount：{s.CurrentEntryCount}";
-                    info += $"<br/> EstimatedSize: {s.CurrentEstimatedSize}";
                 }
             }
             else

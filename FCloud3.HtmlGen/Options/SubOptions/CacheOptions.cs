@@ -20,7 +20,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
         public CacheOptions(ParserBuilder master)
         {
             UseCache = true;
-            SlideExpirationMins = 5;
+            SlideExpirationMins = 1;
             _master = master;
             NoCacheRules = new List<string>();
         }

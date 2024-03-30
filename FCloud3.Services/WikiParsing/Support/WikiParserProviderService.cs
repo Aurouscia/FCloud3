@@ -29,7 +29,7 @@ namespace FCloud3.Services.WikiParsing.Support
             _cacheExpTokenService = cacheExpTokenService;
             _wikiItemRepo = wikiItemRepo;
         }
-        public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null)
+        public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
@@ -43,7 +43,7 @@ namespace FCloud3.Services.WikiParsing.Support
                     b.Cache.SetExpireToken(token);
                 };
                 var changeToken = new CancellationChangeToken(token);
-                p = Get(configureAndToken, containInfos);
+                p = Get(configureAndToken, containInfos, linkSingle);
                 var options = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromMinutes(5))
                     .AddExpirationToken(changeToken);
@@ -51,7 +51,7 @@ namespace FCloud3.Services.WikiParsing.Support
             }
             return p;
         }
-        private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null)
+        private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
             var allWikis = _wikiItemRepo.Existing.Select(x => new { x.Id, x.UrlPathName, x.Title }).ToList();
@@ -68,12 +68,13 @@ namespace FCloud3.Services.WikiParsing.Support
                     return title;
                 };
                 var reps = wikis.Where(x => x.Title != null).Select(x => x.Title).ToList();
-                pb.AutoReplace.AddReplacing(reps!, func);
+                pb.AutoReplace.AddReplacing(reps!, func, linkSingle);
             }
             pb.Implant.AddImplantsHandler(x =>
             {
                 //词条路径名嵌入，需要在词条信息有变更时丢弃缓存
-                var w = allWikis.FirstOrDefault(w => w.UrlPathName == x);
+                var xTrimmed = x.Trim();
+                var w = allWikis.FirstOrDefault(w => w.UrlPathName == xTrimmed || w.Title == xTrimmed);
                 if (w is not null && w.UrlPathName != null && w.Title != null)
                     return WikiLink(w.UrlPathName, w.Title);
                 return x;

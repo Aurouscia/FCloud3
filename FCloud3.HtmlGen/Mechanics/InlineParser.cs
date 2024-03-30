@@ -33,7 +33,7 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
-            if (_useCache)
+            if (_useCache && !mayContainTemplateCall)
             {
                 var cache = _ctx.Caches.ReadParsedElement(input);
                 if (cache is not null)
@@ -62,7 +62,7 @@ namespace FCloud3.HtmlGen.Mechanics
                         res = SplitByMarks(input, marks);
                     }
                 }
-                if (_useCache)
+                if (_useCache && !mayContainTemplateCall)
                     res = _ctx.Caches.SaveParsedElement(input, res);
                 return res;
             }

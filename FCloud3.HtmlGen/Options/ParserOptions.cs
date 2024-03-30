@@ -26,6 +26,7 @@ namespace FCloud3.HtmlGen.Options
         public CacheOptions CacheOptions { get; }
         public TitleGatheringOptions TitleGatheringOptions { get; }
         public bool Debug { get; }
+        public bool ClearRuleUsageOnCall { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
             TemplateParsingOptions template,
@@ -35,7 +36,7 @@ namespace FCloud3.HtmlGen.Options
             BlockParsingOptions block,
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
-            bool debug, ILocatorHash? locatorHash)
+            bool debug, bool clearRuleUsageOnCall, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
             ImplantsHandleOptions = implant;
@@ -45,6 +46,7 @@ namespace FCloud3.HtmlGen.Options
             CacheOptions = cacheOptions;
             TitleGatheringOptions = titleGathering;
             Debug = debug;
+            ClearRuleUsageOnCall = clearRuleUsageOnCall;
             LocatorHash = locatorHash;
         }
     }
@@ -59,6 +61,7 @@ namespace FCloud3.HtmlGen.Options
         public CacheOptions Cache { get; }
         public TitleGatheringOptions TitleGathering { get; }
         public bool Debug { get; private set; }
+        public bool ClearRuleUsageOnCall { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
         {
@@ -83,11 +86,15 @@ namespace FCloud3.HtmlGen.Options
         {
             LocatorHash = locatorHash;return this;
         }
+        public ParserBuilder ClearUsageInfoOnCall()
+        {
+            ClearRuleUsageOnCall = true; return this;
+        }
 
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
-            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Debug, LocatorHash);
+            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Debug, ClearRuleUsageOnCall, LocatorHash);
             return options;
         }
 

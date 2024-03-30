@@ -32,10 +32,11 @@ namespace FCloud3.HtmlGen.Context
         /// <summary>
         /// 在同一个Parser对象多次反复运行之间，将一些参数设回初始值。
         /// </summary>
-        public void Reset()
+        public void Reset(bool enforce = false)
         {
             UniqueSlotIncre = 0;
-            RuleUsage.Reset();
+            if( Options.ClearRuleUsageOnCall || enforce)
+                RuleUsage.Reset();
             Caches.Reset();
             FootNote.Clear();
         }

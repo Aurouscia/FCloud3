@@ -51,6 +51,9 @@ namespace FCloud3.HtmlGenTest
         [DataRow(
             "Au一边喊着\"咪咪么么么么\"，一边把小兔子拍拍拍拿放",
             "<p>Au一边喊着&quot;咪<a href=\"/w/14\">咪么么么</a>么&quot;，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>")]
+        [DataRow(
+            "咪么",
+            "<p><a href=\"/w/28\">咪么</a></p>")]
         public void Test(string input, string answer)
         {
             string res = _parser.RunToPlain(input);
