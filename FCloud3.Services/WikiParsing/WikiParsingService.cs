@@ -24,6 +24,7 @@ namespace FCloud3.Services.WikiParsing
     {
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiParaRepo _wikiParaRepo;
+        private readonly WikiTitleContainRepo _wikiTitleContainRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo;
         private readonly FileItemRepo _fileItemRepo;
@@ -34,6 +35,7 @@ namespace FCloud3.Services.WikiParsing
         public WikiParsingService(
             WikiItemRepo wikiItemRepo,
             WikiParaRepo wikiParaRepo,
+            WikiTitleContainRepo wikiTitleContainRepo,
             TextSectionRepo textSectionRepo,
             FreeTableRepo freeTableRepo,
             FileItemRepo fileItemRepo,
@@ -43,6 +45,7 @@ namespace FCloud3.Services.WikiParsing
         {
             _wikiItemRepo = wikiItemRepo;
             _wikiParaRepo = wikiParaRepo;
+            _wikiTitleContainRepo = wikiTitleContainRepo;
             _textSectionRepo = textSectionRepo;
             _freeTableRepo = freeTableRepo;
             _fileItemRepo = fileItemRepo;
@@ -77,15 +80,11 @@ namespace FCloud3.Services.WikiParsing
             List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds).ToList();
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTable> tableParaObjs = _freeTableRepo.GetRangeByIds(tableIds).ToList();
+            List<WikiTitleContain> textContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.TextSection, textIds);
+            List<WikiTitleContain> tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.FreeTable, tableIds);
 
-            Func<string, string, string> wikiLink = (pathName, title) => $"<a pathName=\"{pathName}\">{title}</a>";
-            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", builder =>
-            {
-                var textSecIds = textParaObjs.ConvertAll(x => x.Id);
-                _wikiParserProvider.ConfigureWikiLink(builder, WikiTitleContainType.TextSection, textSecIds, wikiLink);
-                var tableIds = tableParaObjs.ConvertAll(x => x.Id);
-                _wikiParserProvider.ConfigureWikiLink(builder, WikiTitleContainType.FreeTable, tableIds, wikiLink);
-            });
+            var contains = textContains.UnionBy(tableContains, x => x.WikiId).ToList();
+            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", null, contains);
 
             WikiParsingResult result = new()
             {

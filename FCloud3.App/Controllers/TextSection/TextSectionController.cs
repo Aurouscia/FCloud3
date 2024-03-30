@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.Entities.TextSection;
-using FCloud3.App.Services.Utils;
+using FCloud3.Services.WikiParsing.Support;
+using FCloud3.HtmlGen.Util;
+using FCloud3.Entities.Wiki;
+using FCloud3.Services.Wiki;
 
 namespace FCloud3.App.Controllers.TextSec
 {
@@ -11,13 +14,19 @@ namespace FCloud3.App.Controllers.TextSec
     {
         private readonly TextSectionService _textSectionService;
         private readonly WikiParserProviderService _genParser;
+        private readonly WikiTitleContainService _titleContainService;
+        private readonly ILocatorHash _locatorHash;
 
         public TextSectionController(
             TextSectionService textSectionService,
-            WikiParserProviderService genParser) 
+            WikiParserProviderService genParser,
+            WikiTitleContainService titleContainService,
+            ILocatorHash locatorHash) 
         {
             _textSectionService = textSectionService;
             _genParser = genParser;
+            _titleContainService = titleContainService;
+            _locatorHash = locatorHash;
         }
 
         public IActionResult CreateForPara(int paraId)
@@ -46,7 +55,12 @@ namespace FCloud3.App.Controllers.TextSec
         public IActionResult Preview(int id, string content)
         {
             string cacheKey = $"tse_{id}";
-            var parser = _genParser.GetParser(cacheKey);
+            List<WikiTitleContain> contains = _titleContainService.GetByTypeAndObjId(WikiTitleContainType.TextSection, id);
+            var parser = _genParser.Get(cacheKey, builder =>
+            {
+                builder.UseLocatorHash(_locatorHash);
+                builder.EnableDebugInfo();
+            }, contains);
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return this.ApiResp(res);
         }

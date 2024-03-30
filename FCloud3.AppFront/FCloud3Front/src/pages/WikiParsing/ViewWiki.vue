@@ -104,6 +104,9 @@ onMounted(async()=>{
     await init();
 })
 async function init(){
+    if(data.value){
+        data.value.Paras = []
+    }
     await load();
 
     listenFootNoteJump();

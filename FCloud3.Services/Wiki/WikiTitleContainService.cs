@@ -20,6 +20,11 @@ namespace FCloud3.Services.Wiki
             _dbTransactionService = dbTransactionService;
         }
 
+        public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
+        {
+            return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
+        }
+
         public WikiTitleContainAutoFillResult AutoFill(string content)
         {
             var wikis = _wikiItemRepo.Existing
