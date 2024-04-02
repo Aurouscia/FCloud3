@@ -33,6 +33,7 @@ namespace FCloud3.Repos
 
             services.AddScoped<FileItemRepo>();
             services.AddScoped<FileDirRepo>();
+            services.AddScoped<MaterialRepo>();
 
             return services;
         }

@@ -3,7 +3,6 @@ using FCloud3.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FCloud3.Repos
 {
@@ -17,7 +16,8 @@ namespace FCloud3.Repos
             _context = context;
             _userIdProvider = userIdProvider;
         }
-        public IQueryable<T> Existing { get { return _context.Set<T>().Where(x => x.Deleted == false); } }
+        public IQueryable<T> Existing => _context.Set<T>().Where(x => x.Deleted == false);
+        public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
 
         public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
         {

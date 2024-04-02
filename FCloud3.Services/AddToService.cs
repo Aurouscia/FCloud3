@@ -28,6 +28,7 @@ namespace FCloud3.Services
             services.AddScoped<FreeTableService>();
             services.AddScoped<FileItemService>();
             services.AddScoped<FileDirService>();
+            services.AddScoped<MaterialService>();
 
             services.AddScoped<WikiParserProviderService>();
             services.AddScoped<WikiParsingRulesProviderService>();

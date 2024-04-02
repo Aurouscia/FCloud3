@@ -5,15 +5,25 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.App.Controllers.Sys
 {
     public class InitController:Controller
     {
         private readonly FCloudContext _context;
+        private readonly static Object migrateLockObj = new();
         public InitController(FCloudContext context)
         {
             _context = context;
+        }
+        public IActionResult InitDb()
+        {
+            lock (migrateLockObj)
+            {
+                _context.Database.Migrate();
+                return Ok("已Migrate成功");
+            }
         }
         public IActionResult InitWikis()
         {
@@ -48,7 +58,7 @@ namespace FCloud3.App.Controllers.Sys
         {
             bool anyUsers = _context.Users.Any();
             bool anyGroups = _context.UserGroups.Any();
-            if (!anyUsers)
+            if (!anyUsers && !anyGroups)
             {
                 User u1 = new User()
                 {

@@ -5,8 +5,12 @@ namespace FCloud3.App.Utils
 {
     public static class ValidFilePathBases
     {
-        private readonly static List<string> validPaths = new List<string> { "upload", "wikiFile", "material", "forum", "test" };
-
+        private readonly static List<string> validPaths = new List<string> { upload, wikiFile, material, forum, test };
+        public const string upload = "upload";
+        public const string wikiFile = "wikiFile";
+        public const string material = "material";
+        public const string forum = "forum";
+        public const string test = "test";
         public static bool Contains(string path)
         {
             return validPaths.Contains(path);
