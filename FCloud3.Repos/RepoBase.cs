@@ -259,13 +259,17 @@ namespace FCloud3.Repos
             if (!TryRemoveCheck(item, out errmsg))
                 return false;
             item.Deleted = true;
+            item.Updated = DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
             return true;
         }
         public virtual bool TryRemove(int id, out string? errmsg)
         {
-            var deleted = Existing.Where(x => x.Id == id).ExecuteUpdate(x => x.SetProperty(t => t.Deleted, true));
+            var deleted = Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x
+                .SetProperty(t => t.Deleted, true)
+                .SetProperty(t => t.Updated, DateTime.Now));
             if (deleted > 0)
             {
                 errmsg = null;

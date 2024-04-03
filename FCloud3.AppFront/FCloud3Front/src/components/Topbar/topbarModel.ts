@@ -27,6 +27,10 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                     {
                         Title: "目录",
                         Link: "/d"
+                    },
+                    {
+                        Title: "素材",
+                        Link: "/materials"
                     }
                 ]
             },

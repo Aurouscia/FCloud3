@@ -218,8 +218,8 @@ var offsetY = 0;
 var moving:boolean = false;
 var wide = ref<boolean>(false);
 var listenerOn = false;
-var disposeMouseListener:()=>void|undefined;
-var disposeResizeListener:()=>void|undefined;
+var disposeMouseListener:undefined|(()=>void|undefined);
+var disposeResizeListener:undefined|(()=>void|undefined);
 function initLisenters(){
     if(listenerOn){return;}
     console.log('注册侦听器')
@@ -241,8 +241,10 @@ function initLisenters(){
 }
 function disposeListeners(){
     console.log('丢弃侦听器')
-    disposeMouseListener();
-    disposeResizeListener();
+    if(disposeMouseListener)
+        disposeMouseListener();
+    if(disposeResizeListener)
+        disposeResizeListener();
     listenerOn = false;
 }
 function tabSwitched(idx:number){

@@ -179,11 +179,15 @@ onMounted(async()=>{
 }
 th{
     padding:5px;
-    min-width: 100px;
+    min-width: 80px;
     white-space: nowrap;
 }
 .miniInput{
-    width: 1.5em;text-align: center;margin: 0px;background:white
+    width: 1.5em;
+    text-align: center;
+    margin: 0px;
+    background:white;
+    padding: 0px;
 }
 button.clearSearch{
     background:none;
@@ -195,7 +199,7 @@ button.queryAdjust{
     width: fit-content;
     padding: 0px;
     margin: 0px;
-    color: #ccc;
+    color: #ddd;
 }
 button.highlight{
     color:white

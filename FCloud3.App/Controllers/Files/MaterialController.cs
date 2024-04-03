@@ -1,57 +1,59 @@
-﻿using FCloud3.App.Utils;
+﻿using FCloud3.App.Services.Filters;
+using FCloud3.App.Utils;
+using FCloud3.Entities.Identities;
 using FCloud3.Repos;
 using FCloud3.Services.Files;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
-    public class MaterialController : Controller
+    [Authorize]
+    public class MaterialController : Controller, IAuthGrantTypeProvidedController
     {
         private readonly MaterialService _materialService;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.Material;
 
         public MaterialController(MaterialService materialService)
         {
             _materialService = materialService;
         }
-        public IActionResult Index([FromBody] IndexQuery query, bool onlyMine)
+        public IActionResult Index([FromBody]IndexQuery query, bool onlyMine)
         {
             return this.ApiResp(_materialService.Index(query, onlyMine));
         }
-        public IActionResult Add([FromBody] MaterialCreateRequest req)
+        public IActionResult Add(string name, string? desc, IFormFile content)
         {
-            if (req.MaterialFile is null)
+            if (content is null)
                 return BadRequest();
-            using Stream stream = req.MaterialFile.OpenReadStream();
-            if (!_materialService.Add(stream, ValidFilePathBases.material, req.Name, req.Desc, out string? errmsg))
+            using Stream stream = content.OpenReadStream();
+            if (!_materialService.Add(stream, content.FileName, ValidFilePathBases.material, name, desc, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        public IActionResult EditContent([FromBody] MaterialContentEditRequest req)
+        [AuthGranted]
+        public IActionResult EditContent(int id, IFormFile content)
         {
-            if (req.MaterialFile is null)
+            if (content is null)
                 return BadRequest();
-            using Stream stream = req.MaterialFile.OpenReadStream();
-            if (!_materialService.UpdateContent(req.Id, stream, ValidFilePathBases.material, out string? errmsg))
+            using Stream stream = content.OpenReadStream();
+            if (!_materialService.UpdateContent(id, stream, content.FileName, ValidFilePathBases.material, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        public IActionResult Delete([FromBody] int id)
+        [AuthGranted]
+        public IActionResult EditInfo(int id, string name, string? desc)
+        {
+            if (!_materialService.UpdateInfo(id, name, desc, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+        [AuthGranted]
+        public IActionResult Delete(int id)
         {
             if (!_materialService.Delete(id, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
-        }
-
-        public class MaterialCreateRequest
-        {
-            public string? Name { get; set; }
-            public string? Desc { get; set; }
-            public IFormFile? MaterialFile { get; set; }
-        }
-        public class MaterialContentEditRequest
-        {
-            public int Id { get; set; } 
-            public IFormFile? MaterialFile { get; set; }
         }
     }
 }

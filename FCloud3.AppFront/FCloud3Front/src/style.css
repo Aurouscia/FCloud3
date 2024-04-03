@@ -21,6 +21,9 @@ table td {
   background-color: #eee;
   text-align: center;
 }
+table tr:hover td{
+  background-color: #ddd;
+}
 table th{
   background-color: cornflowerblue;
   color:white;
@@ -36,6 +39,12 @@ input {
   margin: 5px;
   padding: 3px;
   border: 1px solid #aaa;
+  box-sizing: border-box;
+  border-radius: 5px;
+}
+input[type=file]{
+  width: 200px;
+  background-color: white;
 }
 select {
   font-size: unset;

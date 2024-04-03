@@ -639,6 +639,60 @@ export class Api{
             }
         }
     }
+    material = {
+        Index: async(q:IndexQuery, onlyMine:boolean)=>{
+            const resp = await this.httpClient.request(
+                `/api/Material/Index?onlyMine=${onlyMine}`,
+                "postRaw",
+                q);
+            if(resp.success){
+                return resp.data as IndexResult
+            }
+        },
+        Add: async(name:string, desc:string|undefined, content:File)=>{
+            const resp = await this.httpClient.request(
+                "/api/Material/Add",
+                "postForm",
+                {
+                    name, desc,
+                    content
+                },
+                "上传成功"
+            )
+            return resp.success
+        },
+        EditContent: async(id:number, content:File)=>{
+            const resp = await this.httpClient.request(
+                "/api/Material/EditContent",
+                "postForm",
+                {
+                    id, content
+                },
+                "更改成功"
+            )
+            return resp.success
+        },
+        EditInfo: async(id:number, name:string, desc:string|undefined)=>{
+            const resp = await this.httpClient.request(
+                "/api/Material/EditInfo",
+                "postForm",
+                {
+                    id,name,desc
+                },
+                "更改成功"
+            )
+            return resp.success
+        },
+        Delete: async(id:number)=>{
+            const resp = await this.httpClient.request(
+                "/api/Material/Delete",
+                "postForm",
+                {id},
+                "删除成功"
+            )
+            return resp.success
+        }
+    }
     utils = {
         quickSearch:{
             wikiItem:async(s:string)=>{

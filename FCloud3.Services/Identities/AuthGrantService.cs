@@ -1,8 +1,9 @@
 ﻿using FCloud3.Entities;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
-using FCloud3.Repos.Files;
+using FCloud3.Entities.Wiki;
+using FCloud3.Repos;
 using FCloud3.Repos.Identities;
-using FCloud3.Repos.Wiki;
 
 namespace FCloud3.Services.Identities
 {
@@ -12,31 +13,31 @@ namespace FCloud3.Services.Identities
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
         private readonly UserRepo _userRepo;
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly FileDirRepo _fileDirRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
+        private readonly CreatorIdGetter _creatorIdGetter;
 
         public AuthGrantService(
             AuthGrantRepo authGrantRepo,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
             UserRepo userRepo,
-            WikiItemRepo wikiItemRepo,
-            FileDirRepo fileDirRepo,
-            IOperatingUserIdProvider userIdProvider)
+            IOperatingUserIdProvider userIdProvider,
+            CreatorIdGetter creatorIdGetter)
         {
             _authGrantRepo = authGrantRepo;
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
             _userRepo = userRepo;
-            _wikiItemRepo = wikiItemRepo;
-            _fileDirRepo = fileDirRepo;
             _userIdProvider = userIdProvider;
+            _creatorIdGetter = creatorIdGetter;
         }
         public bool Test(AuthGrantOn on, int onId)
         {
             int userId = _userIdProvider.Get();
             if (userId == 0)
+                return false;
+
+            if (on == AuthGrantOn.None)
                 return false;
 
             var gs = _authGrantRepo.GetByOn(on, onId);//按order从下到上的顺序，下面覆盖上面，所以先检验
@@ -67,7 +68,7 @@ namespace FCloud3.Services.Identities
                     }
                 }
             }
-            return _userToGroupRepo.IsInSameGroup(ownerId, userId);
+            return ownerId == userId;
         }
 
         public List<AuthGrantViewModel> GetList(AuthGrantOn on, int onId)
@@ -165,11 +166,15 @@ namespace FCloud3.Services.Identities
         {
             if (on == AuthGrantOn.WikiItem)
             {
-                return _wikiItemRepo.GetOwnerIdById(onId);
+                return _creatorIdGetter.Get<WikiItem>(onId);
             }
             else if (on == AuthGrantOn.Dir)
             {
-                return _fileDirRepo.GetOwnerIdById(onId);
+                return _creatorIdGetter.Get<FileDir>(onId);
+            }
+            else if (on == AuthGrantOn.Material)
+            {
+                return _creatorIdGetter.Get<Material>(onId);
             }
             return 0;
         }

@@ -34,11 +34,11 @@ namespace FCloud3.Services.Files
             }
             else
                 from = _materialRepo.Existing;
-            var m = _materialRepo.IndexFilterOrder(from, q).TakePage(q, x => new MaterialIndexItem(x));
+            var m = _materialRepo.IndexFilterOrder(from, q).TakePage(q, x => new MaterialIndexItem(x, _storage.FullUrl));
             return m;
         }
 
-        public bool Add(Stream stream, string path, string? name, string? desc, out string? errmsg)
+        public bool Add(Stream stream, string formFileName, string path, string? name, string? desc, out string? errmsg)
         {
             lock (materialNamingLock)
             {
@@ -62,10 +62,33 @@ namespace FCloud3.Services.Files
                     errmsg = "已存在同名素材";
                     return false;
                 }
-                if (!CompressImage(stream, compressed, out errmsg))
-                    return false;
 
-                string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ".png");
+                string ext;
+                if (CanCompress(formFileName))
+                {
+                    if (!CompressImage(stream, compressed, out errmsg))
+                        return false;
+                    ext = ".png";
+                }
+                else if(CanSaveButNoCompress(formFileName))
+                {
+                    stream.CopyTo(compressed);
+                    if(compressed.Length > noCompressMaxSize)
+                    {
+                        errmsg = noCompressMaxSizeExceedMsg;
+                        return false;
+                    }
+                    ext = Path.GetExtension(formFileName);
+                }
+                else
+                {
+                    errmsg = "不支持的文件格式";
+                    return false;
+                }
+
+                compressed.Seek(0, SeekOrigin.Begin);
+
+                string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
                 string storePathName = StorePathName(path, storeName);
                 if (!_storage.Save(compressed, storePathName, out errmsg))
                     return false;
@@ -79,7 +102,7 @@ namespace FCloud3.Services.Files
             }
         }
 
-        public bool UpdateContent(int id, Stream stream, string path, out string? errmsg)
+        public bool UpdateContent(int id, Stream stream, string formFileName, string path, out string? errmsg)
         {
             Material? m = _materialRepo.GetById(id);
             if (m is null)
@@ -89,10 +112,32 @@ namespace FCloud3.Services.Files
             }
 
             using MemoryStream compressed = new();
-            if (!CompressImage(stream, compressed, out errmsg))
-                return false;
 
-            string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ".png");
+            string ext;
+            if (CanCompress(formFileName))
+            {
+                if (!CompressImage(stream, compressed, out errmsg))
+                    return false;
+                ext = ".png";
+            }
+            else if (CanSaveButNoCompress(formFileName))
+            {
+                stream.CopyTo(compressed);
+                if(compressed.Length > noCompressMaxSize)
+                {
+                    errmsg = noCompressMaxSizeExceedMsg;
+                    return false;
+                }
+                ext = Path.GetExtension(formFileName);
+            }
+            else
+            {
+                errmsg = "不支持的文件格式";
+                return false;
+            }
+            compressed.Seek(0, SeekOrigin.Begin);
+
+            string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
             string storePathName = StorePathName(path, storeName);
             if (!_storage.Save(compressed, storePathName, out errmsg))
                 return false;
@@ -103,36 +148,39 @@ namespace FCloud3.Services.Files
             return _materialRepo.TryEdit(m, out errmsg);
         }
 
-        public bool UpdateInfo(int id, string name, string desc, out string? errmsg)
+        public bool UpdateInfo(int id, string name, string? desc, out string? errmsg)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            lock (materialNamingLock)
             {
-                errmsg = "素材名称不能为空";
-                return false;
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    errmsg = "素材名称不能为空";
+                    return false;
+                }
+                if (name.Length < 2)
+                {
+                    errmsg = "素材名称最少两个字符";
+                    return false;
+                }
+                var m = _materialRepo.GetById(id);
+                if (m is null)
+                {
+                    errmsg = "找不到指定素材";
+                    return false;
+                }
+                if (name.Length > Material.displayNameMaxLength)
+                    name = name[..Material.displayNameMaxLength];
+                if (desc is not null && desc.Length > Material.descMaxLength)
+                    desc = desc[..Material.descMaxLength];
+                if (_materialRepo.ExistingExceptId(id).Any(x => x.Name == name))
+                {
+                    errmsg = "已存在同名素材";
+                    return false;
+                }
+                m.Name = name;
+                m.Desc = desc;
+                return _materialRepo.TryEdit(m, out errmsg);
             }
-            if (name.Length < 2)
-            {
-                errmsg = "素材名称最少两个字符";
-                return false;
-            }
-            var m = _materialRepo.GetById(id);
-            if (m is null)
-            {
-                errmsg = "找不到指定素材";
-                return false;
-            }
-            if (name.Length > Material.displayNameMaxLength)
-                name = name[..Material.displayNameMaxLength];
-            if (desc.Length > Material.descMaxLength)
-                desc = desc[..Material.descMaxLength];
-            if (_materialRepo.ExistingExceptId(id).Any(x => x.Name == name))
-            {
-                errmsg = "已存在同名素材";
-                return false;
-            }
-            m.Name = name;
-            m.Desc = desc;
-            return _materialRepo.TryEdit(m, out errmsg);
         }
 
         public bool Delete(int id, out string? errmsg)
@@ -187,17 +235,30 @@ namespace FCloud3.Services.Files
             return true;
         }
 
+        private static bool CanCompress(string fileName)
+        {
+            return fileName.EndsWith(".jpg") || fileName.EndsWith(".jpeg") || fileName.EndsWith(".png");
+        }
+        private static bool CanSaveButNoCompress(string fileName)
+        {
+            return fileName.EndsWith(".svg") || fileName.EndsWith(".gif");
+        }
         private static string StorePathName(string path, string name) => path + "/" + name;
+
+        private const int noCompressMaxSize = 500 * 1024;
+        private const string noCompressMaxSizeExceedMsg = "svg或gif不能超过500KB";
 
         public class MaterialIndexItem
         {
-            public MaterialIndexItem(Material m)
+            public MaterialIndexItem(Material m, Func<string, string> fullPath)
             {
+                Id = m.Id;
                 Name = m.Name ?? "??";
-                Src = m.StorePathName ?? "??";
+                Src = fullPath(m.StorePathName ?? "??");
                 Desc = m.Desc ?? "";
                 Time = m.Updated.ToString("yy/MM/dd HH:mm");
             }
+            public int Id { get; }
             public string Name { get; }
             public string Src { get; }
             public string Desc { get; }

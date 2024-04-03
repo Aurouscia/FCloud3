@@ -23,6 +23,7 @@ namespace FCloud3.DbContexts
         public DbSet<FreeTable> FreeTables { get; set; }
         public DbSet<FileItem> FileItems { get; set; }
         public DbSet<FileDir> FileDirs { get; set; }
+        public DbSet<Material> Materials { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations

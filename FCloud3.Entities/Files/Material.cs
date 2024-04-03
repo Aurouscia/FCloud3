@@ -24,6 +24,6 @@ namespace FCloud3.Entities.Files
 
         public const int displayNameMaxLength = 16;
         public const int descMaxLength = 32;
-        public const int storePathNameMaxLength = 50;
+        public const int storePathNameMaxLength = 64;
     }
 }

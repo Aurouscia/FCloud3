@@ -1,6 +1,7 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
 import FileDirIndex from './FileDirIndex.vue'
+import Material from "./Material.vue";
 
 export function addFiles(r:Router){
     addToRouter(r,routes);
@@ -12,5 +13,10 @@ const routes = [
         path: '/d/:path(.*)*',
         component: FileDirIndex,
         props:true
+    },
+    {
+        name: 'materials',
+        path: '/materials',
+        component: Material,
     }
 ]

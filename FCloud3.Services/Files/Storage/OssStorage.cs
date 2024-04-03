@@ -33,7 +33,17 @@ namespace FCloud3.Services.Files.Storage
         }
         public bool Delete(string pathName, out string? errmsg)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _ossClient.Value.DeleteObject(_config.BucketName, pathName);
+            }
+            catch(Exception ex)
+            {
+                errmsg = ex.Message;
+                return false;
+            }
+            errmsg = null;
+            return true;
         }
         public string FullUrl(string pathName)
         {
