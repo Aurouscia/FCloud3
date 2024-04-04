@@ -15,11 +15,14 @@
 
     public static class QueryablePagingExtension
     {
-        public static IndexResult<TDisplay> TakePage<TModel,TDisplay>(this IQueryable<TModel> q, IndexQuery? query, Func<TModel,TDisplay> map)
+        public static IQueryable<TModel> TakePage<TModel>(
+            this IQueryable<TModel> q, IndexQuery? query,
+            out int totalCount, out int pageIdx, out int pageCount)
         {
             int qCount = q.Count();
+            totalCount = qCount;
 
-            int pageIdx = 1;
+            pageIdx = 1;
             int pageSize = 30;
             if (query is not null)
             {
@@ -33,7 +36,7 @@
                     pageSize = 50;
             }
 
-            int pageCount = qCount / pageSize;
+            pageCount = qCount / pageSize;
             if (qCount % pageSize != 0 || pageCount == 0)
                 pageCount += 1;
             if (pageIdx > pageCount)
@@ -43,11 +46,17 @@
 
             int skip = (pageIdx - 1) * pageSize;
             q = q.Skip(skip).Take(pageSize);
+            return q;
+        }
+        public static IndexResult<TDisplay> TakePage<TModel, TDisplay>(
+            this IQueryable<TModel> q, IndexQuery? query, Func<TModel, TDisplay> map)
+        {
+            q = q.TakePage(query, out int totalCount, out int pageIdx, out int pageCount);
             var list = q.ToList();
 
             var mapped = list.ConvertAll(x => map(x));
 
-            return new(mapped,pageIdx,pageCount,qCount);
+            return new(mapped, pageIdx, pageCount, totalCount);
         }
     }
     public class SearchPair

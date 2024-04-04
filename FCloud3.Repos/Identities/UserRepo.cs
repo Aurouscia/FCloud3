@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Identities
 {
@@ -32,6 +33,13 @@ namespace FCloud3.Repos.Identities
                 return false;
             }
             return true;
+        }
+
+        public void SetLastUpdateToNow()
+        {
+            int uid = _userIdProvider.Get();
+            Existing.Where(x => x.Id == uid)
+                .ExecuteUpdate(call=>call.SetProperty(u => u.Updated, DateTime.Now));
         }
         public IQueryable<User> QuickSearch(string str)
         {

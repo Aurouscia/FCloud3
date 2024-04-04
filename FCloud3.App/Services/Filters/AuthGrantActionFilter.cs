@@ -96,7 +96,7 @@ namespace FCloud3.App.Services.Filters
         }
     }
 
-    public static class AuthGrantedAttributeService
+    public static class AuthGrantedAttributeExtension
     {
         public static IServiceCollection AddAuthGrantedActionFilter(this IServiceCollection services)
         {

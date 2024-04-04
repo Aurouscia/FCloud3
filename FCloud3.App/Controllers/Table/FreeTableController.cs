@@ -1,4 +1,5 @@
-﻿using FCloud3.Services.Table;
+﻿using FCloud3.App.Services.Filters;
+using FCloud3.Services.Table;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -35,7 +36,7 @@ namespace FCloud3.App.Controllers.Table
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-
+        [UserActiveOperation]
         public IActionResult SaveContent(int id, string data)
         {
             if (!_freeTableService.TryEditContent(id, data, out string? errmsg))

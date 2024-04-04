@@ -65,6 +65,15 @@ export class Api{
                     return true
                 }
             },
+            index: async(q:IndexQuery)=>{
+                var res = await this.httpClient.request(
+                    "/api/User/Index",
+                    "postRaw",
+                    q)
+                if(res.success){
+                    return res.data as IndexResult
+                }
+            },
             getInfoByName: async(name:string)=>{
                 var res = await this.httpClient.request(
                     "/api/User/GetInfoByName",

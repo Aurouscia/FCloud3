@@ -2,6 +2,7 @@ import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
 import Login from "../../components/Login.vue"
 import UserGroupIndex from "./UserGroupIndex.vue";
+import UserList from "./UserList.vue";
 import UserCenter from "./UserCenter.vue";
 
 export function addIdentities(r:Router){
@@ -18,6 +19,10 @@ const routes = [
         component:UserGroupIndex,
         props:true,
         name:'userGroup'
+    },
+    {
+        path:"/UserList",
+        component:UserList
     },
     {
         path:"/u/:username?",

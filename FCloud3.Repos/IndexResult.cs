@@ -32,14 +32,17 @@ namespace FCloud3.Repos
                 ColumnNames[pIdx] = p.Name;
             }
 
-            for (var i = 0; i < data.Count(); i++)
+            for (var i = 0; i < data.Count; i++)
             {
                 var row = new string[colCount];
                 var item = data[i];
                 for (var pIdx = 0; pIdx < colCount; pIdx++)
                 {
                     var p = props[pIdx];
-                    row[pIdx] = p.GetValue(item)?.ToString() ?? "";
+                    if (p.PropertyType.IsEnum)
+                        row[pIdx] = ((int)p.GetValue(item)!).ToString();
+                    else
+                        row[pIdx] = p.GetValue(item)?.ToString() ?? "";
                 }
                 Data[i] = row;
             }

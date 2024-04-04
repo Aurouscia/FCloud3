@@ -1,5 +1,9 @@
-﻿using FCloud3.Entities.Identities;
+﻿using FCloud3.Entities.Files;
+using FCloud3.Entities.Identities;
+using FCloud3.Repos;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
+using FCloud3.Services.Files.Storage.Abstractions;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Services.Identities
@@ -7,12 +11,16 @@ namespace FCloud3.Services.Identities
     public partial class UserService
     {
         private readonly UserRepo _repo;
+        private readonly MaterialRepo _materialRepo;
         private readonly IUserPwdEncryption _userPwdEncryption;
+        private readonly IStorage _storage;
 
-        public UserService(UserRepo repo, IUserPwdEncryption userPwdEncryption)
+        public UserService(UserRepo repo, MaterialRepo materialRepo, IUserPwdEncryption userPwdEncryption, IStorage storage)
         {
             _repo = repo;
+            _materialRepo = materialRepo;
             _userPwdEncryption = userPwdEncryption;
+            _storage = storage;
         }
 
         [GeneratedRegex("^[\\u4E00-\\u9FA5A-Za-z0-9_]+$")]
@@ -26,6 +34,28 @@ namespace FCloud3.Services.Identities
         public User? GetById(int id)
         {
             return _repo.GetById(id);
+        }
+
+        private const string defaultAvatar = "/defaultAvatar.svg";
+        public IndexResult<UserIndexItem> Index(IndexQuery q)
+        {
+            static string keyReplaceForLastOperation(string k)
+            {
+                if (k == nameof(UserIndexItem.LastOperation))
+                    return nameof(User.Updated);
+                return k;
+            }
+            var pagedUser = _repo.IndexFilterOrder(q, keyReplaceForLastOperation).TakePage(q, out int totalCount, out int pageIdx, out int pageCount);
+            var lines = (
+                from user in pagedUser
+                join material in _materialRepo.Existing on user.AvatarMaterialId equals material.Id into userWithAvt
+                from mt in userWithAvt.DefaultIfEmpty()
+                select new { 
+                    User = user, 
+                    Avatar = mt.StorePathName }).ToList();
+            Func<string?, string?> avatarFullUrl = x => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
+            var items = lines.ConvertAll(x => new UserIndexItem(x.User, avatarFullUrl(x.Avatar)));
+            return new IndexResult<UserIndexItem>(items, pageIdx, pageCount, totalCount);
         }
 
         public User? GetByName(string name)
@@ -103,6 +133,41 @@ namespace FCloud3.Services.Identities
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
             return true;
+        }
+
+        public void SetLastUpdateToNow()
+        {
+            _repo.SetLastUpdateToNow();
+        }
+
+        public static string UserTypeText(UserType type)
+        {
+            if(type == UserType.Tourist)
+                return "游客";
+            if(type == UserType.Member)
+                return "成员";
+            if(type == UserType.Admin)
+                return "管理";
+            if(type == UserType.SuperAdmin)
+                return "超管";
+            return "未知";
+        }
+
+        public class UserIndexItem
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string LastOperation { get; set; }
+            public string? Avatar { get; set; }
+            public UserType Type { get; set; }
+            public UserIndexItem(User u, string? avatar)
+            {
+                Id = u.Id;
+                Name = u.Name ?? "??";
+                LastOperation = u.Updated.ToString("yyyy/MM/dd HH:mm");
+                Avatar = avatar;
+                Type = u.Type;
+            }
         }
     }
 

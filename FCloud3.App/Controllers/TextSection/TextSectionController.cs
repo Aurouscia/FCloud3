@@ -7,6 +7,7 @@ using FCloud3.Services.WikiParsing.Support;
 using FCloud3.HtmlGen.Util;
 using FCloud3.Entities.Wiki;
 using FCloud3.Services.Wiki;
+using FCloud3.App.Services.Filters;
 
 namespace FCloud3.App.Controllers.TextSec
 {
@@ -44,6 +45,7 @@ namespace FCloud3.App.Controllers.TextSec
             return this.ApiResp(model);
         }
         [Authorize]
+        [UserActiveOperation]
         public IActionResult EditExe([FromBody] TextSectionComModel model)
         {
             if (!_textSectionService.TryUpdate(model.Id, model.Title, model.Content, out string? errmsg))

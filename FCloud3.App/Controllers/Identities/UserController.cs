@@ -1,5 +1,6 @@
 ﻿using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Identities;
+using FCloud3.Repos;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,12 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp();
         }
 
+        public IActionResult Index([FromBody]IndexQuery q)
+        {
+            var res = _userService.Index(q);
+            return this.ApiResp(res);
+        }
+
         [Authorize]
         public IActionResult Edit()
         {
@@ -40,7 +47,7 @@ namespace FCloud3.App.Controllers.Identities
         {
             int uid = _user.Id;
             if (model.Id != uid)
-                throw new Exception("无权限");
+                return this.ApiFailedResp("ID不匹配");
             if (!_userService.TryEdit(uid,model.Name, model.Pwd, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();

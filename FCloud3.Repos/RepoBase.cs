@@ -23,6 +23,10 @@ namespace FCloud3.Repos
         {
             return IndexFilterOrder(Existing, query);
         }
+        public virtual IQueryable<T> IndexFilterOrder(IndexQuery query, Func<string, string> keyReplace)
+        {
+            return IndexFilterOrder(Existing, query, keyReplace);
+        }
         public virtual IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query, Func<string,string>? keyReplace = null)
         {
             var q = from;

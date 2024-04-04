@@ -23,6 +23,7 @@ namespace FCloud3.App.Services
                 options.Filters.Add<ApiExceptionFilter>();
             });
             services.AddAuthGrantedActionFilter();
+            services.AddUserActiveOperationFilter();
             services.AddFilePathBaseConstraint();
             services.AddMemoryCache(option =>
             {
