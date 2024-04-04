@@ -175,6 +175,7 @@ watch(props,async(_newVal)=>{
     setPathData();
     sidebar.value?.fold();
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
+    index.value?.clearSearch(true);
     await index.value?.reloadData();
 });
 const hideFn = ref<boolean>(false);

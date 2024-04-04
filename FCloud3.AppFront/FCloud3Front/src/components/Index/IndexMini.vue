@@ -81,6 +81,7 @@ async function setOrder(by:string, rev:boolean) {
         query.value.OrderBy = target.name;
         query.value.OrderRev = rev;
         orderByAlias.value = target.alias;
+        orderPanelOpen.value = false;
         await reloadData()
     }
 }
@@ -95,10 +96,11 @@ async function setSearch(colName:string) {
     }
     reloadData();
 }
-async function clearSearch() {
+async function clearSearch(noReload?:boolean) {
     cols.value.forEach(x=>{x.searchText="";x.editing=false});
     searchPanelOpen.value = false;
-    await reloadData();
+    if(!noReload)
+        await reloadData();
 }
 async function clearOrder() {
     query.value.OrderBy = undefined;
@@ -109,7 +111,7 @@ async function clearOrder() {
 const emit = defineEmits<{
     (e: 'reloadData', value: IndexResult): void
 }>()
-defineExpose({reloadData,setPageSizeOverride})
+defineExpose({reloadData,setPageSizeOverride,clearSearch})
 
 const query = ref<IndexQuery>(indexQueryDefault)
 const searchStrsAlias = ref<string[]>([]);
@@ -172,7 +174,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                             </div>
                         </div>
                         <div class="searchPanelBtns">
-                            <button class="cancel" @click="clearSearch">清空</button>
+                            <button class="cancel" @click="()=>clearSearch()">清空</button>
                             <button class="ok" @click="searchPanelOpen=false">OK</button>
                         </div>
                     </div>
@@ -236,7 +238,8 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
     top:2em;
     right:0px;
     background-color: white;
-    border: 2px solid black;
+    padding: 5px;
+    box-shadow: 0 0 10px 0px black;
     color:black;
     border-radius: 5px;
     z-index: 1000;
