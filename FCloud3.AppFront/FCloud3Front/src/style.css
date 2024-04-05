@@ -122,9 +122,8 @@ button.lite{
 }
 
 .section{
-  margin: 5px;
+  margin-bottom: 30px;
   padding: 5px;
-  border-bottom: 1px solid #ccc;
 }
 .section>h2{
   font-size: 16px;

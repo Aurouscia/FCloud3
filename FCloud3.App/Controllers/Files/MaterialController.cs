@@ -27,9 +27,10 @@ namespace FCloud3.App.Controllers.Files
             if (content is null)
                 return BadRequest();
             using Stream stream = content.OpenReadStream();
-            if (!_materialService.Add(stream, content.FileName, ValidFilePathBases.material, name, desc, out string? errmsg))
+            var createdId = _materialService.Add(stream, content.FileName, ValidFilePathBases.material, name, desc, out string? errmsg);
+            if (createdId == 0)
                 return this.ApiFailedResp(errmsg);
-            return this.ApiResp();
+            return this.ApiResp(createdId);
         }
         [AuthGranted]
         public IActionResult EditContent(int id, IFormFile content)

@@ -83,6 +83,17 @@ export class Api{
                 if(res.success){
                     return res.data as User
                 }
+            },
+            replaceAvatar:async(id:number, materialId:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/User/ReplaceAvatar",
+                    "postForm",
+                    {
+                        id, materialId
+                    },
+                    "成功替换头像"
+                )
+                return res.success
             }
         },
         userGroup:{
@@ -668,7 +679,7 @@ export class Api{
                 },
                 "上传成功"
             )
-            return resp.success
+            return resp.data as number
         },
         EditContent: async(id:number, content:File)=>{
             const resp = await this.httpClient.request(
@@ -744,6 +755,16 @@ export class Api{
                     return res.data as QuickSearchResult;
                 }
             },
+            material:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/Material",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            }
         },
         urlPathName:async(input:string)=>{
             const resp = await this.httpClient.request(

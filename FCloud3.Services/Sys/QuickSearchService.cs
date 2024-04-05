@@ -1,11 +1,7 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.Services.Sys
 {
@@ -16,17 +12,23 @@ namespace FCloud3.Services.Sys
         private readonly UserRepo _userRepo;
         private readonly UserGroupRepo _userGroupRepo;
         private readonly FileItemRepo _fileItemRepo;
+        private readonly MaterialRepo _materialRepo;
+        private readonly IStorage _storage;
 
         public QuickSearchService(
             WikiItemRepo wikiItemRepo,
             UserRepo userRepo,
             UserGroupRepo userGroupRepo,
-            FileItemRepo fileItemRepo)
+            FileItemRepo fileItemRepo,
+            MaterialRepo materialRepo,
+            IStorage storage)
         {
             _wikiItemRepo = wikiItemRepo;
             _userRepo = userRepo;
             _userGroupRepo = userGroupRepo;
             _fileItemRepo = fileItemRepo;
+            _materialRepo = materialRepo;
+            _storage = storage;
         }
 
         public QuickSearchResult SearchWikiItem(string str)
@@ -73,14 +75,27 @@ namespace FCloud3.Services.Sys
             });
             return res;
         }
+        public QuickSearchResult SearchMaterial(string str)
+        {
+            var q = _materialRepo.QuickSearch(str);
+            var items = q.Select(x => new { x.Id, x.Name, x.StorePathName }).Take(maxCount).ToList();
+            QuickSearchResult res = new(true);
+            items.ForEach(x =>
+            {
+                res.Items.Add(new(x.Name ?? "N/A", _storage.FullUrl(x.StorePathName ?? "??"), x.Id));
+            });
+            return res;
+        }
     }
 
     public class QuickSearchResult
     {
         public List<QuickSearchResultItem> Items { get; set; }
-        public QuickSearchResult()
+        public bool DescIsSrc { get; set; }
+        public QuickSearchResult(bool descIsSrc = false)
         {
             Items = new();
+            DescIsSrc = descIsSrc;
         }
         public class QuickSearchResultItem
         {

@@ -4,6 +4,7 @@ using FCloud3.Repos;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static FCloud3.Services.Identities.UserService;
 
 namespace FCloud3.App.Controllers.Identities
 {
@@ -37,8 +38,9 @@ namespace FCloud3.App.Controllers.Identities
         public IActionResult Edit()
         {
             int uid = _user.Id;
-            User u = _userService.GetById(uid) ?? throw new Exception("找不到指定ID的用户");
-            UserComModel model = UserComModel.ExcludePwd(u);
+            UserComModel? model = _userService.GetById(uid);
+            if(model is null)
+                return this.ApiFailedResp("找不到指定用户");
             return this.ApiResp(model);
         }
 
@@ -55,34 +57,18 @@ namespace FCloud3.App.Controllers.Identities
 
         public IActionResult GetInfoByName(string name)
         {
-            User? u = _userService.GetByName(name);
+            UserComModel? u = _userService.GetByName(name);
             if(u is null)
-            {
                 return this.ApiFailedResp($"找不到用户[{name}]");
-            }
-            UserComModel model = UserComModel.ExcludePwd(u);
-            return this.ApiResp(model);
+            return this.ApiResp(u);
         }
 
-        /// <summary>
-        /// 对应前端：\src\models\identities\user.ts
-        /// </summary>
-        public class UserComModel
+        [Authorize]
+        public IActionResult ReplaceAvatar(int id, int materialId)
         {
-            public int Id { get; set; }
-            public string? Name { get; set; }
-            public string? Pwd { get; set; }
-            public int AvatarMaterialId { get; set; }
-
-            public static UserComModel ExcludePwd(User u)
-            {
-                return new UserComModel
-                {
-                    Id = u.Id,
-                    Name = u.Name,
-                    AvatarMaterialId = u.AvatarMaterialId
-                };
-            }
+            if(!_userService.ReplaceAvatar(id, materialId, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
         }
     }
 }

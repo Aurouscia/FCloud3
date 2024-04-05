@@ -5,6 +5,7 @@ import { IdentityInfo,IdentityInfoProvider } from '../utils/userInfo';
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';
 import { injectUserInfo } from '../provides';
+import { useRouter } from 'vue-router';
 
 const userName = ref<string>("")
 const password = ref<string>("")
@@ -13,6 +14,7 @@ const identityInfo = ref<IdentityInfo|undefined>()
 var httpClient:HttpClient;
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
+const router = useRouter();
 async function Login(){
     const token = await api.identites.authen.login({
         userName:userName.value,
@@ -23,6 +25,7 @@ async function Login(){
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
             identityInfo.value = await identityInfoProvider.getIdentityInfo();
+            router.push("/")
         }
     }
 };

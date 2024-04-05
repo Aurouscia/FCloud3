@@ -1,5 +1,6 @@
 export interface QuickSearchResult{
-    Items:QuickSearchResultItem[]
+    Items:QuickSearchResultItem[],
+    DescIsSrc:boolean
 }
 export interface QuickSearchResultItem{
     Name:string,

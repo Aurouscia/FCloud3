@@ -31,9 +31,34 @@ namespace FCloud3.Services.Identities
         private static partial Regex PwdRegex();
         private const string PasswordRuleText = "密码以字母开头，长度在6~18之间，只能包含字母、数字和下划线";
 
-        public User? GetById(int id)
+        public UserComModel? GetById(int id)
         {
-            return _repo.GetById(id);
+            var userAndAvatar = (
+                from user in _repo.Existing
+                where user.Id == id
+                join material in _materialRepo.Existing on user.AvatarMaterialId equals material.Id into userWithAvt
+                from mt in userWithAvt.DefaultIfEmpty()
+                select new { User = user, Avatar = mt.StorePathName })
+                .FirstOrDefault();
+            if(userAndAvatar is null)
+                return null;
+            string avatarUrl = AvatarFullUrl(userAndAvatar.Avatar);
+            return UserComModel.ExcludePwd(userAndAvatar.User, avatarUrl);
+        }
+
+        public UserComModel? GetByName(string name)
+        {
+            var userAndAvatar = (
+                from user in _repo.Existing
+                where user.Name == name
+                join material in _materialRepo.Existing on user.AvatarMaterialId equals material.Id into userWithAvt
+                from mt in userWithAvt.DefaultIfEmpty()
+                select new { User = user, Avatar = mt.StorePathName })
+                .FirstOrDefault();
+            if (userAndAvatar is null)
+                return null;
+            string avatarUrl = AvatarFullUrl(userAndAvatar.Avatar);
+            return UserComModel.ExcludePwd(userAndAvatar.User, avatarUrl);
         }
 
         private const string defaultAvatar = "/defaultAvatar.svg";
@@ -53,19 +78,14 @@ namespace FCloud3.Services.Identities
                 select new { 
                     User = user, 
                     Avatar = mt.StorePathName }).ToList();
-            Func<string?, string?> avatarFullUrl = x => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
-            var items = lines.ConvertAll(x => new UserIndexItem(x.User, avatarFullUrl(x.Avatar)));
+            var items = lines.ConvertAll(x => new UserIndexItem(x.User, AvatarFullUrl(x.Avatar)));
             return new IndexResult<UserIndexItem>(items, pageIdx, pageCount, totalCount);
         }
-
-        public User? GetByName(string name)
-        {
-            return _repo.Existing.Where(x => x.Name == name).FirstOrDefault();
-        }
+        private string AvatarFullUrl(string x) => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
 
         public User? TryMatchNamePwd(string name,string pwd, out string? errmsg)
         {
-            var u = GetByName(name);
+            var u = _repo.GetByName(name).FirstOrDefault();
             if(u is null)
             {
                 errmsg = "用户名不存在";
@@ -124,12 +144,21 @@ namespace FCloud3.Services.Identities
             pwd ??= "";
             if (!BasicInfoCheck(name, pwd, out errmsg, allowEmptyPwd:true))
                 return false;
-            User? u = GetById(id) ?? throw new Exception("找不到指定ID的用户");
+            User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
 
             u.Name = name;
             if (!string.IsNullOrEmpty(pwd))
                 u.PwdEncrypted = _userPwdEncryption.Run(pwd);
 
+            if (!_repo.TryEdit(u, out errmsg))
+                return false;
+            return true;
+        }
+
+        public bool ReplaceAvatar(int id, int materialId, out string? errmsg)
+        {
+            User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
+            u.AvatarMaterialId = materialId;
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
             return true;
@@ -153,6 +182,29 @@ namespace FCloud3.Services.Identities
             return "未知";
         }
 
+
+        /// <summary>
+        /// 对应前端：\src\models\identities\user.ts
+        /// </summary>
+        public class UserComModel
+        {
+            public int Id { get; set; }
+            public string? Name { get; set; }
+            public string? Pwd { get; set; }
+            public int AvatarMaterialId { get; set; }
+            public string? AvatarSrc { get; set; }
+
+            public static UserComModel ExcludePwd(User u, string avatarSrc)
+            {
+                return new UserComModel
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    AvatarMaterialId = u.AvatarMaterialId,
+                    AvatarSrc = avatarSrc
+                };
+            }
+        }
         public class UserIndexItem
         {
             public int Id { get; set; }

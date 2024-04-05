@@ -17,10 +17,21 @@ const user = ref<User>();
 var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
+
+async function load(){
+    if(username){
+        user.value = await api.identites.user.getInfoByName(username);
+        if(user.value){
+            ok.value = true;
+        }
+    }
+}
+
+let username:string|undefined;
 onMounted(async()=>{
     api = injectApi();
     const pop = injectPop();
-    var username = props.username;
+    username = props.username;
     if(!username){
         const iden = await (inject('userInfo') as IdentityInfoProvider).getIdentityInfo();
         if(iden.Id==0){
@@ -29,17 +40,14 @@ onMounted(async()=>{
         }
         username = iden.Name
     }
-    user.value = await api.identites.user.getInfoByName(username);
-    if(user.value){
-        ok.value = true;
-    }
+    await load();
 })
 </script>
 
 <template>
     <div v-if="ok" class="user">
         <div class="info">
-            <img src="/vite.svg"/>
+            <img :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
             <div class="settings"><button @click="editInfoSidebar?.extend">编辑信息</button></div>
@@ -52,7 +60,7 @@ onMounted(async()=>{
     </div>
     <div v-else><Loading></Loading></div>
     <SideBar ref="editInfoSidebar">
-        <personal></personal>
+        <Personal v-if="user" :user="user" @require-reload="load"></Personal>
     </SideBar>
 </template>
 

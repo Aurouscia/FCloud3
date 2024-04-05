@@ -38,7 +38,7 @@ namespace FCloud3.Services.Files
             return m;
         }
 
-        public bool Add(Stream stream, string formFileName, string path, string? name, string? desc, out string? errmsg)
+        public int Add(Stream stream, string formFileName, string path, string? name, string? desc, out string? errmsg)
         {
             lock (materialNamingLock)
             {
@@ -46,12 +46,12 @@ namespace FCloud3.Services.Files
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     errmsg = "素材名称不能为空";
-                    return false;
+                    return 0;
                 }
                 if (name.Length < 2)
                 {
                     errmsg = "素材名称最少两个字符";
-                    return false;
+                    return 0;
                 }
                 if (name.Length > Material.displayNameMaxLength)
                     name = name[..Material.displayNameMaxLength];
@@ -60,14 +60,14 @@ namespace FCloud3.Services.Files
                 if (_materialRepo.Existing.Any(x => x.Name == name))
                 {
                     errmsg = "已存在同名素材";
-                    return false;
+                    return 0;
                 }
 
                 string ext;
                 if (CanCompress(formFileName))
                 {
                     if (!CompressImage(stream, compressed, out errmsg))
-                        return false;
+                        return 0;
                     ext = ".png";
                 }
                 else if(CanSaveButNoCompress(formFileName))
@@ -76,14 +76,14 @@ namespace FCloud3.Services.Files
                     if(compressed.Length > noCompressMaxSize)
                     {
                         errmsg = noCompressMaxSizeExceedMsg;
-                        return false;
+                        return 0;
                     }
                     ext = Path.GetExtension(formFileName);
                 }
                 else
                 {
                     errmsg = "不支持的文件格式";
-                    return false;
+                    return 0;
                 }
 
                 compressed.Seek(0, SeekOrigin.Begin);
@@ -91,14 +91,14 @@ namespace FCloud3.Services.Files
                 string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
                 string storePathName = StorePathName(path, storeName);
                 if (!_storage.Save(compressed, storePathName, out errmsg))
-                    return false;
+                    return 0;
                 Material m = new()
                 {
                     Name = name,
                     StorePathName = storePathName,
                     Desc = desc
                 };
-                return _materialRepo.TryAdd(m, out errmsg);
+                return _materialRepo.TryAddAndGetId(m, out errmsg);
             }
         }
 
