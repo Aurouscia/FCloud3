@@ -67,10 +67,9 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 </script>
 
 <template>
-<div v-if="tableInfo" class="freeTableEdit">
-    <AuTableEditor v-if="loadComplete" :table-data="tableData" @save="editContent" @changed="preventLeaving">
+<div v-if="tableInfo && loadComplete" class="freeTableEdit">
+    <AuTableEditor v-if="tableData" :table-data="tableData" @save="editContent" @changed="preventLeaving">
     </AuTableEditor>
-    <Loading v-else></Loading>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
     <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
     <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链接</button>
@@ -80,6 +79,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     </SideBar>
     <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning = false"></UnsavedLeavingWarning>
 </div>
+<Loading v-else></Loading>
 </template>
 
 <style scoped>

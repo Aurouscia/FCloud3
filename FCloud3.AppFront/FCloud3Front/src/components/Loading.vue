@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { CSSProperties, onMounted, onUnmounted, ref } from 'vue';
 
+const showRetryBtn = ref<boolean>(false);
+function retry(){
+    location.reload()
+}
+
 const contentStyle = ref<CSSProperties>();
 function cycle(){
     contentStyle.value = {
@@ -14,13 +19,18 @@ function cycle(){
         };
     },10)
 }
-var timer:number=0;
+var cycleTimer:number=0;
+var showRetryTimer:number=0;
 onMounted(()=>{
     cycle();
-    timer = window.setInterval(cycle,2000);
+    cycleTimer = window.setInterval(cycle,2000);
+    showRetryTimer = window.setTimeout(()=>{
+        showRetryBtn.value = true;
+    },5000)
 })
 onUnmounted(()=>{
-    window.clearInterval(timer);
+    window.clearInterval(cycleTimer);
+    window.clearTimeout(showRetryTimer)
 })
 </script>
 
@@ -31,9 +41,16 @@ onUnmounted(()=>{
     <div class="loading">
         <div :style="contentStyle" class="loadingContent" ref="content"></div>
     </div>
+    <div class="retry" v-show="showRetryBtn">
+        <button class="minor" @click="retry">尝试重新加载</button>
+    </div>
 </template>
 
 <style scoped>
+    .retry{
+        text-align: center;
+        margin-top: 15px;
+    }
     .loading{
         position: relative;
         background-color: #ccc;
