@@ -7,12 +7,14 @@ import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
 import { md5 } from 'js-md5'
-import { SetTopbarFunc, injectSetTopbar } from '../../provides';
+import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
 //import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import SideBar from '../../components/SideBar.vue';
+import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
+import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str)
@@ -57,6 +59,7 @@ async function contentInput(){
     if(!previewContent.value){
         previewContent.value="加载中..."
     }
+    preventLeaving();
     window.clearTimeout(timer);
     timer = window.setTimeout(async()=>{
         var refreshProm = refreshPreview()
@@ -125,7 +128,10 @@ async function replaceTitle() {
     api.textSection.editExe(send)
 }
 async function replaceContent() {
-    api.textSection.editExe(data.value);
+    const resp = await api.textSection.editExe(data.value);
+    if(resp){
+        releasePreventLeaving()
+    }
 }
 
 async function init(){
@@ -134,14 +140,15 @@ async function init(){
         data.value = resp;
         loadComplete.value = true;
         await contentInput();
+        releasePreventLeaving()
     }
 }
 
 let setTopbar:SetTopbarFunc|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 onMounted(async()=>{
-    pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
-    api = inject('api') as Api;
+    pop = injectPop();
+    api = injectApi();
     setTopbar = injectSetTopbar();
     setTopbar(false);
     footNoteJumpCallBack.value = (top)=>{
@@ -156,6 +163,7 @@ onUnmounted(()=>{
     if(setTopbar)
         setTopbar(true);
     disposeFootNoteJump();
+    releasePreventLeaving();
 })
 
 function leftToRight(e:MouseEvent){
@@ -201,6 +209,7 @@ function rightToLeft(e:MouseEvent){
     },1000)
 }
 
+const { preventLeaving, releasePreventLeaving, preventingLeaving, showUnsavedWarning } = usePreventLeavingUnsaved();
 const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 </script>
 
@@ -210,7 +219,8 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         <button @click="togglePreview" :class="{off:!previewOn}">
             预览
         </button>
-        <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle"/>
+        <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle" class="paraTitle"/>
+        <div class="preventingLeaving" v-show="preventingLeaving"></div>
     </div>
     <div>
         <div>
@@ -242,9 +252,16 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">
     </textarea>
 </div>
+<UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
 </template>
 
 <style scoped>
+    .preventingLeaving{
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+    }
     .background{
         position: fixed;
         width: 100vw;
@@ -303,22 +320,29 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         position: fixed;
         top:0px;
         left:0px;
-        width: 100vw;
+        width: calc(100vw - 20px);
         height: 50px;
         background-color: #ccc;
+        padding: 0px 10px 0px 10px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
+    .paraTitle{
+        width: 160px;
+    }
     .topbar > div{
         display: flex;
-        padding: 0px 10px 0px 10px;
+        align-items: center;
+    }
+    .topbar button{
+        white-space: nowrap;
     }
 </style>
 
 <style>
 .preview *{
-    transition: 0.6s;
+    transition: 0.3s;
 }
 </style>

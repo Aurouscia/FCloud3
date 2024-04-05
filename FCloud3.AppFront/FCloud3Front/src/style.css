@@ -21,7 +21,7 @@ table td {
   background-color: #eee;
   text-align: center;
 }
-table tr:hover td{
+table.index tr:hover td{
   background-color: #ddd;
 }
 table th{
@@ -156,6 +156,14 @@ a:hover{
 
 .invisible{
   display: none;
+}
+
+.fixFill{
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
 }
 
 :root{

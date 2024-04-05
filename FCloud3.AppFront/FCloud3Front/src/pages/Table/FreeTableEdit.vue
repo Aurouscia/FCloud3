@@ -10,6 +10,8 @@ import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
 import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import { join } from 'lodash';
 import SideBar from '../../components/SideBar.vue';
+import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
+import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
 
 const props = defineProps<{
     id:string
@@ -35,6 +37,7 @@ async function editContent(val:AuTableData, callBack:(success:boolean,msg:string
     const resp = await api.table.freeTable.saveContent(parseInt(props.id),data);
     if(resp.success){
         callBack(true,"成功保存");
+        releasePreventLeaving();
     }else{
         callBack(false,resp.errmsg);
     }
@@ -59,43 +62,54 @@ onUnmounted(()=>{
     if(setTopBar)
         setTopBar(true);
 })
+
+const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWarning } = usePreventLeavingUnsaved()
 </script>
 
 <template>
 <div v-if="tableInfo" class="freeTableEdit">
-    <AuTableEditor v-if="loadComplete" :table-data="tableData" @save="editContent">
+    <AuTableEditor v-if="loadComplete" :table-data="tableData" @save="editContent" @changed="preventLeaving">
     </AuTableEditor>
     <Loading v-else></Loading>
+    <div class="preventingLeaving" v-show="preventingLeaving"></div>
     <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
     <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链接</button>
     <SideBar ref="titleContainSidebar">
         <WikiTitleContain :type="WikiTitleContainType.FreeTable" :object-id="tableInfo.Id" :get-content="getContent">
         </WikiTitleContain>
     </SideBar>
+    <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning = false"></UnsavedLeavingWarning>
 </div>
 </template>
 
 <style scoped>
+.preventingLeaving{
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    position: absolute;
+    top:5px;
+    right: 5px;
+    z-index: 19900;
+}
 .titleContainBtn{
     position: absolute;
     top: 1px;
     padding: 3px;
-    right: 155px;
+    right: 140px;
     z-index: 900;
 }
 .name{
     position: absolute;
     top:1px;
-    right: 40px;
+    right: 30px;
     width: 100px;
     z-index: 900;
     border-radius: 5px;
 }
 </style>
 <style>
-    .tableEditor .author{
-        padding-right: 10px;
-    }
     .tableEditor .control{
         height: 38px;
         box-sizing: border-box;

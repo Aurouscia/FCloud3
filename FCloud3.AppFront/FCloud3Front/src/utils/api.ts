@@ -459,9 +459,7 @@ export class Api{
                 "postRaw",
                 textSection,
                 "已保存修改")
-            if(res.success){
-                return res.data as boolean;
-            }
+            return res.success;
         },
         preview:async(textSecId:number,content:string)=>{
             const res = await this.httpClient.request(
