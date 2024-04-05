@@ -1,16 +1,11 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
-using FCloud3.Repos.Wiki;
+using FCloud3.Services.Files;
 using FCloud3.Services.Sys;
+using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FCloud3.Services.WikiParsing.Support
 {
@@ -18,16 +13,19 @@ namespace FCloud3.Services.WikiParsing.Support
     {
         private readonly IMemoryCache _cache;
         private readonly CacheExpTokenService _cacheExpTokenService;
-        private readonly WikiItemRepo _wikiItemRepo;
+        private readonly WikiItemService _wikiItemService;
+        private readonly MaterialService _materialService;
 
         public WikiParserProviderService(
             IMemoryCache cache,
             CacheExpTokenService cacheExpTokenService,
-            WikiItemRepo wikiItemRepo)
+            WikiItemService wikiItemService,
+            MaterialService materialService)
         {
             _cache = cache;
             _cacheExpTokenService = cacheExpTokenService;
-            _wikiItemRepo = wikiItemRepo;
+            _wikiItemService = wikiItemService;
+            _materialService = materialService;
         }
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
@@ -35,7 +33,8 @@ namespace FCloud3.Services.WikiParsing.Support
             {
                 var titleContainToken = _cacheExpTokenService.WikiTitleContain.GetCancelToken();
                 var wikiItemInfoToken = _cacheExpTokenService.WikiItemInfo.GetCancelToken();
-                var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken);
+                var materialInfoToken = _cacheExpTokenService.MaterialInfo.GetCancelToken();
+                var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken, materialInfoToken);
                 var token = linkedSource.Token;
                 Action<ParserBuilder> configureAndToken = b => {
                     if(configure is not null)
@@ -54,7 +53,8 @@ namespace FCloud3.Services.WikiParsing.Support
         private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemRepo.Existing.Select(x => new { x.Id, x.UrlPathName, x.Title }).ToList();
+            var allWikis = _wikiItemService.AllWikiItemsMeta();
+            var allMeterials = _materialService.AllMaterialsMeta();
             if (containInfos != null)
             {
                 //自动链接，需要在词条包含标题信息有变更时丢弃缓存
@@ -64,7 +64,7 @@ namespace FCloud3.Services.WikiParsing.Support
                 {
                     var w = wikis.FirstOrDefault(x => x.Title == title);
                     if (w != null && w.UrlPathName != null && w.Title != null)
-                        return WikiLink(w.UrlPathName, w.Title);
+                        return WikiReplacement(w.UrlPathName, w.Title);
                     return title;
                 };
                 var reps = wikis.Where(x => x.Title != null).Select(x => x.Title).ToList();
@@ -76,7 +76,17 @@ namespace FCloud3.Services.WikiParsing.Support
                 var xTrimmed = x.Trim();
                 var w = allWikis.FirstOrDefault(w => w.UrlPathName == xTrimmed || w.Title == xTrimmed);
                 if (w is not null && w.UrlPathName != null && w.Title != null)
-                    return WikiLink(w.UrlPathName, w.Title);
+                    return WikiReplacement(w.UrlPathName, w.Title);
+                return x;
+            });
+            pb.Implant.AddImplantsHandler(x =>
+            {
+                var parts = x.Split(materialImplantSep);
+                var firstPart = parts.ElementAtOrDefault(0);
+                var secondPart = parts.ElementAtOrDefault(1);
+                var m = allMeterials.FirstOrDefault(m => m.Name == firstPart);
+                if (m is not null && m.Name != null && m.PathName != null)
+                    return MaterialReplacement(m.PathName, secondPart);
                 return x;
             });
             if (configure is not null)
@@ -93,6 +103,18 @@ namespace FCloud3.Services.WikiParsing.Support
             return pb;
         }
 
-        public static string WikiLink(string urlPathName, string title) => $"<a pathName=\"{urlPathName}\">{title}</a>";
+        private static string WikiReplacement(string urlPathName, string title) => $"<a pathName=\"{urlPathName}\">{title}</a>";
+
+
+        private static readonly char[] materialImplantSep = new[] { ':', '：' };
+        public string MaterialReplacement(string pathName, string? heightExp)
+        {
+            if (heightExp is null)
+                heightExp = "2rem";
+            else if (int.TryParse(heightExp, out int _))
+                heightExp += "rem";
+            return $"<img class=\"wikiInlineImg\" src=\"{MaterialSrc(pathName)}\" style=\"height:{heightExp}\" />";
+        }
+        private string MaterialSrc(string pathName) => _materialService.GetMaterialFullSrc(pathName);
     }
 }

@@ -22,7 +22,7 @@ namespace FCloud3.HtmlGen.Options.SubOptions
                 HandleImplant = (x) =>
                 {
                     string? newAnswer = handleImplant(x);
-                    if (newAnswer is null)
+                    if (newAnswer == x || newAnswer is null)
                         return original(x);
                     return newAnswer;
                 };

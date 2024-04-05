@@ -13,6 +13,7 @@ using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Sys;
 using FCloud3.Services.Wiki.Paragraph;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.Services.Wiki
 {
@@ -27,6 +28,7 @@ namespace FCloud3.Services.Wiki
         private readonly FreeTableRepo _freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IStorage _storage;
+        private readonly IMemoryCache _cache;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
             DbTransactionService transaction,
@@ -37,7 +39,8 @@ namespace FCloud3.Services.Wiki
             FileItemRepo fileItemRepo,
             FreeTableRepo freeTableRepo,
             CacheExpTokenService cacheExpTokenService,
-            IStorage storage)
+            IStorage storage,
+            IMemoryCache cache)
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
@@ -48,6 +51,7 @@ namespace FCloud3.Services.Wiki
             _freeTableRepo = freeTableRepo;
             _cacheExpTokenService = cacheExpTokenService;
             _storage = storage;
+            _cache = cache;
         }
         public WikiItem? GetById(int id)
         {
@@ -248,6 +252,22 @@ namespace FCloud3.Services.Wiki
             return _wikiRepo.TryEdit(target, out errmsg);
         }
 
+
+        private const string allWikiItemsMetaCacheKey = "AllWikiItemsMeta";
+        public List<WikiItemMetaData> AllWikiItemsMeta()
+        {
+            var res = _cache.Get<List<WikiItemMetaData>>(allWikiItemsMetaCacheKey);
+            if (res is null)
+            {
+                var list = _wikiRepo.Existing.Select(x => new WikiItemMetaData(x.Id, x.Title, x.UrlPathName)).ToList();
+                var cacheOptions = new MemoryCacheEntryOptions();
+                cacheOptions.AddExpirationToken(_cacheExpTokenService.WikiItemInfo.GetCancelChangeToken());
+                _cache.Set(allWikiItemsMetaCacheKey, list, cacheOptions);
+                res = list;
+            }
+            return res;
+        }
+
         public class WikiItemIndexItem
         {
             public int Id { get; set; }
@@ -258,6 +278,19 @@ namespace FCloud3.Services.Wiki
                 Id = w.Id;
                 Title = w.Title ?? "";
                 Update = w.Updated.ToString("yy/MM/dd HH:mm");
+            }
+        }
+
+        public class WikiItemMetaData
+        {
+            public int Id { get; set; }
+            public string? Title { get; set; }
+            public string? UrlPathName { get; set; }
+            public WikiItemMetaData(int id, string? title, string? urlPathName)
+            {
+                Id = id;
+                Title = title;
+                UrlPathName = urlPathName;
             }
         }
     }
