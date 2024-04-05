@@ -56,6 +56,7 @@ onMounted(async()=>{
     if(!username){    
         if(identity.Id==0){
             pop.value.show("请登录","failed");
+            jumpToLogin();
             return;
         }
         username = identity.Name
@@ -110,6 +111,7 @@ onMounted(async()=>{
     height: 150px;
     border:2px solid #eee;
     border-radius: 1000px;
+    object-fit: contain;
 }
 
 .user{

@@ -19,10 +19,12 @@ const defaultFailResp:ApiResponse = {data:undefined,success:false,errmsg:"失败
 export class HttpClient{
     jwtToken:string|null=null
     httpCallBack:HttpCallBack
+    unauthorizeCallBack:()=>void
     ax:Axios
-    constructor(httpCallBack:HttpCallBack){
+    constructor(httpCallBack:HttpCallBack, unauthorizeCallBack:()=>void){
         this.jwtToken = localStorage.getItem(storageKey);
         this.httpCallBack = httpCallBack;
+        this.unauthorizeCallBack = unauthorizeCallBack;
         this.ax = axios.create({
             baseURL: import.meta.env.VITE_BASEURL,
             validateStatus: (n)=>n < 500
@@ -44,7 +46,7 @@ export class HttpClient{
     private showErrToUser(err:AxiosError){
         console.log(err);
         if(err.status){
-            const codeText = statusCodeText(err.status);
+            const codeText = this.statusCodeText(err.status);
             if(codeText){
                 this.httpCallBack("err", codeText);
                 return;
@@ -104,26 +106,28 @@ export class HttpClient{
                 if(resp.errmsg){
                     this.httpCallBack('err',resp.errmsg);
                 }else{
-                    const codeText = statusCodeText(res.status);
+                    const codeText = this.statusCodeText(res.status);
                     this.httpCallBack('err',codeText||"未知错误")
                 }
+            }
+            if(res.status == 401){
+                this.unauthorizeCallBack()
             }
             return resp;
         }else{
             return defaultFailResp;
         }
     }
-}
-
-export function statusCodeText(code:number|undefined|null){
-    if(code == 401){
-        return "请登录";
+    statusCodeText(code:number|undefined|null){
+        if(code == 401){
+            return "请登录";
+        }
+        if(code == 403){
+            return "无权限";
+        }
+        if(code||0 >= 500){
+            return "服务器未知错误";
+        }
+        return undefined;
     }
-    if(code == 403){
-        return "无权限";
-    }
-    if(code||0 >= 500){
-        return "服务器未知错误";
-    }
-    return undefined;
 }

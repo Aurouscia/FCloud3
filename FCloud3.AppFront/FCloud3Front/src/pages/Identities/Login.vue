@@ -8,7 +8,7 @@ import { injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
 
 const props = defineProps<{
-    returnUrl?:string
+    backAfterSuccess:string
 }>();
 
 const userName = ref<string>("")
@@ -29,8 +29,11 @@ async function Login(){
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
             identityInfo.value = await identityInfoProvider.getIdentityInfo();
-            const returnUrl = props.returnUrl || "/";
-            router.push(returnUrl)
+            if(props.backAfterSuccess){
+                router.back()
+            }else{
+                router.push("/")
+            }
         }
     }
 };

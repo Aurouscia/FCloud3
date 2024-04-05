@@ -3,6 +3,7 @@ import { HttpCallBack, HttpClient } from './utils/httpClient';
 import { IdentityInfoProvider } from './utils/userInfo';
 import Pop from './components/Pop.vue';
 import { Api } from './utils/api';
+import { jumpToLogin } from './pages/Identities/routes';
 
 const popKey = 'pop';
 const httpKey = 'http';
@@ -21,7 +22,7 @@ export function useProvidesSetup() {
         else if (result == 'warn') { pop.value?.show(msg, 'warning') }
     }
 
-    const httpClient = new HttpClient(httpCallBack)
+    const httpClient = new HttpClient(httpCallBack, jumpToLogin)
     provide(httpKey, httpClient)
     const api = new Api(httpClient);
     provide(apiKey, api)

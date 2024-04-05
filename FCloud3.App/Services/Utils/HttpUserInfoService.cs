@@ -9,7 +9,7 @@ namespace FCloud3.App.Services.Utils
     public class HttpUserInfoService
     {
         public int Id { get; } = 0;
-        public string Name { get; } = string.Empty;
+        public string Name { get; } = "未登录";
         public int LeftHours { get; } = 0;
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {

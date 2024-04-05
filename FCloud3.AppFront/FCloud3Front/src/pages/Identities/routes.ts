@@ -13,7 +13,7 @@ export function addIdentities(r:Router){
 
 const routes = [
     {
-        path:"/Login/:returnUrl?",
+        path:"/Login/:backAfterSuccess?",
         component:Login,
         props:true,
         name:'login'
@@ -39,7 +39,7 @@ const routes = [
 export function jumpToUserCenter(username:string){
     router.push({name:'userCenter', params:{username}})
 }
-export function jumpToLogin(){
-    const route = router.currentRoute.value.path;
-    router.push({name:'login', params:{returnUrl:route}})
+export function jumpToLogin(backAfterSuccess:boolean = true){
+    console.log("跳转到登录页")
+    router.push({name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}})
 }
