@@ -15,6 +15,7 @@ import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import { isImageFile } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
+import { SwipeListener } from '../../utils/swipeListener';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -90,8 +91,6 @@ function enterEdit(type:WikiParaTypes, underlyingId:number){
     }
 }
 
-const subtitlesFolded = ref<boolean>(true);
-
 let api:Api;
 let clickFold:TitleClickFold;
 let wikiLinkClick:WikiLinkClick;
@@ -103,6 +102,33 @@ onMounted(async()=>{
     api = injectApi();
     await init();
 })
+
+const subtitlesFolded = ref<boolean>(true);
+let swl:SwipeListener|undefined;
+function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
+    if(force=="toggle"){
+        subtitlesFolded.value = !subtitlesFolded.value;
+    }
+    else if(force=="fold"){
+        subtitlesFolded.value = true;
+    }
+    else if(force=="extend"){
+        subtitlesFolded.value = false;
+    }
+    if(!subtitlesFolded.value){
+        swl = new SwipeListener((n)=>{
+            if(n=="right"){
+                toggleSubtitlesSidebarFolded('fold');
+            }
+        },"hor",100)
+        swl.startListen()
+    }
+    else{
+        swl?.stopListen()
+        swl = undefined;
+    }
+}
+
 async function init(){
     if(data.value){
         data.value.Paras = []
@@ -128,6 +154,7 @@ async function init(){
 onUnmounted(()=>{
     clickFold.dispose();
     disposeFootNoteJump();
+    swl?.stopListen();
 })
 </script>
 
@@ -172,12 +199,16 @@ onUnmounted(()=>{
         <Loading></Loading>
     </div>
 
+    <div class="cover" :class="{folded:subtitlesFolded}" @click="toggleSubtitlesSidebarFolded('fold')">
+
+    </div>
     <div class="subTitles" :class="{folded:subtitlesFolded}" ref="subTitles">
+
         <TitleTree v-if="data" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
     </div>
-    <div class="subTitlesFoldBtn" @click="subtitlesFolded = !subtitlesFolded">
+    <div class="subTitlesFoldBtn" @click="()=>toggleSubtitlesSidebarFolded()">
         <img :src="menuImg" alt="目录">
     </div>
 </div>
@@ -196,7 +227,7 @@ onUnmounted(()=>{
     overflow-x: hidden;
     flex-shrink: 0;
     position: relative;
-    transition: 0.5s;
+    transition: 0.3s;
     background-color: white;
 }
 .subTitlesFoldBtn{
@@ -214,6 +245,9 @@ onUnmounted(()=>{
     img{
         object-fit: contain;
     }
+}
+.cover{
+    display: none;
 }
 .wikiView{
     max-width: 900px;
@@ -239,6 +273,18 @@ onUnmounted(()=>{
     }
     .subTitlesFoldBtn{
         display: block;
+    }
+
+    .cover{
+        display: block;
+        position: fixed;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        top: 0px;
+    }
+    .cover.folded{
+        display: none;
     }
 }
 </style>

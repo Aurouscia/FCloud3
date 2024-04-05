@@ -89,8 +89,6 @@ $topbar-body-vert-width: 180px;
     padding-top: 60px;
     display: flex;
     flex-direction: column;
-    justify-content: top;
-    align-items: left;
     user-select: none;
 }
 .topbarBodyVertical.folded{
