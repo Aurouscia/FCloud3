@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { inject, onMounted, ref,Ref } from 'vue';
-import { HttpClient} from '../utils/httpClient';
-import { IdentityInfo,IdentityInfoProvider } from '../utils/userInfo';
-import Pop from './Pop.vue';
-import { Api } from '../utils/api';
-import { injectUserInfo } from '../provides';
+import { HttpClient} from '../../utils/httpClient';
+import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
+import Pop from '../../components/Pop.vue'
+import { Api } from '../../utils/api';
+import { injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
+
+const props = defineProps<{
+    returnUrl?:string
+}>();
 
 const userName = ref<string>("")
 const password = ref<string>("")
@@ -25,7 +29,8 @@ async function Login(){
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
             identityInfo.value = await identityInfoProvider.getIdentityInfo();
-            router.push("/")
+            const returnUrl = props.returnUrl || "/";
+            router.push(returnUrl)
         }
     }
 };
@@ -113,4 +118,4 @@ button.logout{
     color:gray;
     margin-top: 20px;
 }
-</style>../../consts
+</style>../../consts../../utils/httpClient../../utils/userInfo../../utils/api../../provides

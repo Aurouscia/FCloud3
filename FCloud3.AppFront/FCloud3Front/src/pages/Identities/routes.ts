@@ -1,18 +1,22 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
-import Login from "../../components/Login.vue"
+import Login from "./Login.vue"
 import UserGroupIndex from "./UserGroupIndex.vue";
 import UserList from "./UserList.vue";
 import UserCenter from "./UserCenter.vue";
 
+let router:Router;
 export function addIdentities(r:Router){
     addToRouter(r,routes);
+    router = r;
 }
 
 const routes = [
     {
-        path:"/Login",
-        component:Login
+        path:"/Login/:returnUrl?",
+        component:Login,
+        props:true,
+        name:'login'
     },
     {
         path:"/UserGroup/:id(\\d+)?",
@@ -27,6 +31,15 @@ const routes = [
     {
         path:"/u/:username?",
         component:UserCenter,
-        props:true
+        props:true,
+        name:'userCenter'
     }
 ]
+
+export function jumpToUserCenter(username:string){
+    router.push({name:'userCenter', params:{username}})
+}
+export function jumpToLogin(){
+    const route = router.currentRoute.value.path;
+    router.push({name:'login', params:{returnUrl:route}})
+}

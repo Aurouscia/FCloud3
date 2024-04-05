@@ -23,7 +23,10 @@ watch(props, (newVal)=>{
 async function editUserInfo(){
     if(user.value){
         if(user.value.Name){
-            await api.identites.user.editExe(user.value);
+            const resp = await api.identites.user.editExe(user.value);
+            if(resp){
+                emits('requireReload')
+            }
         }
         else{
             pop.value.show("请填写用户名","failed");
