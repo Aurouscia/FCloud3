@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { QuickSearchResult, QuickSearchResultItem } from '../models/sys/quickSearch';
 
 const props = defineProps<{
@@ -28,6 +28,7 @@ function refreshCand(){
         doneBtnStatus.value = true;
     }
     if(!searching.value){
+        clear()
         return;
     }
     inputing.value = true;
@@ -38,6 +39,7 @@ function refreshCand(){
         isSearching.value = true;
         if(cands.value)
             cands.value.Items = [];
+        selectCand.value = -1;
         cands.value = await props.source(searching.value);
         isSearching.value = false;
     },delay)
@@ -64,6 +66,7 @@ function clear(){
     selectedId.value = 0;
     doneBtnStatus.value = false;
     cands.value = undefined;
+    selectCand.value = -1;
 }
 
 const emits = defineEmits<{
@@ -72,11 +75,43 @@ const emits = defineEmits<{
 }>();
 defineExpose({clear});
 
+
+const selectCand = ref<number>(-1);
+function keyEventHandler(e:KeyboardEvent){
+    if(!cands.value?.Items){
+        return;
+    }
+    const key = e.key;
+    if(key == 'ArrowUp' && selectCand.value>0){
+        selectCand.value -= 1;
+        e.preventDefault();
+    }
+    else if(key == 'ArrowDown' && selectCand.value < cands.value.Items.length - 1){
+        selectCand.value += 1;
+        e.preventDefault();
+    }
+    else if(key == 'Enter'){
+        if(selectCand.value >= 0 && selectCand.value < cands.value.Items.length){
+            const item = cands.value.Items[selectCand.value];
+            if(item){
+                clickCand(item)
+            }
+        }
+        else if(doneBtnStatus.value){
+            done()
+        }
+    }
+}
+
 onMounted(()=>{
     cands.value = {
         Items:[],
         DescIsSrc:false
     }
+    window.addEventListener('keydown', keyEventHandler);
+})
+onUnmounted(()=>{
+    window.removeEventListener('keydown',keyEventHandler);
 })
 </script>
 
@@ -87,13 +122,15 @@ onMounted(()=>{
             <button class="confirm" :class="{ disabled: !doneBtnStatus }" @click="done">确认</button>
         </div>
         <div v-if="cands && searching" class="cand">
-            <div class="candItem" v-if="!cands.DescIsSrc" v-for="c in cands.Items" @click="clickCand(c)">
-                {{ c.Name }}
-                <div class="desc">{{ c.Desc }}</div>
-            </div>
-            <div class="candItem candItemImage" v-else v-for="c in cands.Items" @click="clickCand(c)">
-                <img :src="c.Desc"/>
-                <div>{{ c.Name }}</div>
+            <div class="candItem" v-for="c,idx in cands.Items" @click="clickCand(c)" :class="{selected:idx == selectCand}">
+                <div v-if="!cands.DescIsSrc">
+                    {{ c.Name }}
+                    <div class="desc">{{ c.Desc }}</div>
+                </div>
+                <div v-else class="candItemImage">
+                    <img :src="c.Desc"/>
+                    <div>{{ c.Name }}</div>
+                </div>
             </div>
             <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{
                 props.noResultNotice }}</div>
@@ -131,6 +168,11 @@ onMounted(()=>{
     transition: 0.5s;
     cursor: pointer;
     user-select: none;
+    transition: 0.1s;
+}
+.candItem.selected{
+    background-color: cornflowerblue;
+    color:white
 }
 .noResult{
     color:#999;

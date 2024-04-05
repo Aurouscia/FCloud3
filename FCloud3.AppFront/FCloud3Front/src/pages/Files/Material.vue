@@ -22,7 +22,7 @@ const columns:IndexColumn[] = [
         canSetOrder:false,
         canSearch:true
     },{
-        name:"Created",
+        name:"Updated",
         alias:"时间",
         canSetOrder:true,
         canSearch:false
