@@ -74,30 +74,36 @@ defineExpose({clear});
 
 onMounted(()=>{
     cands.value = {
-        Items:[]
+        Items:[],
+        DescIsSrc:false
     }
 })
 </script>
 
 <template>
-<div class="search">
-    <div class="write">
-        <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder"/>
-        <button class="confirm" :class="{disabled:!doneBtnStatus}" @click="done">确认</button>
-    </div>
-    <div v-if="cands && searching" class="cand">
-        <div class="candItem" v-for="c in cands.Items" @click="clickCand(c)">
-            {{ c.Name }}
-            <div class="desc">{{ c.Desc }}</div>
+    <div class="search">
+        <div class="write">
+            <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder" />
+            <button class="confirm" :class="{ disabled: !doneBtnStatus }" @click="done">确认</button>
         </div>
-            <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{ props.noResultNotice }}</div>
-            <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length==0">
+        <div v-if="cands && searching" class="cand">
+            <div class="candItem" v-if="!cands.DescIsSrc" v-for="c in cands.Items" @click="clickCand(c)">
+                {{ c.Name }}
+                <div class="desc">{{ c.Desc }}</div>
+            </div>
+            <div class="candItem candItemImage" v-else v-for="c in cands.Items" @click="clickCand(c)">
+                <img :src="c.Desc"/>
+                <div>{{ c.Name }}</div>
+            </div>
+            <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{
+                props.noResultNotice }}</div>
+            <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length == 0">
                 <div v-if="inputing">请继续输入...</div>
                 <div v-else-if="isSearching">搜索中...</div>
                 <div v-else>没有匹配结果</div>
             </div>
+        </div>
     </div>
-</div>
 </template>
 
 <style scoped>
@@ -107,6 +113,17 @@ onMounted(()=>{
 }
 .candItem:hover{
     background-color: #ccc;
+}
+.candItemImage{
+    display: flex;
+    gap:5px;
+    align-items: center;
+    justify-content: left;
+}
+.candItemImage img{
+    height: 25px;
+    max-width: 40px;
+    object-fit: contain;
 }
 .candItem,.noResult{
     border-bottom: 1px solid #aaa;
