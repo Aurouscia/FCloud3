@@ -63,7 +63,7 @@ namespace FCloud3.App.Services.Filters
                             id = numVal;
                     }
                 }
-                else if (firstArg is int v)
+                else if (args.Count == 1 && firstArg is int v)
                     id = v;
                 else if (firstArg is IAuthGrantableRequestModel authReq)
                     id = authReq.AuthGrantOnId;
@@ -81,6 +81,9 @@ namespace FCloud3.App.Services.Filters
 
                 if(OnType == AuthGrantOn.None && controller is not null)
                     OnType = controller.AuthGrantOnType;
+
+                if (OnType == AuthGrantOn.None && firstArg is IAuthGrantableRequstModelWithOn withOn)
+                    OnType = withOn.AuthGrantOnType;
 
                 if (OnType == AuthGrantOn.None)
                     throw new Exception("权限验证未找到匹配类型");

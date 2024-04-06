@@ -22,6 +22,7 @@ namespace FCloud3.App.Controllers.Files
         {
             return this.ApiResp(_materialService.Index(query, onlyMine));
         }
+        [UserTypeRestricted]
         public IActionResult Add(string name, string? desc, IFormFile content)
         {
             if (content is null)
@@ -33,6 +34,7 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp(createdId);
         }
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult EditContent(int id, IFormFile content)
         {
             if (content is null)
@@ -43,6 +45,7 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp();
         }
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult EditInfo(int id, string name, string? desc)
         {
             if (!_materialService.UpdateInfo(id, name, desc, out string? errmsg))
@@ -50,6 +53,7 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp();
         }
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult Delete(int id)
         {
             if (!_materialService.Delete(id, out string? errmsg))

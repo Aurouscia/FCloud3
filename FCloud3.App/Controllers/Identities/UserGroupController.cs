@@ -1,18 +1,32 @@
-﻿using FCloud3.Services.Identities;
+﻿using FCloud3.App.Models.COM;
+using FCloud3.App.Services.Filters;
+using FCloud3.Entities.Identities;
+using FCloud3.Services.Identities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.RegularExpressions;
 
 namespace FCloud3.App.Controllers.Identities
 {
-    public class UserGroupController:Controller
+    [Authorize]
+    public class UserGroupController:Controller, IAuthGrantTypeProvidedController
     {
         private readonly UserGroupService _userGroupService;
+        private readonly UserService _userService;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
 
-        public UserGroupController(UserGroupService userGroupService)
+        public UserGroupController(UserGroupService userGroupService, UserService userService)
         {
             _userGroupService = userGroupService;
+            _userService = userService;
         }
 
+        [UserTypeRestricted]
+        public IActionResult Create(string name)
+        {
+            if(!_userGroupService.Create(name, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
         public IActionResult GetList(string? search)
         {
             var res = _userGroupService.GetList(search, out string? errmsg);
@@ -34,6 +48,8 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
         }
+        [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult EditExe([FromBody]UserGroupComModel model)
         {
             var res = _userGroupService.EditInfo(model.Id, model.Name, out string? errmsg);
@@ -41,13 +57,18 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        public IActionResult AddUserToGroup(int userId, int groupId)
+        [AuthGranted(formKey:nameof(groupId))]
+        [UserTypeRestricted]
+        public IActionResult AddUserToGroup(int groupId, int userId)
         {
-            var res = _userGroupService.AddUserToGroup(userId, groupId, out string? errmsg);
+            var type = _userService.GetUserType();
+            bool needAudit = type != UserType.SuperAdmin;
+            var res = _userGroupService.AddUserToGroup(userId, groupId, needAudit, out string? errmsg);
             if (!res)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+
         public IActionResult AnswerInvitation(int groupId, bool accept)
         {
             var res = _userGroupService.AnswerInvitaion(groupId,accept , out string? errmsg);
@@ -55,7 +76,9 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        public IActionResult RemoveUserFromGroup(int userId, int groupId)
+        [AuthGranted(formKey: nameof(groupId))]
+        [UserTypeRestricted]
+        public IActionResult RemoveUserFromGroup(int groupId, int userId)
         {
             var res = _userGroupService.RemoveUserFromGroup(userId, groupId, out string? errmsg);
             if (!res)
@@ -69,6 +92,8 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult Dissolve(int id)
         {
             var res = _userGroupService.Dissolve(id, out string? errmsg);
@@ -77,10 +102,12 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp();
         }
 
-        public class UserGroupComModel
+        public class UserGroupComModel : IAuthGrantableRequestModel
         {
             public int Id { get; set; }
             public string? Name { get; set; }
+
+            public int AuthGrantOnId => Id;
         }
     }
 }

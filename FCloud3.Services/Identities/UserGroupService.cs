@@ -23,6 +23,18 @@ namespace FCloud3.Services.Identities
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
         }
+        public bool Create(string name, out string? errmsg)
+        {
+            var g = new UserGroup()
+            {
+                Name = name,
+                OwnerUserId = _userId
+            };
+            var id = _userGroupRepo.TryAddAndGetId(g, out errmsg);
+            if(id == 0)
+                return false;
+            return AddUserToGroup(_userId, id, false , out errmsg);
+        }
         public UserGroup? GetById(int id, out string? errmsg)
         {
             errmsg = null;
@@ -109,7 +121,7 @@ namespace FCloud3.Services.Identities
                 Name = group.Name,
                 Owner = owner?.Name,
                 CanEdit = group.OwnerUserId == _userId, //TODO：其他获得权限的方式
-                CanInvite = formalMembers.Any(x=>x.Id == _userId), //TODO：其他获得权限的方式
+                CanInvite = group.OwnerUserId == _userId, //TODO：其他获得权限的方式
                 IsMember = formalMembers.Any(x => x.Id == _userId),
                 FormalMembers = formalMembers,
                 Inviting = inviting
@@ -119,7 +131,6 @@ namespace FCloud3.Services.Identities
         }
         public bool EditInfo(int id,string? name,out string? errmsg)
         {
-            //TODO权限验证
             var g = _userGroupRepo.GetById(id);
             if(g is null)
             {
@@ -129,10 +140,9 @@ namespace FCloud3.Services.Identities
             g.Name = name;
             return _userGroupRepo.TryEdit(g, out errmsg);
         }
-        public bool AddUserToGroup(int userId, int groupId, out string? errmsg)
+        public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
-            //TODO权限验证
-            return _userToGroupRepo.AddUserToGroup(userId, groupId, out errmsg);
+            return _userToGroupRepo.AddUserToGroup(userId, groupId, needAudit, out errmsg);
         }
         public bool AnswerInvitaion(int groupId, bool accept, out string? errmsg)
         {
@@ -143,7 +153,6 @@ namespace FCloud3.Services.Identities
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
-            //TODO权限验证（自己有权力自己出去）
             return _userToGroupRepo.RemoveUserFromGroup(userId, groupId, out errmsg);
         }
         public bool Leave(int groupId, out string? errmsg)
@@ -152,7 +161,6 @@ namespace FCloud3.Services.Identities
         }
         public bool Dissolve(int id,out string? errmsg)
         {
-            //TODO权限验证
             var g = _userGroupRepo.GetById(id);
             if (g is null)
             {

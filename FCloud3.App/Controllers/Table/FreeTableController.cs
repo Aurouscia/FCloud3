@@ -27,6 +27,7 @@ namespace FCloud3.App.Controllers.Table
         }
 
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult Load(int id)
         {
             var res = _freeTableService.GetById(id);
@@ -37,6 +38,7 @@ namespace FCloud3.App.Controllers.Table
 
         [AuthGranted]
         [UserActiveOperation]
+        [UserTypeRestricted]
         public IActionResult SaveInfo(int id, string title)
         {
             if (!_freeTableService.TryEditInfo(id, title, out string? errmsg))
@@ -45,6 +47,7 @@ namespace FCloud3.App.Controllers.Table
         }
         [AuthGranted]
         [UserActiveOperation]
+        [UserTypeRestricted]
         public IActionResult SaveContent(int id, string data)
         {
             if (!_freeTableService.TryEditContent(id, data, out string? errmsg))

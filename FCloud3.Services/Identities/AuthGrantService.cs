@@ -104,6 +104,17 @@ namespace FCloud3.Services.Identities
                     toOn = AuthGrantOn.WikiItem;
                 }
             }
+            else if(on == AuthGrantOn.WikiPara)
+            {
+                var para = _wikiParaRepo.GetById(onId);
+                if (para is not null)
+                {
+                    toOnId = para.WikiItemId;
+                    toOn = AuthGrantOn.WikiItem;
+                }
+                else
+                    problematic = true;
+            }
             if (problematic)
             {
                 toOn = AuthGrantOn.None;
@@ -224,6 +235,13 @@ namespace FCloud3.Services.Identities
             else if (on == AuthGrantOn.User)
             {
                 return onId; // 我，就是自己的主人！
+            }
+            else if (on == AuthGrantOn.UserGroup)
+            {
+                return _userGroupRepo.Existing
+                    .Where(x => x.Id == onId)
+                    .Select(x=>x.OwnerUserId)
+                    .FirstOrDefault();
             }
             throw new Exception("获取所有者失败");
         }

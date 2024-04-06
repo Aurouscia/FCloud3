@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FCloud3.App.Controllers.Identities
 {
     [Authorize]
+    //已限制只有所有者才能设置
     public class AuthGrantController : Controller
     {
         private readonly AuthGrantService _authGrantService;
@@ -19,6 +20,7 @@ namespace FCloud3.App.Controllers.Identities
         {
             return this.ApiResp(_authGrantService.GetList(on, onId));
         }
+        [UserTypeRestricted]
         public IActionResult SetOrder([FromBody]AuthGrantSetOrderRequest req)
         {
             if(!_authGrantService.SetOrder(req.On, req.OnId, req.Ids??new(), out string? errmsg))
@@ -27,6 +29,7 @@ namespace FCloud3.App.Controllers.Identities
             }
             return this.ApiResp();
         }
+        [UserTypeRestricted]
         public IActionResult Add([FromBody]AuthGrant req)
         {
             if(!_authGrantService.Add(req, out string? errmsg))
@@ -35,6 +38,7 @@ namespace FCloud3.App.Controllers.Identities
             }
             return this.ApiResp();
         }
+        [UserTypeRestricted]
         public IActionResult Remove(int id)
         {
             if(!_authGrantService.Remove(id, out string? errmsg))

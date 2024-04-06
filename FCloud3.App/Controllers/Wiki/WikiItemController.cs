@@ -23,6 +23,7 @@ namespace FCloud3.App.Controllers.Wiki
 
         [Authorize]
         [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
+        [UserTypeRestricted]
         public IActionResult CreateInDir(string title,string urlPathName,int dirId)
         {
             if(!_wikiService.CreateInDir(title,urlPathName,dirId,out string? errmsg))
@@ -33,6 +34,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
+        [UserTypeRestricted]
         public IActionResult RemoveFromDir(int wikiId, int dirId)
         {
             if (!_wikiService.RemoveFromDir(wikiId, dirId, out string? errmsg))
@@ -55,6 +57,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult EditExe([FromBody] WikiItemComModel model)
         {
             if (!_wikiService.EditInfo(model.Id, model.Title, model.UrlPathName, out string? errmsg))
@@ -63,6 +66,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult LoadSimple(int id)
         {
             var res = _wikiService.GetWikiParaDisplays(id);
@@ -70,6 +74,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted(nameof(id))]
+        [UserTypeRestricted]
         public IActionResult InsertPara(int id, int afterOrder, WikiParaType type)
         {
             var res = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
@@ -80,6 +85,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult SetParaOrders([FromBody]WikiItemParaOrdersComModel model)
         {
             var orderedParaIds = model.OrderedParaIds ?? throw new Exception("Ids参数为空");
@@ -91,6 +97,7 @@ namespace FCloud3.App.Controllers.Wiki
         }
         [Authorize]
         [AuthGranted(nameof(id))]
+        [UserTypeRestricted]
         public IActionResult RemovePara(int id,int paraId)
         {
             if (id == 0 || paraId == 0)

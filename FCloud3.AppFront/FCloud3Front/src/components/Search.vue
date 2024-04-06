@@ -117,28 +117,30 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <div class="search" :class="{compact}">
-        <div class="write">
-            <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder" />
-            <button class="confirm" :class="{ disabled: !doneBtnStatus }" @click="done">确认</button>
-        </div>
-        <div v-if="cands && searching" class="cand">
-            <div class="candItem" v-for="c,idx in cands.Items" @click="clickCand(c)" :class="{selected:idx == selectCand}">
-                <div v-if="!cands.DescIsSrc">
-                    {{ c.Name }}
-                    <div class="desc">{{ c.Desc }}</div>
-                </div>
-                <div v-else class="candItemImage">
-                    <img :src="c.Desc"/>
-                    <div>{{ c.Name }}</div>
-                </div>
+    <div class="searchOuter">
+        <div class="search" :class="{compact}">
+            <div class="write">
+                <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder" />
+                <button class="confirm" :class="{ disabled: !doneBtnStatus }" @click="done">确认</button>
             </div>
-            <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{
-                props.noResultNotice }}</div>
-            <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length == 0">
-                <div v-if="inputing">请继续输入...</div>
-                <div v-else-if="isSearching">搜索中...</div>
-                <div v-else>没有匹配结果</div>
+            <div v-if="cands && searching" class="cand">
+                <div class="candItem" v-for="c,idx in cands.Items" @click="clickCand(c)" :class="{selected:idx == selectCand}">
+                    <div v-if="!cands.DescIsSrc">
+                        {{ c.Name }}
+                        <div class="desc">{{ c.Desc }}</div>
+                    </div>
+                    <div v-else class="candItemImage">
+                        <img :src="c.Desc"/>
+                        <div>{{ c.Name }}</div>
+                    </div>
+                </div>
+                <div class="noResult" v-show="isFreeInput && props.allowFreeInput && props.noResultNotice">{{
+                    props.noResultNotice }}</div>
+                <div class="noResult" v-show="isFreeInput && !props.allowFreeInput && cands.Items.length == 0">
+                    <div v-if="inputing">请继续输入...</div>
+                    <div v-else-if="isSearching">搜索中...</div>
+                    <div v-else>没有匹配结果</div>
+                </div>
             </div>
         </div>
     </div>
@@ -173,7 +175,10 @@ onUnmounted(()=>{
 }
 .candItem.selected{
     background-color: cornflowerblue;
-    color:white
+    color:white;
+    .desc{
+        color: white;
+    }
 }
 .noResult{
     color:#999;
@@ -183,7 +188,8 @@ onUnmounted(()=>{
 .cand{
     position: absolute;
     top:32px;
-    left:10px;right:50px;
+    width: 190px;
+    left: 10px;
     box-shadow: 0px 0px 6px 0px black;
     background-color: white;
     z-index: 200;
@@ -221,8 +227,16 @@ onUnmounted(()=>{
 }
 .search.compact{
     input{
+        width: 170px;
+    }
+    .cand{
         width: 150px;
     }
     width: 210px;
+}
+
+.searchOuter{
+    display: flex;
+    justify-content: center;
 }
 </style>

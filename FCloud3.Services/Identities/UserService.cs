@@ -15,6 +15,7 @@ namespace FCloud3.Services.Identities
         MaterialRepo materialRepo,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
+        IOperatingUserIdProvider operatingUserIdProvider,
         CacheExpTokenService cacheExpTokenService,
         IMemoryCache memoryCache)
     {
@@ -22,6 +23,7 @@ namespace FCloud3.Services.Identities
         private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
+        private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
         private readonly IMemoryCache _memoryCache = memoryCache;
 
@@ -206,6 +208,11 @@ namespace FCloud3.Services.Identities
             opts.AddExpirationToken(expManager.GetCancelChangeToken());
             _memoryCache.Set(UserTypeCacheKey(id), userType, opts);
             return userType;
+        }
+        public UserType GetUserType()
+        {
+            var uid = _operatingUserIdProvider.Get();
+            return GetUserType(uid);
         }
 
         public string UserTypeText(UserType type)

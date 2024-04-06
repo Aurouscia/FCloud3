@@ -59,6 +59,7 @@ namespace FCloud3.App.Controllers.Files
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult EditExe([FromBody]FileDirComModel req)
         {
             if (req is null)
@@ -69,6 +70,7 @@ namespace FCloud3.App.Controllers.Files
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult PutInFile([FromBody] PutInFileRequest req)
         {
             if(req is null || req.DirId == default) 
@@ -79,6 +81,7 @@ namespace FCloud3.App.Controllers.Files
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult PutInThings([FromBody] PutInThingsRequest req)
         {
             if(req is null || req.DirId == default)
@@ -90,6 +93,7 @@ namespace FCloud3.App.Controllers.Files
         }
         [Authorize]
         [AuthGranted(ignoreZero: true)]
+        [UserTypeRestricted]
         public IActionResult Create([FromBody] FileDirCreateRequest req)
         {
             if(!_fileDirService.Create(req.ParentDir, req.Name, req.UrlPathName, out string? errmsg))
@@ -100,6 +104,7 @@ namespace FCloud3.App.Controllers.Files
         }
         [Authorize]
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult Delete(int dirId)
         {
             if (!_fileDirService.Delete(dirId, out string? errmsg))

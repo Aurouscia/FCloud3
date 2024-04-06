@@ -39,6 +39,19 @@ async function answerInvitation(id:number,accept:boolean){
     }
 }
 
+
+const createSideber = ref<InstanceType<typeof SideBar>>();
+const creatingName = ref<string>();
+async function create(){
+    if(!creatingName.value){return;}
+    const resp = await api.identites.userGroup.create(creatingName.value);
+    if(resp){
+        await loadData();
+        creatingName.value = "";
+        createSideber.value?.fold();
+    }
+}
+
 var api:Api
 var windowWidth = ref<number>(600);
 function getWidth(){
@@ -68,6 +81,7 @@ onUnmounted(()=>{
                 <input v-model="searching" placeholder="搜索用户组名称"/>
                 <button class="minor" @click="loadData">搜索</button>
                 <button v-show="searching" class="cancel" @click="searching=undefined;loadData()">清空搜索</button>
+                <button @click="createSideber?.extend">创建</button>
             </div>
             <table v-if="data">
                 <tbody>
@@ -117,9 +131,25 @@ onUnmounted(()=>{
             </UserGroupDetail>
         </div>
         <SideBar v-else ref="sidebar">
-            <UserGroupDetail :id="lookingDetail||0"></UserGroupDetail>
+            <UserGroupDetail :id="lookingDetail||0" @need-refresh="loadData"></UserGroupDetail>
         </SideBar>
     </div>
+    <SideBar ref="createSideber">
+        <h1>新建用户组</h1>
+        <table>
+            <tr>
+                <td>名称</td>
+                <td>
+                    <input v-model="creatingName" placeholder="组名称(必填)"/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button @click="create">新建</button>
+                </td>
+            </tr>
+        </table>
+    </SideBar>
 </template>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
 import Index, { IndexColumn } from '../../components/Index/Index.vue';

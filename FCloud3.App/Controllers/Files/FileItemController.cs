@@ -24,6 +24,7 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp(detail);
         }
         [Authorize]
+        [UserTypeRestricted]
         [UserActiveOperation]
         public IActionResult Save(FileUploadRequest request)
         {

@@ -38,10 +38,9 @@ namespace FCloud3.Repos.Identities
                 return false;
             return g1s.Intersect(g2s).Any();
         }
-        public bool AddUserToGroup(int userId, int groupId, out string? errmsg)
+        public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
             var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
-            //TODO：超级管理员无需邀请即可直接使其成为成员
             if (existing is not null)
             {
                 if (existing.Type == UserToGroupType.Inviting)
@@ -50,11 +49,12 @@ namespace FCloud3.Repos.Identities
                     errmsg = "该用户本就在组中";
                 return false;
             }
+            UserToGroupType t = needAudit ? UserToGroupType.Inviting : UserToGroupType.Member; 
             var newRelation = new UserToGroup()
             {
                 UserId = userId,
                 GroupId = groupId,
-                Type = UserToGroupType.Inviting
+                Type = t
             };
             return TryAdd(newRelation, out errmsg);
         }

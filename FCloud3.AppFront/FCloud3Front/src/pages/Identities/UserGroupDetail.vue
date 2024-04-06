@@ -32,12 +32,14 @@ async function inviteUser(_name:string, userId:number){
     if(res){
         inviteUserSearch.value?.clear();
         loadData();
+        emit('needRefresh');
     }
 }
 async function leaveGroup() {
     var res = await api.identites.userGroup.leave(props.id);
     if(res){
         loadData();
+        emit('needRefresh');
     }
 }
 async function editInfo() {
@@ -45,6 +47,7 @@ async function editInfo() {
     var res = await api.identites.userGroup.editExe(info.value)
     if(res){
         loadData();
+        emit('needRefresh');
     }
 }
 async function removeUser(userId:number) {

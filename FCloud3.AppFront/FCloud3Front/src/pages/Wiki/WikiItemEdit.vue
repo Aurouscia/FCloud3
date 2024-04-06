@@ -327,9 +327,9 @@ onUnmounted(()=>{
         <AuthGrants v-if="info" :on="'Wiki'" :on-id="info.Id"></AuthGrants>
     </div>
     </SwitchingTabs>
-    <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters();fileEditFold()">
+    <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters()">
         <WikiFileParaEdit v-if="fileParaEditing" :para-id="fileParaEditing.ParaId"
-            :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true"></WikiFileParaEdit>
+            :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true;fileEditFold()"></WikiFileParaEdit>
     </SideBar>
 </template>
 

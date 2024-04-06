@@ -108,6 +108,15 @@ export class Api{
             }
         },
         userGroup:{
+            create:async(name:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/UserGroup/Create",
+                    "postForm",
+                    {name},
+                    "创建成功"
+                )
+                return resp.success;
+            },
             getList:async(search?:string)=>{
                 const resp = await this.httpClient.request(
                     "/api/UserGroup/GetList",
@@ -359,8 +368,7 @@ export class Api{
                 const res = await this.httpClient.request(
                     "/api/WikiTitleContain/AutoFill",
                     "postForm",
-                    {content},
-                    "已自动添加")
+                    {content})
                 if(res.success){
                     return res.data as WikiTitleContainAutoFillResult
                 }

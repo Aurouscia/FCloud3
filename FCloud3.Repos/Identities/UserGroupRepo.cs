@@ -23,13 +23,13 @@ namespace FCloud3.Repos.Identities
         }
         public override bool TryAddCheck(UserGroup item, out string? errmsg)
         {
-            return InfoCheck(item, out errmsg);
+            return InfoCheck(item, true, out errmsg);
         }
         public override bool TryEditCheck(UserGroup item, out string? errmsg)
         {
-            return InfoCheck(item, out errmsg);
+            return InfoCheck(item, false ,out errmsg);
         }
-        public bool InfoCheck(UserGroup group, out string? errmsg)
+        public bool InfoCheck(UserGroup group, bool creating, out string? errmsg)
         {
             if (string.IsNullOrWhiteSpace(group.Name))
             {
@@ -46,7 +46,16 @@ namespace FCloud3.Repos.Identities
                 errmsg = "用户组名称只能有汉字，字母，数字";
                 return false;
             }
-            if(Existing.Any(x=>x.Id!=group.Id && x.Name == group.Name))
+            if(creating)
+            {
+                if (Existing.Any(x => x.Name == group.Name))
+                {
+                    errmsg = "存在同名用户组";
+                    return false;
+                }
+
+            }
+            else if(Existing.Any(x=>x.Id!=group.Id && x.Name == group.Name))
             {
                 errmsg = "存在同名用户组";
                 return false;

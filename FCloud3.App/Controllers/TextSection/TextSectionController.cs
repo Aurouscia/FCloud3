@@ -43,6 +43,7 @@ namespace FCloud3.App.Controllers.TextSec
         }
 
         [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult Edit(int id)
         {
             var res = _textSectionService.GetById(id) ?? throw new Exception("找不到指定Id的文本段");
@@ -50,6 +51,7 @@ namespace FCloud3.App.Controllers.TextSec
             return this.ApiResp(model);
         }
         [AuthGranted]
+        [UserTypeRestricted]
         [UserActiveOperation]
         public IActionResult EditExe([FromBody] TextSectionComModel model)
         {
@@ -58,7 +60,8 @@ namespace FCloud3.App.Controllers.TextSec
             return this.ApiResp();
         }
 
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
+        [UserTypeRestricted]
         public IActionResult Preview(int id, string content)
         {
             string cacheKey = $"tse_{id}";

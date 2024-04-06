@@ -1,12 +1,15 @@
-﻿using FCloud3.App.Services.Utils;
+﻿using FCloud3.App.Services.Filters;
+using FCloud3.Entities.Identities;
 using FCloud3.Entities.WikiParsing;
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.Services.WikiParsing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.WikiParsing
 {
+    [Authorize]
     public class WikiTemplateController : Controller
     {
         private readonly WikiTemplateService _wikiTemplateService;
@@ -24,6 +27,7 @@ namespace FCloud3.App.Controllers.WikiParsing
             var res = _wikiTemplateService.GetList(search ?? "");
             return this.ApiResp(res);
         }
+        [UserTypeRestricted(UserType.SuperAdmin)]
         public IActionResult Add(string name)
         {
             var res = _wikiTemplateService.Add(name, out var errmsg);
@@ -31,11 +35,13 @@ namespace FCloud3.App.Controllers.WikiParsing
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [UserTypeRestricted(UserType.SuperAdmin)]
         public IActionResult Edit(int id)
         {
             var res = _wikiTemplateService.Edit(id);
             return this.ApiResp(res);
         }
+        [UserTypeRestricted(UserType.SuperAdmin)]
         public IActionResult EditExe([FromBody]WikiTemplate wikiTemplate)
         {
             var res = _wikiTemplateService.EditExe(wikiTemplate, out string? errmsg);
@@ -43,6 +49,7 @@ namespace FCloud3.App.Controllers.WikiParsing
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [UserTypeRestricted(UserType.SuperAdmin)]
         public IActionResult Remove(int id)
         {
             var res = _wikiTemplateService.Remove(id, out string? errmsg);
@@ -50,7 +57,7 @@ namespace FCloud3.App.Controllers.WikiParsing
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-
+        [UserTypeRestricted(UserType.SuperAdmin)]
         public IActionResult Preview([FromBody]WikiTemplate wikiTemplate)
         {
             if (string.IsNullOrWhiteSpace(wikiTemplate.Name))
