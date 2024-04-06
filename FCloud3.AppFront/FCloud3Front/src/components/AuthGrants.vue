@@ -54,14 +54,14 @@ async function moveUp(id:number) {
     if(idx>0){
         const ele = document.getElementById(rowId(id));
         if(ele){
-            await elementBlinkClass(ele, 'blinking', 1);
+            await elementBlinkClass(ele, 'blinking', 1, 100);
         }
         const it = data.value.splice(idx,1);
         data.value.splice(idx-1,0,...it);
         touchedOrder.value = true;
         if(ele){
             setTimeout(()=>{
-                elementBlinkClass(ele, 'blinking', 1);
+                elementBlinkClass(ele, 'blinking', 1, 100);
             }, 10);
         }
     }
@@ -85,7 +85,7 @@ onMounted(()=>{
 <template>
 <div class="authGrants">
     <div class="func">
-        <button @click="adding = !adding">添加授权</button>
+        <button @click="adding = !adding" :class="{cancel:adding}">{{adding?'取消添加':'添加授权'}}</button>
         <button v-show="touchedOrder" @click="saveOrder" class="ok">保存顺序更改</button>
         <div class="addPanel" v-if="api" v-show="adding">
             <table>
@@ -110,8 +110,8 @@ onMounted(()=>{
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <Search v-show="addingTo == 'UserGroup'" :source="api.utils.quickSearch.userGroupName" @done="toSearchDone"></Search>
-                        <Search v-show="addingTo == 'User'" :source="api.utils.quickSearch.userName" @done="toSearchDone"></Search>
+                        <Search v-show="addingTo == 'UserGroup'" :source="api.utils.quickSearch.userGroupName" @done="toSearchDone" :compact="true"></Search>
+                        <Search v-show="addingTo == 'User'" :source="api.utils.quickSearch.userName" @done="toSearchDone" :compact="true"></Search>
                         <button v-show="addingTo == 'EveryOne'" @click="toSearchDone('',0)">确认</button>
                     </td>
                 </tr>
@@ -146,10 +146,20 @@ onMounted(()=>{
     <div v-else class="tempNone">
         暂无授权设置
     </div>
+    <div class="defaultNote">
+        默认情况下只有自己有权限<br/>
+        无需"允许自己"或"阻止所有人"
+    </div>
 </div>
 </template>
 
 <style scoped>
+.defaultNote{
+    color:gray;
+    font-size: 14px;
+    margin: 10px 10px 10px 0px;
+    text-align: center;
+}
 .overlapNote{
     color:gray;
     font-size: 14px;
@@ -169,7 +179,9 @@ button.lite{
 .addPanel{
     position: absolute;
     top:45px;
-    width: 300px;
+    left:0px;right: 0px;
+    width: 230px;
+    margin: auto;
     overflow: visible;
     background-color: white;
     box-shadow: 0 0 10px 0 black;
@@ -193,6 +205,7 @@ select{
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
 }
 table{
     table-layout: fixed;

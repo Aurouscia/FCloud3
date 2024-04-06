@@ -47,6 +47,7 @@ namespace FCloud3.Services.Identities
                 return false;
 
             var gs = _authGrantRepo.GetByOn(on, onId);//按order从下到上的顺序，下面覆盖上面，所以先检验
+            gs.Reverse();
             var ownerId = GetOwnerId(on, onId);
             if (userId == ownerId)
                 return true;

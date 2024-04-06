@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { pullAt } from 'lodash';
 
 const rightDefault = -200;
 const height = 70;
+const top = 50;
 export type boxTypes = "success"|"failed"|"warning"|"info"
 export type popDelegate = (msg:string,type:boxTypes)=>void;
 
@@ -42,9 +44,13 @@ function refresh() {
         return now-x.created <= 2500
     });
 }
+function remove(idx:number){
+    pullAt(boxes.value, idx);
+}
+
 var interval:number; 
 onMounted(()=>{
-    interval = setInterval(refresh,20)
+    interval = setInterval(refresh,50)
 })
 onBeforeUnmount(()=>{
     clearInterval(interval);
@@ -55,10 +61,10 @@ defineExpose({ show })
 </script>
 
 <template>
-    <div v-for="box,index in boxes" :key="box.created" class="box" :style="{ 
+    <div v-for="box,index in boxes" :key="box.created" @click="remove(index)" class="box" :style="{ 
         right: box.right + 'px',
         width: (-rightDefault) + 'px',
-        top: height*index + 100 + 'px'
+        top: height*index + top + 'px'
          }" :class="box.type">
          <div>
             {{ box.msg }}

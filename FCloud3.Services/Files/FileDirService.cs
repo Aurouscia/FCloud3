@@ -70,6 +70,9 @@ namespace FCloud3.Services.Files
             var thisDirId = 0;
             if(chain.Count>0)
                 thisDirId = chain.Last().Id;
+
+            var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
+
             var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
             if(subDirsQ is null)
                 return null;
@@ -138,6 +141,7 @@ namespace FCloud3.Services.Files
                 SubDirs = subDirsData,
                 Wikis = wikisData,
                 ThisDirId = thisDirId,
+                OwnerId = ownerId,
                 FriendlyPath = friendlyPath
             };
         }
@@ -435,6 +439,7 @@ namespace FCloud3.Services.Files
         public IndexResult<FileDirItem>? Items { get; set; }
         public IndexResult<FileDirWiki>? Wikis { get; set; }
         public int ThisDirId { get; set; }
+        public int OwnerId { get; set; }
         public List<string>? FriendlyPath { get; set; }
 
         public class FileDirSubDir

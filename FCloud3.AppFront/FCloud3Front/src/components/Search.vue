@@ -7,7 +7,8 @@ const props = defineProps<{
     allowFreeInput?:boolean|undefined,
     noResultNotice?:string,
     source:(s:string)=>Promise<QuickSearchResult|undefined>,
-    dontClearAfterDone?:boolean
+    dontClearAfterDone?:boolean,
+    compact?:boolean
 }>()
 
 const doneBtnStatus = ref<boolean>(false);
@@ -116,7 +117,7 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <div class="search">
+    <div class="search" :class="{compact}">
         <div class="write">
             <input v-model="searching" @input="refreshCand" :placeholder="props.placeholder" />
             <button class="confirm" :class="{ disabled: !doneBtnStatus }" @click="done">确认</button>
@@ -143,7 +144,7 @@ onUnmounted(()=>{
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .desc{
     font-size: 10px;
     color:#888
@@ -201,7 +202,6 @@ onUnmounted(()=>{
 .write input{
     border:2px solid cornflowerblue;
     border-radius: 5px 0px 0px 5px;
-    flex-grow: 1;
     padding: 4px;
     margin:0px;
     height: 100%;
@@ -211,11 +211,18 @@ onUnmounted(()=>{
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
+    justify-content: center;
     gap:0px;
     position: relative;
     z-index: 50;
 }
 .search{
     position: relative;
+}
+.search.compact{
+    input{
+        width: 150px;
+    }
+    width: 210px;
 }
 </style>
