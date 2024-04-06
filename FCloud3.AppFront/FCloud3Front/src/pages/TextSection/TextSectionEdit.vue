@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, Ref, onMounted, inject, computed, onUnmounted, nextTick} from 'vue'
+import {ref, Ref, onMounted, computed, onUnmounted, nextTick} from 'vue'
 import Pop from '../../components/Pop.vue';
 import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
 import { TextSection } from '../../models/textSection/textSection'
@@ -15,6 +15,7 @@ import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import SideBar from '../../components/SideBar.vue';
 import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
 import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
+import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str)
@@ -146,6 +147,7 @@ async function init(){
 
 let setTopbar:SetTopbarFunc|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
+let saveShortcut: ShortcutListener|undefined;
 onMounted(async()=>{
     pop = injectPop();
     api = injectApi();
@@ -156,6 +158,8 @@ onMounted(async()=>{
         previewArea.value?.scrollTo({top: top, behavior: 'smooth'})
     };
     listenFootNoteJump();
+    saveShortcut = new ShortcutListener(replaceContent, "s", true);
+    saveShortcut.startListen();
     await init();
     await nextTick();
 })
@@ -164,6 +168,7 @@ onUnmounted(()=>{
         setTopbar(true);
     disposeFootNoteJump();
     releasePreventLeaving();
+    saveShortcut?.dispose();
 })
 
 function leftToRight(e:MouseEvent){
@@ -220,7 +225,6 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
             预览
         </button>
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle" class="paraTitle"/>
-        <div class="preventingLeaving" v-show="preventingLeaving"></div>
     </div>
     <div>
         <div>
@@ -232,6 +236,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
             保存
         </button>
     </div>
+    <div class="preventingLeaving" v-show="preventingLeaving"></div>
 </div>
 <SideBar ref="wikiTitleContainSidebar">
     <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content" @changed="refreshPreview">
@@ -257,6 +262,9 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 
 <style scoped>
     .preventingLeaving{
+        position: fixed;
+        right: 10px;
+        top: 7px;
         width: 10px;
         height: 10px;
         background-color: red;
@@ -320,7 +328,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         position: fixed;
         top:0px;
         left:0px;
-        width: calc(100vw - 20px);
+        right: 0px;
         height: 50px;
         background-color: #ccc;
         padding: 0px 10px 0px 10px;
