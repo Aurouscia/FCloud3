@@ -4,6 +4,7 @@ using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Wiki;
 
 namespace FCloud3.Services.Identities
 {
@@ -13,6 +14,7 @@ namespace FCloud3.Services.Identities
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
         private readonly UserRepo _userRepo;
+        private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
 
@@ -21,6 +23,7 @@ namespace FCloud3.Services.Identities
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
             UserRepo userRepo,
+            WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
             CreatorIdGetter creatorIdGetter)
         {
@@ -28,6 +31,7 @@ namespace FCloud3.Services.Identities
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
             _userRepo = userRepo;
+            _wikiParaRepo = wikiParaRepo;
             _userIdProvider = userIdProvider;
             _creatorIdGetter = creatorIdGetter;
         }
@@ -36,6 +40,8 @@ namespace FCloud3.Services.Identities
             int userId = _userIdProvider.Get();
             if (userId == 0)
                 return false;
+
+            Redirect(on, onId, out on, out onId);
 
             if (on == AuthGrantOn.None)
                 return false;
@@ -70,6 +76,39 @@ namespace FCloud3.Services.Identities
             }
             return ownerId == userId;
         }
+        private void Redirect(AuthGrantOn on, int onId, out AuthGrantOn toOn, out int toOnId)
+        {
+            toOn = on;
+            toOnId = onId;
+            bool problematic = false;
+            if(on == AuthGrantOn.TextSection)
+            {
+                var wikiIds = _wikiParaRepo.WithType(WikiParaType.Text).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
+                if (wikiIds.Count != 1)
+                    problematic = true;
+                else
+                {
+                    toOnId = wikiIds[0];
+                    toOn = AuthGrantOn.WikiItem;
+                }
+            }
+            else if(on == AuthGrantOn.FreeTable)
+            {
+                var wikiIds = _wikiParaRepo.WithType(WikiParaType.Table).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
+                if (wikiIds.Count != 1)
+                    problematic = true;
+                else
+                {
+                    toOnId = wikiIds[0];
+                    toOn = AuthGrantOn.WikiItem;
+                }
+            }
+            if (problematic)
+            {
+                toOn = AuthGrantOn.None;
+                toOnId = 0;
+            }
+        }
 
         public List<AuthGrantViewModel> GetList(AuthGrantOn on, int onId)
         {
@@ -102,6 +141,11 @@ namespace FCloud3.Services.Identities
             if (userId != owner)
             {
                 errmsg = "只有所有者能设置权限";
+                return false;
+            }
+            if(newGrant.ToId == userId && newGrant.To == AuthGrantTo.User)
+            {
+                errmsg = "无需为自己设置权限";
                 return false;
             }
             _authGrantRepo.TryAdd(newGrant, out errmsg);

@@ -8,15 +8,19 @@ using FCloud3.HtmlGen.Util;
 using FCloud3.Entities.Wiki;
 using FCloud3.Services.Wiki;
 using FCloud3.App.Services.Filters;
+using FCloud3.Entities.Identities;
+using FCloud3.App.Models.COM;
 
 namespace FCloud3.App.Controllers.TextSec
 {
-    public class TextSectionController:Controller
+    [Authorize]
+    public class TextSectionController:Controller, IAuthGrantTypeProvidedController
     {
         private readonly TextSectionService _textSectionService;
         private readonly WikiParserProviderService _genParser;
         private readonly WikiTitleContainService _titleContainService;
         private readonly ILocatorHash _locatorHash;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.TextSection;
 
         public TextSectionController(
             TextSectionService textSectionService,
@@ -38,13 +42,14 @@ namespace FCloud3.App.Controllers.TextSec
             return this.ApiResp(new { CreatedId = createdId });
         }
 
+        [AuthGranted]
         public IActionResult Edit(int id)
         {
             var res = _textSectionService.GetById(id) ?? throw new Exception("找不到指定Id的文本段");
             TextSectionComModel model = new(res);
             return this.ApiResp(model);
         }
-        [Authorize]
+        [AuthGranted]
         [UserActiveOperation]
         public IActionResult EditExe([FromBody] TextSectionComModel model)
         {
@@ -53,7 +58,7 @@ namespace FCloud3.App.Controllers.TextSec
             return this.ApiResp();
         }
 
-        [Authorize]
+        [AuthGranted]
         public IActionResult Preview(int id, string content)
         {
             string cacheKey = $"tse_{id}";
@@ -69,11 +74,12 @@ namespace FCloud3.App.Controllers.TextSec
         }
 
 
-        public class TextSectionComModel
+        public class TextSectionComModel:IAuthGrantableRequestModel
         {
             public int Id { get; set; }
             public string? Title { get; set; }
             public string? Content { get; set; }
+            public int AuthGrantOnId => Id;
 
             public TextSectionComModel() { }
             public TextSectionComModel(TextSection original)

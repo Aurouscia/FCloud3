@@ -84,9 +84,9 @@ onMounted(()=>{
 
 <template>
 <div class="authGrants">
-    <div>
-        <button @click="adding = !adding">添加</button>
-        <button v-show="touchedOrder" @click="saveOrder">保存顺序更改</button>
+    <div class="func">
+        <button @click="adding = !adding">添加授权</button>
+        <button v-show="touchedOrder" @click="saveOrder" class="ok">保存顺序更改</button>
         <div class="addPanel" v-if="api" v-show="adding">
             <table>
                 <tr>
@@ -137,14 +137,27 @@ onMounted(()=>{
                 </div>
             </td>
         </tr>
+        <tr v-if="data.length>1">
+            <td colspan="4" class="overlapNote">
+                注：下方的规则会覆盖上方的
+            </td>
+        </tr>
     </table>
-    <div v-else>
-        暂无
+    <div v-else class="tempNone">
+        暂无授权设置
     </div>
 </div>
 </template>
 
 <style scoped>
+.overlapNote{
+    color:gray;
+    font-size: 14px;
+    background-color: transparent;
+}
+.tempNone{
+    color:gray
+}
 .agOp{
     display: flex;
     justify-content: space-around;
@@ -155,11 +168,11 @@ button.lite{
 }
 .addPanel{
     position: absolute;
-    top:35px;
+    top:45px;
     width: 300px;
     overflow: visible;
     background-color: white;
-    border: 2px solid #aaa;
+    box-shadow: 0 0 10px 0 black;
     border-radius: 5px;
     padding: 10px;
 }
@@ -172,8 +185,14 @@ select{
 .allow{
     color:olivedrab
 }
+.func{
+    margin: 10px 0px 10px 0px;
+}
 .authGrants{
     min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 table{
     table-layout: fixed;

@@ -14,6 +14,8 @@ namespace FCloud3.Repos.Wiki
         {
         }
 
+        public IQueryable<WikiPara> WithType(WikiParaType type) => Existing.Where(x => x.Type == type);
+
         public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
         {
             var p = Existing.Where(x => x.Id == paraId).FirstOrDefault();

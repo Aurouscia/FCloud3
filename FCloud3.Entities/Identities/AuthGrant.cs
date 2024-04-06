@@ -30,7 +30,9 @@ namespace FCloud3.Entities.Identities
         None = 0,
         WikiItem = 1,
         Dir = 2,
-        Material = 3
+        Material = 3,
+        TextSection = 10,
+        FreeTable = 11
     }
     public enum AuthGrantTo
     {
