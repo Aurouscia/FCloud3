@@ -24,6 +24,7 @@ namespace FCloud3.App.Services
             });
             services.AddAuthGrantedActionFilter();
             services.AddUserActiveOperationFilter();
+            services.AddUserTypeRestrictedAttribute();
             services.AddFilePathBaseConstraint();
             services.AddMemoryCache(option =>
             {

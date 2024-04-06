@@ -1,4 +1,6 @@
-﻿using FCloud3.App.Services.Utils;
+﻿using FCloud3.App.Models.COM;
+using FCloud3.App.Services.Filters;
+using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos;
 using FCloud3.Services.Identities;
@@ -8,10 +10,11 @@ using static FCloud3.Services.Identities.UserService;
 
 namespace FCloud3.App.Controllers.Identities
 {
-    public class UserController : Controller
+    public class UserController : Controller, IAuthGrantTypeProvidedController
     {
         private readonly UserService _userService;
         private readonly HttpUserInfoService _user;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.User;
 
         public UserController(UserService userService,HttpUserInfoService user)
         {
@@ -45,12 +48,10 @@ namespace FCloud3.App.Controllers.Identities
         }
 
         [Authorize]
-        public IActionResult EditExe([FromBody]UserComModel model)
+        [AuthGranted]
+        public IActionResult EditExe([FromBody]UserComModelRequest model)
         {
-            int uid = _user.Id;
-            if (model.Id != uid)
-                return this.ApiFailedResp("ID不匹配");
-            if (!_userService.TryEdit(uid,model.Name, model.Pwd, out string? errmsg))
+            if (!_userService.TryEdit(model.Id ,model.Name, model.Pwd, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
@@ -64,11 +65,27 @@ namespace FCloud3.App.Controllers.Identities
         }
 
         [Authorize]
+        [AuthGranted]
         public IActionResult ReplaceAvatar(int id, int materialId)
         {
             if(!_userService.ReplaceAvatar(id, materialId, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+        [Authorize]
+        [UserTypeRestricted(UserType.Admin)]
+        public IActionResult SetUserType(int id, UserType type)
+        {
+            var currentUserType = _user.Type;
+            if (!_userService.SetUserType(id, type, currentUserType, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
+        public class UserComModelRequest : UserComModel, IAuthGrantableRequestModel
+        {
+            public int AuthGrantOnId => Id;
         }
     }
 }

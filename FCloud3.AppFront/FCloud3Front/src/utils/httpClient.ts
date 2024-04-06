@@ -5,6 +5,7 @@ export type ApiResponse = {
     success: boolean
     data: any
     errmsg: string
+    code: number
 }
 export type RequestType = "get"|"postForm"|"postRaw";
 
@@ -13,18 +14,26 @@ export interface ApiRequestHeader{
     Authorization:string|undefined
 }
 
+export const ApiResponseCodes = 
+{
+    Normal: 0,
+    NoTourist: 70827
+}
+
 const storageKey = "fcloudAuthToken"
-const defaultFailResp:ApiResponse = {data:undefined,success:false,errmsg:"失败"}
+const defaultFailResp:ApiResponse = {data:undefined,success:false,errmsg:"失败",code:0}
 
 export class HttpClient{
     jwtToken:string|null=null
     httpCallBack:HttpCallBack
     unauthorizeCallBack:()=>void
+    needMemberCallBack:()=>void
     ax:Axios
-    constructor(httpCallBack:HttpCallBack, unauthorizeCallBack:()=>void){
+    constructor(httpCallBack:HttpCallBack, unauthorizeCallBack:()=>void, needMemberCallBack:()=>void){
         this.jwtToken = localStorage.getItem(storageKey);
         this.httpCallBack = httpCallBack;
         this.unauthorizeCallBack = unauthorizeCallBack;
+        this.needMemberCallBack = needMemberCallBack;
         this.ax = axios.create({
             baseURL: import.meta.env.VITE_BASEURL,
             validateStatus: (n)=>n < 500
@@ -112,6 +121,9 @@ export class HttpClient{
             }
             if(res.status == 401){
                 this.unauthorizeCallBack()
+            }
+            if(resp.code){
+                this.needMemberCallBack()
             }
             return resp;
         }else{

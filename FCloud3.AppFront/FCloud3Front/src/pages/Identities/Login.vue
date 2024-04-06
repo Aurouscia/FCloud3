@@ -2,6 +2,7 @@
 import { inject, onMounted, ref,Ref } from 'vue';
 import { HttpClient} from '../../utils/httpClient';
 import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
+import { userTypeText } from '../../models/identities/user';
 import Pop from '../../components/Pop.vue'
 import { Api } from '../../utils/api';
 import { injectUserInfo } from '../../provides';
@@ -79,7 +80,7 @@ onMounted(async()=>{
     </div>
     <div class="loginInfo" v-if="identityInfo">
         当前登录：
-        [{{ identityInfo?.Id }}]{{ identityInfo?.Name }}<br/>
+        [{{ userTypeText(identityInfo.Type).type }}]{{ identityInfo?.Name }}<br/>
         登录有效期：{{ identityInfo?.LeftHours }}小时<br/>
         <button @click="Logout" class="logout">退出登录</button>
     </div>

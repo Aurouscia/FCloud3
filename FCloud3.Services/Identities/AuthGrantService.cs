@@ -221,7 +221,11 @@ namespace FCloud3.Services.Identities
             {
                 return _creatorIdGetter.Get<Material>(onId);
             }
-            return 0;
+            else if (on == AuthGrantOn.User)
+            {
+                return onId; // 我，就是自己的主人！
+            }
+            throw new Exception("获取所有者失败");
         }
 
         public class AuthGrantViewModel:AuthGrant

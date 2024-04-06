@@ -1,15 +1,18 @@
+import { UserType } from "../models/identities/user"
 import { Api } from "./api"
 
 export interface IdentityInfo{
     Name:string
     Id:number
     LeftHours:number
+    Type: UserType
 }
 
 const defaultValue = {
     Name:"游客",
     Id:0,
-    LeftHours:0
+    LeftHours:0,
+    Type: UserType.Tourist
 }
 
 export class IdentityInfoProvider{

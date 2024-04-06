@@ -21,6 +21,7 @@ export interface UserIndexItem{
     Avatar:string
     Type:string,
     TypeColor:string
+    TypeEnum: UserType
 }
 export function getUserIndexItemsFromIndexResult(r:IndexResult):Array<UserIndexItem>{
     const idx_Id = r.ColumnNames.indexOf("Id")
@@ -34,19 +35,21 @@ export function getUserIndexItemsFromIndexResult(r:IndexResult):Array<UserIndexI
         if (row.length < 5) {
             continue;
         }
-        const typeDisplayInfo = userTypeText(parseInt(row[idx_Type]) as UserType)
+        const type = parseInt(row[idx_Type]) as UserType
+        const typeDisplayInfo = userTypeText(type)
         res.push({
             Id: parseInt(row[idx_Id]),
             Name: row[idx_Name],
             LastOperation: row[idx_LastOp],
             Avatar: row[idx_Avatar],
             Type: typeDisplayInfo.type,
-            TypeColor: typeDisplayInfo.color
+            TypeColor: typeDisplayInfo.color,
+            TypeEnum: type
         })
     }
     return res;
 }
-function userTypeText(type: UserType): { type: string, color: string } {
+export function userTypeText(type: UserType): { type: string, color: string } {
     if (type == UserType.Tourist) {
         return { type: "游客", color: "#888" }
     }else if(type == UserType.Member){

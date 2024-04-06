@@ -34,4 +34,10 @@ namespace FCloud3.App.Models.COM
             };
         }
     }
+
+    public static class ApiResponseCodes
+    {
+        public const int Normal = 0;
+        public const int NoTourist = 70827;
+    }
 }

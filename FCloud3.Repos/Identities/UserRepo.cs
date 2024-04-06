@@ -14,6 +14,10 @@ namespace FCloud3.Repos.Identities
         {
             return Existing.Where(x => x.Name == name);
         }
+        public UserType GetTypeById(int id)
+        {
+            return Existing.Where(x => x.Id == id).Select(x=>x.Type).FirstOrDefault();
+        }
         public override bool TryAddCheck(User item, out string? errmsg)
         {
             errmsg = null;
@@ -40,6 +44,11 @@ namespace FCloud3.Repos.Identities
             int uid = _userIdProvider.Get();
             Existing.Where(x => x.Id == uid)
                 .ExecuteUpdate(call=>call.SetProperty(u => u.Updated, DateTime.Now));
+        }
+        public void SetUserType(int uid, UserType userType)
+        {
+            Existing.Where(x => x.Id == uid)
+                .ExecuteUpdate(call => call.SetProperty(u => u.Type, userType));
         }
         public IQueryable<User> QuickSearch(string str)
         {

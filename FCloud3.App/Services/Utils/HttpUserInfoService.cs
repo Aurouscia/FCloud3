@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos;
+﻿using FCloud3.Entities.Identities;
+using FCloud3.Repos;
 using FCloud3.Repos.Identities;
 using FCloud3.Services;
 using FCloud3.Services.Identities;
@@ -10,6 +11,7 @@ namespace FCloud3.App.Services.Utils
     {
         public int Id { get; } = 0;
         public string Name { get; } = "未登录";
+        public UserType Type { get; } = UserType.Tourist;
         public int LeftHours { get; } = 0;
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {
@@ -25,6 +27,7 @@ namespace FCloud3.App.Services.Utils
                 if (user is not null)
                 {
                     Name = user.Name ?? "";
+                    Type = user.Type;
                 }
                 var expClaim = ctx.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp);
                 if (expClaim is not null && long.TryParse(expClaim.Value, out long exp))

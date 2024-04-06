@@ -4,7 +4,7 @@ import { pullAt } from 'lodash';
 
 const rightDefault = -200;
 const height = 70;
-const top = 50;
+const top = 40;
 export type boxTypes = "success"|"failed"|"warning"|"info"
 export type popDelegate = (msg:string,type:boxTypes)=>void;
 

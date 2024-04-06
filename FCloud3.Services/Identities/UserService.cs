@@ -4,24 +4,26 @@ using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Sys;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Services.Identities
 {
-    public partial class UserService
+    public partial class UserService(
+        UserRepo repo,
+        MaterialRepo materialRepo,
+        IUserPwdEncryption userPwdEncryption,
+        IStorage storage,
+        CacheExpTokenService cacheExpTokenService,
+        IMemoryCache memoryCache)
     {
-        private readonly UserRepo _repo;
-        private readonly MaterialRepo _materialRepo;
-        private readonly IUserPwdEncryption _userPwdEncryption;
-        private readonly IStorage _storage;
-
-        public UserService(UserRepo repo, MaterialRepo materialRepo, IUserPwdEncryption userPwdEncryption, IStorage storage)
-        {
-            _repo = repo;
-            _materialRepo = materialRepo;
-            _userPwdEncryption = userPwdEncryption;
-            _storage = storage;
-        }
+        private readonly UserRepo _repo = repo;
+        private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
+        private readonly IStorage _storage = storage;
+        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
+        private readonly IMemoryCache _memoryCache = memoryCache;
 
         [GeneratedRegex("^[\\u4E00-\\u9FA5A-Za-z0-9_]+$")]
         private static partial Regex UsernameRegex();
@@ -169,7 +171,44 @@ namespace FCloud3.Services.Identities
             _repo.SetLastUpdateToNow();
         }
 
-        public static string UserTypeText(UserType type)
+        public bool SetUserType(int id, UserType targetType, UserType operatingUserType, out string? errmsg)
+        {
+            var u = _repo.GetById(id);
+            if(u is null)
+            {
+                errmsg = "找不到指定用户";
+                return false;
+            }
+            if(u.Type >= UserType.Admin || targetType >= UserType.Admin)
+            {
+                if(operatingUserType <= UserType.Admin)
+                {
+                    errmsg = "管理无权设置管理身份";
+                    return false;
+                }
+            }
+            u.Type = targetType;
+            if(_cacheExpTokenService.UserTypeInfo.TryGetValue(id, out var expManager))
+                expManager.CancelAll();
+            return _repo.TryEdit(u, out errmsg);
+        }
+
+        private static string UserTypeCacheKey(int id) => $"userTypeOf_{id}";
+        public UserType GetUserType(int id)
+        {
+            if(_memoryCache.TryGetValue<UserType>(UserTypeCacheKey(id), out var userType))
+            {
+                return userType;
+            }
+            var expManager = _cacheExpTokenService.UserTypeInfo.GetByKey(id);
+            userType = _repo.GetTypeById(id);
+            MemoryCacheEntryOptions opts = new();
+            opts.AddExpirationToken(expManager.GetCancelChangeToken());
+            _memoryCache.Set(UserTypeCacheKey(id), userType, opts);
+            return userType;
+        }
+
+        public string UserTypeText(UserType type)
         {
             if(type == UserType.Tourist)
                 return "游客";
@@ -193,6 +232,7 @@ namespace FCloud3.Services.Identities
             public string? Pwd { get; set; }
             public int AvatarMaterialId { get; set; }
             public string? AvatarSrc { get; set; }
+            public UserType Type { get; set; }
 
             public static UserComModel ExcludePwd(User u, string avatarSrc)
             {
@@ -201,7 +241,8 @@ namespace FCloud3.Services.Identities
                     Id = u.Id,
                     Name = u.Name,
                     AvatarMaterialId = u.AvatarMaterialId,
-                    AvatarSrc = avatarSrc
+                    AvatarSrc = avatarSrc,
+                    Type = u.Type,
                 };
             }
         }

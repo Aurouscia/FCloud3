@@ -4,7 +4,7 @@ import { Api } from '../../utils/api';
 import { injectApi, injectPop } from '../../provides';
 import Index, { IndexColumn } from '../../components/Index/Index.vue';
 import { MaterialIndexItem, getMaterialItemsFromIndexResult } from '../../models/files/material';
-import { IndexResult } from '../../components/Index';
+import { IndexQuery, IndexResult } from '../../components/Index';
 import SideBar from '../../components/SideBar.vue';
 import Pop from '../../components/Pop.vue';
 import Notice from '../../components/Notice.vue';
@@ -28,6 +28,10 @@ const columns:IndexColumn[] = [
         canSearch:false
     }
 ]
+const qInit:IndexQuery = {
+    PageSize : 30,
+    Page: 1
+}
 
 const createSideBar = ref<InstanceType<typeof SideBar>>();
 const creatingFileInput = ref<HTMLInputElement>();
@@ -150,7 +154,7 @@ watch(onlyMine, async()=>{
             <input type="checkbox" v-model="onlyMine">只看自己的
         </div>
     </div>
-    <Index v-if="injected" :fetch-index="q => api.material.Index(q, onlyMine)" :columns="columns" @reload-data="setItems" ref="index">
+    <Index v-if="injected" :fetch-index="q => api.material.Index(q, onlyMine)" :columns="columns" @reload-data="setItems" ref="index" :q-init="qInit">
         <tr v-for="m in items" @click="showDetail(m)">
             <td>
                 <div class="materialContent">

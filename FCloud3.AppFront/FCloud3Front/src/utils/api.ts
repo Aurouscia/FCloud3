@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { IndexQuery, IndexResult } from "../components/Index/index";
-import { User } from "../models/identities/user";
+import { User, UserType } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
 import { WikiPara } from "../models/wiki/wikiPara";
 import { WikiParaTypes } from "../models/wiki/wikiParaTypes";
@@ -92,6 +92,17 @@ export class Api{
                         id, materialId
                     },
                     "成功替换头像"
+                )
+                return res.success
+            },
+            setUserType:async(id:number, type:UserType)=>{
+                const res = await this.httpClient.request(
+                    "/api/User/SetUserType",
+                    "postForm",
+                    {
+                        id, type
+                    },
+                    "成功设置身份"
                 )
                 return res.success
             }
@@ -772,6 +783,15 @@ export class Api{
             )
             if(resp.success){
                 return resp.data.res as string;
+            }
+        },
+        applyBeingMember:async()=>{
+            const resp = await this.httpClient.request(
+                "/api/Utils/ApplyBeingMember",
+                "get"
+            )
+            if(resp.success){
+                return resp.data.res as string
             }
         }
     }
