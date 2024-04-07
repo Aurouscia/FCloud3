@@ -52,6 +52,7 @@ namespace FCloud3.DiffTest.String
         [DataRow("\n1234567", "X234567")]
         [DataRow("1234567\n", "1234567")]
         [DataRow("1234567\n", "123456X")]
+        [DataRow("123ABC","123\nX\nX\nABC")]
         public void UpDown(string oldStr, string newStr)
         {
             var diffs = StringDiffSearch.Run(oldStr, newStr);

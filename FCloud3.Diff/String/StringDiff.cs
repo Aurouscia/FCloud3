@@ -29,7 +29,7 @@ namespace FCloud3.Diff.String
                 {
                     current.Add(current[countNow - i]);
                 }
-                for (int i = needMoveIndex; i < countNow - needMoveDistance; i++) 
+                for (int i = countNow - needMoveDistance - 1; i >= needMoveIndex; i--)
                 {
                     current[i + needMoveDistance] = current[i];
                 }
