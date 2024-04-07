@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Diff.StringDiff
+namespace FCloud3.Diff.String
 {
     public static class StringDiffSearch
     {
@@ -30,14 +30,14 @@ namespace FCloud3.Diff.StringDiff
                 if (ptA > maxA && ptB <= maxB)
                 {
                     //说明B在A后面加了东西
-                    StringDiff diffInline = new(ptA, "", b[ptB..]);
+                    StringDiff diffInline = new(ptA, "", b.Length - ptB);
                     diffs.Add(diffInline);
                     break;
                 }
                 if (ptA <= maxA && ptB > maxB)
                 {
                     //说明B在A后面删了东西
-                    StringDiff diffInline = new(ptA, a[ptA..], "");
+                    StringDiff diffInline = new(ptA, a[ptA..], 0);
                     diffs.Add(diffInline);
                     break;
                 }
@@ -65,7 +65,7 @@ namespace FCloud3.Diff.StringDiff
                             StringDiff diffInline = new(
                                 index: A_diffStart,
                                 oriContent: a.Substring(A_diffStart, A_length),
-                                newContent: b.Substring(B_diffStart, B_length));
+                                newLength: B_length);
 
                             diffs.Add(diffInline);
                             ended = true;
@@ -83,7 +83,7 @@ namespace FCloud3.Diff.StringDiff
                         StringDiff diffInline = new(
                             index: A_diffStart,
                             oriContent: a[A_diffStart..],
-                            newContent: b[B_diffStart..]);
+                            newLength: b.Length - B_diffStart);
 
                         diffs.Add(diffInline);
                         break;
