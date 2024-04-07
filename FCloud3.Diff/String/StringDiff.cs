@@ -43,15 +43,15 @@ namespace FCloud3.Diff.String
 
     public class StringDiffCollection: List<StringDiff>
     {
-        //public StringDiffCollection() { }
-
-        //public string RevertAll(string newStr)
-        //{
-        //    this.Sort((x, y) => x.Index - y.Index);
-        //    this.ForEach(x =>
-        //    {
-        //        x.Revert(newStr);
-        //    });
-        //}
+        public string RevertAll(string newStr)
+        {
+            var charList = newStr.ToList();
+            this.Sort((x, y) => x.Index - y.Index);
+            this.ForEach(x =>
+            {
+                x.Revert(charList);
+            });
+            return new string(charList.ToArray());
+        }
     }
 }

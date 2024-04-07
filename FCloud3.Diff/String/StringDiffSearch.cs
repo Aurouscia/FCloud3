@@ -8,15 +8,11 @@ namespace FCloud3.Diff.String
 {
     public static class StringDiffSearch
     {
-        public static List<StringDiff> Run(string? a, string? b)
-        {
-            return Run(a, b, 1);
-        }
-        public static List<StringDiff> Run(string? a, string? b, int alignThrs)
+        public static StringDiffCollection Run(string? a, string? b, int alignThrs = 10)
         {
             a ??= "";
             b ??= "";
-            List<StringDiff> diffs = [];
+            StringDiffCollection diffs = [];
             if (a == b)
                 return diffs;
 
@@ -56,9 +52,9 @@ namespace FCloud3.Diff.String
                     ptA = A_diffStart;
                     while (true)
                     {
-                        if (ptA > maxA)
+                        if (ptA > maxA || (ptA != A_diffStart && a[ptA] == '\n'))
                             break;
-                        if (AlignConfirm(a, b, ptA, ptB, alignThrs))
+                        if (a[ptA] == b[ptB] && AlignConfirm(a, b, ptA, ptB, alignThrs))
                         {
                             int A_length = ptA - A_diffStart;
                             int B_length = ptB - B_diffStart;
@@ -76,14 +72,15 @@ namespace FCloud3.Diff.String
                     if (ended)
                         break;
 
-                    ptB++;
-                    if (ptB > maxB)
+                    ptB++; 
+                    if (ptB > maxB || (ptB != B_diffStart && b[ptB] == '\n'))
                     {
                         //一直到B的尽头也没有发现相同
+                        int A_length = ptA - A_diffStart;
                         StringDiff diffInline = new(
                             index: A_diffStart,
-                            oriContent: a[A_diffStart..],
-                            newLength: b.Length - B_diffStart);
+                            oriContent: a.Substring(A_diffStart, A_length),
+                            newLength: ptB - B_diffStart);
 
                         diffs.Add(diffInline);
                         break;

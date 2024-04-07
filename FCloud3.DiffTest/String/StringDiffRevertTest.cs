@@ -1,4 +1,5 @@
-﻿using FCloud3.DiffTest.String.Support;
+﻿using FCloud3.Diff.String;
+using FCloud3.DiffTest.String.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,39 @@ namespace FCloud3.DiffTest.String
             var charList = newStr.ToList();
             diff.Revert(charList);
             var reverted = new string(charList.ToArray());
+            Assert.AreEqual(oldStr, reverted);
+        }
+
+        [TestMethod]
+        [DataRow("1234567","1A345B7", "1-2-1|5-6-1")]
+        [DataRow("1234567", "1AAA345B7", "1-2-3|5-6-1")]
+        [DataRow("1234567", "1A5B7", "1-234-1|5-6-1")]
+        [DataRow("1234567", "1A4BBB7", "1-23-1|4-56-3")]
+        public void Mutiple(string oldStr, string newStr, string strDiff)
+        {
+            var diffs = StrStringDiff.ParseList(strDiff);
+            var reverted = diffs.RevertAll(newStr);
+            Assert.AreEqual(oldStr, reverted);
+        }
+
+        [TestMethod]
+        [DataRow("1234567", "1A345B7")]
+        [DataRow("1234567", "1AAA345B7")]
+        [DataRow("1234567", "1A5B7")]
+        [DataRow("1234567", "1A4BBB7")]
+        [DataRow("1234567", "1234\n567")]
+        [DataRow("1234567", "1234567\n")]
+        [DataRow("1234567", "123456X\n")]
+        [DataRow("1234567", "\n1234567")]
+        [DataRow("1234567", "\nX234567")]
+        [DataRow("\n1234567", "1234567")]
+        [DataRow("\n1234567", "X234567")]
+        [DataRow("1234567\n", "1234567")]
+        [DataRow("1234567\n", "123456X")]
+        public void UpDown(string oldStr, string newStr)
+        {
+            var diffs = StringDiffSearch.Run(oldStr, newStr);
+            var reverted = diffs.RevertAll(newStr);
             Assert.AreEqual(oldStr, reverted);
         }
     }

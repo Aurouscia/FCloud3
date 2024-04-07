@@ -79,5 +79,23 @@ namespace FCloud3.DiffTest.String
             var answers = StrStringDiff.ParseList(strDiffs);
             AssertDiff.SameList(answers, diffs);
         }
+
+        [TestMethod]
+        [DataRow("0123\n4567", "0123\n4567", "")]
+        [DataRow("0123\n4567", "012A\nB567", "3-3-1|5-4-1")]
+        [DataRow("0123\n4567\n", "0123\n4567", "9-\n-0")]
+        [DataRow("0123\n4567", "0123\n4567\n", "9--1")]
+        [DataRow("0123\n4567\n", "0123\n456K", "8-7-1|9-\n-0")]
+        [DataRow("0123\n456K", "0123\n4567\n", "8-K-1|9--1")]
+        [DataRow("\n0123\n4567", "0123\n4567", "0-\n-0")]
+        [DataRow("0123\n4567", "\n0123\n4567", "0--1")]
+        [DataRow("01234567", "0123\n4567", "4--1")]
+        [DataRow("0123\n4567", "01234567", "4-\n-0")]
+        public void MutiLine(string a, string b, string strDiffs)
+        {
+            var diffs = StringDiffSearch.Run(a, b, 3);
+            var answers = StrStringDiff.ParseList(strDiffs);
+            AssertDiff.SameList(answers, diffs);
+        }
     }
 }
