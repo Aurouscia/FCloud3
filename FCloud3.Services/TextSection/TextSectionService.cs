@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FCloud3.Entities.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.DbContexts;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Services.TextSec
 {
@@ -21,19 +22,22 @@ namespace FCloud3.Services.TextSec
         private readonly int _userId;
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
+        private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
             IOperatingUserIdProvider userIdProvider,
             WikiParaRepo paraRepo,
             TextSectionRepo textsectionRepo,
             DiffContentService contentDiffService,
-            DbTransactionService dbTransactionService)
+            DbTransactionService dbTransactionService,
+            ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;
             _textSectionRepo = textsectionRepo;
             _userId = userIdProvider.Get();
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
+            _logger = logger;
         }
 
         public TextSection? GetById(int id)
@@ -100,55 +104,43 @@ namespace FCloud3.Services.TextSec
         /// <returns></returns>
         public bool TryUpdate(int id, string? title, string? content, out string? errmsg)
         {
-            var lockObj = GetSaveLockObj(id);
-            lock (lockObj)
+            if (id == 0)
             {
-                if (id == 0)
+                errmsg = "未得到更新文本段Id";
+                return false;
+            }
+            if (title is not null)
+            {
+                if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
+                    return false;
+            }
+            if (content is not null)
+            {
+                var original = _textSectionRepo.GetById(id);
+                if (original is null)
                 {
-                    errmsg = "未得到更新文本段Id";
+                    errmsg = "找不到指定文本段";
                     return false;
                 }
-                if (title is not null)
-                {
-                    if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
-                        return false;
-                }
-                if (content is not null)
-                {
-                    var original = _textSectionRepo.GetById(id);
-                    if (original is null)
-                    {
-                        errmsg = "找不到指定文本段";
-                        return false;
-                    }
 
-                    using var t = _dbTransactionService.BeginTransaction();
-                    var updateSuccess = _textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
-                    var diffSuccess = _contentDiffService.MakeDiffForTextSection(id, original.Content, content, out var diffErrmsg);
-                    if (updateSuccess && diffSuccess)
-                    {
-                        _dbTransactionService.CommitTransaction(t);
-                    }
-                    else
-                    {
-                        _dbTransactionService.RollbackTransaction(t);
-                        errmsg = updateErrmsg + diffErrmsg;
-                        return false;
-                    }
+                using var t = _dbTransactionService.BeginTransaction();
+                var updateSuccess = _textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
+                var diffSuccess = _contentDiffService.MakeDiffForTextSection(id, original.Content, content, out var diffErrmsg);
+                if (updateSuccess && diffSuccess)
+                {
+                    _dbTransactionService.CommitTransaction(t);
+                    _logger.LogInformation("更新[{id}]号文本段成功", id);
                 }
-                errmsg = null;
-                return true;
+                else
+                {
+                    _dbTransactionService.RollbackTransaction(t);
+                    errmsg = updateErrmsg + diffErrmsg;
+                    _logger.LogError("更新[{id}]号文本段失败，\"{msg}\"", id, errmsg);
+                    return false;
+                }
             }
-        }
-
-        private readonly static Dictionary<int, object> lockObjs = new();
-        private static object GetSaveLockObj(int textSecId)
-        {
-            if (lockObjs.TryGetValue(textSecId, out var obj))
-                return obj;
-            obj = new object();
-            lockObjs.Add(textSecId, obj);
-            return obj;
+            errmsg = null;
+            return true;
         }
     }
 }
