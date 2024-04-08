@@ -9,6 +9,8 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using FCloud3.Entities.Wiki;
+using FCloud3.Services.Etc;
+using FCloud3.DbContexts;
 
 namespace FCloud3.Services.TextSec
 {
@@ -17,12 +19,21 @@ namespace FCloud3.Services.TextSec
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly int _userId;
+        private readonly DiffContentService _contentDiffService;
+        private readonly DbTransactionService _dbTransactionService;
 
-        public TextSectionService(IOperatingUserIdProvider userIdProvider, WikiParaRepo paraRepo, TextSectionRepo textsectionRepo)
+        public TextSectionService(
+            IOperatingUserIdProvider userIdProvider,
+            WikiParaRepo paraRepo,
+            TextSectionRepo textsectionRepo,
+            DiffContentService contentDiffService,
+            DbTransactionService dbTransactionService)
         {
             _paraRepo = paraRepo;
             _textSectionRepo = textsectionRepo;
             _userId = userIdProvider.Get();
+            _contentDiffService = contentDiffService;
+            _dbTransactionService = dbTransactionService;
         }
 
         public TextSection? GetById(int id)
@@ -89,23 +100,55 @@ namespace FCloud3.Services.TextSec
         /// <returns></returns>
         public bool TryUpdate(int id, string? title, string? content, out string? errmsg)
         {
-            if (id == 0)
+            var lockObj = GetSaveLockObj(id);
+            lock (lockObj)
             {
-                errmsg = "未得到更新文本段Id";
-                return false;
-            }
-            if (title is not null)
-            {
-                if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
+                if (id == 0)
+                {
+                    errmsg = "未得到更新文本段Id";
                     return false;
+                }
+                if (title is not null)
+                {
+                    if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
+                        return false;
+                }
+                if (content is not null)
+                {
+                    var original = _textSectionRepo.GetById(id);
+                    if (original is null)
+                    {
+                        errmsg = "找不到指定文本段";
+                        return false;
+                    }
+
+                    using var t = _dbTransactionService.BeginTransaction();
+                    var updateSuccess = _textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
+                    var diffSuccess = _contentDiffService.MakeDiffForTextSection(id, original.Content, content, out var diffErrmsg);
+                    if (updateSuccess && diffSuccess)
+                    {
+                        _dbTransactionService.CommitTransaction(t);
+                    }
+                    else
+                    {
+                        _dbTransactionService.RollbackTransaction(t);
+                        errmsg = updateErrmsg + diffErrmsg;
+                        return false;
+                    }
+                }
+                errmsg = null;
+                return true;
             }
-            if (content is not null)
-            {
-                if (!_textSectionRepo.TryChangeContent(id, content, out errmsg))
-                    return false;
-            }
-            errmsg = null;
-            return true;
+        }
+
+        private readonly static Dictionary<int, object> lockObjs = new();
+        private static object GetSaveLockObj(int textSecId)
+        {
+            if (lockObjs.TryGetValue(textSecId, out var obj))
+                return obj;
+            obj = new object();
+            lockObjs.Add(textSecId, obj);
+            return obj;
         }
     }
 }

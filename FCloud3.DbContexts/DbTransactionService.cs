@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,23 +19,23 @@ namespace FCloud3.DbContexts
         /// <summary>
         /// 开始数据库事务
         /// </summary>
-        public void BeginTransaction()
+        public IDbContextTransaction BeginTransaction()
         {
-            _context.Database.BeginTransaction();
+            return _context.Database.BeginTransaction();
         }
         /// <summary>
         /// 提交数据库事务
         /// </summary>
-        public void CommitTransaction()
+        public void CommitTransaction(IDbContextTransaction transaction)
         {
-            _context.Database.CommitTransaction();
+            transaction.Commit();
         }
         /// <summary>
         /// 回滚数据库事务
         /// </summary>
-        public void RollbackTransaction()
+        public void RollbackTransaction(IDbContextTransaction transaction)
         {
-            _context.Database.RollbackTransaction();
+            transaction.Rollback();
         }
 
         /// <summary>
@@ -44,13 +45,13 @@ namespace FCloud3.DbContexts
         /// <returns>传入的函数的返回值</returns>
         public bool DoTransaction(Func<bool> action)
         {
-            BeginTransaction();
+            using var t = BeginTransaction();
             if (action())
             {
-                CommitTransaction();
+                CommitTransaction(t);
                 return true;
             }
-            RollbackTransaction();
+            RollbackTransaction(t);
             return false;
         }
     }

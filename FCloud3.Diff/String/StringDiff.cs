@@ -53,5 +53,14 @@ namespace FCloud3.Diff.String
             });
             return new string(charList.ToArray());
         }
+
+        public int AddedChars()
+        {
+            return this.Select(x => x.New).Sum();
+        }
+        public int RemovedChars()
+        {
+            return this.Select(x => x.Ori.Length).Sum();
+        }
     }
 }

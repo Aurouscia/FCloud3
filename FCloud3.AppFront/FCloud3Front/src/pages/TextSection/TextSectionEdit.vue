@@ -54,8 +54,8 @@ async function togglePreview(){
 }
 let timer:number=0;
 const refreshThrs=750;//这么多毫秒后还没有新的输入，则发送preview请求
-const saveThrs=50;//输入这么多次后自动保存
-let inputCounter:number = 0;
+//const saveThrs=50;//输入这么多次后自动保存
+//let inputCounter:number = 0;
 async function contentInput(){
     if(!previewContent.value){
         previewContent.value="加载中..."
@@ -68,11 +68,11 @@ async function contentInput(){
         await refreshProm;
     },refreshThrs);
 
-    inputCounter+=1;
-    if(inputCounter>saveThrs){
-        replaceContent();
-        inputCounter=0;
-    }
+    // inputCounter+=1;
+    // if(inputCounter>saveThrs){
+    //     replaceContent();
+    //     inputCounter=0;
+    // }
 }
 async function refreshPreview() {
     if(!previewOn.value){

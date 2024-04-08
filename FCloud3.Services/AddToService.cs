@@ -10,6 +10,7 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Table;
 using FCloud3.Services.WikiParsing;
 using FCloud3.Services.WikiParsing.Support;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services
 {
@@ -29,6 +30,7 @@ namespace FCloud3.Services
             services.AddScoped<FileItemService>();
             services.AddScoped<FileDirService>();
             services.AddScoped<MaterialService>();
+            services.AddScoped<DiffContentService>();
 
             services.AddScoped<WikiParserProviderService>();
             services.AddScoped<WikiParsingRulesProviderService>();

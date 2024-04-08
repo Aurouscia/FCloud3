@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using FCloud3.DbContexts;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
-using Microsoft.Extensions.Configuration;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.WikiParsing;
+using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos
 {
@@ -34,6 +35,8 @@ namespace FCloud3.Repos
             services.AddScoped<FileItemRepo>();
             services.AddScoped<FileDirRepo>();
             services.AddScoped<MaterialRepo>();
+
+            services.AddScoped<DiffContentRepo>();
 
             services.AddScoped<CreatorIdGetter>();
 

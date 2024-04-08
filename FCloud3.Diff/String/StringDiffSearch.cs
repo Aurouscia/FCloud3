@@ -11,7 +11,7 @@ namespace FCloud3.Diff.String
         public static StringDiffCollection Run(string? a, string? b, int alignThrs = -1)
         {
             if (alignThrs == -1)
-                AutoAlighThrs(a, b);
+                alignThrs = AutoAlighThrs(a, b);
             a ??= "";
             b ??= "";
             StringDiffCollection diffs = [];

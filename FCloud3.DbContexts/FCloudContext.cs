@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities.Files;
+﻿using FCloud3.Entities.Etc;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
@@ -24,6 +25,8 @@ namespace FCloud3.DbContexts
         public DbSet<FileItem> FileItems { get; set; }
         public DbSet<FileDir> FileDirs { get; set; }
         public DbSet<Material> Materials { get; set; }
+        public DbSet<DiffContent> DiffContents { get; set; }
+        public DbSet<DiffSingle> DiffSingles { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations

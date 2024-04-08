@@ -61,11 +61,11 @@ namespace FCloud3.Services.Wiki
             var existing = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId);
             var needRemove = existing.FindAll(x => !wikiIds.Contains(x.WikiId));
             var needAdd = wikiIds.FindAll(x => !existing.Any(c => c.WikiId == x));
-            _dbTransactionService.BeginTransaction();
+            using var t = _dbTransactionService.BeginTransaction();
             _wikiTitleContainRepo.TryRemoveRangePermanent(needRemove, out errmsg);
             if(errmsg is not null)
             {
-                _dbTransactionService.RollbackTransaction();
+                _dbTransactionService.RollbackTransaction(t);
                 return false;
             }
             var newObjs = needAdd.ConvertAll(x => new WikiTitleContain
@@ -83,12 +83,12 @@ namespace FCloud3.Services.Wiki
 
             if(errmsg is not null)
             {
-                _dbTransactionService.RollbackTransaction();
+                _dbTransactionService.RollbackTransaction(t);
                 return false;
             }
             else
             {
-                _dbTransactionService.CommitTransaction();
+                _dbTransactionService.CommitTransaction(t);
                 return true;
             }
         }
