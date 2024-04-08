@@ -36,7 +36,7 @@ namespace FCloud3.App.Controllers.Table
             return this.ApiResp(res);
         }
 
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
         [UserActiveOperation]
         [UserTypeRestricted]
         public IActionResult SaveInfo(int id, string title)
@@ -45,7 +45,7 @@ namespace FCloud3.App.Controllers.Table
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
         [UserActiveOperation]
         [UserTypeRestricted]
         public IActionResult SaveContent(int id, string data)
