@@ -5,6 +5,7 @@ import Pop from './components/Pop.vue';
 import { Api } from './utils/api';
 import { jumpToLogin } from './pages/Identities/routes';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
+import Wait from './components/Wait.vue';
 
 const popKey = 'pop';
 const httpKey = 'http';
@@ -23,8 +24,13 @@ export function useProvidesSetup() {
         else if (result == 'warn') { pop.value?.show(msg, 'warning') }
     }
 
+    const wait = ref<InstanceType<typeof Wait> | null>(null);
+    const showWait = (s:boolean)=>{
+        wait.value?.setShowing(s)
+    }
+
     const needMemberWarning = ref<InstanceType<typeof NeedMemberWarning> | null>(null)
-    const httpClient = new HttpClient(httpCallBack, jumpToLogin, ()=>needMemberWarning.value?.setShow(true))
+    const httpClient = new HttpClient(httpCallBack, jumpToLogin, ()=>needMemberWarning.value?.setShow(true), showWait)
     provide(httpKey, httpClient)
     const api = new Api(httpClient);
     provide(apiKey, api)
@@ -34,7 +40,7 @@ export function useProvidesSetup() {
     provide(setTopBarKey, (display:boolean) => { displayTopbar.value = display })
 
     
-    return { pop, displayTopbar, needMemberWarning }
+    return { pop, displayTopbar, needMemberWarning, wait }
 }
 
 export function injectPop(){

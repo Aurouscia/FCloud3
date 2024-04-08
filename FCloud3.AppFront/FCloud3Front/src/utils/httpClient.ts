@@ -28,12 +28,14 @@ export class HttpClient{
     httpCallBack:HttpCallBack
     unauthorizeCallBack:()=>void
     needMemberCallBack:()=>void
+    showWaitCallBack:(s:boolean)=>void
     ax:Axios
-    constructor(httpCallBack:HttpCallBack, unauthorizeCallBack:()=>void, needMemberCallBack:()=>void){
+    constructor(httpCallBack:HttpCallBack, unauthorizeCallBack:()=>void, needMemberCallBack:()=>void, showWait:(s:boolean)=>void){
         this.jwtToken = localStorage.getItem(storageKey);
         this.httpCallBack = httpCallBack;
         this.unauthorizeCallBack = unauthorizeCallBack;
         this.needMemberCallBack = needMemberCallBack;
+        this.showWaitCallBack = showWait;
         this.ax = axios.create({
             baseURL: import.meta.env.VITE_BASEURL,
             validateStatus: (n)=>n < 500
@@ -63,12 +65,11 @@ export class HttpClient{
         }
         this.httpCallBack("err","请检查网络连接");
     }
-    async request(resource:string,type:RequestType,data?:any,successMsg?:string): Promise<ApiResponse>{
+    async request(resource:string, type:RequestType, data?:any, successMsg?:string, showWait?:boolean): Promise<ApiResponse>{
         console.log(`开始发送[${type}]=>[${resource}]`,data)
-        var res;
-        var timer = setTimeout(()=>{
-            this.httpCallBack("warn","请稍等")
-        },800)
+        let res:any;
+        if(showWait)
+            this.showWaitCallBack(true);
         try{
             if(type=='get'){
                 res = await this.ax.get(
@@ -94,10 +95,12 @@ export class HttpClient{
                     }
                 );
             }
-            clearTimeout(timer);
+            if(showWait)
+                this.showWaitCallBack(false);
         }
         catch(ex){
-            clearTimeout(timer);
+            if(showWait)
+                this.showWaitCallBack(false);
             const err = ex as AxiosError;
             console.log(`[${type}]${resource}失败`,err)
             this.showErrToUser(err);

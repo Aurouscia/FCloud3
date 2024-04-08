@@ -32,7 +32,8 @@ export class Api{
                     "/api/Auth/Login",
                     "postForm",
                     reqObj,
-                    "已成功登录");
+                    "已成功登录",
+                    true);
                 if(res.success){
                     return res.data["token"] as string;
                 }
@@ -60,7 +61,8 @@ export class Api{
                     "/api/User/EditExe",
                     "postRaw",
                     user,
-                    "修改成功")
+                    "修改成功",
+                    true)
                 if(res.success){
                     return true
                 }
@@ -91,7 +93,8 @@ export class Api{
                     {
                         id, materialId
                     },
-                    "成功替换头像"
+                    "成功替换头像",
+                    true
                 )
                 return res.success
             },
@@ -102,7 +105,8 @@ export class Api{
                     {
                         id, type
                     },
-                    "成功设置身份"
+                    "成功设置身份",
+                    true
                 )
                 return res.success
             }
@@ -113,7 +117,8 @@ export class Api{
                     "/api/UserGroup/Create",
                     "postForm",
                     {name},
-                    "创建成功"
+                    "创建成功",
+                    true
                 )
                 return resp.success;
             },
@@ -152,7 +157,8 @@ export class Api{
                     "/api/UserGroup/EditExe",
                     "postRaw",
                     data,
-                    "保存成功"
+                    "保存成功",
+                    true
                 )
                 return resp.success;
             },
@@ -161,7 +167,8 @@ export class Api{
                     "/api/UserGroup/AddUserToGroup",
                     "get",
                     {userId,groupId},
-                    "成功邀请"
+                    "成功邀请",
+                    true
                 )
                 return resp.success
             },
@@ -170,7 +177,8 @@ export class Api{
                     "/api/UserGroup/AnswerInvitation",
                     "get",
                     {groupId,accept},
-                    "操作成功"
+                    "操作成功",
+                    true
                 )
                 return resp.success
             },
@@ -179,7 +187,8 @@ export class Api{
                     "/api/UserGroup/RemoveUserFromGroup",
                     "get",
                     {userId,groupId},
-                    "操作成功"
+                    "操作成功",
+                    true
                 )
                 return resp.success
             },
@@ -188,7 +197,8 @@ export class Api{
                     "/api/UserGroup/Leave",
                     "get",
                     {groupId},
-                    "操作成功"
+                    "操作成功",
+                    true
                 )
                 return resp.success
             },
@@ -197,7 +207,8 @@ export class Api{
                     "/api/UserGroup/Dissolve",
                     "get",
                     {id},
-                    "操作成功"
+                    "操作成功",
+                    true
                 )
                 return resp.success
             },
@@ -220,7 +231,8 @@ export class Api{
                     "/api/AuthGrant/SetOrder",
                     "postRaw",
                     {on,onId,ids},
-                    "设置顺序成功"
+                    "设置顺序成功",
+                    true
                 )
                 return resp.success;
             },
@@ -229,7 +241,8 @@ export class Api{
                     "/api/AuthGrant/Add",
                     "postRaw",
                     authGrant,
-                    "新增成功"
+                    "新增成功",
+                    true
                 )
                 return resp.success;
             },
@@ -238,7 +251,8 @@ export class Api{
                     "/api/AuthGrant/Remove",
                     "get",
                     {id},
-                    "删除成功"
+                    "删除成功",
+                    true
                 )
                 return resp.success;
             }
@@ -260,7 +274,8 @@ export class Api{
                 "/api/WikiItem/EditExe",
                 "postRaw",
                 data,
-                "保存成功"
+                "保存成功",
+                true
             )
             return res.success
         },
@@ -278,7 +293,8 @@ export class Api{
                 "/api/WikiItem/InsertPara",
                 "postForm",
                 req,
-                "成功插入新段落")
+                "成功插入新段落",
+                true)
             if(res.success){
                 return res.data as Array<WikiPara>
             }
@@ -288,7 +304,8 @@ export class Api{
                 "/api/WikiItem/SetParaOrders",
                 "postRaw",
                 req,
-                "成功修改顺序")
+                "成功修改顺序",
+                true)
             if(res.success){
                 return res.data as Array<WikiPara>
             }
@@ -298,7 +315,8 @@ export class Api{
                 "/api/WikiItem/RemovePara",
                 "postForm",
                 req,
-                "成功删除")
+                "成功删除",
+                true)
             if(res.success){
                 return res.data as Array<WikiPara>
             }
@@ -318,7 +336,8 @@ export class Api{
                 "/api/WikiItem/CreateInDir",
                 "postForm",
                 {title,urlPathName,dirId},
-                "创建成功")
+                "创建成功",
+                true)
             if(res.success){
                 return true;
             }
@@ -329,7 +348,8 @@ export class Api{
                 "/api/WikiItem/RemoveFromDir",
                 "postForm",
                 {wikiId,dirId},
-                "移出成功")
+                "移出成功",
+                true)
             if(res.success){
                 return true;
             }
@@ -341,7 +361,8 @@ export class Api{
                     "/api/WikiPara/SetFileParaFileId",
                     "get",
                     {paraId,fileId},
-                    "成功为段落设置文件"
+                    "成功为段落设置文件",
+                    true
                 )
                 return resp.success
             }
@@ -361,14 +382,17 @@ export class Api{
                     "/api/WikiTitleContain/SetAll",
                     "postRaw",
                     req,
-                    "设置成功")
+                    "设置成功",
+                    true)
                 return res.success
             },
             autoFill:async(content:string)=>{
                 const res = await this.httpClient.request(
                     "/api/WikiTitleContain/AutoFill",
                     "postForm",
-                    {content})
+                    {content},
+                    undefined,
+                    true)
                 if(res.success){
                     return res.data as WikiTitleContainAutoFillResult
                 }
@@ -458,7 +482,7 @@ export class Api{
             const res = await this.httpClient.request(
                 "/api/TextSection/CreateForPara",
                 "postForm",
-                req)
+                req,undefined,true)
             if(res.success){
                 return res.data as {CreatedId:number}
             }
@@ -477,7 +501,8 @@ export class Api{
                 "/api/TextSection/EditExe",
                 "postRaw",
                 textSection,
-                "已保存修改")
+                "已保存修改",
+                true)
             return res.success;
         },
         preview:async(textSecId:number,content:string)=>{
@@ -506,7 +531,8 @@ export class Api{
                 const resp = await this.httpClient.request(
                     "/api/FreeTable/CreateForPara",
                     "get",
-                    {'paraId':paraId}
+                    {'paraId':paraId},
+                    undefined,true
                 )
                 if(resp.success){
                     return resp.data as {CreatedId:number}
@@ -517,7 +543,8 @@ export class Api{
                     "/api/FreeTable/SaveInfo",
                     "postForm",
                     {id,title},
-                    "修改成功"
+                    "修改成功",
+                    true
                 );
                 return resp.success;
             },
@@ -525,7 +552,9 @@ export class Api{
                 const resp = await this.httpClient.request(
                     "/api/FreeTable/SaveContent",
                     "postForm",
-                    {id,data}
+                    {id,data},
+                    undefined,
+                    true
                 )
                 return resp
             }
@@ -551,7 +580,8 @@ export class Api{
                     DisplayName:req.displayName,
                     StoreName:req.storeName,
                     StorePath:dist
-                },`成功上传：${_.truncate(req.displayName,{length:8})}`);
+                },`成功上传：${_.truncate(req.displayName,{length:8})}`,
+                true);
             if(res.success){
                 return res.data as {CreatedId:number};
             }
@@ -598,7 +628,8 @@ export class Api{
                 "/api/FileDir/EditExe",
                 "postRaw",
                 req,
-                "编辑成功"
+                "编辑成功",
+                true
             )
             if(res.success){
                 return true;
@@ -613,7 +644,8 @@ export class Api{
                 "/api/FileDir/PutInFile",
                 "postRaw",
                 reqData,
-                "成功将文件放入本文件夹"
+                "成功将文件放入本文件夹",
+                true
             )
             if(res.success){
                 return true;
@@ -631,7 +663,9 @@ export class Api{
             const res = await this.httpClient.request(
                 "/api/FileDir/PutInThings",
                 "postRaw",
-                reqData
+                reqData,
+                undefined,
+                true
             )
             if(res.success){
                 const data = res.data as FileDirPutInResult;
@@ -658,7 +692,8 @@ export class Api{
                 "/api/FileDir/Create",
                 "postRaw",
                 reqData,
-                "创建成功"
+                "创建成功",
+                true
             )
             if(res.success){
                 return true;
@@ -669,7 +704,8 @@ export class Api{
                 "/api/FileDir/Delete",
                 "get",
                 {dirId},
-                "成功删除"
+                "成功删除",
+                true
             );
             if(resp.success){
                 return true;
@@ -694,7 +730,8 @@ export class Api{
                     name, desc,
                     content
                 },
-                "上传成功"
+                "上传成功",
+                true
             )
             return resp.data as number
         },
@@ -705,7 +742,8 @@ export class Api{
                 {
                     id, content
                 },
-                "更改成功"
+                "更改成功",
+                true
             )
             return resp.success
         },
@@ -716,7 +754,8 @@ export class Api{
                 {
                     id,name,desc
                 },
-                "更改成功"
+                "更改成功",
+                true
             )
             return resp.success
         },
@@ -725,7 +764,8 @@ export class Api{
                 "/api/Material/Delete",
                 "postForm",
                 {id},
-                "删除成功"
+                "删除成功",
+                true
             )
             return resp.success
         }
