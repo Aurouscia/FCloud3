@@ -1,7 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Sys;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.Wiki
 {

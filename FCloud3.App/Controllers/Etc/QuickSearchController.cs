@@ -1,13 +1,13 @@
-﻿using FCloud3.Services.Sys;
+﻿using FCloud3.Services.Etc;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCloud3.App.Controllers.Sys
+namespace FCloud3.App.Controllers.Etc
 {
     public class QuickSearchController : Controller
     {
         private readonly QuickSearchService _quickSearchService;
 
-        public QuickSearchController(QuickSearchService quickSearchService) 
+        public QuickSearchController(QuickSearchService quickSearchService)
         {
             _quickSearchService = quickSearchService;
         }

@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using FCloud3.App.Utils;
 
-namespace FCloud3.App.Controllers.Sys
+namespace FCloud3.App.Controllers.Etc
 {
-    public class UtilsController:Controller
+    public class UtilsController : Controller
     {
         private readonly IConfiguration _config;
-        public UtilsController(IConfiguration config) 
+        public UtilsController(IConfiguration config)
         {
             _config = config;
         }

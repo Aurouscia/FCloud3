@@ -7,7 +7,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.WikiParsing;
-using FCloud3.Repos.Etc;
+using FCloud3.Repos.Diff;
 
 namespace FCloud3.Repos
 {

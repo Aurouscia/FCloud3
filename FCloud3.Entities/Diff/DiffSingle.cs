@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Entities.Etc
+namespace FCloud3.Entities.Diff
 {
     public class DiffSingle
     {

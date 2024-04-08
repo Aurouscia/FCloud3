@@ -1,8 +1,8 @@
 ﻿using FCloud3.Entities.Files;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Sys;
 using Microsoft.Extensions.Caching.Memory;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;

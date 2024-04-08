@@ -3,7 +3,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 
-namespace FCloud3.Services.Sys
+namespace FCloud3.Services.Etc
 {
     public class QuickSearchService
     {
@@ -34,18 +34,18 @@ namespace FCloud3.Services.Sys
         public QuickSearchResult SearchWikiItem(string str)
         {
             var q = _wikiItemRepo.QuickSearch(str);
-            var items =  q.Select(x => new { x.Title,x.UrlPathName, x.Id }).Take(maxCount).ToList();
+            var items = q.Select(x => new { x.Title, x.UrlPathName, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>
             {
-                res.Items.Add(new(x.Title??"N/A",x.UrlPathName ,x.Id));
+                res.Items.Add(new(x.Title ?? "N/A", x.UrlPathName, x.Id));
             });
             return res;
         }
         public QuickSearchResult SearchUser(string str)
         {
             var q = _userRepo.QuickSearch(str);
-            var items = q.Select(x => new {x.Name,x.Id}).Take(maxCount).ToList();
+            var items = q.Select(x => new { x.Name, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>
             {

@@ -1,4 +1,4 @@
-﻿using FCloud3.Entities.Etc;
+﻿using FCloud3.Entities.Diff;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Table;

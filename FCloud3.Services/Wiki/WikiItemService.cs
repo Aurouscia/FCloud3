@@ -10,8 +10,8 @@ using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.WikiParsing;
+using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Sys;
 using FCloud3.Services.Wiki.Paragraph;
 using Microsoft.Extensions.Caching.Memory;
 

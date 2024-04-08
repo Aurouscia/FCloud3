@@ -3,7 +3,7 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using MimeMapping;
 
-namespace FCloud3.App.Controllers.Sys
+namespace FCloud3.App.Controllers.Etc
 {
     public class StaticFilesController : Controller
     {
@@ -25,7 +25,7 @@ namespace FCloud3.App.Controllers.Sys
                     return NotFound();
                 return File(stream, MimeUtility.GetMimeMapping(fileName));
             }
-            else if(_storage.ProvideType == StorageProvideType.Redirect)
+            else if (_storage.ProvideType == StorageProvideType.Redirect)
             {
                 var url = _storage.FullUrl(pathName);
                 return RedirectPermanent(url);

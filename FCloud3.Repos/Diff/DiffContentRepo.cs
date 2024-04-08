@@ -1,12 +1,7 @@
 ﻿using FCloud3.DbContexts;
-using FCloud3.Entities.Etc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Entities.Diff;
 
-namespace FCloud3.Repos.Etc
+namespace FCloud3.Repos.Diff
 {
     public class DiffContentRepo : RepoBase<DiffContent>
     {
@@ -21,5 +16,8 @@ namespace FCloud3.Repos.Etc
             errmsg = null;  
             return true;
         }
+
+        public IQueryable<DiffContent> GetDiffs(DiffContentType type, int objId)
+            => Existing.Where(x => x.DiffType == type && x.ObjectId == objId);
     }
 }

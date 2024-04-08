@@ -1,8 +1,8 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
+using FCloud3.Services.Etc;
 using FCloud3.Services.Files;
-using FCloud3.Services.Sys;
 using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;

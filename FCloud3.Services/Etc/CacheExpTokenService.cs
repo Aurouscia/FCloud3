@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
-namespace FCloud3.Services.Sys
+namespace FCloud3.Services.Etc
 {
     public class CacheExpTokenService
     {
@@ -43,13 +43,13 @@ namespace FCloud3.Services.Sys
             }
             public void CancelAll()
             {
-                TokenSources.ForEach(t => t.Cancel()) ;
+                TokenSources.ForEach(t => t.Cancel());
                 TokenSources.Clear();
                 Logger?.LogInformation("关于_{Name}_的缓存已全部丢弃", Name);
             }
         }
 
-        public class CacheExpTokenManaerCollection: Dictionary<int, CacheExpTokenManager>
+        public class CacheExpTokenManaerCollection : Dictionary<int, CacheExpTokenManager>
         {
             public string Name { get; }
             private ILogger<CacheExpTokenManager>? Logger { get; }
@@ -60,7 +60,7 @@ namespace FCloud3.Services.Sys
             }
             public CacheExpTokenManager GetByKey(int key)
             {
-                if(this.TryGetValue(key, out var manager))
+                if (TryGetValue(key, out var manager))
                 {
                     return manager;
                 }
