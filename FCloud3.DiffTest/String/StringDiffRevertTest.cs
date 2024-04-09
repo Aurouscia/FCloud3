@@ -59,5 +59,22 @@ namespace FCloud3.DiffTest.String
             var reverted = diffs.RevertAll(newStr);
             Assert.AreEqual(oldStr, reverted);
         }
+
+        [TestMethod]
+        [DataRow("123456", "123AA56", "12CCA56")]
+        [DataRow("123456789", "1AA4567AAA9", "12CC456CCCC")]
+        public void MutiSteps(string _1, string _2, string _3)
+        {
+            var diffs_1 = StringDiffSearch.Run(_1, _2, 1);
+            var diffs_2 = StringDiffSearch.Run(_2, _3, 1);
+            var list = _3.ToList();
+            diffs_2.RevertAll(list);
+            var rev_3_to_2 = new string(list.ToArray());
+            Assert.AreEqual(_2, rev_3_to_2);
+
+            diffs_1.RevertAll(list);
+            var rev_2_to_1 = new string(list.ToArray());
+            Assert.AreEqual(_1, rev_2_to_1);
+        }
     }
 }

@@ -19,5 +19,7 @@ namespace FCloud3.Repos.Diff
 
         public IQueryable<DiffContent> GetDiffs(DiffContentType type, int objId)
             => Existing.Where(x => x.DiffType == type && x.ObjectId == objId);
+
+        public IQueryable<DiffSingle> DiffSingles => _context.Set<DiffSingle>();
     }
 }

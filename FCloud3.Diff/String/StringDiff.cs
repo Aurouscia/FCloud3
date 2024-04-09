@@ -54,6 +54,15 @@ namespace FCloud3.Diff.String
             return new string(charList.ToArray());
         }
 
+        public void RevertAll(List<char> str)
+        {
+            this.Sort((x, y) => x.Index - y.Index);
+            this.ForEach(x =>
+            {
+                x.Revert(str);
+            });
+        }
+
         public int AddedChars()
         {
             return this.Select(x => x.New).Sum();

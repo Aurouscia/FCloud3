@@ -2,15 +2,18 @@
 using FCloud3.Entities.Diff;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.TextSec;
 
 namespace FCloud3.Services.Diff
 {
     public class DiffContentService(
         DiffContentRepo contentDiffRepo,
-        UserRepo userRepo)
+        UserRepo userRepo,
+        TextSectionRepo textSectionRepo)
     {
         private readonly DiffContentRepo _contentDiffRepo = contentDiffRepo;
         private readonly UserRepo _userRepo = userRepo;
+        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
 
         public bool MakeDiffForTextSection(int textSecId, string? original, string? modified, out string? errmsg)
         {
@@ -43,7 +46,7 @@ namespace FCloud3.Services.Diff
             return _contentDiffRepo.AddRangeDiffSingle(dss, out errmsg);
         }
 
-        public DiffHistoryResult DiffHistory(DiffContentType type, int objId)
+        public DiffContentHistoryResult DiffHistory(DiffContentType type, int objId)
         {
             var list = (
                 from diff in _contentDiffRepo.GetDiffs(type, objId)
@@ -52,34 +55,100 @@ namespace FCloud3.Services.Diff
                 orderby diff.Created descending
                 select new
                 {
+                    DiffId = diff.Id,
                     Time = diff.Created,
                     UserId = diff.CreatorUserId,
                     UserName = user.Name,
                     Removed = diff.RemovedChars,
                     Added = diff.AddedChars,
                 }).ToList();
-            var res = new DiffHistoryResult();
+            var res = new DiffContentHistoryResult();
             foreach ( var item in list )
             {
-                res.Add(item.Time, item.UserId, item.UserName, item.Removed, item.Added);
+                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added);
             }
             return res;
         }
 
-        public class DiffHistoryResult
+        public DiffContentDetailResult DiffDetail(DiffContentType type, int objId)
         {
-            public List<DiffHistoryResultItem> Items { get; set; } = [];
-            public void Add(DateTime time, int uid, string uname, int removed, int added)
+            string content = GetCurrentContent(type, objId) 
+                ?? throw new Exception("找不到指定内容");
+            List<char> contentChars = [.. content];
+            var diffs = _contentDiffRepo
+                .GetDiffs(type, objId)
+                .OrderByDescending(x=>x.Created)
+                .Select(x=>x.Id).ToList();
+            var diffSingles = _contentDiffRepo.DiffSingles
+                .Where(x => diffs.Contains(x.DiffContentId))
+                .ToList();
+            DiffContentDetailResult res = new();
+
+            res.AddItem(0, content, []);
+            foreach (int id in diffs)
             {
-                Items.Add(new(time, uid, uname, removed, added));
+                var last = res.Items.Last();
+                var dsHere = diffSingles.FindAll(x => x.DiffContentId == id);
+                StringDiffCollection stringDiffs = [];
+                List<int[]> removed = [];
+                dsHere.ForEach(x => {
+                    stringDiffs.Add(new StringDiff(x.Index, x.Ori ?? "", x.New));
+                    if(x.New > 0)
+                        last.Added.Add([x.Index, x.Index + x.New]);
+                    int oriLength = x.Ori is not null ? x.Ori.Length : 0;
+                    if(oriLength > 0)
+                        removed.Add([x.Index, x.Index + oriLength]);
+                });
+                stringDiffs.RevertAll(contentChars);
+                string contentThere = new(contentChars.ToArray());
+                res.AddItem(id, contentThere, removed);
             }
-            public class DiffHistoryResultItem(DateTime time, int uid, string uname, int removed, int added)
+            return res;
+        }
+
+        private string? GetCurrentContent(DiffContentType type, int objId)
+        {
+            if(type == DiffContentType.TextSection)
             {
+                return _textSectionRepo.Existing
+                    .Where(x => x.Id == objId)
+                    .Select(x => x.Content)
+                    .FirstOrDefault();
+            }
+            throw new NotImplementedException();
+        }
+
+        public class DiffContentHistoryResult
+        {
+            public List<DiffContentHistoryResultItem> Items { get; set; } = [];
+            public void Add(int id, DateTime time, int uid, string uname, int removed, int added)
+            {
+                Items.Add(new(id, time, uid, uname, removed, added));
+            }
+            public class DiffContentHistoryResultItem(int id, DateTime time, int uid, string uname, int removed, int added)
+            {
+                public int Id { get; set; } = id;
                 public string T { get; set; } = time.ToString("yy/MM/dd HH:mm:ss");
                 public int UId { get; set; } = uid;
                 public string UName { get; set; } = uname;
                 public int R { get; set; } = removed;
                 public int A { get; set; } = added;
+            }
+        }
+
+        public class DiffContentDetailResult
+        {
+            public List<DiffContentDetailResultItem> Items { get; set; } = [];
+            public void AddItem(int id, string content, List<int[]> removed)
+            {
+                Items.Add(new(id, content, removed));
+            }
+            public class DiffContentDetailResultItem(int id, string content, List<int[]> removed)
+            {
+                public int Id { get; set; } = id;
+                public string Content { get; set; } = content;
+                public List<int[]> Added { get; set; } = [];
+                public List<int[]> Removed { get; set; } = removed;
             }
         }
     }

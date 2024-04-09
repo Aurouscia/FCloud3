@@ -11,6 +11,7 @@ import { addTextSection } from './pages/TextSection/routes';
 import { addFiles } from './pages/Files/routes';
 import { addTable } from './pages/Table/routes';
 import { addWikiParsing } from './pages/WikiParsing/routes';
+import { addDiff } from './pages/Diff/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -28,5 +29,6 @@ addWikiParsing(router)
 addTextSection(router)
 addTable(router)
 addFiles(router)
+addDiff(router)
 
 createApp(App).use(router).mount('#app')

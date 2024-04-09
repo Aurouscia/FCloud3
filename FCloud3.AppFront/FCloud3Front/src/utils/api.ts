@@ -18,6 +18,9 @@ import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from 
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
 import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest } from '../models/wiki/wikiTitleContain';
+import { DiffContentType } from '../models/diff/DiffContentType';
+import { DiffContentHistoryResult } from '../models/diff/DiffContentHistory';
+import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
 
 
 export class Api{
@@ -768,6 +771,32 @@ export class Api{
                 true
             )
             return resp.success
+        }
+    }
+    diffContent = {
+        history: async(type:DiffContentType, objId:number)=>{
+            const resp = await this.httpClient.request(
+                "/api/DiffContent/History",
+                "postForm",
+                {
+                    type, objId
+                }
+            )
+            if(resp.success){
+                return resp.data as DiffContentHistoryResult
+            }
+        },
+        detail: async(type:DiffContentType, objId:number)=>{
+            const resp = await this.httpClient.request(
+                "/api/DiffContent/Detail",
+                "postForm",
+                {
+                    type, objId
+                }
+            )
+            if(resp.success){
+                return resp.data as DiffContentDetailResult
+            }
         }
     }
     utils = {

@@ -13,6 +13,8 @@ import menuImg from '../../assets/menu.svg';
 import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
+import { jumpToDiffContentHistory } from '../Diff/routes';
+import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
 import { isImageFile } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '../../utils/swipeListener';
@@ -171,6 +173,7 @@ onUnmounted(()=>{
                 <h1 :id="titleElementId(p.TitleId)">
                     {{ p.Title }}
                     <div class="h1Sep"></div>
+                    <div class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
                     <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
