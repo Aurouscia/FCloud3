@@ -8,7 +8,7 @@ namespace FCloud3.Diff.String
 {
     public static class StringDiffSearch
     {
-        public static StringDiffCollection Run(string? a, string? b, int alignThrs = 2)
+        public static StringDiffCollection Run(string? a, string? b, int alignThrs = default)
         {
             a ??= "";
             b ??= "";
@@ -44,13 +44,7 @@ namespace FCloud3.Diff.String
                     continue;
                 }
                 //发现不同之处
-                StringDiff diff;
-                var diff1 = GenDiff(a, b, ptA, ptB, alignThrs, true);
-                var diff2 = GenDiff(a, b, ptA, ptB, alignThrs, false);
-                if (diff1.New + diff1.Ori.Length > diff2.New + diff2.Ori.Length)
-                    diff = diff2;
-                else
-                    diff = diff1;
+                StringDiff diff = GenDiff(a, b, ptA, ptB, alignThrs);
                 diffs.Add(diff);
                 ptA += diff.Ori.Length + alignThrs;
                 ptB += diff.New + alignThrs;
@@ -58,80 +52,59 @@ namespace FCloud3.Diff.String
             return diffs;
         }
 
-        private static StringDiff GenDiff(string a, string b, int ptA, int ptB, int alignThrs, bool flag)
+        private const int minThrs = 3;
+        private static StringDiff GenDiff(string a, string b, int ptA, int ptB, int alignThrs)
         {
             int A_diffStart = ptA;
             int B_diffStart = ptB;
             int maxA = a.Length - 1;
             int maxB = b.Length - 1;
-            if (flag)
+            int increA;
+            int increB = 0;
+            int thrs()
             {
-                while (true)
-                {
-                    ptA = A_diffStart;
-                    while (true)
-                    {
-                        if (ptA > maxA)
-                            break;
-                        if (a[ptA] == b[ptB] && AlignConfirm(a, b, ptA, ptB, alignThrs))
-                        {
-                            int A_length = ptA - A_diffStart;
-                            int B_length = ptB - B_diffStart;
-                            StringDiff newDiff = new(
-                                index: A_diffStart,
-                                oriContent: a.Substring(A_diffStart, A_length),
-                                newLength: B_length);
-                            return newDiff;
-                        }
-                        ptA++;
-                    }
-
-                    ptB++;
-                    if (ptB > maxB)
-                    {
-                        //一直到B的尽头也没有发现相同
-                        int A_length = ptA - A_diffStart;
-                        StringDiff newDiff = new(
-                            index: A_diffStart,
-                            oriContent: a.Substring(A_diffStart, A_length),
-                            newLength: ptB - B_diffStart);
-                        return newDiff;
-                    }
-                }
+                if (alignThrs != default)
+                    return alignThrs;
+                int thrs = minThrs;
+                if (increA > thrs)
+                    thrs = increA;
+                if (increB > thrs)
+                    thrs = increB;
+                return thrs;
             }
-            else
+            while (true)
             {
+                ptA = A_diffStart;
+                increA = 0;
                 while (true)
                 {
-                    ptB = B_diffStart;
-                    while (true)
-                    {
-                        if (ptB > maxB)
-                            break;
-                        if (a[ptA] == b[ptB] && AlignConfirm(a, b, ptA, ptB, alignThrs))
-                        {
-                            int A_length = ptA - A_diffStart;
-                            int B_length = ptB - B_diffStart;
-                            StringDiff newDiff = new(
-                                index: A_diffStart,
-                                oriContent: a.Substring(A_diffStart, A_length),
-                                newLength: B_length);
-                            return newDiff;
-                        }
-                        ptB++;
-                    }
-
-                    ptA++;
                     if (ptA > maxA)
+                        break;
+                    if (a[ptA] == b[ptB] && AlignConfirm(a, b, ptA, ptB, thrs()))
                     {
-                        //一直到A的尽头也没有发现相同
                         int A_length = ptA - A_diffStart;
+                        int B_length = ptB - B_diffStart;
                         StringDiff newDiff = new(
                             index: A_diffStart,
                             oriContent: a.Substring(A_diffStart, A_length),
-                            newLength: ptB - B_diffStart);
+                            newLength: B_length);
                         return newDiff;
                     }
+                    ptA++;
+                    increA++;
+                }
+
+                ptB++;
+                increB++;
+                if (ptB > maxB)
+                {
+                    //一直到B的尽头也没有发现相同
+                    int A_length = ptA - A_diffStart;
+                    StringDiff newDiff = new(
+                        index: A_diffStart,
+                        oriContent: a.Substring(A_diffStart, A_length),
+                        newLength: ptB - B_diffStart);
+                    return newDiff;
                 }
             }
         }

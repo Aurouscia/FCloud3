@@ -62,12 +62,34 @@ namespace FCloud3.DiffTest.String
         }
 
         [TestMethod]
-        [DataRow("XX1230", "XX0123", "2--1|5-0-0")]
-        [DataRow("XX0123", "XX1230", "2-0-0|6--1")]
+        [DataRow("XX1230XXXX", "XX0123XXXX", "2--1|5-0-0")]
+        [DataRow("XX0123XXXX", "XX1230XXXX", "2-0-0|6--1")]
         [DataRow("0123456789ABC", "ABC0123456789", "0--3|10-ABC-0")]
+        //                  ^^^    ^^^
         [DataRow("ABC0123456789", "0123456789ABC", "0-ABC-0|13--3")]
+        //        ^^^                        ^^^
         public void ExchangeMisunderstandingAvoiding(string a, string b, string strDiffs)
         {
+            //当两部分交换位置时，应记录为更短的那部分被删后被加
+            var diffs = StringDiffSearch.Run(a, b);
+            var answers = StrStringDiff.ParseList(strDiffs);
+            AssertDiff.SameList(answers, diffs);
+        }
+
+        [TestMethod]
+        [DataRow("0123456789", "0A234567Z9", "1-1-1|8-8-1")]
+        //         ^      ^      ^      ^
+        [DataRow("0123456789", "0ABCD56789", "1-1234-4")]
+        //         ^^^^          ^^^^
+        [DataRow("0123456789", "0ABC4567Z9", "1-123-3|8-8-1")]
+        //         ^^^    ^      ^^^    ^
+        [DataRow("0123456789", "0ABCD567Z9", "1-12345678-8")]
+        //         ^^^^---^      ^^^^---^
+        [DataRow("0123456789", "0ABCDE67Z9", "1-12345678-8")]
+        //         ^^^^^--^      ^^^^^--^
+        public void MergeMisunderstandingAvoiding(string a, string b, string strDiffs)
+        {
+            //在对齐阈值未被指定的情况下，应与当前指针前进的步数一致，最低为3
             var diffs = StringDiffSearch.Run(a, b);
             var answers = StrStringDiff.ParseList(strDiffs);
             AssertDiff.SameList(answers, diffs);
