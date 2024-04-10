@@ -1,7 +1,7 @@
 import { Router } from "vue-router";
 import { addToRouter } from "../../utils/routerAdd";
 import DiffContentHistory from "./DiffContentHistory.vue";
-import { DiffContentType } from "../../models/diff/DiffContentType";
+import { DiffContentType, diffContentTypeToStr } from "../../models/diff/DiffContentType";
 
 let router:Router;
 export function addDiff(r:Router){
@@ -19,5 +19,5 @@ const routes = [
 ]
 
 export function jumpToDiffContentHistory(type:DiffContentType, objId:number){
-    router.push({name:'diffContentHistory', params:{type:type, objId:objId}})
+    router.push({name:'diffContentHistory', params:{type:diffContentTypeToStr(type), objId:objId}})
 }

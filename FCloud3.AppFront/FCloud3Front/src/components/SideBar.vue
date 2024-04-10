@@ -17,7 +17,9 @@ barStyle.value = {
 }
 
 let swl: SwipeListener|undefined
+let timer:number
 function extend(){
+    window.clearTimeout(timer)
     showing.value = true;
     coverStyle.value = {
         display:'block',
@@ -52,7 +54,7 @@ function fold(){
         width,
         boxShadow:'none'
     }
-    window.setTimeout(()=>{
+    timer = window.setTimeout(()=>{
         coverStyle.value = {}
         showing.value = false;
     },500)
@@ -94,6 +96,7 @@ const emit = defineEmits<{
     padding: 10px;
     overflow-y: auto;
     height: calc(100vh - 50px);
+    position: relative;
 }
 .sideBar{
     position: fixed;

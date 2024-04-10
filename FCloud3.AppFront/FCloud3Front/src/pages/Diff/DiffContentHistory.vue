@@ -1,69 +1,143 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
-import { DiffContentType } from '../../models/diff/DiffContentType';
+import { diffContentTypeFromStr } from '../../models/diff/DiffContentType';
 import { DiffContentHistoryResult } from '../../models/diff/DiffContentHistory';
+import DiffContentDetail from './DiffContentDetail.vue';
+import { DiffContentDetailResult } from '../../models/diff/DiffContentDetail';
+import { watchWindowWidth } from '../../utils/windowSizeWatcher';
+import SideBar from '../../components/SideBar.vue';
 
 const props = defineProps<{
     type: string;
     objId: string;
 }>();
-const type = parseInt(props.type) as DiffContentType
+const type = diffContentTypeFromStr(props.type)
 const objId = parseInt(props.objId)
 
 const history = ref<DiffContentHistoryResult>()
+const selectedHistoryIdx = ref<number>(-1)
+
+let detail:DiffContentDetailResult|undefined;
+const from = ref<string>('')
+const to = ref<string>('')
+const removed = ref<[number,number][]>([])
+const added = ref<[number,number][]>([])
+const detailSidebar = ref<InstanceType<typeof SideBar>>()
+async function switchDetail(id:number){
+    selectedHistoryIdx.value = id
+    if(!detail){
+        detail = await api.diffContent.detail(type, objId)
+        if(!detail)
+            return;
+    }
+    if(id<=0)return;
+    const idx = detail.Items.findIndex(i=>i.Id==id)
+    from.value = detail?.Items[idx]?.Content || ''
+    to.value = detail?.Items[idx-1]?.Content || ''
+    removed.value = detail?.Items[idx]?.Removed || []
+    added.value = detail?.Items[idx-1]?.Added || []
+    detailSidebar.value?.extend()
+}
+
+const tooNarrow = ref<boolean>(false);
+function tooNarrowOrNot(width:number){
+    tooNarrow.value = width<700;
+}
 
 let api:Api;
+let disposeWidthWatch:undefined|(()=>void)
 onMounted(async()=>{
     api = injectApi();
     history.value = await api.diffContent.history(type, objId)
-    await api.diffContent.detail(type, objId)
+    disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
+    tooNarrowOrNot(window.innerWidth)
+})
+onUnmounted(async()=>{
+    disposeWidthWatch?.()
 })
 </script>
 
 <template>
 <div class="diffContentHistory">
-    <table class="historyList" v-if="history">
-        <tr>
-            <th>时间</th>
-            <th>操作者</th>
-            <th>变动</th>
-        </tr>
-        <tr v-for="i in history.Items">
-            <td>
-                {{ i.T }}
-            </td>
-            <td>
-                {{ i.UName }}
-            </td>
-            <td class="ar">
-                <span class="a">{{ i.A ? '+'+i.A : ''}}</span>
-                <span class="r">{{ i.R ? '-'+i.R : ''}}</span>
-            </td>
-        </tr>
-    </table>
-    <div class="from">
-
+    <div class="historyList" :class="{grow:tooNarrow}">
+        <table v-if="history">
+            <tr>
+                <th>时间</th>
+                <th>操作者</th>
+                <th>变动</th>
+            </tr>
+            <tr v-for="i in history.Items" @click="switchDetail(i.Id)" :class="{selected:selectedHistoryIdx==i.Id}">
+                <td class="t">
+                    {{ i.T }}
+                </td>
+                <td>
+                    {{ i.UName }}
+                </td>
+                <td>
+                    <div class="ar">
+                        <span class="a">{{ i.A ? '+'+i.A : ''}}</span>
+                        <span class="r">{{ i.R ? '-'+i.R : ''}}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
-    <div class="to">
-
-    </div>
+    <SideBar v-if="tooNarrow" ref="detailSidebar">
+        <div class="detailInsideSidebar">
+            <DiffContentDetail :from="from" :to="to" :removed="removed" :added="added"></DiffContentDetail>
+        </div>
+    </SideBar>
+    <DiffContentDetail v-else :from="from" :to="to" :removed="removed" :added="added"></DiffContentDetail>
 </div>
 </template>
 
 <style scoped lang="scss">
-.historyList
-.ar{
+.diffContentHistory{
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px
+    flex-direction: row;
+    gap: 10px;
+    height: calc(95vh - var(--main-div-margin-top));
 }
-.a{
-    color:green
+.historyList{
+    overflow-y: auto;
+    min-width: 300px;
+    td{
+        cursor: pointer;
+    }
+    tr.selected td{
+        background-color: #bbb;
+    }
+    .ar{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px
+    }
+    .a{
+        color:green
+    }
+    .r{
+        color:red
+    }
+    .t{
+        font-size: 14px;
+    }
+    table{
+        width: 100%;
+    }
+    &.grow{
+        flex-grow: 1;
+    }
 }
-.r{
-    color:red
+.detailInsideSidebar{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    display: flex;
+    padding: 10px;
 }
 </style>

@@ -91,13 +91,18 @@ namespace FCloud3.Services.Diff
                 var dsHere = diffSingles.FindAll(x => x.DiffContentId == id);
                 StringDiffCollection stringDiffs = [];
                 List<int[]> removed = [];
+                int offset = 0;
                 dsHere.ForEach(x => {
                     stringDiffs.Add(new StringDiff(x.Index, x.Ori ?? "", x.New));
-                    if(x.New > 0)
-                        last.Added.Add([x.Index, x.Index + x.New]);
+                    if (x.New > 0)
+                    {
+                        int addedIndex = x.Index + offset;
+                        last.Added.Add([addedIndex, addedIndex + x.New]);
+                    }
                     int oriLength = x.Ori is not null ? x.Ori.Length : 0;
-                    if(oriLength > 0)
+                    if (oriLength > 0)
                         removed.Add([x.Index, x.Index + oriLength]);
+                    offset += (x.New - oriLength);
                 });
                 stringDiffs.RevertAll(contentChars);
                 string contentThere = new(contentChars.ToArray());
