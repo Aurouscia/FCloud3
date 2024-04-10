@@ -8,10 +8,8 @@ namespace FCloud3.Diff.String
 {
     public static class StringDiffSearch
     {
-        public static StringDiffCollection Run(string? a, string? b, int alignThrs = -1)
+        public static StringDiffCollection Run(string? a, string? b, int alignThrs = 2)
         {
-            if (alignThrs == -1)
-                alignThrs = AutoAlighThrs(a, b);
             a ??= "";
             b ??= "";
             StringDiffCollection diffs = [];
@@ -46,11 +44,30 @@ namespace FCloud3.Diff.String
                     continue;
                 }
                 //发现不同之处
-                int A_diffStart = ptA;
-                int B_diffStart = ptB;
+                StringDiff diff;
+                var diff1 = GenDiff(a, b, ptA, ptB, alignThrs, true);
+                var diff2 = GenDiff(a, b, ptA, ptB, alignThrs, false);
+                if (diff1.New + diff1.Ori.Length > diff2.New + diff2.Ori.Length)
+                    diff = diff2;
+                else
+                    diff = diff1;
+                diffs.Add(diff);
+                ptA += diff.Ori.Length + alignThrs;
+                ptB += diff.New + alignThrs;
+            }
+            return diffs;
+        }
+
+        private static StringDiff GenDiff(string a, string b, int ptA, int ptB, int alignThrs, bool flag)
+        {
+            int A_diffStart = ptA;
+            int B_diffStart = ptB;
+            int maxA = a.Length - 1;
+            int maxB = b.Length - 1;
+            if (flag)
+            {
                 while (true)
                 {
-                    bool ended = false;
                     ptA = A_diffStart;
                     while (true)
                     {
@@ -64,17 +81,12 @@ namespace FCloud3.Diff.String
                                 index: A_diffStart,
                                 oriContent: a.Substring(A_diffStart, A_length),
                                 newLength: B_length);
-
-                            diffs.Add(newDiff);
-                            ended = true;
-                            break;
+                            return newDiff;
                         }
                         ptA++;
                     }
-                    if (ended)
-                        break;
 
-                    ptB++; 
+                    ptB++;
                     if (ptB > maxB)
                     {
                         //一直到B的尽头也没有发现相同
@@ -83,17 +95,48 @@ namespace FCloud3.Diff.String
                             index: A_diffStart,
                             oriContent: a.Substring(A_diffStart, A_length),
                             newLength: ptB - B_diffStart);
-
-                        diffs.Add(newDiff);
-                        break;
+                        return newDiff;
                     }
                 }
             }
-            return diffs;
+            else
+            {
+                while (true)
+                {
+                    ptB = B_diffStart;
+                    while (true)
+                    {
+                        if (ptB > maxB)
+                            break;
+                        if (a[ptA] == b[ptB] && AlignConfirm(a, b, ptA, ptB, alignThrs))
+                        {
+                            int A_length = ptA - A_diffStart;
+                            int B_length = ptB - B_diffStart;
+                            StringDiff newDiff = new(
+                                index: A_diffStart,
+                                oriContent: a.Substring(A_diffStart, A_length),
+                                newLength: B_length);
+                            return newDiff;
+                        }
+                        ptB++;
+                    }
+
+                    ptA++;
+                    if (ptA > maxA)
+                    {
+                        //一直到A的尽头也没有发现相同
+                        int A_length = ptA - A_diffStart;
+                        StringDiff newDiff = new(
+                            index: A_diffStart,
+                            oriContent: a.Substring(A_diffStart, A_length),
+                            newLength: ptB - B_diffStart);
+                        return newDiff;
+                    }
+                }
+            }
         }
 
-
-        public static bool AlignConfirm(string a, string b, int ptA, int ptB, int thrs)
+        private static bool AlignConfirm(string a, string b, int ptA, int ptB, int thrs)
         {
             int aRemain = a.Length - ptA;
             int bRemain = b.Length - ptB;
@@ -109,15 +152,6 @@ namespace FCloud3.Diff.String
                     return false;
             }
             return true;
-        }
-
-        public static int AutoAlighThrs(string? a, string? b)
-        {
-            int lengthA = a is null ? 0 : a.Length;
-            int lengthB = b is null ? 0 : b.Length;
-            int smaller = Math.Min(lengthA, lengthB);
-            int res = smaller / 10;
-            return Math.Max(res, 10);
         }
     }
 }

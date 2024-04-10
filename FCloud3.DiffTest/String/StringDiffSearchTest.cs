@@ -62,11 +62,13 @@ namespace FCloud3.DiffTest.String
         }
 
         [TestMethod]
-        [DataRow("XX1230", "XX0123", 1, "2-123-0|6--3")]
-        [DataRow("XX1230", "XX0123", 2, "2--1|5-0-0")]
-        public void Ambiguous_NotAvoided(string a, string b, int thrs, string strDiffs)
+        [DataRow("XX1230", "XX0123", "2--1|5-0-0")]
+        [DataRow("XX0123", "XX1230", "2-0-0|6--1")]
+        [DataRow("0123456789ABC", "ABC0123456789", "0--3|10-ABC-0")]
+        [DataRow("ABC0123456789", "0123456789ABC", "0-ABC-0|13--3")]
+        public void ExchangeMisunderstandingAvoiding(string a, string b, string strDiffs)
         {
-            var diffs = StringDiffSearch.Run(a, b, thrs);
+            var diffs = StringDiffSearch.Run(a, b);
             var answers = StrStringDiff.ParseList(strDiffs);
             AssertDiff.SameList(answers, diffs);
         }
