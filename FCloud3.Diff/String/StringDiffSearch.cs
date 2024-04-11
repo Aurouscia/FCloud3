@@ -46,8 +46,8 @@ namespace FCloud3.Diff.String
                 //发现不同之处
                 StringDiff diff = GenDiff(a, b, ptA, ptB, alignThrs);
                 diffs.Add(diff);
-                ptA += diff.Ori.Length + alignThrs;
-                ptB += diff.New + alignThrs;
+                ptA += diff.Ori.Length;
+                ptB += diff.New;
             }
             return diffs;
         }
@@ -117,12 +117,19 @@ namespace FCloud3.Diff.String
                 thrs = bRemain;
             else if (aRemain < thrs || bRemain < thrs)
                 return false;
-            for(int i = 0; i < thrs; i++)
+
+            float mismatch = 0;
+            for(int i = 1; i < thrs;)
             {
                 char ca = a[ptA + i];
                 char cb = b[ptB + i];
+                i++;
                 if(ca != cb)
-                    return false;
+                {
+                    mismatch++;
+                    if (mismatch/i > 0.49f)
+                        return false;
+                }
             }
             return true;
         }
