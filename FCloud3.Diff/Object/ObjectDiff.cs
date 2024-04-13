@@ -11,9 +11,7 @@ namespace FCloud3.Diff.Object
         }
         public static string ObjectReadable(object obj)
         {
-            var settings = new JsonSerializerSettings();
-            settings.Formatting = Formatting.Indented;
-            return JsonConvert.SerializeObject(obj, settings);
+            return JsonConvert.SerializeObject(obj, Formatting.Indented);
         }
     }
 }
