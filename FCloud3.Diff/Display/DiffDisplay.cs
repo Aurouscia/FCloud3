@@ -48,17 +48,17 @@ namespace FCloud3.Diff.Display
     {
         public DiffDisplayFrag(string content, List<int[]> highlights)
         {
-            Content = content;
-            Highlights = highlights;
+            Text = content;
+            High = highlights;
         }
         public DiffDisplayFrag(CutSpan cutSpan, List<char> content)
         {
             var span = new char[cutSpan.Length];
             content.CopyTo(cutSpan.Index, span, 0, cutSpan.Length);
-            Content = new(span);
-            Highlights = cutSpan.Highlights;
+            Text = new(span);
+            High = cutSpan.Highlights;
         }
-        public string Content { get; set; }
-        public List<int[]> Highlights { get; set; }
+        public string Text { get; set; }
+        public List<int[]> High { get; set; }
     }
 }

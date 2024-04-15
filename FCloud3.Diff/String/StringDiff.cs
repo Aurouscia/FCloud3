@@ -43,6 +43,11 @@ namespace FCloud3.Diff.String
 
     public class StringDiffCollection: List<StringDiff>
     {
+        public StringDiffCollection() { }
+        public StringDiffCollection(int capacity) : base(capacity)
+        {
+        }
+
         public string RevertAll(string newStr)
         {
             var charList = newStr.ToList();

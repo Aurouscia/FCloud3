@@ -34,6 +34,7 @@ namespace FCloud3.DiffTest.Display
         [DataRow("01234567890", "012a45678c0", 2, "12345~2,3|7890~2,3", "12a45~2,3|78c0~2,3")]
         [DataRow("01234567890", "012a4567c90", 2, "1234567890~2,3;7,8", "12a4567c90~2,3;7,8")]
         [DataRow("01234567890", "012a4567c90", 3, "01234567890~3,4;8,9", "012a4567c90~3,4;8,9")]
+        [DataRow("01234567890", "012a4567c90", 20, "01234567890~3,4;8,9", "012a4567c90~3,4;8,9")]
         public void Mutiple(string ori, string now, int thickness, string showOri, string showNow)
         {
             var diffs = StringDiffSearch.Run(ori, now);
@@ -80,12 +81,12 @@ namespace FCloud3.DiffTest.Display
             {
                 var ai = actual[i];
                 var ei = expected[i];
-                Assert.AreEqual(ei.Content, ai.Content);
-                Assert.AreEqual(ei.Highlights.Count, ai.Highlights.Count);
-                for(int j = 0; j < ai.Highlights.Count; j++)
+                Assert.AreEqual(ei.Text, ai.Text);
+                Assert.AreEqual(ei.High.Count, ai.High.Count);
+                for(int j = 0; j < ai.High.Count; j++)
                 {
-                    var ah = ai.Highlights[j];
-                    var eh = ei.Highlights[j];
+                    var ah = ai.High[j];
+                    var eh = ei.High[j];
                     Assert.AreEqual(eh.Length, 2);
                     Assert.AreEqual(ah.Length, 2);
                     Assert.AreEqual(eh[0], ah[0]);
