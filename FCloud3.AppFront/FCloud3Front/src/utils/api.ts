@@ -786,12 +786,12 @@ export class Api{
                 return resp.data as DiffContentHistoryResult
             }
         },
-        detail: async(type:DiffContentType, objId:number)=>{
+        detail: async(type:DiffContentType, objId:number, diffId:number)=>{
             const resp = await this.httpClient.request(
                 "/api/DiffContent/Detail",
                 "postForm",
                 {
-                    type, objId
+                    type, objId, diffId
                 }
             )
             if(resp.success){

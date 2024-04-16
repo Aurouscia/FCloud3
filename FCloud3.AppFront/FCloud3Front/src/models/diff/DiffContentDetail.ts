@@ -1,11 +1,15 @@
 export interface DiffContentDetailResult{
-    Items: DiffContentDetailResultItem[]
+    Items: DiffContentStepDisplay[]
 }
 
-export interface DiffContentDetailResultItem
+export interface DiffContentStepDisplay
 {
-    Id:number
-    Content:string
-    Added:[number,number][]
-    Removed:[number,number][]
+    Id: number
+    From: DiffDisplayFrag[]
+    To: DiffDisplayFrag[]
+}
+export interface DiffDisplayFrag
+{
+    Text: string
+    High: [number,number][]
 }

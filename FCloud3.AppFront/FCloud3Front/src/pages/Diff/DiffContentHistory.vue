@@ -5,7 +5,7 @@ import { Api } from '../../utils/api';
 import { diffContentTypeFromStr } from '../../models/diff/DiffContentType';
 import { DiffContentHistoryResult } from '../../models/diff/DiffContentHistory';
 import DiffContentDetail from './DiffContentDetail.vue';
-import { DiffContentDetailResult } from '../../models/diff/DiffContentDetail';
+import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
 import { watchWindowWidth } from '../../utils/windowSizeWatcher';
 import SideBar from '../../components/SideBar.vue';
 
@@ -19,25 +19,15 @@ const objId = parseInt(props.objId)
 const history = ref<DiffContentHistoryResult>()
 const selectedHistoryIdx = ref<number>(-1)
 
-let detail:DiffContentDetailResult|undefined;
-const from = ref<string>('')
-const to = ref<string>('')
-const removed = ref<[number,number][]>([])
-const added = ref<[number,number][]>([])
+let displays:DiffContentStepDisplay[] = []
+const displaying = ref<DiffContentStepDisplay>()
 const detailSidebar = ref<InstanceType<typeof SideBar>>()
 async function switchDetail(id:number){
-    selectedHistoryIdx.value = id
-    if(!detail){
-        detail = await api.diffContent.detail(type, objId)
-        if(!detail)
-            return;
+    selectedHistoryIdx.value = id;
+    if(!displays.some(d=>d.Id == id)){
+        displays = (await api.diffContent.detail(type, objId, id))?.Items || [];
     }
-    if(id<=0)return;
-    const idx = detail.Items.findIndex(i=>i.Id==id)
-    from.value = detail?.Items[idx]?.Content || ''
-    to.value = detail?.Items[idx-1]?.Content || ''
-    removed.value = detail?.Items[idx]?.Removed || []
-    added.value = detail?.Items[idx-1]?.Added || []
+    displaying.value = displays.find(x=>x.Id == id);
     detailSidebar.value?.extend()
 }
 
@@ -86,10 +76,10 @@ onUnmounted(async()=>{
     </div>
     <SideBar v-if="tooNarrow" ref="detailSidebar">
         <div class="detailInsideSidebar">
-            <DiffContentDetail :from="from" :to="to" :removed="removed" :added="added"></DiffContentDetail>
+            <DiffContentDetail :display="displaying"></DiffContentDetail>
         </div>
     </SideBar>
-    <DiffContentDetail v-else :from="from" :to="to" :removed="removed" :added="added"></DiffContentDetail>
+    <DiffContentDetail v-else :display="displaying"></DiffContentDetail>
 </div>
 </template>
 

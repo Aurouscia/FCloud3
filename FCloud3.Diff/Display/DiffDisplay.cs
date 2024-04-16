@@ -30,8 +30,7 @@ namespace FCloud3.Diff.Display
                 offset += x.New - x.Ori.Length;
 
                 int oriLength = x.Ori is not null ? x.Ori.Length : 0;
-                if (oriLength > 0)
-                    removedSpans.Add([x.Index, x.Index + oriLength]);
+                removedSpans.Add([x.Index, x.Index + oriLength]);
             });
             var added = CutSpan.Make(addedSpans, content.Count, thickness);
             added.ForEach(x => res.To.Add(new(x, content)));

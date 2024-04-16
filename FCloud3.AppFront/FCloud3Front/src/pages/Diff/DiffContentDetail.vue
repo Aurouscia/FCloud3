@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
+import { TimedLock, getTimeStampMs } from '../../utils/timeStamp';
 
 const props = defineProps<{
-    from:string,
-    to:string,
-    removed:[number,number][],
-    added:[number,number][],
+    display:DiffContentStepDisplay|undefined
 }>();
 
 const from = ref<HTMLDivElement>();
 const to = ref<HTMLDivElement>();
+let leftDoms:HTMLElement[] = [];
+let rightDoms:HTMLElement[] = [];
 
 watch(props, async()=>{
     await refreshDisplay();
@@ -20,38 +21,118 @@ onMounted(async()=>{
 
 async function refreshDisplay(){
     await nextTick();
-    let addedRanges:Range[] = props.added.map(([start, end])=>{
-        const range = document.createRange();
-        if(to.value){
-            range.setStart(to.value.childNodes[0], start);
-            range.setEnd(to.value.childNodes[0], end);   
+    let counter = 0;
+    const addedRanges:Range[] = []
+    leftDoms = [];
+    props.display?.To.forEach(f=>{
+        const dom = document.getElementById(domId('to', counter++))
+        if(!dom || !dom.childNodes[0]){
+            return []
         }
-        return range;
+        leftDoms.push(dom)
+        const ranges:Range[] = f.High.map(([start,end])=>{
+            const range = document.createRange();
+            range.setStart(dom.childNodes[0], start);
+            range.setEnd(dom.childNodes[0], end);   
+            return range;
+        })
+        addedRanges.push(...ranges);
     })
-    let removedRanges:Range[] = props.removed.map(([start, end])=>{
-        const range = document.createRange();
-        if(from.value){
-            range.setStart(from.value.childNodes[0], start);
-            range.setEnd(from.value.childNodes[0], end);   
+    counter = 0;
+    const removedRanges:Range[] = []
+    rightDoms = []
+    props.display?.From.forEach(f=>{
+        const dom = document.getElementById(domId('from', counter++))
+        if(!dom || !dom.childNodes[0]){
+            return []
         }
-        return range;
+        rightDoms.push(dom)
+        const ranges:Range[] = f.High.map(([start,end])=>{
+            const range = document.createRange();
+            range.setStart(dom.childNodes[0], start);
+            range.setEnd(dom.childNodes[0], end);
+            return range;
+        })
+        removedRanges.push(...ranges);
     })
     const addedHighlight = new Highlight(...addedRanges);
     const removedHighlight = new Highlight(...removedRanges);
     CSS.highlights.clear()
     CSS.highlights.set('added', addedHighlight);
     CSS.highlights.set('removed', removedHighlight);
+    ensureSameHeight();
 }
+function ensureSameHeight(){
+    if(leftDoms.length == rightDoms.length){
+        for(let i=0;i<leftDoms.length;i++){
+            const from = leftDoms[i];
+            const to = rightDoms[i];
+            from.style.height = "";
+            to.style.height = "";
+            const fromHeight = from.offsetHeight;
+            const toHeight = to.offsetHeight;
+            const targetHeight = Math.max(fromHeight, toHeight)
+            from.style.height = targetHeight+"px";
+            to.style.height = targetHeight+"px"
+        }
+    }
+}
+function domId(side:"from"|"to", idx:number){
+    return `df_${side}_${idx}`;
+}
+
+let fromFollowing = false;
+let toFollowing = false;
+let fromTimer = 0;
+let toTimer = 0;
+const scrollLock = new TimedLock(10);
+async function scrollHandler(role:"from"|"to"){
+    if(!scrollLock.isOk()){return;}
+    if(role=='from'){
+        if(fromFollowing){return}
+        toFollowing = true;
+        to.value!.scrollTop = from.value!.scrollTop
+        clearTimeout(toTimer);
+        toTimer = setTimeout(()=>{toFollowing=false},100)
+    }else{
+        if(toFollowing){return}
+        fromFollowing = true;
+        from.value!.scrollTop = to.value!.scrollTop
+        clearTimeout(fromTimer);
+        fromTimer = setTimeout(()=>{fromFollowing=false},100)
+    }
+}
+
+const resizeLock = new TimedLock(50);
+function windowResizeHandler(){
+    if(resizeLock.isOk()){
+        ensureSameHeight();
+    }
+}
+onMounted(()=>{
+    window.addEventListener("resize",windowResizeHandler)
+})
+onUnmounted(()=>{
+    window.removeEventListener("resize",windowResizeHandler)
+})
 </script>
 
 <template>
 <div class="diffContentDetail">
-    <div class="from" ref="from">{{ $props.from }}</div>
-    <div class="to" ref="to">{{ $props.to }}</div>
+    <div class="from" ref="from" @scroll="scrollHandler('from')">
+        <div v-for="t,idx in display?.From" :id="domId('from', idx)">
+        {{ t.Text }}
+        </div>
+    </div>
+    <div class="to" ref="to" @scroll="scrollHandler('to')">
+        <div v-for="t,idx in display?.To" :id="domId('to', idx)">
+        {{ t.Text }}
+        </div>
+    </div>
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .diffContentDetail{
     display: flex;
     gap:10px;
@@ -68,10 +149,17 @@ async function refreshDisplay(){
     overflow-y: scroll;
     white-space: pre-wrap;
     box-sizing: border-box;
-    padding: 20px;
+    padding: 10px;
     background-color: #eee;
+    border: 5px solid #eee;
+    word-break: break-all;
+    div{
+        margin-bottom: 20px;
+        background-color: #fefefe;
+        padding: 5px;
+    }
 }
-@media screen and ( max-width: 1000px ){
+@media screen and ( max-width: 850px ){
     .diffContentDetail{
         flex-direction: column;
     }

@@ -20,9 +20,9 @@ namespace FCloud3.App.Controllers.Diff
             return this.ApiResp(_diffContentService.DiffHistory(type, objId));
         }
 
-        public IActionResult Detail(DiffContentType type, int objId)
+        public IActionResult Detail(DiffContentType type, int objId, int diffId)
         {
-            return this.ApiResp(_diffContentService.DiffDetail(type, objId));
+            return this.ApiResp(_diffContentService.DiffDetail(type, objId, diffId));
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FCloud3.Diff.String;
+﻿using FCloud3.Diff.Display;
+using FCloud3.Diff.String;
 using FCloud3.Entities.Diff;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Identities;
@@ -70,44 +71,70 @@ namespace FCloud3.Services.Diff
             return res;
         }
 
-        public DiffContentDetailResult DiffDetail(DiffContentType type, int objId)
+        public DiffContentDetailResult DiffDetail(DiffContentType type, int objId, int diffId)
         {
             string content = GetCurrentContent(type, objId) 
                 ?? throw new Exception("找不到指定内容");
             List<char> contentChars = [.. content];
-            var diffs = _contentDiffRepo
+            var diffIds = _contentDiffRepo
                 .GetDiffs(type, objId)
                 .OrderByDescending(x=>x.Created)
                 .Select(x=>x.Id).ToList();
-            var diffSingles = _contentDiffRepo.DiffSingles
-                .Where(x => diffs.Contains(x.DiffContentId))
-                .ToList();
-            DiffContentDetailResult res = new();
+            var targetIdx = diffIds.IndexOf(diffId);
+            var diffCount = diffIds.Count;
+            var shouldRevertCount = ShouldRevertCount(diffCount, targetIdx + 1);
+            diffIds = diffIds.GetRange(0, shouldRevertCount);
+            var singles = (
+                from s in _contentDiffRepo.DiffSingles
+                where diffIds.Contains(s.DiffContentId)
+                select s).ToList();
 
-            res.AddItem(0, content, []);
-            foreach (int id in diffs)
+            DiffContentDetailResult res = new();
+            foreach(int diff in diffIds)
             {
-                var last = res.Items.Last();
-                var dsHere = diffSingles.FindAll(x => x.DiffContentId == id);
-                StringDiffCollection stringDiffs = [];
-                List<int[]> removed = [];
-                int offset = 0;
-                dsHere.ForEach(x => {
-                    stringDiffs.Add(new StringDiff(x.Index, x.Ori ?? "", x.New));
-                    if (x.New > 0)
-                    {
-                        int addedIndex = x.Index + offset;
-                        last.Added.Add([addedIndex, addedIndex + x.New]);
-                    }
-                    int oriLength = x.Ori is not null ? x.Ori.Length : 0;
-                    if (oriLength > 0)
-                        removed.Add([x.Index, x.Index + oriLength]);
-                    offset += (x.New - oriLength);
-                });
-                stringDiffs.RevertAll(contentChars);
-                string contentThere = new(contentChars.ToArray());
-                res.AddItem(id, contentThere, removed);
+                var itsDiffSingles = singles.FindAll(x=>x.DiffContentId == diff);
+                StringDiffCollection sdc = ConvertToStringDiffCollection(itsDiffSingles);
+                var disp = DiffDisplay.Make(contentChars, sdc, 10);
+                res.Items.Add(new(diff, disp.From, disp.To));
             }
+            return res;
+        }
+        public DiffContentCompleteResult DiffComplete(DiffContentType type, int objId, int diffId)
+        {
+            string content = GetCurrentContent(type, objId)
+                ?? throw new Exception("找不到指定内容");
+            List<char> contentChars = [.. content];
+            var diffIds = _contentDiffRepo
+                .GetDiffs(type, objId)
+                .OrderByDescending(x => x.Created)
+                .Select(x => x.Id).ToList();
+            var targetIdx = diffIds.IndexOf(diffId);
+            if(targetIdx == -1)
+                throw new Exception("找不到指定改动点");
+            diffIds = diffIds.GetRange(0, targetIdx + 1);
+            var singles = (
+                from s in _contentDiffRepo.DiffSingles
+                where diffIds.Contains(s.DiffContentId)
+                select s).ToList();
+
+            DiffContentCompleteResult? res = null;
+            foreach (int diff in diffIds)
+            {
+                var itsDiffSingles = singles.FindAll(x => x.DiffContentId == diff);
+                StringDiffCollection sdc = ConvertToStringDiffCollection(itsDiffSingles);
+                if (diff == diffId)
+                {
+                    var disp = DiffDisplay.Make(contentChars, sdc, 10);
+                    res = new(new(diffId, disp.From, disp.To));
+                    break;
+                }
+                else
+                {
+                    sdc.RevertAll(contentChars);
+                }
+            }
+            if (res is null)
+                throw new Exception("更改浏览(完整)出错");
             return res;
         }
 
@@ -121,6 +148,32 @@ namespace FCloud3.Services.Diff
                     .FirstOrDefault();
             }
             throw new NotImplementedException();
+        }
+        private static int ShouldRevertCount(int total, int requested)
+        {
+            if (requested < 10 || total < 10)
+            {
+                if (total < 10)
+                    return total;
+                else
+                    return 10;
+            }
+            while (true)
+            {
+                var half = total / 2;
+                if (half < requested)
+                    return total;
+                total = half;
+            }
+        }
+        private static StringDiffCollection ConvertToStringDiffCollection(List<DiffSingle> diffs)
+        {
+            var sdc = new StringDiffCollection(diffs.Count);
+            diffs.ForEach(d =>
+            {
+                sdc.Add(new(d.Index, d.Ori ?? "", d.New));
+            });
+            return sdc;
         }
 
         public class DiffContentHistoryResult
@@ -143,18 +196,17 @@ namespace FCloud3.Services.Diff
 
         public class DiffContentDetailResult
         {
-            public List<DiffContentDetailResultItem> Items { get; set; } = [];
-            public void AddItem(int id, string content, List<int[]> removed)
-            {
-                Items.Add(new(id, content, removed));
-            }
-            public class DiffContentDetailResultItem(int id, string content, List<int[]> removed)
-            {
-                public int Id { get; set; } = id;
-                public string Content { get; set; } = content;
-                public List<int[]> Added { get; set; } = [];
-                public List<int[]> Removed { get; set; } = removed;
-            }
+            public List<DiffContentStepDisplay> Items { get; set; } = [];
+        }
+        public class DiffContentCompleteResult(DiffContentStepDisplay display)
+        {
+            public DiffContentStepDisplay Display { get; set; } = display;
+        }
+        public class DiffContentStepDisplay(int id, List<DiffDisplayFrag> from, List<DiffDisplayFrag> to)
+        {
+            public int Id { get; set; } = id;
+            public List<DiffDisplayFrag> From { get; set; } = from;
+            public List<DiffDisplayFrag> To { get; set; } = to;
         }
     }
 }
