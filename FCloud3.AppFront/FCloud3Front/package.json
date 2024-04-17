@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aurouscia/au-table-editor": "^0.2.6",
-    "@aurouscia/keyboard-shortcut": "^0.0.0",
+    "@aurouscia/au-table-editor": "^0.2.7",
+    "@aurouscia/keyboard-shortcut": "^0.0.2",
     "axios": "^1.6.8",
     "js-md5": "^0.8.3",
     "lodash": "^4.17.21",

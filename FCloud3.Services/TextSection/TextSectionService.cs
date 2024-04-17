@@ -5,6 +5,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.DbContexts;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Diff;
+using FCloud3.Entities.Diff;
 
 namespace FCloud3.Services.TextSec
 {
@@ -115,10 +116,14 @@ namespace FCloud3.Services.TextSec
                     errmsg = "找不到指定文本段";
                     return false;
                 }
-
+                if (original.Content == content)
+                {
+                    errmsg = null;
+                    return true;
+                }
                 using var t = _dbTransactionService.BeginTransaction();
                 var updateSuccess = _textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
-                var diffSuccess = _contentDiffService.MakeDiffForTextSection(id, original.Content, content, out var diffErrmsg);
+                var diffSuccess = _contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
                 if (updateSuccess && diffSuccess)
                 {
                     _dbTransactionService.CommitTransaction(t);

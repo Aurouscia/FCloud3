@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
-import { TimedLock, getTimeStampMs } from '../../utils/timeStamp';
+import { TimedLock } from '../../utils/timeStamp';
 
 const props = defineProps<{
     display:DiffContentStepDisplay|undefined
@@ -151,7 +151,6 @@ onUnmounted(()=>{
     box-sizing: border-box;
     padding: 10px;
     background-color: #eee;
-    border: 5px solid #eee;
     word-break: break-all;
     div{
         margin-bottom: 20px;

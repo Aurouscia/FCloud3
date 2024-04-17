@@ -2,11 +2,12 @@
 using FCloud3.Repos.Table;
 using FCloud3.Repos.Wiki;
 using FCloud3.Entities.Wiki;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Aurouscia.TableEditor.Core.Utils;
+using FCloud3.DbContexts;
+using FCloud3.Services.Diff;
+using FCloud3.Entities.Diff;
+using NPOI.SS.Formula.Functions;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Services.Table
 {
@@ -14,11 +15,22 @@ namespace FCloud3.Services.Table
     {
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
+        private readonly DiffContentService _diffContentService;
+        private readonly DbTransactionService _dbTransactionService;
+        private readonly ILogger<FreeTableService> _logger;
 
-        public FreeTableService(FreeTableRepo freeTableRepo, WikiParaRepo wikiParaRepo)
+        public FreeTableService(
+            FreeTableRepo freeTableRepo,
+            WikiParaRepo wikiParaRepo,
+            DiffContentService diffContentService,
+            DbTransactionService dbTransactionService,
+            ILogger<FreeTableService> logger)
         {
             _freeTableRepo = freeTableRepo;
             _wikiParaRepo = wikiParaRepo;
+            _diffContentService = diffContentService;
+            _dbTransactionService = dbTransactionService;
+            _logger = logger;
         }
 
         public FreeTable? GetById(int id)
@@ -31,7 +43,41 @@ namespace FCloud3.Services.Table
         }
         public bool TryEditContent(int id, string data, out string? errmsg)
         {
-            return _freeTableRepo.TryEditContent(id, data, out errmsg);
+            var model = _freeTableRepo.GetById(id);
+            if (model is null)
+            {
+                errmsg = "找不到指定表格";
+                return false;
+            }
+
+            var datatable = FreeTableDataConvert.Deserialize(data);
+            int rowCount = datatable.GetRowCount();
+            int colCount = datatable.GetColumnCount();
+            if (datatable.Cells is null || rowCount == 0 || colCount == 0)
+            {
+                errmsg = "不能保存空表格";
+                return false;
+            }
+
+            var oldData = model.Data ?? "";
+            using var transaction = _dbTransactionService.BeginTransaction();
+            var diffSuccess = _diffContentService.MakeDiff(id, DiffContentType.FreeTable, oldData, data, out string? diffErrmsg);
+            var saveSuccess = _freeTableRepo.TryEditContent(model, datatable, data, out string? saveErrmsg);
+
+            if (saveSuccess && diffSuccess)
+            {
+                _dbTransactionService.CommitTransaction(transaction);
+                _logger.LogInformation("更新[{id}]号表格成功", id);
+                errmsg = null;
+                return true;
+            }
+            else
+            {
+                _dbTransactionService.RollbackTransaction(transaction);
+                errmsg = saveErrmsg + diffErrmsg;
+                _logger.LogError("更新[{id}]号表格失败，\"{msg}\"", id, errmsg);
+                return false;
+            }
         }
 
         public int TryAddAndAttach(int paraId, out string? errmsg)

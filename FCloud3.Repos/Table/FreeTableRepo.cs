@@ -37,35 +37,22 @@ namespace FCloud3.Repos.Table
             return affected == 1;
         }
 
-        public bool TryEditContent(int id, string data, out string? errmsg)
+        public bool TryEditContent(FreeTable model, AuTable data, string dataRaw, out string? errmsg)
         {
-            try
+            var brief = Brief(data.Cells);
+            string briefJson = brief.ToJsonStr();
+            if (model is null)
             {
-                var table = FreeTableDataConvert.Deserialize(data);
-                int rowCount = table.GetRowCount();
-                int colCount = table.GetColumnCount();
-                if (table.Cells is null || table.Cells.Count==0 || colCount==0)
-                {
-                    errmsg = "不能保存空表格";
-                    return false;
-                }
-
-                var brief = Brief(table.Cells);
-                string briefJson = brief.ToJsonStr();
-                int affected = Existing.Where(x => x.Id == id)
-                    .ExecuteUpdate(x => x
-                        .SetProperty(t => t.Data, data)
-                        .SetProperty(t => t.Brief, briefJson)
-                        .SetProperty(t => t.Updated, DateTime.Now)
-                    );
-                errmsg = null;
-                return affected == 1;
-            }
-            catch
-            {
-                errmsg = "提交数据格式出错，请联系管理员";
+                errmsg = "找不到指定表格";
                 return false;
             }
+            model.Updated = DateTime.Now;
+            model.Brief = briefJson;
+            model.Data = dataRaw;
+            _context.Update(model);
+            _context.SaveChanges();
+            errmsg = null;
+            return true;
         }
         private FreeTableBrief Brief(List<List<string?>?>? cells)
         {
@@ -184,9 +171,7 @@ namespace FCloud3.Repos.Table
         }
         public static AuTable GetData(this FreeTable table) 
         {
-            if (table.Data is null)
-                return new();
-            return JsonConvert.DeserializeObject<AuTable>(table.Data, jsonSettings) ?? new();
+            return Deserialize(table.Data);
         }
         public static void SetData(this FreeTable table, AuTable tableData)
         {

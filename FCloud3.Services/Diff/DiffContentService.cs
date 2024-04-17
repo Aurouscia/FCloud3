@@ -1,8 +1,11 @@
-﻿using FCloud3.Diff.Display;
+﻿using Aurouscia.TableEditor.Core;
+using FCloud3.Diff.Display;
+using FCloud3.Diff.Object;
 using FCloud3.Diff.String;
 using FCloud3.Entities.Diff;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 
 namespace FCloud3.Services.Diff
@@ -10,13 +13,15 @@ namespace FCloud3.Services.Diff
     public class DiffContentService(
         DiffContentRepo contentDiffRepo,
         UserRepo userRepo,
-        TextSectionRepo textSectionRepo)
+        TextSectionRepo textSectionRepo,
+        FreeTableRepo freeTableRepo)
     {
         private readonly DiffContentRepo _contentDiffRepo = contentDiffRepo;
         private readonly UserRepo _userRepo = userRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
+        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
 
-        public bool MakeDiffForTextSection(int textSecId, string? original, string? modified, out string? errmsg)
+        public bool MakeDiff(int objId, DiffContentType type, string? original, string? modified, out string? errmsg)
         {
             var diffs = StringDiffSearch.Run(original, modified);
             if (diffs.Count == 0)
@@ -28,8 +33,8 @@ namespace FCloud3.Services.Diff
             int added = diffs.AddedChars();
             DiffContent dc = new()
             {
-                ObjectId = textSecId,
-                DiffType = DiffContentType.TextSection,
+                ObjectId = objId,
+                DiffType = type,
                 RemovedChars = removed,
                 AddedChars = added,
             };
@@ -145,6 +150,13 @@ namespace FCloud3.Services.Diff
                 return _textSectionRepo.Existing
                     .Where(x => x.Id == objId)
                     .Select(x => x.Content)
+                    .FirstOrDefault();
+            }
+            else if(type == DiffContentType.FreeTable)
+            {
+                return _freeTableRepo.Existing
+                    .Where(x=>x.Id==objId)
+                    .Select(x=>x.Data)
                     .FirstOrDefault();
             }
             throw new NotImplementedException();
