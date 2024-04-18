@@ -221,6 +221,12 @@ namespace FCloud3.Services.Files
             Image img;
             try
             {
+                var imgInfo = Image.Identify(input);
+                if (imgInfo.Size.Height * imgInfo.Size.Width > 2000 * 2000)
+                {
+                    errmsg = "请勿上传像素过大图片";
+                    return false;
+                }
                 img = Image.Load(input);
             }
             catch

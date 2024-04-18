@@ -39,6 +39,8 @@ namespace FCloud3.App.Controllers.Files
         {
             if (content is null)
                 return BadRequest();
+            if (content.Length > 3 * 1024 * 1024)
+                return this.ApiFailedResp("尺寸请勿超过3MB");
             using Stream stream = content.OpenReadStream();
             if (!_materialService.UpdateContent(id, stream, content.FileName, ValidFilePathBases.material, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
