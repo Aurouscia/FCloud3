@@ -65,12 +65,15 @@ namespace FCloud3.HtmlGen.Models
             string? code = _template.Source;
             if (code is null)
             {
-                sb.Append(ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码"));
+                //sb.Append(ErrMsg.Inline($"模板[{_template.Name}]异常：缺少源代码"));
                 return;
             }
             List<TemplateSlot> slots = _slotInfo.Get(_template);
             if (slots is null || slots.Count == 0)
+            {
+                sb.Append(code);
                 return;
+            }
             else
             {
                 ReplaceUniqueSlots(slots);

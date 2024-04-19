@@ -9,7 +9,6 @@ import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
 import { md5 } from 'js-md5'
 import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
-//import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import SideBar from '../../components/SideBar.vue';
@@ -86,7 +85,7 @@ async function refreshPreview() {
         setTimeout(()=>
         {
             if(postScriptsDiv.value){
-                updateScript(postScriptsDiv.value, res.PostScripts)
+                updateScript(postScriptsDiv.value, res.PostScripts, "module")
             }
         },10);
     }
