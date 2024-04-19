@@ -48,7 +48,7 @@ async function load(){
                 updateScript(preScripts.value,preScriptsContent);
             }
             if(postScripts.value){
-                updateScript(postScripts.value,postScriptsContent);
+                updateScript(postScripts.value,postScriptsContent, "module");
             }
         }
     }
