@@ -35,13 +35,15 @@ namespace FCloud3.App.Controllers.Files
             if (request.DisplayName is null)
                 return this.ApiFailedResp("请填写文件显示名");
             if (request.ToSave.Length > maxUploadLength)
-                return this.ApiFailedResp("文件过大，请压缩或分开上传");
+                return this.ApiFailedResp("文件过大，请压缩或改为放网盘链接");
             int id = _fileService.Save(
                 stream: request.ToSave.OpenReadStream(),
                 byteCount: (int)request.ToSave.Length,
                 displayName: request.DisplayName,
                 storePath: request.StorePath,
-                storeName: null, out string? errmsg);
+                storeName: null,
+                hash: request.Hash,
+                out string? errmsg);
             if (id <= 0)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(new {CreatedId = id});
@@ -53,6 +55,7 @@ namespace FCloud3.App.Controllers.Files
             public string? DisplayName { get; set; }
             public string? StorePath { get; set; }
             public string? StoreName { get; set; }
+            public string? Hash { get; set; }
         }
     }
 }

@@ -14,7 +14,18 @@ export interface FileItemDetail{
 export interface StagingFile{
     file:File,
     displayName:string,
+    displayNameWithoutExt:string,
     storeName?:string,
-    editing?:boolean
+    editing?:boolean,
+    md5?:string
 }
 export type FileUploadDist = "upload"|"wikiFile"|"material"|"forum"|"test"
+
+export interface FileUploadRequest
+{
+    ToSave:File
+    DisplayName:string
+    StorePath:string
+    StoreName:string,
+    Hash:string
+}

@@ -16,6 +16,7 @@ namespace FCloud3.Entities.Files
         [MaxLength(storePathNameMaxLength)]
         public string? StorePathName { get; set; }
         public int ByteCount { get; set; }
+        [MaxLength(32)]
         public string? Hash { get; set; }
         public int InDir { get; set; }
 

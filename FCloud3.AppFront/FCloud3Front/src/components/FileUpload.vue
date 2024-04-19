@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Ref, inject, onMounted, ref } from 'vue';
-import { fileSizeStr, getFileIconStyle,getFileExt } from '../utils/fileUtils';
+import { Ref, inject, nextTick, onMounted, ref } from 'vue';
+import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt } from '../utils/fileUtils';
 import { StagingFile, FileUploadDist} from '../models/files/fileItem';
+import CryptoJS from 'crypto-js';
 import _ from 'lodash'
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';
@@ -18,14 +19,30 @@ async function inputChange(e:Event){
     if(!tar || !tar.files){
         return;
     }
-    const newFiles = _.differenceWith(tar.files,fileList.value,
-        (x,y)=>x.webkitRelativePath+x.name==y.file.webkitRelativePath+y.file.name)
+    const newFiles = Array.from(tar.files);
     tar.value='';
     if(newFiles.length>0){
-        const sf = newFiles.map(x=>{return{
-            file:x,
-            displayName:x.name
-        }})
+        const sf:StagingFile[] = [];
+        for(let i=0;i<newFiles.length;i++){
+            let x = newFiles[i];
+            const displayNameWithoutExt = fileNameWithoutExt(x.name)
+            const arrayBuffer = await x.arrayBuffer();
+            const md5Arr = CryptoJS.MD5(CryptoJS.lib.WordArray.create(arrayBuffer));
+            const md5 = md5Arr.toString(CryptoJS.enc.Hex);
+            const same = fileList.value.find(f=>f.md5===md5)
+            if(same){
+                const nameNow = _.truncate(x.name, {length:8})
+                const nameFound = _.truncate(same.displayName, {length:8})
+                pop.value.show(`${nameNow}与列表中${nameFound}内容完全相同`,"warning")
+                continue;
+            } //如果暂存区已经有md5相同的文件，则不添加
+            sf.push({
+                file:x,
+                displayName:x.name,
+                displayNameWithoutExt,
+                md5
+            })
+        }
         fileList.value.push(...sf);
     }
 }
@@ -40,7 +57,7 @@ async function commit(idx:number){
     const target = fileList.value[idx];
     if(!target){return;}
     if(target.file.size>10*1000*1000){
-        pop.value.show("文件过大，请拆分或压缩质量","failed")
+        pop.value.show("文件过大，请压缩或改为放网盘链接","failed")
         return;
     }
     const resp = await api.fileItem.save(target,props.dist);
@@ -50,12 +67,35 @@ async function commit(idx:number){
     }
 }
 
+async function startEditingName(f:StagingFile){
+    if(f.editing)
+        return;
+    f.editing = true;
+    f.displayNameWithoutExt = fileNameWithoutExt(f.displayName);
+    await nextTick();
+    const input = document.getElementsByClassName("stagingInput")[0] as HTMLInputElement;
+    input.focus();
+    const inputEnterHandler = (e:KeyboardEvent) => {
+        if(e.key === "Enter"){
+            endEditingName(f);
+            input.removeEventListener("keydown", inputEnterHandler)
+        }
+    }
+    input.addEventListener("keydown", inputEnterHandler);
+}
+function endEditingName(f:StagingFile){
+    const fileExt = getFileExt(f.file.name, false, true);
+    f.displayName = f.displayNameWithoutExt + fileExt;
+    f.editing = false;
+}
+
 const emit = defineEmits<{
     (e: 'uploaded', fileItemId: number): void
 }>()
 
 var pop: Ref<InstanceType<typeof Pop>>
 var api: Api;
+const randId = _.random(0,1000000);
 onMounted(()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;
@@ -68,7 +108,7 @@ onMounted(()=>{
             <div class="fileItem" v-for="f,i in fileList" :key="f.file.name">
                 <div class="fileIcon" :style="getFileIconStyle(f.file.name)">{{ getFileExt(f.file.name) }}</div>
                 <div class="fileBody">
-                    <div class="itemName" @click="f.editing=!f.editing">{{ f.displayName }}</div>
+                    <div class="itemName" @click="startEditingName(f)">{{ f.displayName }}</div>
                     <div class="itemControl">
                         <div class="fileSize" :style="{backgroundColor:f.file.size>10*1000*1000?'red':''}">{{ fileSizeStr(f.file.size)}}</div>
                         <button class="ok" @click="commit(i)">上传</button>
@@ -77,22 +117,22 @@ onMounted(()=>{
                 </div>
                 <div class="nameEdit" v-show="f.editing">
                     <div>
-                        <input v-model="f.displayName"/>
-                        <button @click="f.editing=false" class="ok">OK</button>
+                        <input v-model="f.displayNameWithoutExt" :class="{stagingInput: f.editing}"/>
+                        <button @click="endEditingName(f)" class="ok">OK</button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="controls">
-            <div class="uploadBtn" :class="{disabled:props.single&&fileList.length>=1}" @click="fileInput?.showPicker()">
+            <label :for="`fileInput_${randId}`" class="uploadBtn" :class="{disabled:props.single&&fileList.length>=1}">
                 选择文件
-            </div>
-            <div v-if="!props.single" class="uploadBtn" @click="dirInput?.showPicker()">
+            </label>
+            <label :for="`dirInput_${randId}`" v-if="!props.single" class="uploadBtn">
                 选择文件夹
-            </div>
+            </label>
         </div>
-        <input @change="inputChange" ref="fileInput" type="file" multiple/>
-        <input @change="inputChange" ref="dirInput" type="file" webkitdirectory>
+        <input @change="inputChange" ref="fileInput" :id="`fileInput_${randId}`" type="file" multiple/>
+        <input @change="inputChange" ref="dirInput" :id="`dirInput_${randId}`" type="file" webkitdirectory>
     </div>
 </template>
 
@@ -110,7 +150,7 @@ onMounted(()=>{
 .nameEdit{
     position: absolute;
     top:32px;left:10px;
-    background-color: #aaa;
+    background-color: #eee;
     border:2px solid white;
     padding-left: 10px;
     height: 70px;
@@ -199,8 +239,7 @@ onMounted(()=>{
     width: 220px;
     height: 310px;
     background-color: #ddd;
-    border-radius: 5px;
-    overflow-y: auto;
+    overflow-y: scroll;
     display: flex;
     flex-direction: column;
 }

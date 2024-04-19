@@ -10,18 +10,11 @@ namespace FCloud3.App.Services.Utils
             return s.GetMD5();
         }
 
-        //TODO严重性能瓶颈
-        //算多大的文件就要占走多少内存
-        public string Hash(Stream s, out Stream originalData)
+        public string Hash(MemoryStream s)
         {
-            MemoryStream ms = new();
-            s.CopyTo(ms);
-            s.Flush();
-            s.Close();
-            ms.Position = 0;
-            var hash = Hash(ms);
-            ms.Position = 0;
-            originalData = ms;
+            s.Seek(0, SeekOrigin.Begin);
+            var hash = Hash(s as Stream);
+            s.Seek(0, SeekOrigin.Begin);
             return hash;
         }
     }

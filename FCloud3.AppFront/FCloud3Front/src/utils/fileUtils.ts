@@ -50,16 +50,24 @@ export function fileSizeStr(bytes:number){
     return (Math.round(bytes/(1000*100)))/10+"M"
 }
 
-export function getFileExt(str:string):string{
+export function getFileExt(str:string, truncate = true, withDot = false):string{
     var parts = str.split('.');
     if(parts.length==1){
         return "???";
     }
     var ext = parts[parts.length-1];
-    if(ext.length>4){
-       ext = ext.substring(0,4);
+    if(truncate){
+        if(ext.length>4){
+        ext = ext.substring(0,4);
+        }
+    }
+    if(withDot){
+        return '.'+ext;
     }
     return ext;
+}
+export function fileNameWithoutExt(str:string):string{
+    return str.replace(/\.[^/.]+$/, "")
 }
 export function getFileIconStyle(fileName:string):CSSProperties{
     var type = getFileType(fileName);

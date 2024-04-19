@@ -6,7 +6,7 @@ import { WikiPara } from "../models/wiki/wikiPara";
 import { WikiParaTypes } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
-import { FileItemDetail, StagingFile } from "../models/files/fileItem";
+import { FileItemDetail, FileUploadRequest, StagingFile } from "../models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";
 import { QuickSearchResult } from '../models/sys/quickSearch';
@@ -574,16 +574,19 @@ export class Api{
                 return resp.data as FileItemDetail
             }
         },
-        save:async(req: StagingFile, dist:string)=>{
+        save:async(file: StagingFile, dist:string)=>{
+            const req:FileUploadRequest = {
+                ToSave:file.file,
+                DisplayName:file.displayName,
+                StorePath:dist,
+                StoreName:file.storeName||"",
+                Hash:file.md5||""
+            } 
             const res = await this.httpClient.request(
                 "/api/FileItem/Save",
                 "postForm",
-                {
-                    ToSave:req.file,
-                    DisplayName:req.displayName,
-                    StoreName:req.storeName,
-                    StorePath:dist
-                },`成功上传：${_.truncate(req.displayName,{length:8})}`,
+                req,
+                `成功上传：${_.truncate(req.DisplayName,{length:8})}`,
                 true);
             if(res.success){
                 return res.data as {CreatedId:number};

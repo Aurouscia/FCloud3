@@ -12,12 +12,14 @@
     "@aurouscia/au-table-editor": "^0.2.7",
     "@aurouscia/keyboard-shortcut": "^0.0.2",
     "axios": "^1.6.8",
+    "crypto-js": "^4.2.0",
     "js-md5": "^0.8.3",
     "lodash": "^4.17.21",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/lodash": "^4.17.0",
     "@vitejs/plugin-vue": "^4.6.2",
     "sass": "^1.74.1",

@@ -11,6 +11,7 @@ using FCloud3.Services.WikiParsing;
 using FCloud3.Services.WikiParsing.Support;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Diff;
+using SixLabors.ImageSharp.Memory;
 
 namespace FCloud3.Services
 {
@@ -39,6 +40,12 @@ namespace FCloud3.Services
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();
+
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator
+                = MemoryAllocator.Create(new MemoryAllocatorOptions()
+                {
+                    MaximumPoolSizeMegabytes = 10
+                });
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")

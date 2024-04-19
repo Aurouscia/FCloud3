@@ -9,6 +9,6 @@ namespace FCloud3.Services.Files.Storage.Abstractions
     public interface IFileStreamHasher
     {
         public string Hash(Stream s);
-        public string Hash(Stream s, out Stream originalData);
+        public string Hash(MemoryStream s);
     }
 }
