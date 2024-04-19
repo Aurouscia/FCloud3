@@ -41,6 +41,32 @@ namespace FCloud3.Services.Files
             errmsg = null;
             return d;
         }
+        public bool EditInfo(int id, string name, out string? errmsg)
+        {
+            var item = _fileItemRepo.GetById(id);
+            if (item is null)
+            {
+                errmsg = "找不到指定id的文件";
+                return false;
+            }
+            item.DisplayName = name;
+            return _fileItemRepo.TryEdit(item, out errmsg);
+        }
+        public bool Delete(int id, out string? errmsg)
+        {
+            var item = _fileItemRepo.GetById(id);
+            if (item is null)
+            {
+                errmsg = "找不到指定id的文件";
+                return false;
+            }
+            if (item.StorePathName != null)
+            {
+                if(!_storage.Delete(item.StorePathName, out errmsg))
+                    return false;
+            }
+            return _fileItemRepo.TryRemove(item, out errmsg);
+        }
         public int Save(Stream stream, int byteCount, string displayName, string storePath, string? storeName, string? hash, out string? errmsg)
         {
             if (storeName is null)

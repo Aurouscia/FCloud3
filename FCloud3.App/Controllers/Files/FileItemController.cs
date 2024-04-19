@@ -1,15 +1,17 @@
 ﻿using FCloud3.App.Services.Filters;
 using FCloud3.App.Utils;
+using FCloud3.Entities.Identities;
 using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
-    public class FileItemController : Controller
+    public class FileItemController : Controller, IAuthGrantTypeProvidedController
     {
         private readonly FileItemService _fileService;
         private const int maxUploadLength = 10 * 1000 * 1000;
+        public AuthGrantOn AuthGrantOnType => AuthGrantOn.FileItem;
 
         public FileItemController(FileItemService fileService)
         {
@@ -22,6 +24,26 @@ namespace FCloud3.App.Controllers.Files
             if (detail is null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(detail);
+        }
+        [Authorize]
+        [UserTypeRestricted]
+        [AuthGranted(nameof(id))]
+        public IActionResult EditInfo(int id, string name)
+        {
+            var res = _fileService.EditInfo(id, name, out string? errmsg);
+            if(!res || errmsg is not null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+        [Authorize]
+        [UserTypeRestricted]
+        [AuthGranted]
+        public IActionResult Delete(int id)
+        {
+            var res = _fileService.Delete(id, out string? errmsg);
+            if (!res || errmsg is not null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
         }
         [Authorize]
         [UserTypeRestricted]

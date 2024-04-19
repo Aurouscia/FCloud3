@@ -24,7 +24,7 @@ namespace FCloud3.Repos.Files
         }
         public override bool TryAddCheck(FileItem item, out string? errmsg)
         {
-            if (string.IsNullOrEmpty(item.DisplayName))
+            if (string.IsNullOrWhiteSpace(item.DisplayName))
             {
                 errmsg = "显示名不能为空";
                 return false;
@@ -54,6 +54,21 @@ namespace FCloud3.Repos.Files
             if (sameName is not null)
             {
                 errmsg = $"已存在内容完全相同的文件({sameName})";
+                return false;
+            }
+            errmsg = null;
+            return true;
+        }
+        public override bool TryEditCheck(FileItem item, out string? errmsg)
+        {
+            if (string.IsNullOrWhiteSpace(item.DisplayName))
+            {
+                errmsg = "显示名不能为空";
+                return false;
+            }
+            if (item.DisplayName.Length > FileItem.displayNameMaxLength)
+            {
+                errmsg = $"显示名过长，请缩短";
                 return false;
             }
             errmsg = null;

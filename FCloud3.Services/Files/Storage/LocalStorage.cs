@@ -41,7 +41,11 @@ namespace FCloud3.Services.Files.Storage
         }
         public bool Delete(string pathName, out string? errmsg)
         {
-            throw new NotImplementedException();
+            FileInfo f = new(Path.Combine(_storeRootPath, pathName));
+            if(f.Exists)
+                f.Delete();
+            errmsg = null;
+            return true;
         }
         public string FullUrl(string pathName)
         {

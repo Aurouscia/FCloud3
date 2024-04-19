@@ -87,7 +87,7 @@ async function loadData(){
     var path = _.filter(props.path, x=>!!x)
     var timer = window.setTimeout(()=>{
         showLoading.value = true;
-    },800);
+    },20);
     var data = await props.fetchFrom(unlimitedIndexQueryDefault, path);    
     if(data){
         window.clearTimeout(timer);
@@ -137,9 +137,9 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
         </div>
         <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData"></FileDirItems>
         <div v-if="isEmptyDir()" class="emptyDir">
-            空文件夹
+            <Loading v-if="showLoading"></Loading>
+            <div v-else>空文件夹</div>
         </div>
-        <Loading v-if="showLoading"></Loading>
     </div>
 </template>
 

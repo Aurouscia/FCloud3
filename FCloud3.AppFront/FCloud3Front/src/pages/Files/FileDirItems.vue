@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { FileDirItem, FileDirWiki} from '../../models/files/fileDir';
-import { fileSizeStr, getFileIconStyle, getFileExt} from '../../utils/fileUtils';
+import { fileSizeStr, getFileIconStyle, getFileExt } from '../../utils/fileUtils';
 import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
-import { Ref,inject, onMounted } from 'vue';
+import { Ref, inject, onMounted } from 'vue';
+import FileItemEdit from './FileItemEdit.vue';
 import Functions from '../../components/Functions.vue';
 import { Api } from '../../utils/api';
 import { useRouter } from 'vue-router';
 import { jumpToViewWiki } from '../WikiParsing/routes';
+import _ from 'lodash';
 
 const props = defineProps<{
     dirId:number,
@@ -32,9 +34,25 @@ async function removeWiki(id:number){
 function jumpToWikiEdit(urlPathName:string){
     router.push({name:'wikiEdit',params:{urlPathName:urlPathName}})
 }
+
+function editFile(f:FileDirItem){
+    editPanel.value.startEditingFile(f, (newName:string|-1)=>{
+        if(typeof(newName) == 'string')
+            f.Name = newName;
+        else{
+            if(props.items){
+                const delIdx = props.items.findIndex(x=>x.Id == f.Id);
+                _.pullAt(props.items, delIdx)
+            }
+        }
+    });
+}
+
+let editPanel: Ref<InstanceType<typeof FileItemEdit>>
 onMounted(()=>{
     clipBoard = inject('clipboard') as Ref<InstanceType<typeof ClipBoard>>;
     api = inject('api') as Api;
+    editPanel = inject('fileItemEdit') as Ref<InstanceType<typeof FileItemEdit>>
 })
 const emit = defineEmits<{
     (e:'needRefresh'):void
@@ -65,8 +83,8 @@ const emit = defineEmits<{
                 <a :href="item.Url" target="_blank">{{ item.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
+                <button @click="editFile(item)">编辑</button>
                 <button class="minor" @click="toClipBoard($event,item,'fileItem')">移动</button>
-                <button class="danger">删除</button>
             </Functions>
         </div>
         <div class="size">

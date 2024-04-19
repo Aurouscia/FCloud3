@@ -19,6 +19,7 @@ import FileDirCreate from './FileDirCreate.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
 import { injectApi, injectUserInfo } from '../../provides';
 import { IdentityInfo } from '../../utils/userInfo';
+import FileItemEdit from './FileItemEdit.vue';
 
 
 const props = defineProps<{
@@ -33,6 +34,7 @@ const columns:IndexColumn[] =
 ]
 
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
+const loading = ref(true);
 const items = ref<FileDirItem[]>([]);
 const wikis = ref<FileDirWiki[]>([]);
 const thisDirId = ref<number>(0);
@@ -57,6 +59,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         friendlyPath.value = res.FriendlyPath;
         setFriendlyPathData();
         hideFn.value = false;
+        loading.value = false;
         return res?.SubDirs;
     }
 }
@@ -184,11 +187,17 @@ onMounted(async()=>{
     ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
 })
 watch(props,async(_newVal)=>{
+    const timer = setTimeout(()=>{
+        friendlyPathThisName.value = "跳转中..."
+        thisDirId.value = -1;
+        loading.value = true;
+    }, 200)
     setPathData();
     sidebar.value?.fold();
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
     index.value?.clearSearch(true);
     await index.value?.reloadData();
+    clearTimeout(timer);
 });
 const hideFn = ref<boolean>(false);
 function hideFnUpdate(){
@@ -200,7 +209,9 @@ function hideFnUpdate(){
 }
 
 const clip = ref<InstanceType<typeof ClipBoard>>();
-provide('clipboard',clip)
+const fileItemEdit = ref<InstanceType<typeof FileItemEdit>>();
+provide('clipboard', clip)
+provide('fileItemEdit', fileItemEdit)
 function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){
     clip.value?.insert({
         id:id,
@@ -279,7 +290,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                 </td>
             </tr>
             <tr v-if="subDirs.length==0 && items.length==0 && wikis.length==0">
-                <td><div class="emptyDir">空文件夹</div></td>
+                <td>
+                    <div v-if="!loading" class="emptyDir">空文件夹</div>
+                </td>
             </tr>
         </IndexMini>
     </div>    
@@ -292,6 +305,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <SideBar ref="authgrantsSidebar">
         <AuthGrants :on="'Dir'" :on-id="thisDirId"></AuthGrants>
     </SideBar>
+    <FileItemEdit ref="fileItemEdit" @need-refresh="index?.reloadData"></FileItemEdit>
     <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'根文件夹'" @put-down="clipBoardAction"></ClipBoard>
 </template>
 

@@ -138,6 +138,10 @@ namespace FCloud3.Repos
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault();
         }
+        public virtual T GetByIdEnsure(int id)
+        {
+            return Existing.Where(x => x.Id == id).FirstOrDefault() ?? throw new Exception("找不到目标");
+        }
         public virtual IQueryable<T> GetRangeByIds(List<int> ids)
         {
             if (ids.Count == 0) 

@@ -31,6 +31,7 @@ namespace FCloud3.Entities.Identities
         WikiItem = 1,
         Dir = 2,
         Material = 3,
+        FileItem = 4,
         TextSection = 10,
         FreeTable = 11,
         WikiPara = 19,

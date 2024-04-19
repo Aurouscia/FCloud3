@@ -592,6 +592,26 @@ export class Api{
                 return res.data as {CreatedId:number};
             }
         },
+        editInfo:async(id:number, name:string)=>{
+            const res = await this.httpClient.request(
+                "/api/FileItem/EditInfo",
+                "postForm",
+                {id,name},
+                "修改成功",
+                true
+            )
+            return res.success
+        },
+        deleteFile:async(id:number)=>{
+            const res = await this.httpClient.request(
+                "/api/FileItem/Delete",
+                "postForm",
+                {id},
+                "删除成功",
+                true
+            )
+            return res.success
+        }
     }
     fileDir = {
         getPathById:async(id:number)=>{

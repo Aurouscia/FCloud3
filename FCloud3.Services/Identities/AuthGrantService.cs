@@ -51,6 +51,11 @@ namespace FCloud3.Services.Identities
             var ownerId = GetOwnerId(on, onId);
             if (userId == ownerId)
                 return true;
+            else
+            {
+                if(gs.Count == 0)
+                    return false;
+            }
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
             var groupDict = _userToGroupRepo.GetUserIdDicByGroupIds(groupIds);
@@ -235,6 +240,10 @@ namespace FCloud3.Services.Identities
             else if (on == AuthGrantOn.User)
             {
                 return onId; // 我，就是自己的主人！
+            }
+            else if (on == AuthGrantOn.FileItem)
+            {
+                return _creatorIdGetter.Get<FileItem>(onId);
             }
             else if (on == AuthGrantOn.UserGroup)
             {
