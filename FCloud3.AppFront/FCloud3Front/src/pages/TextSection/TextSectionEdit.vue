@@ -15,6 +15,7 @@ import SideBar from '../../components/SideBar.vue';
 import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
 import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
+import { sleep } from '../../utils/sleep';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str)
@@ -39,7 +40,7 @@ const data = ref<TextSection>({
 });
 const previewContent = ref<string>();
 const lines:Array<LineAndHash>=[];
-const writeArea = ref<HTMLTextAreaElement>();
+const writeArea = ref<HTMLDivElement>();
 const previewArea = ref<HTMLDivElement>();
 const writeAreaLineHeight = 25;
 
@@ -66,6 +67,12 @@ async function contentInput(){
         calculateLines();
         await refreshProm;
     },refreshThrs);
+
+    if(writeArea.value){
+        if(writeArea.value.scrollHeight - writeArea.value.scrollTop - 30 < writeArea.value.offsetHeight){
+            writeArea.value.scrollTop = 1000000
+        }
+    }
 
     // inputCounter+=1;
     // if(inputCounter>saveThrs){
@@ -139,8 +146,42 @@ async function init(){
     if(resp){
         data.value = resp;
         loadComplete.value = true;
+        await nextTick();
+        if(!writeArea.value){return}
+        textNode().textContent = data.value.Content || "";
+        writeArea.value.addEventListener("keydown", enterKeyHandler);
         await contentInput();
         releasePreventLeaving()
+    }
+}
+
+function textNode(){return writeArea.value?.childNodes[0] as Text}
+async function enterKeyHandler(e: KeyboardEvent) {
+    //contenteditable的div中按下回车键时，如果光标在最后，会自动在最后插入一个<br>，导致保存后空行莫名其妙变多，这里要阻止这个行为
+    //自定义实现一个换行功能
+    if (e.key == "Enter") {
+        e.preventDefault()
+        let sel = window.getSelection();
+        const node = textNode();
+        if (writeArea.value && sel && sel.isCollapsed && data.value.Content && node && sel.focusNode == node) {
+            const range = sel.getRangeAt(0);
+            const offset = range.startOffset;
+            const before = data.value.Content.substring(0, offset);
+            let after = data.value.Content.substring(offset);
+            if (!after) {
+                after = "\n";
+            }
+            const newContent = before + "\n" + after;
+            data.value.Content = newContent;
+            node.textContent = newContent;
+            await sleep(5);
+            const newRange = document.createRange()
+            newRange.setStart(node, offset + 1);
+            newRange.setEnd(node, offset + 1);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(newRange);
+            contentInput();
+        }
     }
 }
 
@@ -170,7 +211,7 @@ onUnmounted(()=>{
     saveShortcut?.dispose();
 })
 
-function leftToRight(e:MouseEvent){
+async function leftToRight(e:MouseEvent){
     if(!writeArea.value){return;}
     const target = e.target as HTMLElement;
     var lookingAt:HTMLElement|null = target;
@@ -187,16 +228,34 @@ function leftToRight(e:MouseEvent){
     if(!attr){return;}
     const line = lines.find(x=>x.hash==attr?.value)
     if(!line){return;}
-    writeArea.value.setSelectionRange(line.indexStart,line.indexStart);
-    writeArea.value.focus();
-    writeArea.value.setSelectionRange(line.indexStart,line.indextEnd);
+
+    //将选中部分及以后的部分删掉，让编辑框缩短得到那时的高度，再恢复，可以使编辑框滚动到指定位置
+    textNode().textContent = data.value.Content?.substring(0, line.indexStart) || "";
+    writeArea.value.style.color = "transparent";
+    await sleep(30)
+    const height = writeArea.value.offsetHeight;
+    const scrollHeight = writeArea.value.scrollHeight;
+    let top = 0;
+    if(scrollHeight > height){
+        top = scrollHeight - 30
+    }
+    textNode().textContent = data.value.Content || "";
+    await sleep(30)
+    writeArea.value.style.color = "";
+    writeArea.value.scrollTo({top: top, behavior:'instant'})
+
+    const range = document.createRange()
+    range.setStart(textNode(), line.indexStart)
+    range.setEnd(textNode(), line.indextEnd)
+    window.getSelection()?.removeAllRanges()
+    window.getSelection()?.addRange(range)
 }
 function rightToLeft(e:MouseEvent){
     const write = writeArea.value;
     if(!write || e.target!=writeArea.value){
         return;
     }
-    const sele = write.selectionStart;
+    const sele = window.getSelection()?.getRangeAt(0).startOffset || -1;
     const targetLine = lines.find(line=>sele>=line.indexStart&&sele<=line.indextEnd);
     if(!targetLine){
         return;
@@ -257,12 +316,11 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     </div>
     <div ref="postScriptsDiv" class="invisible"></div>
 
-    <textarea v-model="data.Content"
+    <div contenteditable="plaintext-only"
         ref="writeArea" placeholder="请输入内容"
-        @input="contentInput" @click="rightToLeft"
+        @input="data.Content = writeArea?.innerText || '';contentInput()" @click="rightToLeft"
         class="write" :class="{writeNoPreview:!previewOn}"
-        :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">
-    </textarea>
+        :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">&nbsp;</div>
 </div>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
 </template>
@@ -311,6 +369,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         line-height: 25px;
         background-color: #222;
         color:white;
+        white-space: pre-wrap;
     }
     .writeNoPreview{
         width: calc(100vw - 20px);
