@@ -28,12 +28,14 @@ namespace FCloud3.HtmlGenTest
         {
             var templates = new List<Template>()
                 {
-                    new("重点强调","<b>!![[__文字__]]!!</b>"),
+                    new("重点强调","<b>!![[[__文字__]]]!!</b>"),
                     new("名称信息", "<div><b>[[__中文名__]]</b><i>[[__英文名__]]</i></div>"),
-                    new("好看的图表","<script>const rawData='[[[__数据__]]]'</script>"),
-                    new("唯一id测试","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
-                    new("唯一id测试2","<div id=\"[[__%id%__]]\"><script>doc.get('[[__%id%__]]')</script>"),
-                    new("唯一id测试3","<div id=\"[[__%ik%__]]\"><script>doc.get('[[__%ik%__]]')</script>")
+                    new("好看的图表","<script>const rawData='[__数据__]'</script>"),
+                    new("行内解析","START_[[__PARAM__]]_END"),
+                    new("块解析","START_[[[__PARAM__]]]_END"),
+                    new("唯一id测试","<div id=\"[__%id%__]\"><script>doc.get('[__%id%__]')</script>"),
+                    new("唯一id测试2","<div id=\"[__%id%__]\"><script>doc.get('[__%id%__]')</script>"),
+                    new("唯一id测试3","<div id=\"[__%ik%__]\"><script>doc.get('[__%ik%__]')</script>")
                 };
             _options = new ParserBuilder()
                 .Template.AddTemplates(templates)
@@ -115,6 +117,24 @@ namespace FCloud3.HtmlGenTest
             "{{好看的图表}\n数据::172,163\n105*144*97}",
             "<script>const rawData='172,163\n105*144*97'</script>")]
         public void ParseTemplate(string input, string answer)
+        {
+            TemplateParser parser = new(_ctx);
+            string output = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output);
+            string output2 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output2);
+            string output3 = parser.Run(input).ToHtml();
+            Assert.AreEqual(answer, output3);
+        }
+
+        [TestMethod]
+        [DataRow(
+            "{{行内解析}\n172,163\n105*144*97}",
+            "START_172,163\n105<i>144</i>97_END")]
+        [DataRow(
+            "{{块解析}\n172,163\n105*144*97}",
+            "START_<p>172,163</p><p>105<i>144</i>97</p>_END")]
+        public void InlineOrBlock(string input, string answer)
         {
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();

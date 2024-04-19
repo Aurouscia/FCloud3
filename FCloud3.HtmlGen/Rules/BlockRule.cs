@@ -132,12 +132,12 @@ namespace FCloud3.HtmlGen.Rules
 
         public override bool LineMatched(string line) 
         {
-            return line.Trim().StartsWith(Mark);
+            return line.StartsWith(Mark);
         }
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Trim().Substring(Mark.Length).Trim();
+                return line.Substring(Mark.Length).Trim();
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -189,7 +189,6 @@ namespace FCloud3.HtmlGen.Rules
         {
             if (!base.LineMatched(line))
                 return false;
-            line = line.Trim();
             if (line.StartsWith("---"))
                 return false;
             return true;
@@ -291,7 +290,7 @@ namespace FCloud3.HtmlGen.Rules
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(1,line.Length-2).Trim();
+                return line.Substring(1, line.Length - 2);
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)

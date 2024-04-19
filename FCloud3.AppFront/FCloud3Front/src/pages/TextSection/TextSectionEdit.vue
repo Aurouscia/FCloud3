@@ -203,6 +203,12 @@ function rightToLeft(e:MouseEvent){
         return;
     }
     const targetHash = targetLine.hash;
+    clearTimeout(lastRightToLeftHashFadeTimer);
+    if(targetHash==lastRightToLeftHash){
+        return;
+    }
+    lastRightToLeftHash = targetHash;
+    lastRightToLeftHashFadeTimer = setTimeout(()=>{lastRightToLeftHash = ""}, 10000)
     const target = document.querySelector(`[loc="${targetHash}"]`) as HTMLElement;
     if(!target){return;}
     if(previewArea.value){
@@ -213,6 +219,8 @@ function rightToLeft(e:MouseEvent){
         target.style.backgroundColor="";
     },1000)
 }
+let lastRightToLeftHash:string = "";
+let lastRightToLeftHashFadeTimer = 0;
 
 const { preventLeaving, releasePreventLeaving, preventingLeaving, showUnsavedWarning } = usePreventLeavingUnsaved();
 const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()

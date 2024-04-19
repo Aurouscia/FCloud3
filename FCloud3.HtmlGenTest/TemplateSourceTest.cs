@@ -41,7 +41,7 @@ namespace FCloud3.HtmlGenTest
         public void Filling(string source,string values, string answer) 
         {
             Template template = new("模板名称", source);
-            var valuesDic = values.Split(',').ToDictionary(x => new ParseSlot("[[__"+x.Split(':')[0]+"__]]",4) as TemplateSlot, x => new TextElement(x.Split(':')[1]) as IHtmlable);
+            var valuesDic = values.Split(',').ToDictionary(x => new ParseBlockSlot("[[__"+x.Split(':')[0]+"__]]",4) as TemplateSlot, x => new TextElement(x.Split(':')[1]) as IHtmlable);
             TemplateElement element = new(template,valuesDic,new());
             string result = element.ToHtml();
             Assert.AreEqual(answer, result);

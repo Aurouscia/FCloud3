@@ -77,7 +77,7 @@ namespace FCloud3.HtmlGen.Mechanics
                     string value = values[0].Trim();
                     TemplateSlot? slot = slots.FirstOrDefault();
                     if(slot is not null)
-                        valuesDic.Add(slot, slot.DealWithContent(value,_blockParser.Value));
+                        valuesDic.Add(slot, slot.DealWithContent(value, _blockParser.Value, _inlineParser.Value));
                 }
                 else
                 {
@@ -92,7 +92,7 @@ namespace FCloud3.HtmlGen.Mechanics
                             throw new Exception($"{Consts.valueDicFormatMsg}，::前应有参数名");
                         TemplateSlot? slot = slots.FirstOrDefault(x => x.PureValue == key);
                         if(slot is not null)
-                            valuesDic.Add(slot, slot.DealWithContent(value,_blockParser.Value));
+                            valuesDic.Add(slot, slot.DealWithContent(value, _blockParser.Value, _inlineParser.Value));
                     }
                 }
                 return new TemplateElement(template, valuesDic, _slotInfo, _ctx.UniqueSlotIncre++);

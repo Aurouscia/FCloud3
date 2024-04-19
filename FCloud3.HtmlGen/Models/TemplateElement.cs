@@ -141,9 +141,10 @@ namespace FCloud3.HtmlGen.Models
             List<TemplateSlot> slots = new();
             if (template.Source is null)
                 return slots;
-            MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, (x,y) => new PlainSlot(x, y));
-            MatchAndCollect(template.Source, ParseSlot.MatchRegex, slots, (x,y) => new ParseSlot(x, y));
+            MatchAndCollect(template.Source, ParseBlockSlot.MatchRegex, slots, (x,y) => new ParseBlockSlot(x, y));
+            MatchAndCollect(template.Source, ParseLineSlot.MatchRegex, slots, (x,y) => new ParseLineSlot(x, y));
             MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, (x,y) => new UniqueSlot(x, y));
+            MatchAndCollect(template.Source, PlainSlot.MatchRegex, slots, (x,y) => new PlainSlot(x, y));
             slots.Sort((x, y) => x.Start - y.Start);
             slots.RemoveAll(x => slots.Any(y => y.Start < x.Start && x.Overlapped(y)));
             return slots;
@@ -179,7 +180,7 @@ namespace FCloud3.HtmlGen.Models
             PureValue = pureValue;
             Start = start;
         }
-        public abstract IHtmlable DealWithContent(string content, IBlockParser parser);
+        public abstract IHtmlable DealWithContent(string content, IBlockParser blockParser, IInlineParser inlineParser);
         public virtual IHtmlable DefaultContent() => new EmptyElement();
 
         public bool Equals(TemplateSlot? other)
@@ -207,26 +208,40 @@ namespace FCloud3.HtmlGen.Models
     /// </summary>
     public class PlainSlot : TemplateSlot
     {
-        public const string MatchRegex = @"\[\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]\]";
-        public PlainSlot(string value, int start) : base(value, value[5..^5],start)
+        public const string MatchRegex = @"\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]";
+        public PlainSlot(string value, int start) : base(value, value[3..^3],start)
         {
         }
 
-        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        public override IHtmlable DealWithContent(string content, IBlockParser parser, IInlineParser inlineParser)
         {
             return new TextElement(content);
         }
     }
     /// <summary>
-    /// 表示一个填写内容会被解析的模板插槽
+    /// 表示一个填写内容仅解析行内的模板插槽
     /// </summary>
-    public class ParseSlot : TemplateSlot
+    public class ParseLineSlot : TemplateSlot
     {
         public const string MatchRegex = @"\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]";
-        public ParseSlot(string value, int start) : base(value,value[4..^4],start)
+        public ParseLineSlot(string value, int start) : base(value, value[4..^4], start)
         {
         }
-        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        public override IHtmlable DealWithContent(string content, IBlockParser parser, IInlineParser inlineParser)
+        {
+            return inlineParser.Run(content);
+        }
+    }
+    /// <summary>
+    /// 表示一个填写内容会被完整解析的模板插槽
+    /// </summary>
+    public class ParseBlockSlot : TemplateSlot
+    {
+        public const string MatchRegex = @"\[\[\[__[\u4E00-\u9FA5A-Za-z0-9_]{1,10}__\]\]\]";
+        public ParseBlockSlot(string value, int start) : base(value,value[5..^5],start)
+        {
+        }
+        public override IHtmlable DealWithContent(string content, IBlockParser parser, IInlineParser inlineParser)
         {
             return parser.Run(content,enforceBlock:false);
         }
@@ -236,13 +251,13 @@ namespace FCloud3.HtmlGen.Models
     /// </summary>
     public class UniqueSlot : TemplateSlot
     {
-        public const string MatchRegex = @"\[\[__%[\u4E00-\u9FA5A-Za-z0-9]{1,10}%__\]\]";
+        public const string MatchRegex = @"\[__%[\u4E00-\u9FA5A-Za-z0-9]{1,10}%__\]";
 
-        public UniqueSlot(string value, int start) : base(value,value[5..^5], start)
+        public UniqueSlot(string value, int start) : base(value,value[4..^4], start)
         {
         }
 
-        public override IHtmlable DealWithContent(string content, IBlockParser parser)
+        public override IHtmlable DealWithContent(string content, IBlockParser parser, IInlineParser inlineParser)
         {
             return new EmptyElement();
         }

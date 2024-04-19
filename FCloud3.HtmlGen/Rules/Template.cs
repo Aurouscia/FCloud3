@@ -56,7 +56,7 @@ namespace FCloud3.HtmlGen.Rules
         {
             var test = new Template(
                 name: "模板测试",
-                source: "<div class=\"tt\"><div>模板测试</div>参数一：<b class=\"ttb\">[[__参数一__]]</b><br/><u onclick=\"alert('点击u标签')\">参数二：[[[__参数二__]]]</u></div>",
+                source: "<div class=\"tt\"><div>模板测试</div>参数一：<b class=\"ttb\">[[__参数一__]]</b><br/><u onclick=\"alert('点击u标签')\">参数二：[__参数二__]</u></div>",
                 styles: ".tt{background-color:#eee} .tt b{color:red;cursor:pointer} .tt u{color:blue;cursor:pointer}",
                 preScripts:"",
                 postScripts:"var ts = document.getElementsByClassName(\"ttb\");\r\n    for(const t of ts){\r\n        t.addEventListener(\"click\",()=>{alert(\"点击b标签\")})\r\n    }");
