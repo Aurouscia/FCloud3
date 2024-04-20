@@ -104,6 +104,7 @@
         height: 0px;
     }
 
+    h4+div.indent,
     h3+div.indent,
     h2+div.indent {
         border-left: 1px solid #aaa;
@@ -115,7 +116,7 @@
 
     ul {
         list-style-type: none !important;
-        margin-bottom: 5px;
+        margin: 10px 0px 10px 10px;
         display: flex;
         flex-direction: column;
         align-items: baseline;
@@ -190,15 +191,17 @@
     }
 
     .sep {
-        background-color: black;
-        height: 2px;
-        margin: 10px 0px 10px 0px
+        background-color: #aaa;
+        height: 0.7px;
+        margin: 10px 10px 10px 10px
     }
 
     .coloredBlock {
         display: inline-block;
         height: 1em;
         width: 2em;
+        vertical-align: middle;
+        margin: 0px 3px 0px 3px;
         background-color: #000;
     }
 

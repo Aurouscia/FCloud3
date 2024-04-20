@@ -1,0 +1,58 @@
+::highlight(bold) {
+    color: rgb(65, 196, 100);
+}
+::highlight(italic) {
+    color: rgb(98, 190, 147);
+}
+::highlight(lineThrough){
+    color: rgb(146, 191, 180);
+}
+
+::highlight(subtitle-1){
+    background-color: rgb(61, 80, 208);
+}
+::highlight(subtitle-2){
+    background-color: rgb(84, 126, 198);
+}
+::highlight(subtitle-3){
+    background-color: rgb(134, 161, 184);
+}
+
+::highlight(footnoteEntry){
+    color: rgb(117, 161, 255);
+}
+::highlight(footnoteBody){
+    color: rgb(142, 142, 142);
+}
+
+::highlight(quote){
+    color: rgb(73, 187, 101)
+}
+::highlight(list){
+    color: rgb(255, 213, 75)
+}
+::highlight(implant){
+    color: rgb(255, 136, 180);
+}
+::highlight(color){
+    color: rgb(219, 142, 255)
+}
+::highlight(sep){
+    color: rgb(159, 159, 159)
+}
+
+::highlight(template){
+    color: rgb(255, 226, 173);
+}
+
+::highlight(link){
+    color: rgb(255, 129, 129);
+    text-decoration: underline;
+}
+::highlight(anchorLink){
+    color: rgb(255, 129, 129);
+    text-decoration: underline;
+}
+::highlight(anchorText){
+    color: rgb(255, 215, 198);
+}

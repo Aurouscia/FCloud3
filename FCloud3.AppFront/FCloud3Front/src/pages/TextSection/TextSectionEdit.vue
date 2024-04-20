@@ -2,10 +2,12 @@
 import {ref, Ref, onMounted, computed, onUnmounted, nextTick} from 'vue'
 import Pop from '../../components/Pop.vue';
 import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
+import Loading from '../../components/Loading.vue';
 import { TextSection } from '../../models/textSection/textSection'
 import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
-import { LineAndHash,split } from '../../utils/wikiView/textSecSplitLine';
+import { LineAndHash,split } from '../../utils/wikiSource/textSecSplitLine';
+import { WikiSourceHighlighter } from '../../utils/wikiSource/wikiSourceHighlight';
 import { md5 } from 'js-md5'
 import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
@@ -32,6 +34,8 @@ const postScriptsDiv = ref<HTMLDivElement>();
 const stylesContent = ref<string>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 
+const wikiSourceHighlighter = new WikiSourceHighlighter()
+
 const loadComplete = ref<boolean>(false);
 const data = ref<TextSection>({
     Id:textSecId,
@@ -57,10 +61,27 @@ const refreshThrs=750;//这么多毫秒后还没有新的输入，则发送previ
 //const saveThrs=50;//输入这么多次后自动保存
 //let inputCounter:number = 0;
 async function contentInput(){
+    if(!writeArea.value){return;}
+    data.value.Content = textNode().textContent;
+    //有时候会莫名其妙出现多余的子节点，检查一下并删掉即可
+    const childs = writeArea.value.childNodes
+    const needRemove:ChildNode[] = []
+    for(let i = 0; i<childs.length;i++){
+        if(i>0){
+            needRemove.push(childs[i])
+        }
+    }
+    needRemove.forEach(n=>n.remove());
+    
     if(!previewContent.value){
         previewContent.value="加载中..."
     }
-    preventLeaving();
+    if(data.value.Content === initialContent){
+        releasePreventLeaving();
+    }
+    else{
+        preventLeaving();
+    }
     window.clearTimeout(timer);
     timer = window.setTimeout(async()=>{
         var refreshProm = refreshPreview()
@@ -79,6 +100,7 @@ async function contentInput(){
     //     replaceContent();
     //     inputCounter=0;
     // }
+    wikiSourceHighlighter.run(textNode())
 }
 async function refreshPreview() {
     if(!previewOn.value){
@@ -135,16 +157,22 @@ async function replaceTitle() {
     api.textSection.editExe(send)
 }
 async function replaceContent() {
+    if(!loadComplete.value){
+        return;
+    }
     const resp = await api.textSection.editExe(data.value);
     if(resp){
         releasePreventLeaving()
+        initialContent = data.value.Content || "";
     }
 }
 
+let initialContent:string = "";
 async function init(){
     const resp = await api.textSection.edit(textSecId);
     if(resp){
         data.value = resp;
+        initialContent = data.value.Content || "";
         loadComplete.value = true;
         await nextTick();
         if(!writeArea.value){return}
@@ -194,7 +222,6 @@ onMounted(async()=>{
     setTopbar = injectSetTopbar();
     setTopbar(false);
     footNoteJumpCallBack.value = (top)=>{
-        console.log("滚到",top)
         previewArea.value?.scrollTo({top: top, behavior: 'smooth'})
     };
     listenFootNoteJump();
@@ -318,14 +345,16 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 
     <div contenteditable="plaintext-only"
         ref="writeArea" placeholder="请输入内容"
-        @input="data.Content = writeArea?.innerText || '';contentInput()" @click="rightToLeft"
+        @input="contentInput" @click="rightToLeft"
         class="write" :class="{writeNoPreview:!previewOn}"
         :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">&nbsp;</div>
 </div>
+<Loading v-else></Loading>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+    @import "../../utils/wikiSource/wikiSourceHighlight";
     .preventingLeaving{
         position: fixed;
         right: 10px;
