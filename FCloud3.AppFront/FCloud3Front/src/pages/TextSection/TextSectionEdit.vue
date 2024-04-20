@@ -276,6 +276,7 @@ async function leftToRight(e:MouseEvent){
     range.setEnd(textNode(), line.indextEnd)
     window.getSelection()?.removeAllRanges()
     window.getSelection()?.addRange(range)
+    wikiSourceHighlighter.run(textNode())
 }
 function rightToLeft(e:MouseEvent){
     const write = writeArea.value;

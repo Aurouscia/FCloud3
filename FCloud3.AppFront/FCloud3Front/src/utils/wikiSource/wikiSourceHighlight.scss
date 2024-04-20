@@ -8,14 +8,9 @@
     color: rgb(146, 191, 180);
 }
 
-::highlight(subtitle-1){
-    background-color: rgb(61, 80, 208);
-}
-::highlight(subtitle-2){
-    background-color: rgb(84, 126, 198);
-}
-::highlight(subtitle-3){
-    background-color: rgb(134, 161, 184);
+::highlight(subtitle){
+    color: rgb(201, 229, 255);
+    text-decoration: underline;
 }
 
 ::highlight(footnoteEntry){

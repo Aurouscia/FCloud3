@@ -9,9 +9,7 @@ export class WikiSourceHighlighter {
         this.matchAndMake(/\*\*.+?\*\*/g, "bold");
         this.matchAndMake(/\*.+?\*/g, "italic");
         this.matchAndMake(/~~.+~~/g, "lineThrough")
-        this.matchAndMake(/(?<=(^|\n))# .*(?=($|\n))/g, "subtitle-1");
-        this.matchAndMake(/(?<=(^|\n))## .*(?=($|\n))/g, "subtitle-2");
-        this.matchAndMake(/(?<=(^|\n))###+ .*(?=($|\n))/g, "subtitle-3");
+        this.matchAndMake(/(?<=(^|\n))#+ .*(?=($|\n))/g, "subtitle");
         this.matchAndMake(/(?<=(^|\n))\[\^.+\].+/g, "footnoteBody");
         this.matchAndMake(/\[\^.+?\]/g, "footnoteEntry");
         this.matchAndMake(/(?<=(^|\n))> /g, "quote")
