@@ -8,7 +8,7 @@ import { Api } from '../../utils/api';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import { LineAndHash,split } from '../../utils/wikiSource/textSecSplitLine';
 import { WikiSourceHighlighter } from '../../utils/wikiSource/wikiSourceHighlight';
-import { md5 } from 'js-md5'
+import md5 from 'md5';
 import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '../../provides';
 import { clone } from 'lodash';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';

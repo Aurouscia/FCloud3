@@ -2,7 +2,7 @@
 import { Ref, inject, nextTick, onMounted, ref } from 'vue';
 import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt } from '../utils/fileUtils';
 import { StagingFile, FileUploadDist} from '../models/files/fileItem';
-import CryptoJS from 'crypto-js';
+import md5 from 'md5'
 import _ from 'lodash'
 import Pop from './Pop.vue';
 import { Api } from '../utils/api';
@@ -26,12 +26,15 @@ async function inputChange(e:Event){
         for(let i=0;i<newFiles.length;i++){
             let x = newFiles[i];
             const displayNameWithoutExt = fileNameWithoutExt(x.name)
-            const arrayBuffer = await x.arrayBuffer();
-            const md5Arr = CryptoJS.MD5(CryptoJS.lib.WordArray.create(arrayBuffer));
-            const md5 = md5Arr.toString(CryptoJS.enc.Hex);
-            const same = fileList.value.find(f=>f.md5===md5)
+            const uint8Arr = (await x.stream().getReader().read()).value
+            const nameNow = _.truncate(x.name, {length:8})
+            if(!uint8Arr){
+                pop.value.show(`${nameNow}读取失败`,"warning")
+                continue;
+            }
+            const md5Str = md5(uint8Arr)
+            const same = fileList.value.find(f=>f.md5===md5Str)
             if(same){
-                const nameNow = _.truncate(x.name, {length:8})
                 const nameFound = _.truncate(same.displayName, {length:8})
                 pop.value.show(`${nameNow}与列表中${nameFound}内容完全相同`,"warning")
                 continue;
@@ -40,7 +43,7 @@ async function inputChange(e:Event){
                 file:x,
                 displayName:x.name,
                 displayNameWithoutExt,
-                md5
+                md5: md5Str,
             })
         }
         fileList.value.push(...sf);
