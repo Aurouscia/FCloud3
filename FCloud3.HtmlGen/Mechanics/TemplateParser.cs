@@ -24,6 +24,8 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public IHtmlable Run(string input)
         {
+            if (_ctx.FrameCountCheck() is IHtmlable err)
+                return err;
             SplittedByCalls splitted = SplitByCalls(input);
             var frags = splitted.Frags;
 
@@ -146,7 +148,7 @@ namespace FCloud3.HtmlGen.Mechanics
                 if (string.IsNullOrEmpty(input))
                     return;
 
-                if (!input.Contains(Consts.tplt_L) || !input.Contains(Consts.tplt_R))
+                if (!input.Contains(Consts.tplt_L))
                 {
                     this.Frags.Add(new(input, false));
                     return;

@@ -28,6 +28,8 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public IHtmlable Run(string input, bool enforceBlock = true, bool isMasterCall = false)
         {
+            if (_ctx.FrameCountCheck() is IHtmlable err)
+                return err;
             if (_useCache && !isMasterCall)
             {
                 var cache = _ctx.Caches.ReadParsedElement(input);
@@ -77,6 +79,8 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private IHtmlable Run(List<LineWithTitleLevel> lines)
         {
+            if (_ctx.FrameCountCheck() is IHtmlable err)
+                return err;
             //为每一行标记其标题（如果有）的等级
             if (lines.All(x => x.Level == 0))
             {
@@ -121,7 +125,7 @@ namespace FCloud3.HtmlGen.Mechanics
                         titleId = _ctx.TitleGathering.GenerateTitleId();
                     }
                     IHtmlable generated = Run(generating);
-                    IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
+                    IHtmlable titleParsed = _inlineParser.Value.Run(title.Text, false);
                     TitledBlockElement titledBlock = new(titleParsed, title.Text, title.RawLineHash, newTitleLevel, generated, titleId);
                     res.Add(titledBlock);
                 }
@@ -212,6 +216,8 @@ namespace FCloud3.HtmlGen.Mechanics
         }
         private IHtmlable Run(List<LineWithRule> lines)
         {
+            if (_ctx.FrameCountCheck() is IHtmlable err)
+                return err;
             ElementCollection res = new();
             if (lines.All(x => x.Rule is null))
             {

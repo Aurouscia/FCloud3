@@ -31,6 +31,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public string RunToPlain(string? input,bool putCommon = false)
         {
             _ctx.Reset();
+            _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
             if (input.Length > maxInputLength)
@@ -57,6 +58,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public ParserResult RunToParserResult(string? input)
         {
             _ctx.Reset();
+            _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
             if (input.Length > maxInputLength)
@@ -82,6 +84,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public ParserResultRaw RunToParserResultRaw(string? input, bool enforceBlock = true)
         {
             _ctx.Reset();
+            _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
             if (input.Length > maxInputLength)
@@ -102,6 +105,7 @@ namespace FCloud3.HtmlGen.Mechanics
         public IHtmlable RunToObject(string? input)
         {
             _ctx.Reset();
+            _ctx.SetInitialFrameCount();
             if(input is null)
                 return new EmptyElement();
             if (input.Length > maxInputLength)

@@ -1,6 +1,8 @@
 ﻿using FCloud3.HtmlGen.Context.SubContext;
 using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Options;
+using FCloud3.HtmlGen.Util;
+using System.Diagnostics;
 
 namespace FCloud3.HtmlGen.Context
 {
@@ -29,6 +31,21 @@ namespace FCloud3.HtmlGen.Context
             FootNote = new();
             TitleGathering = new();
         }
+
+        private int initialFrameCount = 0;
+        private int frameOffsetMax = 20;
+        public void SetInitialFrameCount()
+        {
+            initialFrameCount = new StackTrace(false).FrameCount;
+        }
+        public IHtmlable? FrameCountCheck()
+        {
+            var above = new StackTrace(initialFrameCount, false).FrameCount;
+            if (above > frameOffsetMax)
+                return new ErrorElement("规则嵌套层数过多");
+            return null;
+        }
+
         /// <summary>
         /// 在同一个Parser对象多次反复运行之间，将一些参数设回初始值。
         /// </summary>

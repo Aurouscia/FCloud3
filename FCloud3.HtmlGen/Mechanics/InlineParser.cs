@@ -2,13 +2,7 @@
 using FCloud3.HtmlGen.Models;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.HtmlGen.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static FCloud3.HtmlGen.Rules.SepBlockRule;
 
 namespace FCloud3.HtmlGen.Mechanics
 {
@@ -33,6 +27,10 @@ namespace FCloud3.HtmlGen.Mechanics
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
+            if (_ctx.FrameCountCheck() is IHtmlable err)
+                return err;
+            if (input.Length <= 5)
+                mayContainTemplateCall = false;
             if (_useCache && !mayContainTemplateCall)
             {
                 var cache = _ctx.Caches.ReadParsedElement(input);

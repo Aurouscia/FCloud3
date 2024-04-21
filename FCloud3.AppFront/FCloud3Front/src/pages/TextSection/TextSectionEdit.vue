@@ -62,7 +62,7 @@ const refreshThrs=750;//这么多毫秒后还没有新的输入，则发送previ
 //let inputCounter:number = 0;
 async function contentInput(){
     if(!writeArea.value){return;}
-    data.value.Content = textNode().textContent;
+    data.value.Content = textNode()?.textContent || "";
     //有时候会莫名其妙出现多余的子节点，检查一下并删掉即可
     const childs = writeArea.value.childNodes
     const needRemove:ChildNode[] = []
