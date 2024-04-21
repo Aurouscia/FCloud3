@@ -51,6 +51,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("小王 \\bd 小李 \\bd 小张", "小王<span class=\"bordered\">小李</span>小张")]
         public void Parse(string input,string answer)
         {
+            _ctx.SetInitialFrameCount();
             InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();
@@ -72,6 +73,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("小王 #beige# 小张", "小王<span class=\"coloredBlock\" style=\"color:beige;background-color:beige\"></span>小张")]
         public void ColorTextParse(string input,string answer)
         {
+            _ctx.SetInitialFrameCount();
             InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();
@@ -92,6 +94,7 @@ namespace FCloud3.HtmlGenTest
         [DataRow("看看这个[http://vd.webm]", "看看这个<video controls src=\"http://vd.webm\" style=\"float:right;height:5em;\"></video>")]
         public void InlineImageParse(string input,string answer)
         {
+            _ctx.SetInitialFrameCount();
             InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();

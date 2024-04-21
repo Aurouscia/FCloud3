@@ -118,6 +118,7 @@ namespace FCloud3.HtmlGenTest
             "<script>const rawData='172,163\n105*144*97'</script>")]
         public void ParseTemplate(string input, string answer)
         {
+            _ctx.SetInitialFrameCount();
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
@@ -136,6 +137,7 @@ namespace FCloud3.HtmlGenTest
             "START_<p>172,163</p><p>105<i>144</i>97</p>_END")]
         public void InlineOrBlock(string input, string answer)
         {
+            _ctx.SetInitialFrameCount();
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
@@ -172,6 +174,7 @@ namespace FCloud3.HtmlGenTest
             )]
         public void UniqueSlotTest(string input,string answer)
         {
+            _ctx.SetInitialFrameCount();
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
@@ -195,6 +198,7 @@ namespace FCloud3.HtmlGenTest
             "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]
         public void ParseImplant(string input,string answer)
         {
+            _ctx.SetInitialFrameCount();
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
