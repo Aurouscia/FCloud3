@@ -389,11 +389,11 @@ export class Api{
                     true)
                 return res.success
             },
-            autoFill:async(content:string)=>{
+            autoFill:async(objId:number, content:string)=>{
                 const res = await this.httpClient.request(
                     "/api/WikiTitleContain/AutoFill",
                     "postForm",
-                    {content},
+                    {objId, content},
                     undefined,
                     true)
                 if(res.success){

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { injectApi } from '../../provides';
+import { Ref, onMounted, ref } from 'vue';
+import { injectApi, injectPop } from '../../provides';
 import { Api } from '../../utils/api';
 import { WikiTitleContainListModel, WikiTitleContainListModelItem, WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import Loading from '../Loading.vue';
 import { pullAt, unionBy } from 'lodash';
 import Search from '../Search.vue';
+import Pop from '../Pop.vue';
 
 const props = defineProps<{
     type: WikiTitleContainType
@@ -41,7 +42,7 @@ async function autoFill(){
     if(!data.value){return}
     const content = props.getContent();
     if(!content){return}
-    const res = await api.wiki.wikiTitleContain.autoFill(content);
+    const res = await api.wiki.wikiTitleContain.autoFill(props.objectId ,content);
     if(res){
         const newItems:WikiTitleContainListModelItem[] = res.Items.map(x => {
             return {
@@ -56,6 +57,8 @@ async function autoFill(){
         const newLength = data.value.Items.length;
         if(newLength > oriLength){
             changed.value = true;
+        }else{
+            pop.value.show('没有找到可以添加的', "warning");
         }
     }
 }
@@ -80,8 +83,10 @@ const emits = defineEmits<{
 }>();
 
 let api:Api;
+let pop:Ref<InstanceType<typeof Pop>>;
 onMounted(async() => {
     api = injectApi();
+    pop = injectPop();
     await load();
 });
 </script>
@@ -92,7 +97,9 @@ onMounted(async() => {
         包含的词条标题
         <div class="question">?</div>
         <div class="questionBody">
-            只有在这里显示的词条标题才会在本段被自动生成链接
+            <p>只有在这里显示的词条标题才会在本段被自动生成链接。</p>
+            <p>手动删除的词条标题将不再会被自动添加。</p>
+            <p>链接在编辑器里会全部生成，在词条查看时仅生成第一次</p>
         </div>
     </div>
     <div>
@@ -116,7 +123,7 @@ onMounted(async() => {
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .panelName{
     display: flex;
     justify-content: center;
@@ -156,6 +163,7 @@ onMounted(async() => {
     width: 15px;
     height: 15px;
     font-size: 12px;
+    font-weight: bold;
     color: #aaa;
     border: 2px solid #aaa;
     border-radius: 100px;
@@ -163,13 +171,18 @@ onMounted(async() => {
 }
 .questionBody{
     position: absolute;
-    width: 100px;
-    top: 30px;
+    width: 150px;
+    top: 35px;
     display: none;
     z-index: 10000;
+    gap: 10px;
+    flex-direction: column;
+    p{
+        text-indent: 20px;
+    }
 }
 .question:hover+.questionBody{
-    display: block;
+    display: flex;
     font-size: 14px;
     padding: 5px;
     background-color: white;

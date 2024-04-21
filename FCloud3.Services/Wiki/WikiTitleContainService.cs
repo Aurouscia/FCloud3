@@ -29,10 +29,15 @@ namespace FCloud3.Services.Wiki
             return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
         }
 
-        public WikiTitleContainAutoFillResult AutoFill(string content)
+        public WikiTitleContainAutoFillResult AutoFill(int objId, string content)
         {
+            //之前被删过的就不会再自动添加
+            var excludes = _wikiTitleContainRepo.Deleted
+                .Where(x => x.ObjectId == objId)
+                .Select(x => x.WikiId);
             var wikis = _wikiItemRepo.Existing
                 .Where(x => x.Title != null && content.Contains(x.Title))
+                .Where(x => !excludes.Contains(x.Id))
                 .Select(x => new { x.Id, x.Title }).ToList();
             WikiTitleContainAutoFillResult res = new();
             wikis.ForEach(x =>
@@ -43,7 +48,7 @@ namespace FCloud3.Services.Wiki
         }
         public WikiTitleContainListModel GetAll(WikiTitleContainType type, int objectId)
         {
-            var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId);
+            var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
             var wikiIds = list.ConvertAll(x => x.WikiId);
             var wikis = _wikiItemRepo.GetRangeByIds(wikiIds).Select(x => new { x.Id,x.Title }).ToList();
             WikiTitleContainListModel model = new();
@@ -58,16 +63,27 @@ namespace FCloud3.Services.Wiki
         public bool SetAll(WikiTitleContainType type, int objectId, List<int> wikiIds, out string? errmsg)
         {
             wikiIds = wikiIds.Distinct().ToList();
-            var existing = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId);
-            var needRemove = existing.FindAll(x => !wikiIds.Contains(x.WikiId));
-            var needAdd = wikiIds.FindAll(x => !existing.Any(c => c.WikiId == x));
+            var all = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, false);
+            var needRemove = all.FindAll(x => !x.Deleted && !wikiIds.Contains(x.WikiId));
+            var needRecover = all.FindAll(x => x.Deleted && wikiIds.Contains(x.WikiId));
+            var needAdd = wikiIds.FindAll(x => !all.Any(c => c.WikiId == x));
+           
             using var t = _dbTransactionService.BeginTransaction();
-            _wikiTitleContainRepo.TryRemoveRangePermanent(needRemove, out errmsg);
+
+            _wikiTitleContainRepo.TryRemoveRange(needRemove, out errmsg);
             if(errmsg is not null)
             {
                 _dbTransactionService.RollbackTransaction(t);
                 return false;
             }
+
+            _wikiTitleContainRepo.TryRecoverRange(needRecover, out errmsg);
+            if (errmsg is not null)
+            {
+                _dbTransactionService.RollbackTransaction(t);
+                return false;
+            }
+
             var newObjs = needAdd.ConvertAll(x => new WikiTitleContain
             {
                 WikiId = x,
@@ -75,22 +91,18 @@ namespace FCloud3.Services.Wiki
                 ObjectId = objectId,
             });
             _wikiTitleContainRepo.TryAddRange(newObjs, out errmsg);
-
-            if(newObjs.Count > 0 || needRemove.Count > 0)
-            {
-                _cacheExpTokenService.WikiTitleContain.CancelAll();
-            }
-
-            if(errmsg is not null)
+            if (errmsg is not null)
             {
                 _dbTransactionService.RollbackTransaction(t);
                 return false;
             }
-            else
+
+            if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
             {
-                _dbTransactionService.CommitTransaction(t);
-                return true;
+                _cacheExpTokenService.WikiTitleContain.CancelAll();
             }
+            _dbTransactionService.CommitTransaction(t);
+            return true;
         }
 
         public class WikiTitleContainListModel

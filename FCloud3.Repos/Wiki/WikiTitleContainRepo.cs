@@ -9,18 +9,20 @@ namespace FCloud3.Repos.Wiki
         {
         }
 
-        public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
+        public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId, bool onlyExisting = true)
         {
-            return Existing.Where(x=>x.Type == type && x.ObjectId == objId).ToList();
+            var from = onlyExisting ? Existing : All;
+            return from.Where(x=>x.Type == type && x.ObjectId == objId).ToList();
         }
-        public List<WikiTitleContain> GetByTypeAndObjIds(WikiTitleContainType type, List<int> objIds) 
+        public List<WikiTitleContain> GetByTypeAndObjIds(WikiTitleContainType type, List<int> objIds, bool onlyExisting = true) 
         {
-            var res = Existing.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).ToList();
+            var from = onlyExisting ? Existing : All;
+            var res = from.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).ToList();
             return res.DistinctBy(x=>x.WikiId).ToList();
         }
         public List<int> GetIdsByTypeAndObjIds(WikiTitleContainType type, List<int> objIds)
         {
-            var res = Existing.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).Select(x=>x.WikiId).ToList();
+            var res = All.Where(x => x.Type == type && objIds.Contains(x.ObjectId)).Select(x=>x.WikiId).ToList();
             return res.Distinct().ToList();
         }
     }

@@ -16,6 +16,11 @@ namespace FCloud3.Entities.Wiki
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
+        /// <summary>
+        /// 在 WikiTitleContain 的上下文中，Deleted表示被用户加入黑名单，
+        /// 自动填充将忽略Deleted为true的项，但手动重新添加会将其设回false，
+        /// 所以任何时候都不应该彻底删除Deleted项目
+        /// </summary>
         public bool Deleted { get; set; }
     }
     public enum WikiTitleContainType

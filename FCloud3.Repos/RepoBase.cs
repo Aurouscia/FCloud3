@@ -16,7 +16,10 @@ namespace FCloud3.Repos
             _context = context;
             _userIdProvider = userIdProvider;
         }
+
+        public IQueryable<T> All => _context.Set<T>();
         public IQueryable<T> Existing => _context.Set<T>().Where(x => x.Deleted == false);
+        public IQueryable<T> Deleted => _context.Set<T>().Where(x => x.Deleted);
         public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
 
         public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
@@ -293,11 +296,65 @@ namespace FCloud3.Repos
                 if (!TryRemoveCheck(item, out errmsg))
                     return false;
                 item.Deleted = true;
+                item.Updated = DateTime.Now;
                 _context.Update(item);
             }
             _context.SaveChanges();
             return true;
         }
+
+        public virtual bool TryRecover(T item, out string? errmsg)
+        {
+            if (item is null)
+            {
+                errmsg = $"试图向数据库恢复空{nameof(T)}对象";
+                return false;
+            }
+            if (!TryAddCheck(item, out errmsg))
+                return false;
+            item.Deleted = false;
+            item.Updated = DateTime.Now;
+            _context.Update(item);
+            _context.SaveChanges();
+            return true;
+        }
+        public virtual bool TryRecover(int id, out string? errmsg)
+        {
+            var deleted = Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x
+                .SetProperty(t => t.Deleted, false)
+                .SetProperty(t => t.Updated, DateTime.Now));
+            if (deleted > 0)
+            {
+                errmsg = null;
+                return true;
+            }
+            else
+            {
+                errmsg = "恢复失败(可能未找到指定id)";
+                return false;
+            }
+        }
+        public virtual bool TryRecoverRange(List<T> items, out string? errmsg)
+        {
+            errmsg = null;
+            foreach (var item in items)
+            {
+                if (item is null)
+                {
+                    errmsg = $"试图向数据库恢复空{nameof(T)}对象";
+                    return false;
+                }
+                if (!TryAddCheck(item, out errmsg))
+                    return false;
+                item.Deleted = false;
+                item.Updated = DateTime.Now;
+                _context.Update(item);
+            }
+            _context.SaveChanges();
+            return true;
+        }
+
         public virtual bool TryRemovePermanent(T item, out string? errmsg) 
         {
             if (item is null)
