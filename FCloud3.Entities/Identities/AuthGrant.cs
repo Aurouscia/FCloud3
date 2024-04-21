@@ -28,15 +28,18 @@ namespace FCloud3.Entities.Identities
     public enum AuthGrantOn
     {
         None = 0,
-        WikiItem = 1,
-        Dir = 2,
-        Material = 3,
-        FileItem = 4,
-        TextSection = 10,
-        FreeTable = 11,
-        WikiPara = 19,
-        User = 20,
-        UserGroup = 21
+
+        WikiItem = 10,
+        WikiPara = 20,
+        TextSection = 21,
+        FreeTable = 22,
+
+        Dir = 30,
+        FileItem = 31,
+        Material = 32,
+
+        User = 40,
+        UserGroup = 41
     }
     public enum AuthGrantTo
     {
