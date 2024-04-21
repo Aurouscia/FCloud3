@@ -13,7 +13,7 @@ import { QuickSearchResult } from '../models/sys/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
 import { WikiItem } from '../models/wiki/wikiItem';
 import { FreeTable } from '../models/table/freeTable';
-import { AuthGrant, AuthGrantOnText, AuthGrantViewModel, authGrantOn } from '../models/identities/authGrant';
+import { AuthGrant, AuthGrantViewModel, AuthGrantOn } from '../models/identities/authGrant';
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
@@ -217,8 +217,7 @@ export class Api{
             },
         },
         authGrant:{
-            getList:async(onType:AuthGrantOnText, onId:number)=>{
-                const on = authGrantOn(onType);
+            getList:async(on:AuthGrantOn, onId:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/AuthGrant/GetList",
                     "get",
@@ -228,8 +227,7 @@ export class Api{
                     return resp.data as AuthGrantViewModel[];
                 }
             },
-            setOrder:async(onType:AuthGrantOnText, onId:number, ids:number[])=>{
-                const on = authGrantOn(onType);
+            setOrder:async(on:AuthGrantOn, onId:number, ids:number[])=>{
                 const resp = await this.httpClient.request(
                     "/api/AuthGrant/SetOrder",
                     "postRaw",

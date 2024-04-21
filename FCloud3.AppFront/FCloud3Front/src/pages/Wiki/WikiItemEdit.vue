@@ -23,6 +23,7 @@ import { injectApi } from '../../provides';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
+import { AuthGrantOn } from '../../models/identities/authGrant';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -324,7 +325,7 @@ onUnmounted(()=>{
         <Loading v-else></Loading>
     </div>
     <div>
-        <AuthGrants v-if="info" :on="'Wiki'" :on-id="info.Id"></AuthGrants>
+        <AuthGrants v-if="info" :on="AuthGrantOn.WikiItem" :on-id="info.Id"></AuthGrants>
     </div>
     </SwitchingTabs>
     <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters()">

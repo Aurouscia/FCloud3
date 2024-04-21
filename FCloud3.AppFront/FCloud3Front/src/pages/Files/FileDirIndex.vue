@@ -20,6 +20,7 @@ import AuthGrants from '../../components/AuthGrants.vue';
 import { injectApi, injectUserInfo } from '../../provides';
 import { IdentityInfo } from '../../utils/userInfo';
 import FileItemEdit from './FileItemEdit.vue';
+import { AuthGrantOn } from '../../models/identities/authGrant';
 
 
 const props = defineProps<{
@@ -303,7 +304,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         <FileDirCreate :dir-id="thisDirId" :dir-name="friendlyPathThisName||''" @created="dirCreated"></FileDirCreate>
     </SideBar>
     <SideBar ref="authgrantsSidebar">
-        <AuthGrants :on="'Dir'" :on-id="thisDirId"></AuthGrants>
+        <AuthGrants :on="AuthGrantOn.Dir" :on-id="thisDirId"></AuthGrants>
     </SideBar>
     <FileItemEdit ref="fileItemEdit" @need-refresh="index?.reloadData"></FileItemEdit>
     <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'根文件夹'" @put-down="clipBoardAction"></ClipBoard>

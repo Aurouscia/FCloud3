@@ -2,12 +2,12 @@
 import { onMounted, ref } from 'vue';
 import { injectApi } from '../provides';
 import { Api } from '../utils/api';
-import { AuthGrantOnText, AuthGrantToText, AuthGrantViewModel, authGrantOn, authGrantTo } from '../models/identities/authGrant';
+import { AuthGrantOn, AuthGrantTo, AuthGrantViewModel } from '../models/identities/authGrant';
 import Search from './Search.vue';
 import { elementBlinkClass } from '../utils/elementBlink';
 
 const props = defineProps<{
-    on:AuthGrantOnText
+    on:AuthGrantOn
     onId:number
 }>();
 
@@ -22,16 +22,14 @@ async function load(){
 }
 
 const adding = ref<boolean>(false);
-const addingTo = ref<AuthGrantToText>("UserGroup");
+const addingTo = ref<AuthGrantTo>(AuthGrantTo.UserGroup);
 const addingIsReject = ref<boolean>(false);
 async function toSearchDone(_value:string, id:number){
-    const to = authGrantTo(addingTo.value);
-    const on = authGrantOn(props.on);
     const resp = await api.identites.authGrant.add({
         Id: 0,
-        To: to,
+        To: addingTo.value,
         ToId: id,
-        On: on,
+        On: props.on,
         OnId: props.onId,
         IsReject:addingIsReject.value
     })
@@ -93,9 +91,9 @@ onMounted(()=>{
                     <td>对象类型</td>
                     <td>
                         <select v-model="addingTo">
-                            <option :value="'UserGroup'">用户组</option>
-                            <option :value="'User'">单个用户</option>
-                            <option :value="'EveryOne'">所有人</option>
+                            <option :value="AuthGrantTo.UserGroup">用户组</option>
+                            <option :value="AuthGrantTo.User">单个用户</option>
+                            <option :value="AuthGrantTo.EveryOne">所有人</option>
                         </select>
                     </td>
                 </tr>
@@ -110,9 +108,9 @@ onMounted(()=>{
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <Search v-show="addingTo == 'UserGroup'" :source="api.utils.quickSearch.userGroupName" @done="toSearchDone" :compact="true"></Search>
-                        <Search v-show="addingTo == 'User'" :source="api.utils.quickSearch.userName" @done="toSearchDone" :compact="true"></Search>
-                        <button v-show="addingTo == 'EveryOne'" @click="toSearchDone('',0)">确认</button>
+                        <Search v-show="addingTo == AuthGrantTo.UserGroup" :source="api.utils.quickSearch.userGroupName" @done="toSearchDone" :compact="true"></Search>
+                        <Search v-show="addingTo == AuthGrantTo.User" :source="api.utils.quickSearch.userName" @done="toSearchDone" :compact="true"></Search>
+                        <button v-show="addingTo == AuthGrantTo.EveryOne" @click="toSearchDone('',0)">确认</button>
                     </td>
                 </tr>
             </table>

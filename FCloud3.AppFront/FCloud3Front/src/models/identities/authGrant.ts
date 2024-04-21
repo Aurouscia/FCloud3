@@ -12,17 +12,24 @@ export interface AuthGrantViewModel extends AuthGrant{
     CreatorName:string
 }
 
-export type AuthGrantOn = 0|1|2;
-export type AuthGrantTo = 0|1|2|3;
+export enum AuthGrantOn{
+    None = 0,
 
-export type AuthGrantOnText = "None"|"Wiki"|"Dir"
-export type AuthGrantToText = "None"|"User"|"UserGroup"|"EveryOne"
+    WikiItem = 10,
+    WikiPara = 20,
+    TextSection = 21,
+    FreeTable = 22,
 
-const authGrantOnList:AuthGrantOnText[] = ["None","Wiki","Dir"];
-const authGrantToList:AuthGrantToText[] = ["None","User","UserGroup","EveryOne"];
-export function authGrantOn(typeStr:AuthGrantOnText){
-    return authGrantOnList.indexOf(typeStr) as AuthGrantOn;
+    Dir = 30,
+    FileItem = 31,
+    Material = 32,
+
+    User = 40,
+    UserGroup = 41
 }
-export function authGrantTo(typeStr:AuthGrantToText){
-    return authGrantToList.indexOf(typeStr) as AuthGrantTo;
+export enum AuthGrantTo{
+    None = 0,
+    User = 1,
+    UserGroup = 2,
+    EveryOne = 3
 }
