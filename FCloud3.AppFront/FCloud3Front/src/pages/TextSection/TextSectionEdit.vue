@@ -20,7 +20,7 @@ import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '../../utils/sleep';
 
 const locatorHash:(str:string)=>string = (str)=>{
-    return md5(str)
+    return md5(str.trim())
 }
 
 const props = defineProps<{id:string}>()
@@ -66,12 +66,17 @@ async function contentInput(){
     //有时候会莫名其妙出现多余的子节点，检查一下并删掉即可
     const childs = writeArea.value.childNodes
     const needRemove:ChildNode[] = []
+    let removed = false;
     for(let i = 0; i<childs.length;i++){
         if(i>0){
             needRemove.push(childs[i])
+            removed = true;
         }
     }
     needRemove.forEach(n=>n.remove());
+    if(removed){
+        textNode().textContent += "\n"
+    }
     
     if(!previewContent.value){
         previewContent.value="加载中..."

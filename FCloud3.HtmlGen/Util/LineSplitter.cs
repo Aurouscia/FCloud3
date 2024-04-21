@@ -9,7 +9,7 @@ namespace FCloud3.HtmlGen.Util
 {
     public class LineSplitter
     {
-        public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash, bool removeEmptyLine = true, bool trim = true)
+        public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash)
         {
             List<string> lines;
             int start = 0;
@@ -35,13 +35,11 @@ namespace FCloud3.HtmlGen.Util
 
             var hashedLines = lines.ConvertAll(x =>
             {
-                if (trim)
-                    x = x.Trim();
+                x = x.Trim();
                 string? hash = locatorHash?.Hash(x);
                 return new LineAndHash(hash, WebUtility.HtmlEncode(x));
             });
-            if (removeEmptyLine)
-                hashedLines.RemoveAll(line => string.IsNullOrWhiteSpace(line.Text));
+            hashedLines.RemoveAll(line => string.IsNullOrWhiteSpace(line.Text));
             return hashedLines;
         }
     }

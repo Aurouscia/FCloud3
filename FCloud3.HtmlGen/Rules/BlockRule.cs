@@ -429,6 +429,8 @@ namespace FCloud3.HtmlGen.Rules
                 new SepBlockRule(),
                 new MiniTableBlockRule(),
                 new PrefixBlockRule("&gt;","<div class=\"quote\">","</div>","引用"),
+                new PrefixBlockRule(".   ","<div style=\"text-align:center\">","</div>","中对齐"),
+                new PrefixBlockRule("...   ","<div style=\"text-align:right\">","</div>","右对齐"),
                 new FootNoteBodyRule()
             };
         }

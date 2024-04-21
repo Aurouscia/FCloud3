@@ -17,7 +17,7 @@ export class WikiSourceHighlighter {
         this.matchAndMake(/(?<!\{)\{[a-zA-Z0-9\u4e00-\u9fa5:]{2,16}\}(?!\})/g, "implant")
         this.matchAndMake(/#.{3,}#/g, "color")
         this.matchAndMake(/(?<=(^|\n))\-{3,}(?=($|\n))/g, "sep")
-        this.matchAndMake(/\{\{[a-zA-Z0-9\u4e00-\u9fa5]{2,10}\}(.|\n)*\}/g, "template")
+        this.matchAndMake(/\{\{[a-zA-Z0-9\u4e00-\u9fa5]{2,10}\}(.|\n)*?\}/g, "template")
         this.matchAndMake(/\[.+?\](?=(\())/g, "anchorText")
         this.matchAndMake(/(?<=\])\(.+?\)/g, "anchorLink")
         this.matchAndMake(/\[http.+?\]/g, "link")
