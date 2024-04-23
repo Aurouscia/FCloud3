@@ -15,7 +15,7 @@ import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import { jumpToDiffContentHistory } from '../Diff/routes';
 import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
-import { isImageFile } from '../../utils/fileUtils';
+import { canDisplayAsImage } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '../../utils/swipeListener';
 
@@ -180,7 +180,7 @@ onUnmounted(()=>{
                 </div>
             </div>
             <div v-if="p.ParaType==WikiParaTypes.File && p.Content">
-                <div v-if="isImageFile(p.Content)" class="imgPara">
+                <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
                     <a :href="p.Content" target="_blank">
                         <img :src="p.Content"/>
                     </a>

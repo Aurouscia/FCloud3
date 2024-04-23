@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { IndexQuery, IndexResult } from "../components/Index/index";
 import { User, UserType } from "../models/identities/user";
 import { TextSection, TextSectionPreviewResponse } from "../models/textSection/textSection";
-import { WikiPara } from "../models/wiki/wikiPara";
+import { WikiParaDisplay } from "../models/wiki/wikiPara";
 import { WikiParaTypes } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "./userInfo";
@@ -287,7 +287,7 @@ export class Api{
                 "get",
                 {id:id});
             if(res.success){
-                return res.data as Array<WikiPara>
+                return res.data as Array<WikiParaDisplay>
             }
         },
         insertPara:async(req:{id:number,afterOrder:number,type:WikiParaTypes}) => {
@@ -298,7 +298,7 @@ export class Api{
                 "成功插入新段落",
                 true)
             if(res.success){
-                return res.data as Array<WikiPara>
+                return res.data as Array<WikiParaDisplay>
             }
         },
         setParaOrders:async(req:{id:number,orderedParaIds:number[]})=>{
@@ -309,7 +309,7 @@ export class Api{
                 "成功修改顺序",
                 true)
             if(res.success){
-                return res.data as Array<WikiPara>
+                return res.data as Array<WikiParaDisplay>
             }
         },
         removePara:async(req:{id:number,paraId:number})=>{
@@ -320,7 +320,7 @@ export class Api{
                 "成功删除",
                 true)
             if(res.success){
-                return res.data as Array<WikiPara>
+                return res.data as Array<WikiParaDisplay>
             }
         },
         index:async(req:IndexQuery)=>{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref} from 'vue'
-import { WikiPara, WikiParaRendered} from '../../models/wiki/wikiPara'
+import { WikiParaDisplay, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { WikiParaTypes} from '../../models/wiki/wikiParaTypes'
 import { MouseDragListener } from '../../utils/mouseDrag';
 import Functions from '../../components/Functions.vue';
@@ -113,7 +113,7 @@ async function InsertPara(type:WikiParaTypes,afterOrder:number){
     refresh(resp);
 }
 const fileParaEdit = ref<InstanceType<typeof SideBar>>();
-const fileParaEditing = ref<WikiPara>();
+const fileParaEditing = ref<WikiParaDisplay>();
 async function EnterEdit(paraId:number)
 {
     const target = paras.value.find(x=>x.ParaId == paraId);
@@ -188,7 +188,7 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
         refresh(parasResp);
     }
 }
-async function refresh(p:WikiPara[]|undefined) {
+async function refresh(p:WikiParaDisplay[]|undefined) {
     if(p){
         paras.value = p;
         paras.value.forEach(x=>x.displayOrder=x.Order);
@@ -272,12 +272,12 @@ onUnmounted(()=>{
         <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
-                class="dragY" :src="dragYIconSrc"/>
+                class="dragY paraButton" :src="dragYIconSrc"/>
             <TextParaListItem v-if="p.Type==0" :w="p"></TextParaListItem>
             <FileParaListItem v-else-if="p.Type==1" :w="p"></FileParaListItem>
             <TableParaListItem v-else :w="p"></TableParaListItem>
-            <div class="menu">
-                <Functions x-align="right" :entry-size="30">
+            <div class="menu paraButton">
+                <Functions x-align="right" :entry-size="28">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
                     <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
                 </Functions>
@@ -407,8 +407,8 @@ onUnmounted(()=>{
     position: absolute;
     width: 30px;
     height: 30px;
-    right: 10px;
-    bottom: 10px;
+    right: 5px;
+    bottom: 5px;
 }
 .dragY{
     width: 30px;
@@ -416,8 +416,19 @@ onUnmounted(()=>{
     object-fit: contain;
     cursor: pointer;
     position: absolute;
-    right:10px;
-    top:10px;
+    right:5px;
+    top:5px;
     z-index: 105;
+}
+
+.paraButton{
+    background-color: #ddd;
+    padding: 2px;
+    border-radius: 5px;
+    transition: 0.5s;
+}
+.moving .paraButton{
+    background-color: #999;
+    transition: 0.1s;
 }
 </style>

@@ -15,6 +15,7 @@ export interface WikiParsingResultItem {
     ParaId: number;
     ParaType: WikiParaTypes;
     UnderlyingId: number;
+    Bytes:number;
 }
 
 export interface ParserTitleTreeNode {

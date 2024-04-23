@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import icon from '../../../assets/paraTypes/textPara.svg'
-import { WikiPara } from '../../../models/wiki/wikiPara'
-import './style.css'
+import { WikiParaDisplay } from '../../../models/wiki/wikiPara'
 
 const props = defineProps<{
-    w:WikiPara
+    w:WikiParaDisplay
 }>();
 </script>
 

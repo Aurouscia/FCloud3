@@ -3,18 +3,22 @@ import { onMounted, ref } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
 import SideBar from '../../components/SideBar.vue';
-import { fileNameWithoutExt, getFileExt } from '../../utils/fileUtils';
+import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '../../utils/fileUtils';
 import { FileDirItem } from '../../models/files/fileDir';
 
 const editingFileId = ref<number>();
 const editingFileName = ref<string>();
 const editingFileExt = ref<string>();
+const editingFileBytes = ref<number>();
+const editingFileUrl = ref<string>();
 const editFileSidebar = ref<InstanceType<typeof SideBar>>();
 let ok:(newName:string|-1)=>void
 async function startEditingFile(f:FileDirItem, okCallBack:(newName:string|-1)=>void){
     editingFileId.value = f.Id;
     editingFileName.value = fileNameWithoutExt(f.Name);
     editingFileExt.value = getFileExt(f.Name, false, true);
+    editingFileBytes.value = f.ByteCount;
+    editingFileUrl.value = f.Url;
     editFileSidebar.value?.extend();
     ok = okCallBack;
 }
@@ -62,6 +66,7 @@ onMounted(()=>{
     <SideBar ref="editFileSidebar">
         <h1>编辑文件信息</h1>
         <div class="fileEdit">
+            <img v-if="canDisplayAsImage(editingFileExt||'', editingFileBytes||0)" :src="editingFileUrl"/>
             <div>
                 <input v-model="editingFileName" type="text" />{{ editingFileExt }}
             </div>
@@ -76,5 +81,10 @@ onMounted(()=>{
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+img{
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: contain;
 }
 </style>

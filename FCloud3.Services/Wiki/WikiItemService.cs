@@ -112,19 +112,19 @@ namespace FCloud3.Services.Wiki
                 {
                     var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
                     if(obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title, obj.ContentBrief, WikiParaType.Text);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title, obj.ContentBrief, WikiParaType.Text, 0);
                 }
                 else if(type == WikiParaType.File)
                 {
                     var obj = fileParaObjs.Find(p => p.Id == x.ObjectId);
                     if (obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName??"missing"), WikiParaType.File);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName??"missing"), WikiParaType.File, obj.ByteCount);
                 }
                 else if(type == WikiParaType.Table)
                 {
                     var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
                     if (obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name, obj.Brief, WikiParaType.Table);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name, obj.Brief, WikiParaType.Table, 0);
                 }
                 paraDisplay ??= new WikiParaPlaceholder(type).ToDisplay(x);
                 return paraDisplay;

@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import icon from '../../../assets/paraTypes/filePara.svg'
-import './style.css'
-import { getFileType } from '../../../utils/fileUtils';
-import { WikiPara } from '../../../models/wiki/wikiPara'
+import { canDisplayAsImage } from '../../../utils/fileUtils';
+import { WikiParaDisplay } from '../../../models/wiki/wikiPara'
 
 const props = defineProps<{
-    w:WikiPara
+    w:WikiParaDisplay
 }>();
 </script>
 
@@ -15,7 +14,7 @@ const props = defineProps<{
             <img class="icon" :src="icon">
             <div>{{props.w.Title}}</div>
         </div>
-        <img class="fileImage" v-if="getFileType(w.Content) == 'image'" :src="props.w.Content" />
+        <img class="fileImage" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />
         <div v-else class="fileLink">
             <a :href="props.w.Content">
                 {{ props.w.Title }}<br /><span>{{ props.w.Content }}</span>
@@ -37,7 +36,7 @@ const props = defineProps<{
         -2px 2px 0px #eee
 }
 .fileImage{
-    width: calc(100% + 40px);
+    width: 100%;
     height: 100px;
     object-fit: contain;
     position: absolute;
@@ -47,5 +46,12 @@ const props = defineProps<{
 .paraListItem{
     text-align: center;
     font-size: 18px;
+}
+.fileLink{
+    word-wrap: break-word;
+    word-break: break-all;
+}
+a{
+    font-size: 16px;
 }
 </style>

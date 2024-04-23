@@ -3,6 +3,7 @@ import { CSSProperties } from "vue";
 export type FileType = "image"|"video"|"audio"|"text"|"unknown";
 
 export function getFileType(fileName:string):FileType{
+    fileName = fileName.toLowerCase();
     if(imageFileExts.find(x=>fileName.endsWith(x))){
         return "image"
     }
@@ -84,4 +85,8 @@ export function getFileIconStyle(fileName:string):CSSProperties{
         return {backgroundColor:'#EFD67F'}
     }
     return {backgroundColor:'#AAAAAA'}
+}
+
+export function canDisplayAsImage(fileName:string, byteCount:number){
+    return isImageFile(fileName) && byteCount < 1024 * 1024
 }

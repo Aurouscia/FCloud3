@@ -1,0 +1,47 @@
+.paraListItem {
+    .icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .paraListItem {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 0px;
+        right: 40px;
+        padding: 7px;
+    }
+
+    .title {
+        font-weight: 600;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        position: relative;
+        z-index: 100;
+    }
+
+    .content {
+        margin-top: 5px;
+        overflow: hidden;
+        height: 65px;
+    }
+
+    table {
+        table-layout: fixed;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    td {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 200px;
+        height: 20px;
+    }
+}

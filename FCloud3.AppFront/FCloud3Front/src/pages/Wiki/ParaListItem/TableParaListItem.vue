@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import icon from '../../../assets/paraTypes/tablePara.svg'
 import SimpleTable from '../../../components/SimpleTable.vue';
-import { WikiPara } from '../../../models/wiki/wikiPara';
-import './style.css'
+import { WikiParaDisplay } from '../../../models/wiki/wikiPara';
 
 const props = defineProps<{
-    w:WikiPara
+    w:WikiParaDisplay
 }>();
 </script>
 
@@ -33,8 +32,11 @@ const props = defineProps<{
         -3px 0px 0px #eee,
         -2px 2px 0px #eee
 }
-table{
-    table-layout: fixed;
-    width:calc(100%);
+.content{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -25px;
+    height: 90px;
 }
 </style>
