@@ -50,7 +50,7 @@ try
 
     app.UseRouting();
 
-    app.UseSerilogRequestLogging();
+    app.UseRequestLogging();
 
     app.UseAuthentication();
     app.UseAuthorization();
