@@ -150,7 +150,11 @@ namespace FCloud3.Repos
             if (ids.Count == 0) 
                 return new List<T>().AsQueryable();
             return Existing.Where(x => ids.Contains(x.Id));
-        } 
+        }
+        public virtual IQueryable<T> GetqById(int id)
+        {
+            return Existing.Where(x => x.Id == id);
+        }
 
         public virtual int GetOwnerIdById(int id)
         {

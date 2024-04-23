@@ -18,6 +18,7 @@ namespace FCloud3.App.Controllers.Table
             _freeTableService = freeTableService;
         }
 
+        [AuthGranted(AuthGrantOn.WikiPara)]
         public IActionResult CreateForPara(int paraId)
         {
             int createdId = _freeTableService.TryAddAndAttach(paraId, out string? errmsg);
@@ -30,9 +31,9 @@ namespace FCloud3.App.Controllers.Table
         [UserTypeRestricted]
         public IActionResult Load(int id)
         {
-            var res = _freeTableService.GetById(id);
-            if (res is null)
-                return this.ApiFailedResp("未找到指定的表格");
+            var res = _freeTableService.GetForEditing(id, out string? errmsg);
+            if(res is null || errmsg is not null)
+                return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
         }
 

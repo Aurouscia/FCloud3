@@ -6,6 +6,7 @@ using FCloud3.DbContexts;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
+using FCloud3.Services.Etc.TempData.EditLock;
 
 namespace FCloud3.Services.TextSec
 {
@@ -16,6 +17,7 @@ namespace FCloud3.Services.TextSec
         private readonly int _userId;
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
+        private readonly ContentEditLockService _contentEditLockService;
         private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
@@ -24,6 +26,7 @@ namespace FCloud3.Services.TextSec
             TextSectionRepo textsectionRepo,
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
+            ContentEditLockService contentEditLockService,
             ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;
@@ -31,12 +34,21 @@ namespace FCloud3.Services.TextSec
             _userId = userIdProvider.Get();
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
+            _contentEditLockService = contentEditLockService;
             _logger = logger;
         }
 
-        public TextSection? GetById(int id)
+        public TextSection? GetForEditing(int id, out string? errmsg)
         {
-            return _textSectionRepo.GetById(id);
+            if (!_contentEditLockService.Heartbeat(ObjectType.TextSection, id, out errmsg))
+                return null;
+            var textSection = _textSectionRepo.GetById(id);
+            if (textSection is null)
+            {
+                errmsg = "找不到指定文本段落";
+                return null;
+            }
+            return textSection;
         }
 
         public static bool ModelCheck(TextSection section, out string? errmsg)
@@ -103,6 +115,8 @@ namespace FCloud3.Services.TextSec
                 errmsg = "未得到更新文本段Id";
                 return false;
             }
+            if (!_contentEditLockService.Heartbeat(ObjectType.TextSection, id, out errmsg))
+                return false;
             if (title is not null)
             {
                 if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))

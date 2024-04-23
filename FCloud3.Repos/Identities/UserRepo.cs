@@ -14,6 +14,15 @@ namespace FCloud3.Repos.Identities
         {
             return Existing.Where(x => x.Name == name);
         }
+        public string? GetNameById(int id, int lengthLimit = int.MaxValue)
+        {
+            var name = Existing.Where(x=>x.Id == id).Select(x=>x.Name).FirstOrDefault();
+            if (name == null)
+                return null;
+            if (name.Length > lengthLimit)
+                return name.Substring(0, lengthLimit - 1) + "...";
+            return name;
+        }
         public UserType GetTypeById(int id)
         {
             return Existing.Where(x => x.Id == id).Select(x=>x.Type).FirstOrDefault();

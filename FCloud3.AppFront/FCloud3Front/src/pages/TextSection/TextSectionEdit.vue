@@ -18,6 +18,7 @@ import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
 import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '../../utils/sleep';
+import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -185,6 +186,9 @@ async function init(){
         writeArea.value.addEventListener("keydown", enterKeyHandler);
         await contentInput();
         releasePreventLeaving()
+
+        heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.TextSection, textSecId);
+        heartbeatSender.start();
     }
 }
 
@@ -221,6 +225,7 @@ async function enterKeyHandler(e: KeyboardEvent) {
 let setTopbar:SetTopbarFunc|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 let saveShortcut: ShortcutListener|undefined;
+let heartbeatSender:HeartbeatSender|undefined;
 onMounted(async()=>{
     pop = injectPop();
     api = injectApi();
@@ -241,6 +246,7 @@ onUnmounted(()=>{
     disposeFootNoteJump();
     releasePreventLeaving();
     saveShortcut?.dispose();
+    heartbeatSender?.stop();
 })
 
 async function leftToRight(e:MouseEvent){

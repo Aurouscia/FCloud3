@@ -6,8 +6,8 @@ using Aurouscia.TableEditor.Core.Utils;
 using FCloud3.DbContexts;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
-using NPOI.SS.Formula.Functions;
 using Microsoft.Extensions.Logging;
+using FCloud3.Services.Etc.TempData.EditLock;
 
 namespace FCloud3.Services.Table
 {
@@ -16,6 +16,7 @@ namespace FCloud3.Services.Table
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly DiffContentService _diffContentService;
+        private readonly ContentEditLockService _contentEditLockService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ILogger<FreeTableService> _logger;
 
@@ -23,26 +24,40 @@ namespace FCloud3.Services.Table
             FreeTableRepo freeTableRepo,
             WikiParaRepo wikiParaRepo,
             DiffContentService diffContentService,
+            ContentEditLockService contentEditLockService,
             DbTransactionService dbTransactionService,
             ILogger<FreeTableService> logger)
         {
             _freeTableRepo = freeTableRepo;
             _wikiParaRepo = wikiParaRepo;
             _diffContentService = diffContentService;
+            _contentEditLockService = contentEditLockService;
             _dbTransactionService = dbTransactionService;
             _logger = logger;
         }
 
-        public FreeTable? GetById(int id)
+        public FreeTable? GetForEditing(int id, out string? errmsg)
         {
-            return _freeTableRepo.GetById(id);
+            if (!_contentEditLockService.Heartbeat(ObjectType.FreeTable, id, out errmsg))
+                return null;
+            var freeTable = _freeTableRepo.GetById(id);
+            if (freeTable is null)
+            {
+                errmsg = "找不到指定表格";
+                return null;
+            }
+            return freeTable;
         }
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
+            if (!_contentEditLockService.Heartbeat(ObjectType.FreeTable, id, out errmsg))
+                return false;
             return _freeTableRepo.TryEditInfo(id, name, out errmsg);
         }
         public bool TryEditContent(int id, string data, out string? errmsg)
         {
+            if (!_contentEditLockService.Heartbeat(ObjectType.FreeTable, id, out errmsg))
+                return false;
             var model = _freeTableRepo.GetById(id);
             if (model is null)
             {

@@ -12,6 +12,7 @@ import { join } from 'lodash';
 import SideBar from '../../components/SideBar.vue';
 import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
+import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
 
 const props = defineProps<{
     id:string
@@ -26,6 +27,8 @@ async function load(){
     tableInfo.value = await api.table.freeTable.load(id);
     if(tableInfo.value && tableInfo.value.Data){
         tableData.value = JSON.parse(tableInfo.value.Data);
+        heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.FreeTable, id);
+        heartbeatSender.start();
     }
 }
 async function editName() {
@@ -51,6 +54,7 @@ let api:Api;
 let setTopBar: SetTopbarFunc|undefined;
 const loadComplete = ref<boolean>(false);
 const titleContainSidebar = ref<InstanceType<typeof SideBar>>();
+let heartbeatSender:HeartbeatSender|undefined;
 onMounted(async()=>{
     api = injectApi();
     setTopBar = injectSetTopbar();
@@ -61,6 +65,7 @@ onMounted(async()=>{
 onUnmounted(()=>{
     if(setTopBar)
         setTopBar(true);
+    heartbeatSender?.stop();
 })
 
 const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWarning } = usePreventLeavingUnsaved()

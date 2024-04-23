@@ -12,6 +12,8 @@ using FCloud3.Services.WikiParsing.Support;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Diff;
 using SixLabors.ImageSharp.Memory;
+using FCloud3.Services.Etc.TempData.Context;
+using FCloud3.Services.Etc.TempData.EditLock;
 
 namespace FCloud3.Services
 {
@@ -47,6 +49,8 @@ namespace FCloud3.Services
                     MaximumPoolSizeMegabytes = 10
                 });
 
+
+
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")
                 services.AddSingleton<IStorage, LocalStorage>();
@@ -54,6 +58,13 @@ namespace FCloud3.Services
                 services.AddSingleton<IStorage, OssStorage>();
             else
                 throw new Exception("不支持的文件存储类型(配置项FileStorage:Type)");
+
+
+
+            string tempDataConnStr = config["TempData:ConnStr"] 
+                ?? throw new Exception("临时数据配置未填写");
+            services.AddTempDataContext(tempDataConnStr);
+            services.AddScoped<ContentEditLockService>();
             return services;
         }
     }

@@ -34,6 +34,7 @@ namespace FCloud3.App.Controllers.TextSec
             _locatorHash = locatorHash;
         }
 
+        [AuthGranted(AuthGrantOn.WikiPara)]
         public IActionResult CreateForPara(int paraId)
         {
             int createdId = _textSectionService.TryAddAndAttach(paraId, out string? errmsg);
@@ -46,7 +47,9 @@ namespace FCloud3.App.Controllers.TextSec
         [UserTypeRestricted]
         public IActionResult Edit(int id)
         {
-            var res = _textSectionService.GetById(id) ?? throw new Exception("找不到指定Id的文本段");
+            var res = _textSectionService.GetForEditing(id, out string? errmsg);
+            if(errmsg is not null || res is null)
+                return this.ApiFailedResp(errmsg);
             TextSectionComModel model = new(res);
             return this.ApiResp(model);
         }

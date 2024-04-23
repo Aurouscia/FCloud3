@@ -8,14 +8,19 @@
 
   <ItemGroup>
     <PackageReference Include="Aliyun.OSS.SDK.NetCore" Version="2.13.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
-    <PackageReference Include="Sixlabors.ImageSharp" Version="3.1.3" />
+    <PackageReference Include="Sixlabors.ImageSharp" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Diff\FCloud3.Diff.csproj" />
     <ProjectReference Include="..\FCloud3.HtmlGen\FCloud3.HtmlGen.csproj" />
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Etc\TempData\Migrations\" />
   </ItemGroup>
 
 </Project>

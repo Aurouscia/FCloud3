@@ -21,6 +21,7 @@ import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitl
 import { DiffContentType } from '../models/diff/DiffContentType';
 import { DiffContentHistoryResult } from '../models/diff/DiffContentHistory';
 import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
+import { HeartbeatRequest } from '../models/sys/heartbeat';
 
 
 export class Api{
@@ -891,6 +892,14 @@ export class Api{
             if(resp.success){
                 return resp.data.res as string
             }
+        },
+        heartbeat:async(req:HeartbeatRequest)=>{
+            const resp = await this.httpClient.request(
+                "/api/Heartbeat/Do",
+                "get",
+                req
+            )
+            return resp.success
         }
     }
 }
