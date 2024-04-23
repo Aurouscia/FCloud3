@@ -29,7 +29,7 @@ async function Login(){
         httpClient.setToken(token);
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
-            identityInfo.value = await identityInfoProvider.getIdentityInfo();
+            identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
             if(props.backAfterSuccess){
                 router.back()
             }else{
@@ -43,7 +43,7 @@ async function Logout() {
     identityInfoProvider.clearCache();
     pop.value.show("已经成功退出登录","success");
     if(identityInfoProvider){
-        identityInfo.value = await identityInfoProvider.getIdentityInfo();
+        identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
     }
 }
 onMounted(async()=>{
@@ -51,7 +51,7 @@ onMounted(async()=>{
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
     identityInfoProvider = injectUserInfo();
-    identityInfo.value = await identityInfoProvider.getIdentityInfo();
+    identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
 })
 </script>
 
