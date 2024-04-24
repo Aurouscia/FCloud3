@@ -5,7 +5,7 @@ namespace FCloud3.Services.Etc
 {
     public class CacheExpTokenService
     {
-        public CacheExpTokenService(ILogger<CacheExpTokenManager> logger)
+        public CacheExpTokenService(ILogger<CacheExpTokenService> logger)
         {
             WikiTitleContain = new(nameof(WikiTitleContain), logger);
             WikiItemInfo = new(nameof(WikiTitleContain), logger);
@@ -16,11 +16,11 @@ namespace FCloud3.Services.Etc
         public CacheExpTokenManager WikiTitleContain { get; }
         public CacheExpTokenManager WikiItemInfo { get; }
         public CacheExpTokenManager MaterialInfo { get; }
-        public CacheExpTokenManaerCollection UserTypeInfo { get; }
+        public CacheExpTokenManagerCollection UserTypeInfo { get; }
 
         public class CacheExpTokenManager
         {
-            public CacheExpTokenManager(string? name = null, ILogger<CacheExpTokenManager>? logger = null)
+            public CacheExpTokenManager(string? name = null, ILogger<CacheExpTokenService>? logger = null)
             {
                 Name = name ?? "CacheExpTokenManager";
                 TokenSources = [];
@@ -29,7 +29,7 @@ namespace FCloud3.Services.Etc
 
             public string Name { get; }
             private List<CancellationTokenSource> TokenSources { get; }
-            private ILogger<CacheExpTokenManager>? Logger { get; }
+            private ILogger<CacheExpTokenService>? Logger { get; }
             public CancellationToken GetCancelToken()
             {
                 CancellationTokenSource tokenSource = new();
@@ -49,11 +49,11 @@ namespace FCloud3.Services.Etc
             }
         }
 
-        public class CacheExpTokenManaerCollection : Dictionary<int, CacheExpTokenManager>
+        public class CacheExpTokenManagerCollection : Dictionary<int, CacheExpTokenManager>
         {
             public string Name { get; }
-            private ILogger<CacheExpTokenManager>? Logger { get; }
-            public CacheExpTokenManaerCollection(string? name = null, ILogger<CacheExpTokenManager>? logger = null)
+            private ILogger<CacheExpTokenService>? Logger { get; }
+            public CacheExpTokenManagerCollection(string? name = null, ILogger<CacheExpTokenService>? logger = null)
             {
                 Name = name ?? "CacheExpTokenManager";
                 Logger = logger;
@@ -70,6 +70,15 @@ namespace FCloud3.Services.Etc
                     this[key] = newM;
                     return newM;
                 }
+            }
+            public CancellationToken[] GetTokenOfAll(int[] keys)
+            {
+                CancellationToken[] tokens = new CancellationToken[keys.Length];
+                for(int i = 0; i<tokens.Length; i++)
+                {
+                    tokens[i] = GetByKey(keys[i]).GetCancelToken();
+                }
+                return tokens;
             }
         }
     }

@@ -12,7 +12,7 @@ namespace FCloud3.App.Controllers.Etc
             _contentEditLockService = contentEditLockService;
         }
 
-        public IActionResult Do(ObjectType objType, int objId)
+        public IActionResult Do(HeartbeatObjType objType, int objId)
         {
             if (!_contentEditLockService.Heartbeat(objType, objId, out string? errmsg))
                 return this.ApiFailedResp(errmsg);

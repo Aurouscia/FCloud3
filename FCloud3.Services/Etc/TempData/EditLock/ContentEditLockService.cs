@@ -23,9 +23,9 @@ namespace FCloud3.Services.Etc.TempData.EditLock
         }
 
        
-        public bool Heartbeat(ObjectType type, int objId, out string? errmsg)
+        public bool Heartbeat(HeartbeatObjType type, int objId, out string? errmsg)
         {
-            if (type == ObjectType.None)
+            if (type == HeartbeatObjType.None)
             {
                 errmsg = "类型未知";
                 return false;
