@@ -7,10 +7,10 @@ namespace FCloud3.Services.Etc
     {
         public CacheExpTokenService(ILogger<CacheExpTokenService> logger)
         {
-            WikiTitleContain = new(nameof(WikiTitleContain), logger);
-            WikiItemInfo = new(nameof(WikiTitleContain), logger);
-            MaterialInfo = new(nameof(MaterialInfo), logger);
-            UserTypeInfo = new(nameof(UserTypeInfo), logger);
+            WikiTitleContain = new("词条标题包含", logger);
+            WikiItemInfo = new("词条元数据", logger);
+            MaterialInfo = new("素材信息", logger);
+            UserTypeInfo = new("用户类型", logger);
         }
 
         public CacheExpTokenManager WikiTitleContain { get; }
@@ -45,7 +45,7 @@ namespace FCloud3.Services.Etc
             {
                 TokenSources.ForEach(t => t.Cancel());
                 TokenSources.Clear();
-                Logger?.LogInformation("关于_{Name}_的缓存已全部丢弃", Name);
+                Logger?.LogInformation("关于[{Name}]的缓存已全部丢弃", Name);
             }
         }
 
