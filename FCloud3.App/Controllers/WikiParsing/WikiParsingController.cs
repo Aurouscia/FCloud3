@@ -1,6 +1,7 @@
 ﻿using FCloud3.Services.WikiParsing;
 using FCloud3.Services.WikiParsing.Support;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FCloud3.App.Controllers.WikiParsing
 {
@@ -19,8 +20,8 @@ namespace FCloud3.App.Controllers.WikiParsing
 
         public IActionResult GetParsedWiki(string pathName)
         {
-            var res =  _wikiParsingService.GetParsedWiki(pathName);
-            return this.ApiResp(res);
+            var res =  _wikiParsingService.GetParsedWikiStream(pathName);
+            return File(res, Application.Json);
         }
 
         public IActionResult GetRulesCommons([FromBody] List<string> ruleNames)

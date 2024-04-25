@@ -463,7 +463,7 @@ export class Api{
             getParsedWiki: async(pathName:string)=>{
                 const res = await this.httpClient.request(
                     "/api/WikiParsing/GetParsedWiki",
-                    "get",{pathName})
+                    "getStream",{pathName})
                 if(res.success){
                     return res.data as WikiParsingResult
                 }

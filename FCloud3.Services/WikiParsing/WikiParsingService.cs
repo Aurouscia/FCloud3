@@ -6,53 +6,67 @@ using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
 using FCloud3.HtmlGen.Context.SubContext;
 using FCloud3.HtmlGen.Mechanics;
-using FCloud3.HtmlGen.Options;
 using FCloud3.HtmlGen.Rules;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
-using Microsoft.Extensions.Caching.Memory;
-using System.Text;
+using Newtonsoft.Json;
 
 namespace FCloud3.Services.WikiParsing
 {
-    public class WikiParsingService
+    public class WikiParsingService(
+        WikiItemRepo wikiItemRepo,
+        WikiItemService wikiItemService,
+        WikiParaRepo wikiParaRepo,
+        WikiTitleContainRepo wikiTitleContainRepo,
+        TextSectionRepo textSectionRepo,
+        FreeTableRepo freeTableRepo,
+        FileItemRepo fileItemRepo,
+        WikiParserProviderService wikiParserProvider,
+        WikiParsedResultService wikiParsedResult,
+        IStorage storage)
     {
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiParaRepo _wikiParaRepo;
-        private readonly WikiTitleContainRepo _wikiTitleContainRepo;
-        private readonly TextSectionRepo _textSectionRepo;
-        private readonly FreeTableRepo _freeTableRepo;
-        private readonly FileItemRepo _fileItemRepo;
-        private readonly WikiParserProviderService _wikiParserProvider;
-        private readonly IStorage _storage;
-        private readonly IMemoryCache _cache;
+        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
+        private readonly WikiItemService _wikiItemService = wikiItemService;
+        private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
+        private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
+        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
+        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
+        private readonly FileItemRepo _fileItemRepo = fileItemRepo;
+        private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
+        private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
+        private readonly IStorage _storage = storage;
 
-        public WikiParsingService(
-            WikiItemRepo wikiItemRepo,
-            WikiParaRepo wikiParaRepo,
-            WikiTitleContainRepo wikiTitleContainRepo,
-            TextSectionRepo textSectionRepo,
-            FreeTableRepo freeTableRepo,
-            FileItemRepo fileItemRepo,
-            WikiParserProviderService wikiParserProvider,
-            IStorage storage,
-            IMemoryCache cache)
+        public Stream GetParsedWikiStream(string pathName)
         {
-            _wikiItemRepo = wikiItemRepo;
-            _wikiParaRepo = wikiParaRepo;
-            _wikiTitleContainRepo = wikiTitleContainRepo;
-            _textSectionRepo = textSectionRepo;
-            _freeTableRepo = freeTableRepo;
-            _fileItemRepo = fileItemRepo;
-            _wikiParserProvider = wikiParserProvider;
-            _storage = storage;
-            _cache = cache;
+            var id = _wikiItemService.WikiItemsMeta(pathName)?.Id ?? 0;
+            return GetParsedWikiStream(id);
         }
+        public Stream GetParsedWikiStream(int id)
+        {
+            Stream? stream = _wikiParsedResult.Read(id);
+            if (stream is not null)
+                return stream;
+            var res = GetParsedWiki(id);
+            lock (GetLockObj(id))
+            {
+                using (var resultFileStream = _wikiParsedResult.Save(id))
+                {
+                    using var streamWriter = new StreamWriter(resultFileStream);
+                    using var jsonWriter = new JsonTextWriter(streamWriter);
+                    JsonSerializer serializer = new();
+                    serializer.Serialize(jsonWriter, res);
+                    jsonWriter.Flush();
+                }
+                return _wikiParsedResult.Read(id) ?? throw new Exception("结果文件写入失败");
+            }
+        }
+
+
         public WikiParsingResult GetParsedWiki(string pathName)
         {
             var w =  _wikiItemRepo.GetByUrlPathName(pathName).FirstOrDefault();
@@ -91,7 +105,7 @@ namespace FCloud3.Services.WikiParsing
 
             WikiParsingResult result = new()
             {
-                Title = wiki.Title ?? "??"
+                Title = wiki.Title ?? "??",
             };
             paras.ForEach(p =>
             {
@@ -129,11 +143,11 @@ namespace FCloud3.Services.WikiParsing
             });
             return result;
         }
-        public static ParserResultRaw ParseText(TextSection model, Parser parser)
+        private static ParserResultRaw ParseText(TextSection model, Parser parser)
         {
             return parser.RunToParserResultRaw(model.Content);
         }
-        public static ParserResultRaw ParseTable(FreeTable model, Parser parser)
+        private static ParserResultRaw ParseTable(FreeTable model, Parser parser)
         {
             AuTable data = model.GetData();
             List<IRule> usedRules = new();
@@ -156,12 +170,24 @@ namespace FCloud3.Services.WikiParsing
             return new(html, usedRules);
         }
 
+        private readonly static Dictionary<int, object> lockObjs = [];
+        private static object GetLockObj(int id)
+        {
+            if (lockObjs.TryGetValue(id, out object? obj))
+            {
+                return obj;
+            }
+            obj = new();
+            lockObjs.Add(id, obj);
+            return obj;
+        }
+
         public class WikiParsingResult
         {
+            public string Title { get; set; }
             /// <summary>
             /// 该wiki使用的“有共同部分(脚本/样式)”的规则，前端应该使用这个数组在本地缓存或api拿取脚本和样式
             /// </summary>
-            public string Title { get; set; }
             public List<string> UsedRules { get; set; }
             public List<string> FootNotes { get; set; }
             public List<ParserTitleTreeNode> SubTitles { get; set; }

@@ -1,15 +1,12 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Files;
-using FCloud3.Entities.Table;
 using FCloud3.Entities.Wiki;
-using FCloud3.HtmlGen.Options;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.WikiParsing;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Paragraph;
@@ -219,6 +216,7 @@ namespace FCloud3.Services.Wiki
             {
                 return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
             }
+            _cacheExpTokenService.WikiItemInfo.CancelAll();
             return false;
         }
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
@@ -254,7 +252,7 @@ namespace FCloud3.Services.Wiki
 
 
         private const string allWikiItemsMetaCacheKey = "AllWikiItemsMeta";
-        public List<WikiItemMetaData> AllWikiItemsMeta()
+        public List<WikiItemMetaData> WikiItemsMetaAll()
         {
             var res = _cache.Get<List<WikiItemMetaData>>(allWikiItemsMetaCacheKey);
             if (res is null)
@@ -266,6 +264,16 @@ namespace FCloud3.Services.Wiki
                 res = list;
             }
             return res;
+        }
+        public WikiItemMetaData? WikiItemsMeta(int id)
+        {
+            var all = WikiItemsMetaAll();
+            return all.Find(x => x.Id == id);
+        }
+        public WikiItemMetaData? WikiItemsMeta(string pathName)
+        {
+            var all = WikiItemsMetaAll();
+            return all.Find(x => x.UrlPathName == pathName);
         }
 
         public class WikiItemIndexItem

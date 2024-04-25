@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\ParsedResult\" />
     <Folder Include="Data\SqliteFiles\" />
     <Folder Include="Data\FileStorage\" />
     <Folder Include="Data\TempDataDB\" />

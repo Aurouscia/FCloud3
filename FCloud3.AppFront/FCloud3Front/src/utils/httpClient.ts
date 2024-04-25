@@ -1,4 +1,5 @@
-import axios, { Axios } from 'axios'
+import axios, { Axios, AxiosResponse } from 'axios'
+import _ from 'lodash'
 import {AxiosError} from 'axios'
 
 export type ApiResponse = {
@@ -7,7 +8,7 @@ export type ApiResponse = {
     errmsg: string
     code: number
 }
-export type RequestType = "get"|"postForm"|"postRaw";
+export type RequestType = "get"|"postForm"|"postRaw"|"getStream";
 
 export type HttpCallBack = (result:"ok"|"warn"|"err",msg:string)=>void
 export interface ApiRequestHeader{
@@ -67,11 +68,11 @@ export class HttpClient{
     }
     async request(resource:string, type:RequestType, data?:any, successMsg?:string, showWait?:boolean): Promise<ApiResponse>{
         console.log(`开始发送[${type}]=>[${resource}]`,data)
-        let res:any;
+        let res:AxiosResponse|undefined = undefined;
         if(showWait)
             this.showWaitCallBack(true);
         try{
-            if(type=='get'){
+            if(type=='get' || type=='getStream'){
                 res = await this.ax.get(
                     resource,
                     {
@@ -105,33 +106,47 @@ export class HttpClient{
             console.log(`[${type}]${resource}失败`,err)
             this.showErrToUser(err);
         }
-        if(res){
-            const resp = res.data as ApiResponse;
-            if(resp.success){
-                console.log(`[${type}]${resource}成功`,resp.data)
-                if(successMsg){
-                    this.httpCallBack('ok',successMsg)
-                }
-            }
-            if(!resp.success){
-                console.log(`[${type}]${resource}失败`,resp.errmsg||res.statusText);
-                if(resp.errmsg){
-                    this.httpCallBack('err',resp.errmsg);
-                }else{
-                    const codeText = this.statusCodeText(res.status);
-                    this.httpCallBack('err',codeText||"未知错误")
-                }
-            }
-            if(res.status == 401){
+        if (res) {
+            if (res.status == 401) {
                 this.unauthorizeCallBack()
+                return defaultFailResp;
             }
-            if(resp.code){
+
+            let resp: ApiResponse|undefined = undefined;
+            if (this.isApiResponseObj(res.data)) {
+                resp = res.data as ApiResponse;
+            } else if (type=='getStream') {
+                resp = {
+                    success: true,
+                    errmsg: '',
+                    code: 0,
+                    data: res.data,
+                }
+            }
+            else {
+                resp = defaultFailResp;
+            }
+            if (resp.success) {
+                console.log(`[${type}]${resource}成功`, resp.data)
+                if (successMsg) {
+                    this.httpCallBack('ok', successMsg)
+                }
+            }
+            if (!resp.success) {
+                console.log(`[${type}]${resource}失败`, resp.errmsg || res.statusText);
+                if (resp.errmsg) {
+                    this.httpCallBack('err', resp.errmsg);
+                } else {
+                    const codeText = this.statusCodeText(res.status);
+                    this.httpCallBack('err', codeText || "未知错误")
+                }
+            }
+            if (resp.code == ApiResponseCodes.NoTourist) {
                 this.needMemberCallBack()
             }
             return resp;
-        }else{
-            return defaultFailResp;
         }
+        return defaultFailResp;
     }
     statusCodeText(code:number|undefined|null){
         if(code == 401){
@@ -144,5 +159,13 @@ export class HttpClient{
             return "服务器未知错误";
         }
         return undefined;
+    }
+    private isApiResponseObj(obj:any){
+        const c = (propName:keyof ApiResponse)=>{
+            return _.has(obj, propName)
+        }
+        if(typeof obj == 'object'){
+            return c('code') && c('success') && c('errmsg')
+        }
     }
 }

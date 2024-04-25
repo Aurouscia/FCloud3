@@ -53,7 +53,7 @@ namespace FCloud3.Services.WikiParsing.Support
         private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemService.AllWikiItemsMeta();
+            var allWikis = _wikiItemService.WikiItemsMetaAll();
             var allMeterials = _materialService.AllMaterialsMeta();
             if (containInfos != null)
             {

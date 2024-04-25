@@ -22,6 +22,7 @@ namespace FCloud3.App.Models.COM
             this.errmsg = errmsg;
             if (!success && errmsg is null)
                 this.errmsg = "服务器内部错误";
+            this.errmsg ??= string.Empty;
             this.code = code;
         }
         public ContentResult BuildResult()
