@@ -40,6 +40,5 @@ export function jumpToUserCenter(username:string){
     router.push({name:'userCenter', params:{username}})
 }
 export function jumpToLogin(backAfterSuccess:boolean = true){
-    console.log("跳转到登录页")
     router.push({name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}})
 }

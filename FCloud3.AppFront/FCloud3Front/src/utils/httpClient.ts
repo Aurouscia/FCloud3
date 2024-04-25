@@ -108,6 +108,7 @@ export class HttpClient{
         }
         if (res) {
             if (res.status == 401) {
+                this.httpCallBack("err","请登录")
                 this.unauthorizeCallBack()
                 return defaultFailResp;
             }

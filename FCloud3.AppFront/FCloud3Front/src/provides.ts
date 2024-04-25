@@ -6,6 +6,7 @@ import { Api } from './utils/api';
 import { jumpToLogin } from './pages/Identities/routes';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
+import { TimedLock } from './utils/timeStamp';
 
 const popKey = 'pop';
 const httpKey = 'http';
@@ -30,7 +31,16 @@ export function useProvidesSetup() {
     }
 
     const needMemberWarning = ref<InstanceType<typeof NeedMemberWarning> | null>(null)
-    const httpClient = new HttpClient(httpCallBack, jumpToLogin, ()=>needMemberWarning.value?.setShow(true), showWait)
+    const loginJumpTimeLock:TimedLock = new TimedLock(30000);
+    const httpClient = new HttpClient(
+        httpCallBack,
+        ()=>{
+            if(loginJumpTimeLock.isOk()){
+                jumpToLogin(true)
+            }
+        },
+        ()=>needMemberWarning.value?.setShow(true),
+        showWait)
     provide(httpKey, httpClient)
     const api = new Api(httpClient);
     provide(apiKey, api)
