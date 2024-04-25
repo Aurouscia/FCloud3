@@ -18,11 +18,13 @@ import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
 import { canDisplayAsImage } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '../../utils/swipeListener';
+import { sleep } from '../../utils/sleep';
 
 const props = defineProps<{
     wikiPathName: string;
 }>()
 watch(()=>props.wikiPathName,async()=>{
+    data.value = undefined;
     await init();
 })
 
@@ -33,24 +35,14 @@ const postScripts = ref<HTMLDivElement>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 async function load(){
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
-    const rulesNames = data.value?.UsedRules;
-    if(rulesNames){
-        const rulesCommons = await api.wikiParsing.wikiParsing.getRulesCommons(rulesNames);
-        if(rulesCommons){
-            let preScriptsContent = "";
-            let postScriptsContent = "";
-            rulesCommons.Items.forEach(r=>{
-                stylesContent.value += r.Styles;
-                preScriptsContent += r.PreScripts;
-                postScriptsContent += r.PostScripts;
-            });
-            if(preScripts.value){
-                updateScript(preScripts.value,preScriptsContent);
-            }
-            if(postScripts.value){
-                updateScript(postScripts.value,postScriptsContent, "module");
-            }
-        }
+    stylesContent.value = data.value?.Styles || "";
+    await sleep(10)
+    if(preScripts.value){
+        updateScript(preScripts.value, data.value?.PreScripts || "");
+    }
+    await sleep(10)
+    if(postScripts.value){
+        updateScript(postScripts.value, data.value?.PostScripts || "", "module");
     }
 }
 

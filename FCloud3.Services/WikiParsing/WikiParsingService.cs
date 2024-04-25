@@ -117,7 +117,7 @@ namespace FCloud3.Services.WikiParsing
                     var resOfP = ParseText(model, parser);
                     parser.WrapSection(model.Title, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
-                    result.AddRules(resOfP.UsedRuleWithCommonsNames);
+                    result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
                 }
@@ -129,7 +129,7 @@ namespace FCloud3.Services.WikiParsing
                     var resOfP = ParseTable(model, parser);
                     parser.WrapSection(model.Name, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
-                    result.AddRules(resOfP.UsedRuleWithCommonsNames);
+                    result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
                 }
@@ -141,6 +141,7 @@ namespace FCloud3.Services.WikiParsing
                     result.Paras.Add(new(model.DisplayName, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type, p.ObjectId, model.ByteCount));
                 }
             });
+            result.ExtractRulesCommon();
             return result;
         }
         private static ParserResultRaw ParseText(TextSection model, Parser parser)
@@ -185,24 +186,39 @@ namespace FCloud3.Services.WikiParsing
         public class WikiParsingResult
         {
             public string Title { get; set; }
-            /// <summary>
-            /// 该wiki使用的“有共同部分(脚本/样式)”的规则，前端应该使用这个数组在本地缓存或api拿取脚本和样式
-            /// </summary>
             public List<string> UsedRules { get; set; }
             public List<string> FootNotes { get; set; }
             public List<ParserTitleTreeNode> SubTitles { get; set; }
             public List<WikiParsingResultItem> Paras { get; set; }
+            public string? Styles { get; set; }
+            public string? PreScripts { get; set; }
+            public string? PostScripts { get; set; }
+            private List<IRule> UsedRulesBody { get; set; } 
             public WikiParsingResult()
             {
                 Title = "";
-                UsedRules = new();
-                FootNotes = new();
-                SubTitles = new();
-                Paras = new();
+                UsedRules = [];
+                FootNotes = [];
+                SubTitles = [];
+                Paras = [];
+                UsedRulesBody = [];
             }
-            public void AddRules(List<string> rules)
+            public void AddRules(List<IRule> rules)
             {
-                UsedRules = UsedRules.Union(rules).ToList();
+                rules.ForEach(x =>
+                {
+                    if(!UsedRules.Any(r => r == x.UniqueName))
+                    {
+                        UsedRules.Add(x.UniqueName);
+                        UsedRulesBody.Add(x);
+                    }    
+                });
+            }
+            public void ExtractRulesCommon()
+            {
+                Styles = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetStyles()));
+                PreScripts = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetPreScripts()));
+                PostScripts = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetPostScripts()));
             }
             public class WikiParsingResultItem
             {

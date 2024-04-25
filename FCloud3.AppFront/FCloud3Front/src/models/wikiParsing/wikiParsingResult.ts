@@ -6,6 +6,9 @@ export interface WikiParsingResult {
     FootNotes: string[];
     SubTitles: ParserTitleTreeNode[];
     Paras: WikiParsingResultItem[];
+    Styles: string
+    PreScripts: string
+    PostScripts: string
 }
 
 export interface WikiParsingResultItem {
