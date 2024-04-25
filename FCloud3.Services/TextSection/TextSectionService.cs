@@ -7,34 +7,42 @@ using Microsoft.Extensions.Logging;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
+using Microsoft.EntityFrameworkCore;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.TextSec
 {
     public class TextSectionService
     {
         private readonly WikiParaRepo _paraRepo;
+        private readonly WikiItemRepo _wikiItemRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly int _userId;
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ContentEditLockService _contentEditLockService;
+        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
             IOperatingUserIdProvider userIdProvider,
+            WikiItemRepo wikiItemRepo,
             WikiParaRepo paraRepo,
             TextSectionRepo textsectionRepo,
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
             ContentEditLockService contentEditLockService,
+            CacheExpTokenService cacheExpTokenService,
             ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;
+            _wikiItemRepo = wikiItemRepo;
             _textSectionRepo = textsectionRepo;
             _userId = userIdProvider.Get();
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
             _contentEditLockService = contentEditLockService;
+            _cacheExpTokenService = cacheExpTokenService;
             _logger = logger;
         }
 
@@ -150,6 +158,15 @@ namespace FCloud3.Services.TextSec
                     _logger.LogError("更新[{id}]号文本段失败，\"{msg}\"", id, errmsg);
                     return false;
                 }
+            }
+
+            if(title is not null || content is not null)
+            {
+                var affected = _wikiItemRepo
+                    .GetRangeByIds(_paraRepo.WikiContainingIt(WikiParaType.Text, id))
+                    .ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
+                if(affected > 0)
+                    _cacheExpTokenService.WikiItemInfo.CancelAll();
             }
             errmsg = null;
             return true;

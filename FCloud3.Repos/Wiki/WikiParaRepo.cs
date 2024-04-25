@@ -32,5 +32,10 @@ namespace FCloud3.Repos.Wiki
             p.ObjectId = fileId;
             return TryEdit(p, out errmsg);
         }
+
+        public IQueryable<int> WikiContainingIt(WikiParaType type, int objId)
+        {
+            return Existing.Where(x => x.Type == type && x.ObjectId == objId).Select(x => x.WikiItemId);
+        }
     }
 }

@@ -8,6 +8,8 @@ using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
+using FCloud3.Services.Etc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Table
 {
@@ -15,23 +17,29 @@ namespace FCloud3.Services.Table
     {
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
+        private readonly WikiItemRepo _wikiItemRepo;
         private readonly DiffContentService _diffContentService;
         private readonly ContentEditLockService _contentEditLockService;
+        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ILogger<FreeTableService> _logger;
 
         public FreeTableService(
             FreeTableRepo freeTableRepo,
             WikiParaRepo wikiParaRepo,
+            WikiItemRepo wikiItemRepo,
             DiffContentService diffContentService,
             ContentEditLockService contentEditLockService,
+            CacheExpTokenService cacheExpTokenService,
             DbTransactionService dbTransactionService,
             ILogger<FreeTableService> logger)
         {
             _freeTableRepo = freeTableRepo;
             _wikiParaRepo = wikiParaRepo;
+            _wikiItemRepo = wikiItemRepo;
             _diffContentService = diffContentService;
             _contentEditLockService = contentEditLockService;
+            _cacheExpTokenService = cacheExpTokenService; 
             _dbTransactionService = dbTransactionService;
             _logger = logger;
         }
@@ -52,7 +60,17 @@ namespace FCloud3.Services.Table
         {
             if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, out errmsg))
                 return false;
-            return _freeTableRepo.TryEditInfo(id, name, out errmsg);
+            if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
+            {
+                var affected = _wikiItemRepo
+                    .GetRangeByIds(_wikiParaRepo.WikiContainingIt(WikiParaType.Table, id))
+                    .ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
+                if(affected > 0)
+                    _cacheExpTokenService.WikiItemInfo.CancelAll();
+                return true;
+            }
+            else
+                return false;
         }
         public bool TryEditContent(int id, string data, out string? errmsg)
         {
@@ -83,6 +101,13 @@ namespace FCloud3.Services.Table
             {
                 _dbTransactionService.CommitTransaction(transaction);
                 _logger.LogInformation("更新[{id}]号表格成功", id);
+
+                var affected = _wikiItemRepo
+                    .GetRangeByIds(_wikiParaRepo.WikiContainingIt(WikiParaType.Table, id))
+                    .ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
+                if(affected>0)
+                    _cacheExpTokenService.WikiItemInfo.CancelAll();
+
                 errmsg = null;
                 return true;
             }

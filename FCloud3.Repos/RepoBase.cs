@@ -151,6 +151,10 @@ namespace FCloud3.Repos
                 return new List<T>().AsQueryable();
             return Existing.Where(x => ids.Contains(x.Id));
         }
+        public virtual IQueryable<T> GetRangeByIds(IQueryable<int> ids)
+        {
+            return Existing.Where(x => ids.Contains(x.Id));
+        }
         public virtual IQueryable<T> GetqById(int id)
         {
             return Existing.Where(x => x.Id == id);

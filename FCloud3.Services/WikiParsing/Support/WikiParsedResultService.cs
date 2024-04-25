@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Services.WikiParsing.Support
 {
@@ -9,7 +9,6 @@ namespace FCloud3.Services.WikiParsing.Support
     public class WikiParsedResultService
     {
         private readonly string _path;
-        private readonly Random r = new();
         public WikiParsedResultService(IConfiguration config)
         {
             _path = config["ParsedResult:Path"]
@@ -18,7 +17,7 @@ namespace FCloud3.Services.WikiParsing.Support
             if (!dir.Exists)
                 dir.Create();
         }
-        public Stream Save(int wikiId)
+        public Stream Save(int wikiId, DateTime update)
         {
             var dirPath = GetTargetDir(wikiId);
             var dir = new DirectoryInfo(dirPath);
@@ -30,30 +29,44 @@ namespace FCloud3.Services.WikiParsing.Support
             {
                 if (newest)
                     newest = false;
-                //保留最新的一个版本，删掉前面的
+                //保留最新的一个版本，删掉前面的，确保随时都有东西可返回
                 else
-                    file.Delete();
+                {
+                    //避免试图删正在读取的抛出错误
+                    try
+                    {
+                        file.Delete();
+                    }
+                    catch { }
+                }
             }
-            int version = r.Next(100000,999999);
-            var stream = File.Open($"{dirPath}/{version}.json", FileMode.Create, FileAccess.Write, FileShare.None);
+            string fileName = FileName(update);
+            var stream = File.Open($"{dirPath}/{fileName}", FileMode.Create, FileAccess.Write, FileShare.None);
             // FileShare.None 不允许没写完之前读取
             return stream;
         }
-        public Stream? Read(int wikiId)
+        public Stream? Read(int wikiId, DateTime update)
         {
             var dirPath = GetTargetDir(wikiId);
             var dir = new DirectoryInfo(dirPath);
             if (!dir.Exists)
                 dir.Create();
             var versions = dir.GetFiles().OrderByDescending(f => f.CreationTime);
+            var newest = versions.FirstOrDefault();
+            if (newest is null || newest.Name != FileName(update))
+                return null; //没有文件或没有最新版文件
             foreach(var version in versions)
             {
                 try
                 {
-                    //如果打开失败，尝试更旧的版本
                     return version.OpenRead();
                 }
-                catch { }
+                catch 
+                {
+                    //如果打开失败，尝试更旧的版本，但如果失败的有点离谱就报错
+                    if ((DateTime.Now - version.CreationTime).TotalSeconds > 30)
+                        throw;
+                }
             }
             return null;
         }
@@ -66,6 +79,10 @@ namespace FCloud3.Services.WikiParsing.Support
                 subDir.Create();
             string mydirName = $"{_path}/{subDirName}/{wikiId}";
             return mydirName;
+        }
+        private static string FileName(DateTime lastUpdate)
+        {
+            return new DateTimeOffset(lastUpdate).ToUnixTimeSeconds().ToString()+".json";
         }
     }
 }

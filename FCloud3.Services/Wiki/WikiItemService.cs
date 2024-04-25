@@ -257,7 +257,7 @@ namespace FCloud3.Services.Wiki
             var res = _cache.Get<List<WikiItemMetaData>>(allWikiItemsMetaCacheKey);
             if (res is null)
             {
-                var list = _wikiRepo.Existing.Select(x => new WikiItemMetaData(x.Id, x.Title, x.UrlPathName)).ToList();
+                var list = _wikiRepo.Existing.Select(x => new WikiItemMetaData(x.Id, x.Title, x.UrlPathName, x.Updated)).ToList();
                 var cacheOptions = new MemoryCacheEntryOptions();
                 cacheOptions.AddExpirationToken(_cacheExpTokenService.WikiItemInfo.GetCancelChangeToken());
                 _cache.Set(allWikiItemsMetaCacheKey, list, cacheOptions);
@@ -294,11 +294,13 @@ namespace FCloud3.Services.Wiki
             public int Id { get; set; }
             public string? Title { get; set; }
             public string? UrlPathName { get; set; }
-            public WikiItemMetaData(int id, string? title, string? urlPathName)
+            public DateTime Update { get; set; }
+            public WikiItemMetaData(int id, string? title, string? urlPathName, DateTime update)
             {
                 Id = id;
                 Title = title;
                 UrlPathName = urlPathName;
+                Update = update;
             }
         }
     }

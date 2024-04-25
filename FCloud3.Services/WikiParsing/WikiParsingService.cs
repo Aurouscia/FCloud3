@@ -14,6 +14,7 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace FCloud3.Services.WikiParsing
@@ -28,7 +29,8 @@ namespace FCloud3.Services.WikiParsing
         FileItemRepo fileItemRepo,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
-        IStorage storage)
+        IStorage storage,
+        ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly WikiItemService _wikiItemService = wikiItemService;
@@ -40,21 +42,29 @@ namespace FCloud3.Services.WikiParsing
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
+        private readonly ILogger<WikiParsingService> _logger = logger;
 
         public Stream GetParsedWikiStream(string pathName)
         {
-            var id = _wikiItemService.WikiItemsMeta(pathName)?.Id ?? 0;
-            return GetParsedWikiStream(id);
+            var w = _wikiItemService.WikiItemsMeta(pathName);
+            var id = w?.Id ?? 0;
+            var update = w?.Update ?? DateTime.Now;
+            return GetParsedWikiStream(id, update);
         }
-        public Stream GetParsedWikiStream(int id)
+        public Stream GetParsedWikiStream(int id, DateTime update)
         {
-            Stream? stream = _wikiParsedResult.Read(id);
-            if (stream is not null)
-                return stream;
-            var res = GetParsedWiki(id);
             lock (GetLockObj(id))
             {
-                using (var resultFileStream = _wikiParsedResult.Save(id))
+                Stream? stream = _wikiParsedResult.Read(id, update);
+                if (stream is not null)
+                {
+                    _logger.LogInformation("提供[{id}]号词条，缓存命中", id);
+                    return stream;
+                }
+                _logger.LogInformation("提供[{id}]号词条，缓存未命中", id);
+                var res = GetParsedWiki(id);
+
+                using (var resultFileStream = _wikiParsedResult.Save(id, update))
                 {
                     using var streamWriter = new StreamWriter(resultFileStream);
                     using var jsonWriter = new JsonTextWriter(streamWriter);
@@ -62,7 +72,8 @@ namespace FCloud3.Services.WikiParsing
                     serializer.Serialize(jsonWriter, res);
                     jsonWriter.Flush();
                 }
-                return _wikiParsedResult.Read(id) ?? throw new Exception("结果文件写入失败");
+                _logger.LogInformation("提供[{id}]号词条，解析和储存完成", id);
+                return _wikiParsedResult.Read(id, update) ?? throw new Exception("结果文件写入失败");
             }
         }
 
