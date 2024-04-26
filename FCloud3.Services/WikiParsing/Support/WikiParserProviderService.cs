@@ -10,34 +10,26 @@ using Microsoft.Extensions.Primitives;
 
 namespace FCloud3.Services.WikiParsing.Support
 {
-    public class WikiParserProviderService
+    public class WikiParserProviderService(
+        IMemoryCache cache,
+        CacheExpTokenService cacheExpTokenService,
+        WikiItemMetadataService wikiItemMetadataService,
+        MaterialService materialService,
+        MaterialMetadataService materialMetadataService)
     {
-        private readonly IMemoryCache _cache;
-        private readonly CacheExpTokenService _cacheExpTokenService;
-        private readonly WikiItemService _wikiItemService;
-        private readonly WikiItemMetadataService _wikiItemMetadataService;
-        private readonly MaterialService _materialService;
+        private readonly IMemoryCache _cache = cache;
+        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
+        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly MaterialService _materialService = materialService;
+        private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
 
-        public WikiParserProviderService(
-            IMemoryCache cache,
-            CacheExpTokenService cacheExpTokenService,
-            WikiItemService wikiItemService,
-            WikiItemMetadataService wikiItemMetadataService,
-            MaterialService materialService)
-        {
-            _cache = cache;
-            _cacheExpTokenService = cacheExpTokenService;
-            _wikiItemService = wikiItemService;
-            _wikiItemMetadataService = wikiItemMetadataService;
-            _materialService = materialService;
-        }
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
                 var titleContainToken = _cacheExpTokenService.WikiTitleContain.GetCancelToken();
                 var wikiItemInfoToken = _cacheExpTokenService.WikiItemNamePathInfo.GetCancelToken();
-                var materialInfoToken = _cacheExpTokenService.MaterialInfo.GetCancelToken();
+                var materialInfoToken = _cacheExpTokenService.MaterialNamePathInfo.GetCancelToken();
                 var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken, materialInfoToken);
                 var token = linkedSource.Token;
                 Action<ParserBuilder> configureAndToken = b => {
@@ -58,7 +50,7 @@ namespace FCloud3.Services.WikiParsing.Support
         {
             var pb = DefaultConfigureBuilder();
             var allWikis = _wikiItemMetadataService.GetAll();
-            var allMeterials = _materialService.AllMaterialsMeta();
+            var allMeterials = _materialMetadataService.GetAll();
             if (containInfos != null)
             {
                 //自动链接，需要在词条包含标题信息有变更时丢弃缓存

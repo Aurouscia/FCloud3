@@ -9,13 +9,13 @@ namespace FCloud3.Services.Etc
         {
             WikiTitleContain = new("词条标题包含", logger);
             WikiItemNamePathInfo = new("词条名称和路径名", logger);
-            MaterialInfo = new("素材信息", logger);
+            MaterialNamePathInfo = new("素材名称和路径名", logger);
             UserTypeInfo = new("用户类型", logger);
         }
 
         public CacheExpTokenManager WikiTitleContain { get; }
         public CacheExpTokenManager WikiItemNamePathInfo { get; }
-        public CacheExpTokenManager MaterialInfo { get; }
+        public CacheExpTokenManager MaterialNamePathInfo { get; }
         public CacheExpTokenManagerCollection UserTypeInfo { get; }
 
         public class CacheExpTokenManager

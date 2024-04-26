@@ -33,7 +33,7 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(createdId);
         }
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
         [UserTypeRestricted]
         public IActionResult EditContent(int id, IFormFile content)
         {
@@ -46,7 +46,7 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
         [UserTypeRestricted]
         public IActionResult EditInfo(int id, string name, string? desc)
         {

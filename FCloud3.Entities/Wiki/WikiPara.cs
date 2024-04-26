@@ -25,6 +25,10 @@ namespace FCloud3.Entities.Wiki
         /// 段落在词条内的顺序号
         /// </summary>
         public int Order { get; set; }
+        /// <summary>
+        /// 如果不为null，覆盖段落名称
+        /// </summary>
+        //public string? NameOverride { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

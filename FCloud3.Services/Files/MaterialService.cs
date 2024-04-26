@@ -2,6 +2,7 @@
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.Extensions.Caching.Memory;
 using SixLabors.ImageSharp;
@@ -15,7 +16,7 @@ namespace FCloud3.Services.Files
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly IStorage _storage;
-        private readonly IMemoryCache _cache;
+        private readonly MaterialMetadataService _materialMetadataService;
         private readonly static object materialNamingLock = new();
 
         public MaterialService(
@@ -23,13 +24,13 @@ namespace FCloud3.Services.Files
             CacheExpTokenService cacheExpTokenService,
             IOperatingUserIdProvider userIdProvider,
             IStorage storage,
-            IMemoryCache cache) 
+            MaterialMetadataService materialMetadataService)
         {
             _materialRepo = materialRepo;
             _cacheExpTokenService = cacheExpTokenService;
             _userIdProvider = userIdProvider;
             _storage = storage;
-            _cache = cache;
+            _materialMetadataService = materialMetadataService;
         }
 
         public IndexResult<MaterialIndexItem> Index(IndexQuery q, bool onlyMine)
@@ -107,8 +108,11 @@ namespace FCloud3.Services.Files
                     Desc = desc
                 };
                 var createdId = _materialRepo.TryAddAndGetId(m, out errmsg);
-                if(errmsg is null)
-                    _cacheExpTokenService.MaterialInfo.CancelAll();
+                if (errmsg is null)
+                {
+                    _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
+                    _materialMetadataService.Create(createdId, name, storePathName);
+                }
                 return createdId;
             }
         }
@@ -159,7 +163,8 @@ namespace FCloud3.Services.Files
             var success = _materialRepo.TryEdit(m, out errmsg);
             if (success)
             {
-                _cacheExpTokenService.MaterialInfo.CancelAll();
+                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
+                _materialMetadataService.Update(id, md => md.PathName = storePathName);
             }
             return success;
         }
@@ -193,12 +198,14 @@ namespace FCloud3.Services.Files
                     errmsg = "已存在同名素材";
                     return false;
                 }
+                bool nameChanged = m.Name != name;
                 m.Name = name;
                 m.Desc = desc;
                 var success = _materialRepo.TryEdit(m, out errmsg);
-                if(success)
+                if(success && nameChanged)
                 {
-                    _cacheExpTokenService.MaterialInfo.CancelAll();
+                    _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
+                    _materialMetadataService.Update(id, md => md.Name = name);
                 }
                 return success;
             }
@@ -209,7 +216,8 @@ namespace FCloud3.Services.Files
             var success = _materialRepo.TryRemove(id, out errmsg);
             if (success)
             {
-                _cacheExpTokenService.MaterialInfo.CancelAll();
+                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
+                _materialMetadataService.Remove(id);
             }
             return success;
         }
@@ -281,20 +289,6 @@ namespace FCloud3.Services.Files
         private const string noCompressMaxSizeExceedMsg = "svg或gif不能超过500KB";
 
 
-        private const string allMaterialMetaCacheKey = "AllMeterialMeta";
-        public List<MaterialMetaData> AllMaterialsMeta()
-        {
-            var res = _cache.Get<List<MaterialMetaData>>(allMaterialMetaCacheKey);
-            if (res is null)
-            {
-                var list = _materialRepo.Existing.Select(x => new MaterialMetaData(x.Id, x.Name, x.StorePathName)).ToList();
-                var cacheOptions = new MemoryCacheEntryOptions();
-                cacheOptions.AddExpirationToken(_cacheExpTokenService.MaterialInfo.GetCancelChangeToken());
-                _cache.Set(allMaterialMetaCacheKey, list, cacheOptions);
-                res = list;
-            }
-            return res;
-        }
 
         public string GetMaterialFullSrc(string pathName)
         {
@@ -316,20 +310,6 @@ namespace FCloud3.Services.Files
             public string Src { get; }
             public string Desc { get; }
             public string Time { get; }
-        }
-
-        public class MaterialMetaData
-        {
-            public int Id { get; set; }
-            public string? Name { get; set; }
-            public string? PathName { get; set; }
-            public MaterialMetaData(int id, string? name, string? pathName)
-            {
-                Id = id;
-                Name = name;
-                PathName = pathName;
-            }
-
         }
     }
 }

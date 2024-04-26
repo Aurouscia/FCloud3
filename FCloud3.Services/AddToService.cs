@@ -46,6 +46,7 @@ namespace FCloud3.Services
             services.AddSingleton<CacheExpTokenService>();
 
             services.AddScoped<WikiItemMetadataService>();
+            services.AddScoped<MaterialMetadataService>();
 
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator
                 = MemoryAllocator.Create(new MemoryAllocatorOptions()

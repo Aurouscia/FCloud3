@@ -46,6 +46,10 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
                 DataList = GetFromDbModel(_repo.Existing).ToList();
             return DataList;
         }
+        public void Remove(int id)
+        {
+            DataList.RemoveAll(x => x.Id == id);
+        }
         protected abstract IQueryable<TMeta> GetFromDbModel(IQueryable<TModel> dbModels);
     }
 }
