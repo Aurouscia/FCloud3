@@ -38,8 +38,7 @@ namespace FCloud3.App.Services.Filters
 
             public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
             {
-                int userId = _httpUserIdProvider.Get();
-                var type = _userService.GetUserType(userId);
+                var type = _userService.GetCurrentUserType();
                 if(type < Level)
                 {
                     int code = Level == UserType.Member ? ApiResponseCodes.NoTourist : 0;

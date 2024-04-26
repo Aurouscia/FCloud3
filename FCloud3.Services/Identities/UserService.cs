@@ -4,6 +4,7 @@ using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
@@ -13,6 +14,7 @@ namespace FCloud3.Services.Identities
     public partial class UserService(
         UserRepo repo,
         MaterialRepo materialRepo,
+        UserMetadataService userMetadataService,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
         IOperatingUserIdProvider operatingUserIdProvider,
@@ -21,6 +23,7 @@ namespace FCloud3.Services.Identities
     {
         private readonly UserRepo _repo = repo;
         private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly UserMetadataService _userMetadataService = userMetadataService;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
@@ -126,10 +129,10 @@ namespace FCloud3.Services.Identities
             return true;
         }
 
-        public bool TryCreate(string? name,string? pwd,out string? errmsg)
+        public bool TryCreate(string? name, string? pwd, out string? errmsg)
         {
             pwd ??= "";
-            if(!BasicInfoCheck(name,pwd,out errmsg))
+            if (!BasicInfoCheck(name, pwd, out errmsg))
                 return false;
 
             User u = new()
@@ -137,10 +140,13 @@ namespace FCloud3.Services.Identities
                 Name = name,
                 PwdEncrypted = _userPwdEncryption.Run(pwd)
             };
-
-            if (!_repo.TryAdd(u,out errmsg))
-                return false;
-            return true;
+            var id = _repo.TryAddAndGetId(u, out errmsg);
+            if (id > 0)
+            {
+                _userMetadataService.Create(id, UserType.Tourist);
+                return true;
+            }
+            return false;
         }
 
         public bool TryEdit(int id, string? name,string? pwd,out string? errmsg)
@@ -190,29 +196,20 @@ namespace FCloud3.Services.Identities
                 }
             }
             u.Type = targetType;
-            if(_cacheExpTokenService.UserTypeInfo.TryGetValue(id, out var expManager))
-                expManager.CancelAll();
-            return _repo.TryEdit(u, out errmsg);
+            if(_repo.TryEdit(u, out errmsg))
+            {
+                _userMetadataService.Update(id, u => u.Type = targetType);
+                return true;
+            }
+            return false;
         }
 
-        private static string UserTypeCacheKey(int id) => $"userTypeOf_{id}";
-        public UserType GetUserType(int id)
-        {
-            if(_memoryCache.TryGetValue<UserType>(UserTypeCacheKey(id), out var userType))
-            {
-                return userType;
-            }
-            var expManager = _cacheExpTokenService.UserTypeInfo.GetByKey(id);
-            userType = _repo.GetTypeById(id);
-            MemoryCacheEntryOptions opts = new();
-            opts.AddExpirationToken(expManager.GetCancelChangeToken());
-            _memoryCache.Set(UserTypeCacheKey(id), userType, opts);
-            return userType;
-        }
-        public UserType GetUserType()
+        public UserType GetCurrentUserType()
         {
             var uid = _operatingUserIdProvider.Get();
-            return GetUserType(uid);
+            if(_userMetadataService.Get(uid) is UserMetadata data)
+                return data.Type;
+            return UserType.Tourist;
         }
 
         public string UserTypeText(UserType type)

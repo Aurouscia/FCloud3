@@ -10,13 +10,22 @@ namespace FCloud3.Services.Etc
             WikiTitleContain = new("词条标题包含", logger);
             WikiItemNamePathInfo = new("词条名称和路径名", logger);
             MaterialNamePathInfo = new("素材名称和路径名", logger);
-            UserTypeInfo = new("用户类型", logger);
         }
-
+        /// <summary>
+        /// “词条标题包含”的缓存过期token提供源，key为wikiId，
+        /// 当某段落的“词条标题包含”有改动时，必须将包含其的词条的wikiId对应的token过期，使解析器重新构造
+        /// </summary>
         public CacheExpTokenManagerCollection WikiTitleContain { get; }
+        /// <summary>
+        /// “全部词条名称和路径名”的缓存过期token提供源
+        /// 当任意词条的名称或路径名有改动时，必须将对应的token过期，使解析器重新构造
+        /// </summary>
         public CacheExpTokenManager WikiItemNamePathInfo { get; }
+        /// <summary>
+        /// “全部素材名称和路径名”的缓存过期token提供源
+        /// 当任意素材的名称或路径名有改动时，必须将对应的token过期，使解析器重新构造
+        /// </summary>
         public CacheExpTokenManager MaterialNamePathInfo { get; }
-        public CacheExpTokenManagerCollection UserTypeInfo { get; }
 
         public class CacheExpTokenManager
         {

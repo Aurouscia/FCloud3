@@ -47,6 +47,7 @@ namespace FCloud3.Services
 
             services.AddScoped<WikiItemMetadataService>();
             services.AddScoped<MaterialMetadataService>();
+            services.AddScoped<UserMetadataService>();
 
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator
                 = MemoryAllocator.Create(new MemoryAllocatorOptions()

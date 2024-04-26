@@ -1,6 +1,7 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,17 +9,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace FCloud3.App.Controllers.Identities
 {
     [Authorize]
-    public class UserGroupController:Controller, IAuthGrantTypeProvidedController
+    public class UserGroupController(
+        UserGroupService userGroupService,
+        UserService userService,
+        UserMetadataService userMetadataService) 
+        : Controller, IAuthGrantTypeProvidedController
     {
-        private readonly UserGroupService _userGroupService;
-        private readonly UserService _userService;
+        private readonly UserGroupService _userGroupService = userGroupService;
+        private readonly UserService _userService = userService;
+        private readonly UserMetadataService _userMetadataService = userMetadataService;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
-
-        public UserGroupController(UserGroupService userGroupService, UserService userService)
-        {
-            _userGroupService = userGroupService;
-            _userService = userService;
-        }
 
         [UserTypeRestricted]
         public IActionResult Create(string name)
@@ -61,7 +61,7 @@ namespace FCloud3.App.Controllers.Identities
         [UserTypeRestricted]
         public IActionResult AddUserToGroup(int groupId, int userId)
         {
-            var type = _userService.GetUserType();
+            var type = _userService.GetCurrentUserType();
             bool needAudit = type != UserType.SuperAdmin;
             var res = _userGroupService.AddUserToGroup(userId, groupId, needAudit, out string? errmsg);
             if (!res)

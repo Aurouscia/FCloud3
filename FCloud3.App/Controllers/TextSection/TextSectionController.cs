@@ -20,7 +20,6 @@ namespace FCloud3.App.Controllers.TextSec
         private readonly WikiParserProviderService _genParser;
         private readonly WikiTitleContainService _titleContainService;
         private readonly WikiParaService _wikiParaService;
-        private readonly WikiParaService wikiParaService;
         private readonly ILocatorHash _locatorHash;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.TextSection;
 
