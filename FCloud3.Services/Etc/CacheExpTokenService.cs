@@ -13,7 +13,7 @@ namespace FCloud3.Services.Etc
             UserTypeInfo = new("用户类型", logger);
         }
 
-        public CacheExpTokenManager WikiTitleContain { get; }
+        public CacheExpTokenManagerCollection WikiTitleContain { get; }
         public CacheExpTokenManager WikiItemNamePathInfo { get; }
         public CacheExpTokenManager MaterialNamePathInfo { get; }
         public CacheExpTokenManagerCollection UserTypeInfo { get; }
@@ -71,7 +71,7 @@ namespace FCloud3.Services.Etc
                     return newM;
                 }
             }
-            public CancellationToken[] GetTokenOfAll(int[] keys)
+            public CancellationToken[] GetTokensOfAll(int[] keys)
             {
                 CancellationToken[] tokens = new CancellationToken[keys.Length];
                 for(int i = 0; i<tokens.Length; i++)
@@ -79,6 +79,12 @@ namespace FCloud3.Services.Etc
                     tokens[i] = GetByKey(keys[i]).GetCancelToken();
                 }
                 return tokens;
+            }
+            public CancellationToken GetLinkedTokenOfAll(int[] keys)
+            {
+                var tokens = GetTokensOfAll(keys);
+                var source = CancellationTokenSource.CreateLinkedTokenSource(tokens);
+                return source.Token;
             }
         }
     }

@@ -53,5 +53,6 @@ namespace FCloud3.Services.Wiki
             else
                 return false;
         }
+        public IQueryable<int> WikiContainingIt(WikiParaType type, int objId) => _wikiParaRepo.WikiContainingIt(type, objId);
     }
 }

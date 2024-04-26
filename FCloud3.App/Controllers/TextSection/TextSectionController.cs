@@ -19,6 +19,8 @@ namespace FCloud3.App.Controllers.TextSec
         private readonly TextSectionService _textSectionService;
         private readonly WikiParserProviderService _genParser;
         private readonly WikiTitleContainService _titleContainService;
+        private readonly WikiParaService _wikiParaService;
+        private readonly WikiParaService wikiParaService;
         private readonly ILocatorHash _locatorHash;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.TextSection;
 
@@ -26,11 +28,13 @@ namespace FCloud3.App.Controllers.TextSec
             TextSectionService textSectionService,
             WikiParserProviderService genParser,
             WikiTitleContainService titleContainService,
+            WikiParaService wikiParaService,
             ILocatorHash locatorHash) 
         {
             _textSectionService = textSectionService;
             _genParser = genParser;
             _titleContainService = titleContainService;
+            _wikiParaService = wikiParaService;
             _locatorHash = locatorHash;
         }
 
@@ -74,7 +78,11 @@ namespace FCloud3.App.Controllers.TextSec
                 builder.UseLocatorHash(_locatorHash);
                 builder.EnableDebugInfo();
                 builder.ClearUsageInfoOnCall();
-            }, contains, false);
+            },
+            contains,
+            false,
+            () => _wikiParaService.WikiContainingIt(WikiParaType.Text, id).ToArray()
+            );
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return this.ApiResp(res);
         }

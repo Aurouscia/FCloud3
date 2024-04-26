@@ -112,7 +112,9 @@ namespace FCloud3.Services.WikiParsing
             var contains = textContains.UnionBy(tableContains, x => x.WikiId).ToList();
             var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
                 configure: builder => builder.Cache.DisableCache(),
-                contains);
+                contains,
+                true,
+                () => [wiki.Id]);
             parser.Context.Reset(true);
 
             WikiParsingResult result = new()

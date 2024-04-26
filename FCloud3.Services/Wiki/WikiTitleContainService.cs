@@ -2,27 +2,24 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 
 namespace FCloud3.Services.Wiki
 {
-    public class WikiTitleContainService
+    public class WikiTitleContainService(
+        WikiTitleContainRepo wikiTitleContainRepo,
+        WikiItemRepo wikiItemRepo,
+        WikiParaRepo wikiParaRepo,
+        WikiItemMetadataService wikiItemMetadataService,
+        DbTransactionService dbTransactionService,
+        CacheExpTokenService cacheExpTokenService)
     {
-        private readonly WikiTitleContainRepo _wikiTitleContainRepo;
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly DbTransactionService _dbTransactionService;
-        private readonly CacheExpTokenService _cacheExpTokenService;
-
-        public WikiTitleContainService(
-            WikiTitleContainRepo wikiTitleContainRepo,
-            WikiItemRepo wikiItemRepo,
-            DbTransactionService dbTransactionService,
-            CacheExpTokenService cacheExpTokenService)
-        {
-            _wikiTitleContainRepo = wikiTitleContainRepo;
-            _wikiItemRepo = wikiItemRepo;
-            _dbTransactionService = dbTransactionService;
-            _cacheExpTokenService = cacheExpTokenService;
-        }
+        private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
+        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
+        private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
+        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly DbTransactionService _dbTransactionService = dbTransactionService;
+        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
 
         public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
         {
@@ -99,7 +96,16 @@ namespace FCloud3.Services.Wiki
 
             if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
             {
-                _cacheExpTokenService.WikiTitleContain.CancelAll();
+                WikiParaType pt = WikiParaType.Text;
+                if (type == WikiTitleContainType.TextSection)
+                    pt = WikiParaType.Text;
+                else if (type == WikiTitleContainType.FreeTable)
+                    pt = WikiParaType.Table;
+                var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
+                foreach(int w in wIds)
+                    _cacheExpTokenService.WikiTitleContain.GetByKey(w).CancelAll();
+                _wikiItemRepo.SetUpdateTime(wIds);
+                _wikiItemMetadataService.UpdateRange(wIds, wm => wm.Update = DateTime.Now);
             }
             _dbTransactionService.CommitTransaction(t);
             return true;

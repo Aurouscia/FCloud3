@@ -6,6 +6,7 @@ using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
 namespace FCloud3.Services.WikiParsing.Support
@@ -15,19 +16,25 @@ namespace FCloud3.Services.WikiParsing.Support
         CacheExpTokenService cacheExpTokenService,
         WikiItemMetadataService wikiItemMetadataService,
         MaterialService materialService,
-        MaterialMetadataService materialMetadataService)
+        MaterialMetadataService materialMetadataService,
+        ILogger<WikiParserProviderService> logger)
     {
         private readonly IMemoryCache _cache = cache;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
         private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
         private readonly MaterialService _materialService = materialService;
         private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly ILogger<WikiParserProviderService> _logger = logger;
 
-        public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
+        public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
-                var titleContainToken = _cacheExpTokenService.WikiTitleContain.GetCancelToken();
+                CancellationToken titleContainToken;
+                if (getTitleContainExpiringWikiIds is not null)
+                    titleContainToken = _cacheExpTokenService.WikiTitleContain.GetLinkedTokenOfAll(getTitleContainExpiringWikiIds());
+                else
+                    titleContainToken = new(false);
                 var wikiItemInfoToken = _cacheExpTokenService.WikiItemNamePathInfo.GetCancelToken();
                 var materialInfoToken = _cacheExpTokenService.MaterialNamePathInfo.GetCancelToken();
                 var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken, materialInfoToken);
@@ -39,9 +46,14 @@ namespace FCloud3.Services.WikiParsing.Support
                 };
                 var changeToken = new CancellationChangeToken(token);
                 p = Get(configureAndToken, containInfos, linkSingle);
+                _logger.LogInformation("词条解析器[{cacheKey}]已创建", cacheKey);
                 var options = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromMinutes(5))
                     .AddExpirationToken(changeToken);
+                options.RegisterPostEvictionCallback((a, b, c, d) =>
+                {
+                    _logger.LogInformation("词条解析器[{cacheKey}]缓存被过期", cacheKey);
+                });
                 _cache.Set(cacheKey, p, options);
             }
             return p;
