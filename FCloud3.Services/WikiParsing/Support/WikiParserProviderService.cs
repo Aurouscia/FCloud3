@@ -2,6 +2,7 @@
 using FCloud3.HtmlGen.Mechanics;
 using FCloud3.HtmlGen.Options;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,17 +15,20 @@ namespace FCloud3.Services.WikiParsing.Support
         private readonly IMemoryCache _cache;
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly WikiItemService _wikiItemService;
+        private readonly WikiItemMetadataService _wikiItemMetadataService;
         private readonly MaterialService _materialService;
 
         public WikiParserProviderService(
             IMemoryCache cache,
             CacheExpTokenService cacheExpTokenService,
             WikiItemService wikiItemService,
+            WikiItemMetadataService wikiItemMetadataService,
             MaterialService materialService)
         {
             _cache = cache;
             _cacheExpTokenService = cacheExpTokenService;
             _wikiItemService = wikiItemService;
+            _wikiItemMetadataService = wikiItemMetadataService;
             _materialService = materialService;
         }
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
@@ -32,7 +36,7 @@ namespace FCloud3.Services.WikiParsing.Support
             if (_cache.Get(cacheKey) is not Parser p)
             {
                 var titleContainToken = _cacheExpTokenService.WikiTitleContain.GetCancelToken();
-                var wikiItemInfoToken = _cacheExpTokenService.WikiItemInfo.GetCancelToken();
+                var wikiItemInfoToken = _cacheExpTokenService.WikiItemNamePathInfo.GetCancelToken();
                 var materialInfoToken = _cacheExpTokenService.MaterialInfo.GetCancelToken();
                 var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(titleContainToken, wikiItemInfoToken, materialInfoToken);
                 var token = linkedSource.Token;
@@ -53,7 +57,7 @@ namespace FCloud3.Services.WikiParsing.Support
         private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemService.WikiItemsMetaAll();
+            var allWikis = _wikiItemMetadataService.GetAll();
             var allMeterials = _materialService.AllMaterialsMeta();
             if (containInfos != null)
             {

@@ -1,6 +1,8 @@
-﻿using FCloud3.Repos.Files;
+﻿using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Wiki
@@ -10,18 +12,18 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
-        private readonly CacheExpTokenService _cacheExpTokenService;
+        private readonly WikiItemMetadataService _wikiItemMetadataService;
 
         public WikiParaService(
             WikiParaRepo wikiParaRepo,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
-            CacheExpTokenService cacheExpTokenService) 
+            WikiItemMetadataService wikiItemMetadataService) 
         {
             _wikiParaRepo = wikiParaRepo;
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
-            _cacheExpTokenService = cacheExpTokenService;
+            _wikiItemMetadataService = wikiItemMetadataService;
         }
 
         public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
@@ -40,9 +42,12 @@ namespace FCloud3.Services.Wiki
                     where p.Id == paraId
                     where p.WikiItemId == w.Id
                     select w;
-                var affected = q.ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
-                if(affected > 0)
-                    _cacheExpTokenService.WikiItemInfo.CancelAll();
+                int affectedWikiId = q.Select(x=>x.Id).FirstOrDefault();
+                if(affectedWikiId > 0)
+                {
+                    _wikiItemRepo.SetUpdateTime(affectedWikiId);
+                    _wikiItemMetadataService.Update(affectedWikiId, w => w.Update = DateTime.Now);
+                }
                 return true;
             }
             else

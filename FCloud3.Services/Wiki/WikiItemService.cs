@@ -8,6 +8,7 @@ using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Paragraph;
 using Microsoft.Extensions.Caching.Memory;
@@ -18,6 +19,7 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction;
         private readonly WikiItemRepo _wikiRepo;
+        private readonly WikiItemMetadataService _wikiMetadataService;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
@@ -30,6 +32,7 @@ namespace FCloud3.Services.Wiki
         public WikiItemService(
             DbTransactionService transaction,
             WikiItemRepo wikiRepo,
+            WikiItemMetadataService wikiMetadataService,
             WikiToDirRepo wikiToDirRepo,
             WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo,
@@ -41,6 +44,7 @@ namespace FCloud3.Services.Wiki
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
+            _wikiMetadataService = wikiMetadataService;
             _wikiToDirRepo = wikiToDirRepo;
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
@@ -153,6 +157,8 @@ namespace FCloud3.Services.Wiki
                 return true;
             });
             errmsg = msg;
+            if (success)
+                SetWikiUpdated(wikiId);
             return success;
         }
         public bool SetParaOrders(int wikiId, List<int> orderedParaIds, out string? errmsg)
@@ -178,6 +184,8 @@ namespace FCloud3.Services.Wiki
             orderedParas.ResetOrder();
             if (!_paraRepo.TryEditRange(orderedParas, out errmsg))
                 return false;
+
+            SetWikiUpdated(wikiId);
             return true;
         }
         public bool RemovePara(int id, int paraId, out string? errmsg)
@@ -201,6 +209,8 @@ namespace FCloud3.Services.Wiki
                 return true;
             });
             errmsg = msg;
+            if (success)
+                SetWikiUpdated(id);
             return success;
         }
 
@@ -214,9 +224,12 @@ namespace FCloud3.Services.Wiki
             int id = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
             if (id > 0)
             {
-                return _wikiToDirRepo.AddWikisToDir(new() { id }, dirId, out errmsg);
+                if(_wikiToDirRepo.AddWikisToDir([id], dirId, out errmsg))
+                {
+                    _wikiMetadataService.Create(id, title, urlPathName);
+                    return true;
+                }
             }
-            _cacheExpTokenService.WikiItemInfo.CancelAll();
             return false;
         }
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
@@ -246,34 +259,32 @@ namespace FCloud3.Services.Wiki
             target.Title = title;
             target.UrlPathName = urlPathName;
             if (changed)
-                _cacheExpTokenService.WikiItemInfo.CancelAll();
-            return _wikiRepo.TryEdit(target, out errmsg);
-        }
-
-
-        private const string allWikiItemsMetaCacheKey = "AllWikiItemsMeta";
-        public List<WikiItemMetaData> WikiItemsMetaAll()
-        {
-            var res = _cache.Get<List<WikiItemMetaData>>(allWikiItemsMetaCacheKey);
-            if (res is null)
             {
-                var list = _wikiRepo.Existing.Select(x => new WikiItemMetaData(x.Id, x.Title, x.UrlPathName, x.Updated)).ToList();
-                var cacheOptions = new MemoryCacheEntryOptions();
-                cacheOptions.AddExpirationToken(_cacheExpTokenService.WikiItemInfo.GetCancelChangeToken());
-                _cache.Set(allWikiItemsMetaCacheKey, list, cacheOptions);
-                res = list;
+                if (_wikiRepo.TryEdit(target, out errmsg))
+                {
+                    _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
+                    _wikiMetadataService.Update(id, w =>
+                    {
+                        w.Title = title;
+                        w.UrlPathName = urlPathName;
+                        w.Update = DateTime.Now;
+                    });
+                    return true;
+                }
+                else
+                    return false;
             }
-            return res;
+            errmsg = null;
+            return true;
         }
-        public WikiItemMetaData? WikiItemsMeta(int id)
+
+        private void SetWikiUpdated(int wikiId)
         {
-            var all = WikiItemsMetaAll();
-            return all.Find(x => x.Id == id);
-        }
-        public WikiItemMetaData? WikiItemsMeta(string pathName)
-        {
-            var all = WikiItemsMetaAll();
-            return all.Find(x => x.UrlPathName == pathName);
+            _wikiRepo.SetUpdateTime(wikiId);
+            _wikiMetadataService.Update(wikiId, w =>
+            {
+                w.Update = DateTime.Now;
+            });
         }
 
         public class WikiItemIndexItem
@@ -286,21 +297,6 @@ namespace FCloud3.Services.Wiki
                 Id = w.Id;
                 Title = w.Title ?? "";
                 Update = w.Updated.ToString("yy/MM/dd HH:mm");
-            }
-        }
-
-        public class WikiItemMetaData
-        {
-            public int Id { get; set; }
-            public string? Title { get; set; }
-            public string? UrlPathName { get; set; }
-            public DateTime Update { get; set; }
-            public WikiItemMetaData(int id, string? title, string? urlPathName, DateTime update)
-            {
-                Id = id;
-                Title = title;
-                UrlPathName = urlPathName;
-                Update = update;
             }
         }
     }

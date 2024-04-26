@@ -11,6 +11,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
@@ -21,7 +22,7 @@ namespace FCloud3.Services.WikiParsing
 {
     public class WikiParsingService(
         WikiItemRepo wikiItemRepo,
-        WikiItemService wikiItemService,
+        WikiItemMetadataService wikiItemMetadataService,
         WikiParaRepo wikiParaRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
@@ -33,7 +34,7 @@ namespace FCloud3.Services.WikiParsing
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemService _wikiItemService = wikiItemService;
+        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
@@ -44,12 +45,12 @@ namespace FCloud3.Services.WikiParsing
         private readonly IStorage _storage = storage;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
-        public Stream GetParsedWikiStream(string pathName)
+        public Stream? GetParsedWikiStream(string pathName)
         {
-            var w = _wikiItemService.WikiItemsMeta(pathName);
-            var id = w?.Id ?? 0;
-            var update = w?.Update ?? DateTime.Now;
-            return GetParsedWikiStream(id, update);
+            var w = _wikiItemMetadataService.Get(pathName);
+            if (w is null)
+                return null;
+            return GetParsedWikiStream(w.Id, w.Update);
         }
         public Stream GetParsedWikiStream(int id, DateTime update)
         {

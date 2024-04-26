@@ -21,7 +21,9 @@ namespace FCloud3.App.Controllers.WikiParsing
         public IActionResult GetParsedWiki(string pathName)
         {
             var res =  _wikiParsingService.GetParsedWikiStream(pathName);
-            return File(res, Application.Json);
+            if(res is not null)
+                return File(res, Application.Json);
+            return this.ApiFailedResp("找不到该词条");
         }
 
         public IActionResult GetRulesCommons([FromBody] List<string> ruleNames)

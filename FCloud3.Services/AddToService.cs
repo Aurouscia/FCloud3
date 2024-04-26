@@ -14,6 +14,7 @@ using FCloud3.Services.Diff;
 using SixLabors.ImageSharp.Memory;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
+using FCloud3.Services.Etc.Metadata;
 
 namespace FCloud3.Services
 {
@@ -43,6 +44,8 @@ namespace FCloud3.Services
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();
+
+            services.AddScoped<WikiItemMetadataService>();
 
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator
                 = MemoryAllocator.Create(new MemoryAllocatorOptions()

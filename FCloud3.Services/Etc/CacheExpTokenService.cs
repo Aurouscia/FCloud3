@@ -8,13 +8,13 @@ namespace FCloud3.Services.Etc
         public CacheExpTokenService(ILogger<CacheExpTokenService> logger)
         {
             WikiTitleContain = new("词条标题包含", logger);
-            WikiItemInfo = new("词条元数据", logger);
+            WikiItemNamePathInfo = new("词条名称和路径名", logger);
             MaterialInfo = new("素材信息", logger);
             UserTypeInfo = new("用户类型", logger);
         }
 
         public CacheExpTokenManager WikiTitleContain { get; }
-        public CacheExpTokenManager WikiItemInfo { get; }
+        public CacheExpTokenManager WikiItemNamePathInfo { get; }
         public CacheExpTokenManager MaterialInfo { get; }
         public CacheExpTokenManagerCollection UserTypeInfo { get; }
 

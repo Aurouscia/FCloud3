@@ -21,6 +21,9 @@ namespace FCloud3.Repos
         public IQueryable<T> Existing => _context.Set<T>().Where(x => x.Deleted == false);
         public IQueryable<T> Deleted => _context.Set<T>().Where(x => x.Deleted);
         public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
+        public int ExistingCount => Existing.Count();
+        public void SetUpdateTime(int id) => Existing.Where(x => x.Id == id).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
+        public void SetUpdateTime(List<int> ids) => Existing.Where(x=>ids.Contains(x.Id)).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
 
         public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
         {

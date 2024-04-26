@@ -9,6 +9,7 @@ using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Metadata;
 
 namespace FCloud3.Services.TextSec
 {
@@ -21,7 +22,7 @@ namespace FCloud3.Services.TextSec
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ContentEditLockService _contentEditLockService;
-        private readonly CacheExpTokenService _cacheExpTokenService;
+        private readonly WikiItemMetadataService _wikiItemMetadataService;
         private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
@@ -32,7 +33,7 @@ namespace FCloud3.Services.TextSec
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
             ContentEditLockService contentEditLockService,
-            CacheExpTokenService cacheExpTokenService,
+            WikiItemMetadataService wikiItemMetadataService,
             ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;
@@ -42,7 +43,7 @@ namespace FCloud3.Services.TextSec
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
             _contentEditLockService = contentEditLockService;
-            _cacheExpTokenService = cacheExpTokenService;
+            _wikiItemMetadataService = wikiItemMetadataService;
             _logger = logger;
         }
 
@@ -162,11 +163,9 @@ namespace FCloud3.Services.TextSec
 
             if(title is not null || content is not null)
             {
-                var affected = _wikiItemRepo
-                    .GetRangeByIds(_paraRepo.WikiContainingIt(WikiParaType.Text, id))
-                    .ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
-                if(affected > 0)
-                    _cacheExpTokenService.WikiItemInfo.CancelAll();
+                var affectedWikis = _paraRepo.WikiContainingIt(WikiParaType.Text, id).ToList();
+                _wikiItemRepo.SetUpdateTime(affectedWikis);
+                _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
             }
             errmsg = null;
             return true;
