@@ -2,17 +2,20 @@
 import icon from '../../../assets/paraTypes/filePara.svg'
 import { canDisplayAsImage } from '../../../utils/fileUtils';
 import { WikiParaDisplay } from '../../../models/wiki/wikiPara'
+import { useParaListItem } from './paraListItemTitle';
 
 const props = defineProps<{
     w:WikiParaDisplay
 }>();
+const {mainname, subname} = useParaListItem(props);
 </script>
 
 <template>
     <div class="paraListItem">
         <div class="title">
             <img class="icon" :src="icon">
-            <div>{{props.w.Title}}</div>
+            {{ mainname }}
+            <span>{{ subname }}</span>
         </div>
         <img class="fileImage" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />
         <div v-else class="fileLink">
@@ -24,17 +27,6 @@ const props = defineProps<{
 </template>
 
 <style scoped>
-.title div{
-    text-shadow:
-        0px 3px 0px #eee,
-        2px 2px 0px #eee,
-        3px 0px 0px #eee,
-        2px -2px 0px #eee,
-        0px -3px 0px #eee,
-        -2px -2px 0px #eee,
-        -3px 0px 0px #eee,
-        -2px 2px 0px #eee
-}
 .fileImage{
     width: 100%;
     height: 100px;

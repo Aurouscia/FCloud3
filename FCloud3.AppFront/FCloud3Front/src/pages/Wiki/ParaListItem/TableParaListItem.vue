@@ -2,17 +2,20 @@
 import icon from '../../../assets/paraTypes/tablePara.svg'
 import SimpleTable from '../../../components/SimpleTable.vue';
 import { WikiParaDisplay } from '../../../models/wiki/wikiPara';
+import { useParaListItem } from './paraListItemTitle';
 
 const props = defineProps<{
     w:WikiParaDisplay
 }>();
+const {mainname, subname} = useParaListItem(props);
 </script>
 
 <template>
     <div class="paraListItem">
         <div class="title">
             <img class="icon" :src="icon">
-            <div>{{ props.w.Title }}</div>
+            {{ mainname }}
+            <span>{{ subname }}</span>
         </div>
         <div class="content">
             <SimpleTable :json="w.Content"></SimpleTable>

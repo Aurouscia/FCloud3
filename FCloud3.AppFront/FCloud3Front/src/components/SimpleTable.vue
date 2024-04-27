@@ -20,7 +20,6 @@ const cells = ref<string[][]>([]);
 function refresh(){
     cells.value = props.cells;
     if(props.json){
-        console.log(props.json)
         try{
             var jsonData = JSON.parse(props.json) as string[][];
             if(_.isArray(jsonData)){

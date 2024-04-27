@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref} from 'vue'
+import { nextTick, onMounted, onUnmounted, ref} from 'vue'
 import { WikiParaDisplay, WikiParaRendered} from '../../models/wiki/wikiPara'
 import { WikiParaTypes} from '../../models/wiki/wikiParaTypes'
 import { MouseDragListener } from '../../utils/mouseDrag';
@@ -21,8 +21,10 @@ import { useUrlPathNameConverter } from '../../utils/urlPathName';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { injectApi } from '../../provides';
 import { jumpToFreeTableEdit } from '../Table/routes';
+import { jumpToViewWiki } from '../WikiParsing/routes';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
+import WikiParaInfo from './WikiParaInfo.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 
 const paras = ref<Array<WikiParaRendered>>([])
@@ -36,10 +38,10 @@ const props = defineProps<{
 }>();
 
 function order2PosY(order:number){
-    return order*paraYSpace+30;
+    return order*paraYSpace+15;
 }
 function posY2order(posY:number){
-    return Math.round((posY-30)/paraYSpace);
+    return Math.round((posY-15)/paraYSpace);
 }
 function calculatePosY(){
     paras.value.forEach((p) => {
@@ -159,6 +161,19 @@ async function RemovePara(paraId:number){
     }
 }
 
+const editingInfoId = ref<number>(0);
+const editingInfoNameOverride = ref<string|null>(null)
+const wikiParaInfo = ref<InstanceType<typeof WikiParaInfo>>()
+async function StartEditInfo(paraId:number) {
+    const target = paras.value.find(x=>x.ParaId == paraId);
+    if(!target){return;}
+    disposeListeners()
+    editingInfoId.value = paraId;
+    editingInfoNameOverride.value = target.NameOverride;
+    await nextTick()
+    wikiParaInfo.value?.comeout()
+}
+
 var editingFileParaChanged = false;
 async function fileEditFold(){
     if(editingFileParaChanged){
@@ -266,7 +281,10 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <h1>{{ info?.Title }}</h1>
+    <h1>
+        {{ info?.Title }}
+        <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)">查看页面</button>
+    </h1>
     <SwitchingTabs v-if="loadComplete" :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
         <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
@@ -279,6 +297,7 @@ onUnmounted(()=>{
             <div class="menu paraButton">
                 <Functions x-align="right" :entry-size="28">
                     <button @click="EnterEdit(p.ParaId)">编辑</button>
+                    <button @click="StartEditInfo(p.ParaId)" class="off">设置</button>
                     <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
                 </Functions>
             </div>
@@ -328,13 +347,25 @@ onUnmounted(()=>{
         <AuthGrants v-if="info" :on="AuthGrantOn.WikiItem" :on-id="info.Id"></AuthGrants>
     </div>
     </SwitchingTabs>
+    <Loading v-else></Loading>
     <SideBar ref="fileParaEdit" @extend="disposeListeners" @fold="initLisenters()">
         <WikiFileParaEdit v-if="fileParaEditing" :para-id="fileParaEditing.ParaId"
             :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true;fileEditFold()"></WikiFileParaEdit>
     </SideBar>
+    <WikiParaInfo :para-id="editingInfoId" :current-name-override="editingInfoNameOverride"
+        @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
 </template>
 
 <style scoped>
+h1{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+h1 button{
+    font-size: medium
+}
+
 .wikiInfo>*{
     margin: 0px auto 0px auto;
 }
@@ -351,8 +382,8 @@ onUnmounted(()=>{
 
 .btnsBetweenPara{
     display: flex;
-    height: 60px;
-    margin-bottom: 70px;
+    height: 30px;
+    margin-bottom: 100px;
     justify-content:center;
     align-items: center;
 }

@@ -111,7 +111,7 @@ namespace FCloud3.Services.WikiParsing
 
             var contains = textContains.UnionBy(tableContains, x => x.WikiId).ToList();
             var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
-                configure: builder => builder.Cache.DisableCache(),
+                configure: builder => builder.Cache.DisableCache(),//片段缓存必须关闭
                 contains,
                 true,
                 () => [wiki.Id]);
@@ -121,6 +121,12 @@ namespace FCloud3.Services.WikiParsing
             {
                 Title = wiki.Title ?? "??",
             };
+            static string? getTitle(string? nameoverride, string? title)
+            {
+                if (string.IsNullOrWhiteSpace(nameoverride))
+                    return title;
+                return nameoverride;
+            }
             paras.ForEach(p =>
             {
                 if (p.Type == WikiParaType.Text)
@@ -129,11 +135,12 @@ namespace FCloud3.Services.WikiParsing
                     if (model is null)
                         return;
                     var resOfP = ParseText(model, parser);
-                    parser.WrapSection(model.Title, resOfP.Titles, out var title, out int titleId);
+                    var realTitle = getTitle(p.NameOverride, model.Title);
+                    parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Title, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
+                    result.Paras.Add(new(realTitle, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
                 }
                 else if (p.Type == WikiParaType.Table)
                 {
@@ -141,18 +148,20 @@ namespace FCloud3.Services.WikiParsing
                     if (model is null)
                         return;
                     var resOfP = ParseTable(model, parser);
-                    parser.WrapSection(model.Name, resOfP.Titles, out var title, out int titleId);
+                    var realTitle = getTitle(p.NameOverride, model.Name);
+                    parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(model.Name, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
+                    result.Paras.Add(new(realTitle, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
                 }
                 else if (p.Type == WikiParaType.File)
                 {
                     FileItem? model = fileParaObjs.FirstOrDefault(x => x.Id == p.ObjectId);
                     if (model is null)
                         return;
-                    result.Paras.Add(new(model.DisplayName, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type, p.ObjectId, model.ByteCount));
+                    var realTitle = getTitle(p.NameOverride, model.DisplayName);
+                    result.Paras.Add(new(realTitle, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type, p.ObjectId, model.ByteCount));
                 }
             });
             result.ExtractRulesCommon();

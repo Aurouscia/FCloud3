@@ -27,5 +27,21 @@ namespace FCloud3.App.Controllers.Wiki
             }
             return this.ApiResp();
         }
+
+        [Authorize]
+        [UserTypeRestricted]
+        [AuthGranted(nameof(paraId))]
+        public IActionResult SetInfo(int paraId, string? nameOverride)
+        {
+            if (string.IsNullOrWhiteSpace(nameOverride))
+            {
+                nameOverride = null;
+            }
+            if (!_wikiParaService.SetInfo(paraId, nameOverride, out string? errmsg))
+            {
+                return this.ApiFailedResp(errmsg);
+            }
+            return this.ApiResp();
+        }
     }
 }

@@ -36,13 +36,7 @@ namespace FCloud3.Services.Wiki
             }
             if(_wikiParaRepo.SetFileParaFileId(paraId, fileId, out errmsg))
             {
-                var q =
-                    from w in _wikiItemRepo.Existing
-                    from p in _wikiParaRepo.Existing
-                    where p.Id == paraId
-                    where p.WikiItemId == w.Id
-                    select w;
-                int affectedWikiId = q.Select(x=>x.Id).FirstOrDefault();
+                int affectedWikiId = BelongToWikiId(paraId);
                 if(affectedWikiId > 0)
                 {
                     _wikiItemRepo.SetUpdateTime(affectedWikiId);
@@ -54,5 +48,31 @@ namespace FCloud3.Services.Wiki
                 return false;
         }
         public IQueryable<int> WikiContainingIt(WikiParaType type, int objId) => _wikiParaRepo.WikiContainingIt(type, objId);
+        public bool SetInfo(int paraId, string? nameOverride, out string? errmsg)
+        {
+            var success = _wikiParaRepo.SetInfo(paraId, nameOverride, out errmsg);
+            if(success)
+            {
+                int affectedWikiId = BelongToWikiId(paraId);
+                if (affectedWikiId > 0)
+                {
+                    _wikiItemRepo.SetUpdateTime(affectedWikiId);
+                    _wikiItemMetadataService.Update(affectedWikiId, w => w.Update = DateTime.Now);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private int BelongToWikiId(int paraId)
+        {
+            var q =
+                from w in _wikiItemRepo.Existing
+                from p in _wikiParaRepo.Existing
+                where p.Id == paraId
+                where p.WikiItemId == w.Id
+                select w;
+            return q.Select(x => x.Id).FirstOrDefault();
+        }
     }
 }

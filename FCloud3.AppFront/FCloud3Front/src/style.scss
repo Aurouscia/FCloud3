@@ -1,5 +1,5 @@
-@import './pages/WikiParsing/wikiViewStyles.scss';
-@import './pages/Wiki/ParaListItem/paraListItem.scss';
+@import './styles/wikiViewStyles.scss';
+@import './styles/paraListItem.scss';
 
 *{
   margin: 0px;
@@ -48,6 +48,10 @@ input {
 input[type=file]{
   width: 200px;
   background-color: white;
+}
+input[type=checkbox]{
+  height: 1.5em;
+  width: 1.5em;
 }
 select {
   font-size: 18px;
@@ -175,5 +179,5 @@ a{
 
 :root{
   --top-bar-height:50px;
-  --main-div-margin-top:70px;
+  --main-div-margin-top:60px;
 }

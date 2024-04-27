@@ -19,16 +19,18 @@ namespace FCloud3.Services.Wiki.Paragraph
         public int UnderlyingId { get; set; }
         public string? Title { get; set; }
         public string? Content { get; set; }
+        public string? NameOverride { get; set; }
         public int Order { get; set; }
         public WikiParaType Type { get; set; }
         public int Bytes { get; set; }
-        public WikiParaDisplay(WikiPara para, int underlyingId, string? title, string? content, WikiParaType type, int bytes)
+        public WikiParaDisplay(WikiPara para, int underlyingId, string? title, string? content, string? nameOverride, WikiParaType type, int bytes)
         {
             ParaId = para.Id;
             Order = para.Order;
             UnderlyingId = underlyingId;
             Title = title;
             Content = content;
+            NameOverride = nameOverride;
             Type = type;
             Bytes = bytes;
         }
@@ -52,7 +54,7 @@ namespace FCloud3.Services.Wiki.Paragraph
 
         public WikiParaDisplay ToDisplay(WikiPara para)
         {
-            return new WikiParaDisplay(para, 0, _title,"" , Type, 0);
+            return new WikiParaDisplay(para, 0, _title,"" ,null , Type, 0);
         }
     }
 }

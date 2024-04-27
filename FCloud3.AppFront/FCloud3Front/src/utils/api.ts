@@ -367,6 +367,16 @@ export class Api{
                     true
                 )
                 return resp.success
+            },
+            setInfo:async(paraId:number,nameOverride:string|null)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiPara/SetInfo",
+                    "postForm",
+                    {paraId, nameOverride},
+                    "成功设置段落名称",
+                    true
+                )
+                return resp.success
             }
         },
         wikiTitleContain:{

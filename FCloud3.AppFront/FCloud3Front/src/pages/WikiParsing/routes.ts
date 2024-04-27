@@ -30,7 +30,10 @@ const routes = [
     }
 ]
 
-export function jumpToViewWiki(wikiPathName:string){
+export function jumpToViewWiki(wikiPathName:string|undefined){
+    if(!wikiPathName){
+        return;
+    }
     if(router){
         router.push({name:"viewWiki",params:{wikiPathName}});
     }

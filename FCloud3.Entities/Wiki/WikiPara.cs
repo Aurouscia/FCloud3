@@ -1,5 +1,7 @@
 ﻿
 
+using System.ComponentModel.DataAnnotations;
+
 namespace FCloud3.Entities.Wiki
 {
     /// <summary>
@@ -28,7 +30,8 @@ namespace FCloud3.Entities.Wiki
         /// <summary>
         /// 如果不为null，覆盖段落名称
         /// </summary>
-        //public string? NameOverride { get; set; }
+        [MaxLength(nameOverrideMaxLength)]
+        public string? NameOverride { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
@@ -37,6 +40,7 @@ namespace FCloud3.Entities.Wiki
 
         public int RelationMainId => WikiItemId;
         public int RelationSubId => ObjectId;
+        public const int nameOverrideMaxLength = 32;
     }
 
     public enum WikiParaType

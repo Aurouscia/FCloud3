@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Wiki;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,24 @@ namespace FCloud3.Repos.Wiki
         public IQueryable<int> WikiContainingIt(WikiParaType type, int objId)
         {
             return Existing.Where(x => x.Type == type && x.ObjectId == objId).Select(x => x.WikiItemId);
+        }
+
+        public bool SetInfo(int id, string? nameOverride, out string? errmsg)
+        {
+            if(nameOverride is not null && nameOverride.Length > WikiPara.nameOverrideMaxLength)
+            {
+                errmsg = "名称过长";
+                return false;
+            }
+            int affected = Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x.SetProperty(p => p.NameOverride, nameOverride));
+            if (affected == 0)
+            {
+                errmsg = "找不到指定段落";
+                return false;
+            }
+            errmsg = null;
+            return true;
         }
     }
 }
