@@ -4,6 +4,7 @@ import Login from "./Login.vue"
 import UserGroupIndex from "./UserGroupIndex.vue";
 import UserList from "./UserList.vue";
 import UserCenter from "./UserCenter.vue";
+import Register from "./Register.vue";
 
 let router:Router;
 export function addIdentities(r:Router){
@@ -17,6 +18,11 @@ const routes = [
         component:Login,
         props:true,
         name:'login'
+    },
+    {
+        path:"/Register",
+        component:Register,
+        name:"register"
     },
     {
         path:"/UserGroup/:id(\\d+)?",
@@ -41,4 +47,7 @@ export function jumpToUserCenter(username:string){
 }
 export function jumpToLogin(backAfterSuccess:boolean = true){
     router.push({name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}})
+}
+export function jumpToRegister(){
+    router.push({name:'register'})
 }

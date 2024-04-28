@@ -7,6 +7,7 @@ import Pop from '../../components/Pop.vue'
 import { Api } from '../../utils/api';
 import { injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
+import { jumpToRegister } from './routes';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -77,6 +78,9 @@ onMounted(async()=>{
         <div class="login">
             <button @click="Login" class="confirm">登&nbsp;录</button>
         </div>
+        <div class="register" @click="jumpToRegister">
+            注册账号
+        </div>
     </div>
     <div class="loginInfo" v-if="identityInfo">
         当前登录：
@@ -121,5 +125,10 @@ button.logout{
     text-align: center;
     color:gray;
     margin-top: 20px;
+    font-size: 16px;
 }
-</style>../../consts../../utils/httpClient../../utils/userInfo../../utils/api../../provides
+.register:hover{
+    text-decoration: underline;
+    cursor: pointer;
+}
+</style>

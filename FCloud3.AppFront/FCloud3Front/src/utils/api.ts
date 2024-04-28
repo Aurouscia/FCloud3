@@ -52,6 +52,16 @@ export class Api{
             },
         },
         user:{
+            create: async(name:string, pwd:string)=>{
+                var res = await this.httpClient.request(
+                    "/api/User/Create",
+                    "postForm",
+                    {name, pwd},
+                    "已成功注册",
+                    true
+                )
+                return res.success
+            },
             edit: async()=>{
                 var res = await this.httpClient.request(
                     "/api/User/Edit",
