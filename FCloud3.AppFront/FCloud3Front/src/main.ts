@@ -11,6 +11,7 @@ import { addFiles } from './pages/Files/routes';
 import { addTable } from './pages/Table/routes';
 import { addWikiParsing } from './pages/WikiParsing/routes';
 import { addDiff } from './pages/Diff/routes';
+import { recoverTitle } from './utils/titleSetter';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -29,5 +30,7 @@ addTextSection(router)
 addTable(router)
 addFiles(router)
 addDiff(router)
+
+recoverTitle()
 
 createApp(App).use(router).mount('#app')

@@ -31,6 +31,16 @@ namespace FCloud3.Repos.Wiki
         {
             return InfoCheck(item,false,out errmsg);
         }
+        public override bool TryAdd(WikiItem item, out string? errmsg)
+        {
+            item.OwnerUserId = _userIdProvider.Get();
+            return base.TryAdd(item, out errmsg);
+        }
+        public override int TryAddAndGetId(WikiItem item, out string? errmsg)
+        {
+            item.OwnerUserId = _userIdProvider.Get();
+            return base.TryAddAndGetId(item, out errmsg);
+        }
         public override bool TryEditCheck(WikiItem item, out string? errmsg)
         {
             return InfoCheck(item,true, out errmsg);

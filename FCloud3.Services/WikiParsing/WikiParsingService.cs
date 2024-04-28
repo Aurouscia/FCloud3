@@ -117,10 +117,7 @@ namespace FCloud3.Services.WikiParsing
                 () => [wiki.Id]);
             parser.Context.Reset(true);
 
-            WikiParsingResult result = new()
-            {
-                Title = wiki.Title ?? "??",
-            };
+            WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
             static string? getTitle(string? nameoverride, string? title)
             {
                 if (string.IsNullOrWhiteSpace(nameoverride))
@@ -208,7 +205,10 @@ namespace FCloud3.Services.WikiParsing
 
         public class WikiParsingResult
         {
+            public int Id { get; set; }
             public string Title { get; set; }
+            public string Update { get; set; }
+            public int OwnerId { get; set; }
             public List<string> UsedRules { get; set; }
             public List<string> FootNotes { get; set; }
             public List<ParserTitleTreeNode> SubTitles { get; set; }
@@ -216,10 +216,25 @@ namespace FCloud3.Services.WikiParsing
             public string? Styles { get; set; }
             public string? PreScripts { get; set; }
             public string? PostScripts { get; set; }
-            private List<IRule> UsedRulesBody { get; set; } 
+            private List<IRule> UsedRulesBody { get; set; }
             public WikiParsingResult()
             {
+                Id = 0;
                 Title = "";
+                Update = "";
+                OwnerId = 0;
+                UsedRules = [];
+                FootNotes = [];
+                SubTitles = [];
+                Paras = [];
+                UsedRulesBody = [];
+            }
+            public WikiParsingResult(int id, string title, DateTime update, int ownerId)
+            {
+                Id = id;
+                Title = title;
+                Update = update.ToString("yyyy-MM-dd HH:mm");
+                OwnerId = ownerId;
                 UsedRules = [];
                 FootNotes = [];
                 SubTitles = [];

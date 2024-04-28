@@ -13,12 +13,14 @@ import menuImg from '../../assets/menu.svg';
 import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
 import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
+import { jumpToWikiEdit } from '../Wiki/routes';
 import { jumpToDiffContentHistory } from '../Diff/routes';
 import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
 import { canDisplayAsImage } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '../../utils/swipeListener';
 import { sleep } from '../../utils/sleep';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -33,6 +35,8 @@ const stylesContent = ref<string>("");
 const preScripts = ref<HTMLDivElement>();
 const postScripts = ref<HTMLDivElement>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
+const userName = ref<string>("")
+const userAvtSrc = ref<string>("")
 async function load(){
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
     stylesContent.value = data.value?.Styles || "";
@@ -43,6 +47,15 @@ async function load(){
     await sleep(10)
     if(postScripts.value){
         updateScript(postScripts.value, data.value?.PostScripts || "", "module");
+    }
+    userName.value = "";
+    userAvtSrc.value = "";
+    if(data.value){
+        const user = await api.identites.user.getInfo(data.value?.OwnerId)
+        if(user){
+            userName.value = user.Name;
+            userAvtSrc.value = user.AvatarSrc;
+        }
     }
 }
 
@@ -95,6 +108,8 @@ const router = useRouter();
 onMounted(async()=>{
     api = injectApi();
     await init();
+    if(data.value?.Title)
+        setTitleTo(data.value?.Title)
 })
 
 const subtitlesFolded = ref<boolean>(true);
@@ -149,6 +164,7 @@ onUnmounted(()=>{
     clickFold.dispose();
     disposeFootNoteJump();
     swl?.stopListen();
+    recoverTitle();
 })
 </script>
 
@@ -159,6 +175,13 @@ onUnmounted(()=>{
         <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
             {{data.Title}}
+        </div>
+        <div class="info">
+            <div class="owner">
+                所有者<img :src="userAvtSrc" class="smallAvatar"/>{{ userName }}<br/>
+                上次更新于 {{ data.Update }}
+            </div>
+            <button @click="jumpToWikiEdit(wikiPathName)">编辑本词条</button>
         </div>
         <div v-for="p in data.Paras">
             <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
@@ -252,6 +275,16 @@ onUnmounted(()=>{
     overflow-y: scroll;
     overflow-x: hidden;
     scrollbar-width: none;
+}
+
+.info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .owner{
+        font-size: 14px;
+        color: #666;
+    }
 }
 
 @media screen and (max-width: 700px){

@@ -1,6 +1,9 @@
 import { WikiParaTypes } from "../wiki/wikiParaTypes";
 
 export interface WikiParsingResult {
+    Id:number
+    Update:string
+    OwnerId:number
     Title: string;
     UsedRules: string[];
     FootNotes: string[];

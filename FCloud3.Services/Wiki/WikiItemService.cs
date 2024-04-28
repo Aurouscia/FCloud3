@@ -27,7 +27,6 @@ namespace FCloud3.Services.Wiki
         private readonly FreeTableRepo _freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IStorage _storage;
-        private readonly IMemoryCache _cache;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
             DbTransactionService transaction,
@@ -39,8 +38,7 @@ namespace FCloud3.Services.Wiki
             FileItemRepo fileItemRepo,
             FreeTableRepo freeTableRepo,
             CacheExpTokenService cacheExpTokenService,
-            IStorage storage,
-            IMemoryCache cache)
+            IStorage storage)
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
@@ -52,7 +50,6 @@ namespace FCloud3.Services.Wiki
             _freeTableRepo = freeTableRepo;
             _cacheExpTokenService = cacheExpTokenService;
             _storage = storage;
-            _cache = cache;
         }
         public WikiItem? GetById(int id)
         {

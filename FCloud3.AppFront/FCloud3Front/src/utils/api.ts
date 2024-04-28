@@ -123,7 +123,16 @@ export class Api{
                     true
                 )
                 return res.success
-            }
+            },
+            getInfo: async(id:number)=>{
+                var res = await this.httpClient.request(
+                    "/api/User/Edit",
+                    "get",
+                    {id})
+                if(res.success){
+                    return res.data as User
+                }
+            },
         },
         userGroup:{
             create:async(name:string)=>{

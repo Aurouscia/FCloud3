@@ -3,6 +3,7 @@ using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -65,7 +66,7 @@ namespace FCloud3.App.Controllers.Identities
         }
 
         [Authorize]
-        [AuthGranted]
+        [AuthGranted(nameof(id))]
         public IActionResult ReplaceAvatar(int id, int materialId)
         {
             if(!_userService.ReplaceAvatar(id, materialId, out string? errmsg))
@@ -81,6 +82,14 @@ namespace FCloud3.App.Controllers.Identities
             if (!_userService.SetUserType(id, type, currentUserType, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+        public IActionResult GetInfo(int id)
+        {
+            UserComModel? model = _userService.GetById(id);
+            if (model is null)
+                return this.ApiFailedResp("找不到指定用户");
+            return this.ApiResp(model);
         }
 
         public class UserComModelRequest : UserComModel, IAuthGrantableRequestModel

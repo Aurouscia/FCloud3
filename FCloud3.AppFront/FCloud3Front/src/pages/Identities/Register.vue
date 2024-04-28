@@ -67,11 +67,13 @@ onMounted(async()=>{
         <div class="reg">
             <button @click="register" class="confirm">注&nbsp;册</button>
         </div>
-        <Notice :type="'info'">
-            为了确保内容合法合规，本平台为邀请制，新注册的账号为“游客”，不能进行编辑性质操作。
-            编辑内容需要“正式成员”身份。<br/><br/>
-            {{ applyWay }}
-        </Notice>
+        <div class="notice">
+            <Notice :type="'info'" :max-width="'300px'">
+                为了确保内容合法合规，本平台为邀请制，新注册的账号为“游客”，不能进行编辑性质操作。
+                编辑内容需要“正式成员”身份。<br/><br/>
+                {{ applyWay }}
+            </Notice>
+        </div>
     </div>
 </template>
 
@@ -91,5 +93,8 @@ input{
 .reg{
     display: flex;
     justify-content: center;
+}
+.notice{
+    margin-top: 100px;
 }
 </style>

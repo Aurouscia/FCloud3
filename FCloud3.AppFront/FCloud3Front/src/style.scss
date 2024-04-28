@@ -178,6 +178,14 @@ a{
   bottom: 0px;
 }
 
+.smallAvatar{
+  width: 30px;
+  height: 30px;
+  border-radius: 1000px;
+  margin: 3px;
+  vertical-align: middle;
+}
+
 :root{
   --top-bar-height:50px;
   --main-div-margin-top:60px;

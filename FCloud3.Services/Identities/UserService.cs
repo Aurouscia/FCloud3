@@ -1,34 +1,29 @@
-﻿using FCloud3.Entities.Files;
-using FCloud3.Entities.Identities;
+﻿using FCloud3.Entities.Identities;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
-using FCloud3.Services.Etc;
 using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
-using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Services.Identities
 {
     public partial class UserService(
         UserRepo repo,
-        MaterialRepo materialRepo,
         UserMetadataService userMetadataService,
+        MaterialRepo materialRepo,
+        MaterialMetadataService materialMetadataService,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
-        IOperatingUserIdProvider operatingUserIdProvider,
-        CacheExpTokenService cacheExpTokenService,
-        IMemoryCache memoryCache)
+        IOperatingUserIdProvider operatingUserIdProvider)
     {
         private readonly UserRepo _repo = repo;
-        private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
-        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
-        private readonly IMemoryCache _memoryCache = memoryCache;
 
         [GeneratedRegex("^[\\u4E00-\\u9FA5A-Za-z0-9_]+$")]
         private static partial Regex UsernameRegex();
@@ -40,35 +35,44 @@ namespace FCloud3.Services.Identities
 
         public UserComModel? GetById(int id)
         {
-            var userAndAvatar = (
-                from user in _repo.Existing
-                where user.Id == id
-                join material in _materialRepo.Existing on user.AvatarMaterialId equals material.Id into userWithAvt
-                from mt in userWithAvt.DefaultIfEmpty()
-                select new { User = user, Avatar = mt.StorePathName })
-                .FirstOrDefault();
-            if(userAndAvatar is null)
+            var u = _userMetadataService.Get(id);
+            if(u is null)
                 return null;
-            string avatarUrl = AvatarFullUrl(userAndAvatar.Avatar);
-            return UserComModel.ExcludePwd(userAndAvatar.User, avatarUrl);
+            string? avtStoreName = null;
+            if(u.AvatarMaterialId > 0)
+                avtStoreName = _materialMetadataService.Get(u.AvatarMaterialId)?.PathName;
+            string avatarUrl = AvatarFullUrl(avtStoreName);
+            return new UserComModel()
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Pwd = null,
+                AvatarMaterialId = u.AvatarMaterialId,
+                AvatarSrc = avatarUrl,
+                Type = u.Type,
+            };
         }
 
         public UserComModel? GetByName(string name)
         {
-            var userAndAvatar = (
-                from user in _repo.Existing
-                where user.Name == name
-                join material in _materialRepo.Existing on user.AvatarMaterialId equals material.Id into userWithAvt
-                from mt in userWithAvt.DefaultIfEmpty()
-                select new { User = user, Avatar = mt.StorePathName })
-                .FirstOrDefault();
-            if (userAndAvatar is null)
+            var u = _userMetadataService.GetByName(name);
+            if (u is null)
                 return null;
-            string avatarUrl = AvatarFullUrl(userAndAvatar.Avatar);
-            return UserComModel.ExcludePwd(userAndAvatar.User, avatarUrl);
+            string? avtStoreName = null;
+            if (u.AvatarMaterialId > 0)
+                avtStoreName = _materialMetadataService.Get(u.AvatarMaterialId)?.PathName;
+            string avatarUrl = AvatarFullUrl(avtStoreName);
+            return new UserComModel()
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Pwd = null,
+                AvatarMaterialId = u.AvatarMaterialId,
+                AvatarSrc = avatarUrl,
+                Type = u.Type,
+            };
         }
 
-        private const string defaultAvatar = "/defaultAvatar.svg";
         public IndexResult<UserIndexItem> Index(IndexQuery q)
         {
             static string keyReplaceForLastOperation(string k)
@@ -88,7 +92,6 @@ namespace FCloud3.Services.Identities
             var items = lines.ConvertAll(x => new UserIndexItem(x.User, AvatarFullUrl(x.Avatar)));
             return new IndexResult<UserIndexItem>(items, pageIdx, pageCount, totalCount);
         }
-        private string AvatarFullUrl(string x) => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
 
         public User? TryMatchNamePwd(string name,string pwd, out string? errmsg)
         {
@@ -143,7 +146,7 @@ namespace FCloud3.Services.Identities
             var id = _repo.TryAddAndGetId(u, out errmsg);
             if (id > 0)
             {
-                _userMetadataService.Create(id, UserType.Tourist);
+                _userMetadataService.Create(id, name!, UserType.Tourist);
                 return true;
             }
             return false;
@@ -156,12 +159,14 @@ namespace FCloud3.Services.Identities
                 return false;
             User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
 
+            bool nameChanged = name != u.Name;
             u.Name = name;
             if (!string.IsNullOrEmpty(pwd))
                 u.PwdEncrypted = _userPwdEncryption.Run(pwd);
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
+            _userMetadataService.Update(id, u => u.Name = name!);
             return true;
         }
 
@@ -171,8 +176,12 @@ namespace FCloud3.Services.Identities
             u.AvatarMaterialId = materialId;
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
+            _userMetadataService.Update(id, u => u.AvatarMaterialId = materialId);
             return true;
         }
+
+        private const string defaultAvatar = "/defaultAvatar.svg";
+        public string AvatarFullUrl(string? x) => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
 
         public void SetLastUpdateToNow()
         {

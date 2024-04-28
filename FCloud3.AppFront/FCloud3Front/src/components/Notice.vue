@@ -3,7 +3,8 @@ import { onMounted, ref } from 'vue';
 
 const props = defineProps<{
     type:"info"|"warn"|"danger",
-    title?:string
+    title?:string,
+    maxWidth?:string
 }>();
 const title = ref<string>();
 onMounted(()=>{
@@ -22,9 +23,11 @@ onMounted(()=>{
 </script>
 
 <template>
-    <div class="notice" :class="props.type">
-        <div class="noticeTitle">{{ title }}</div>
-        <slot></slot>
+    <div class="noticeOuter">
+        <div class="notice" :class="props.type" :style="{maxWidth:maxWidth}">
+            <div class="noticeTitle">{{ title }}</div>
+            <slot></slot>
+        </div>
     </div>
 </template>
 
@@ -56,5 +59,9 @@ onMounted(()=>{
     margin: 5px;
     white-space: wrap;
     text-align: left;
+}
+.noticeOuter{
+    display: flex;
+    justify-content: center;
 }
 </style>

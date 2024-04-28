@@ -213,7 +213,16 @@ namespace FCloud3.Services.Files
 
         public bool Delete(int id, out string? errmsg)
         {
-            var success = _materialRepo.TryRemove(id, out errmsg);
+            var m = _materialRepo.GetById(id);
+            if (m is null)
+            {
+                errmsg = "找不到指定素材";
+                return false;
+            }
+            string? oldPathName = m.StorePathName;
+            if (oldPathName != null)
+                _storage.Delete(oldPathName, out _);
+            var success = _materialRepo.TryRemove(m, out errmsg);
             if (success)
             {
                 _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
