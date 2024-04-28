@@ -49,12 +49,6 @@ namespace FCloud3.Services
             services.AddScoped<MaterialMetadataService>();
             services.AddScoped<UserMetadataService>();
 
-            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator
-                = MemoryAllocator.Create(new MemoryAllocatorOptions()
-                {
-                    MaximumPoolSizeMegabytes = 10
-                });
-
 
 
             string storageType = config["FileStorage:Type"] ?? "Local";

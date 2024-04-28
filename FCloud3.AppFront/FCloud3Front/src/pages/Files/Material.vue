@@ -194,7 +194,7 @@ watch(onlyMine, async()=>{
             </table>
         </div>
         <Notice :type="'warn'">
-            取名字请谨慎，更改可能会造成词条内引用失效
+            取名请谨慎，后续更改名称会造成词条内引用失效
         </Notice>
     </SideBar>
     <SideBar ref="detailSidebar">
@@ -230,8 +230,12 @@ watch(onlyMine, async()=>{
                 </tr>
             </table>
         </div>
+        <Notice :type="'warn'" :title="'⚠已知缺陷'">
+            修改素材名称将造成使用原名称的词条无法再显示该素材<br/><br/>
+            修改素材文件可能无法立即对词条中的显示造成更改，请以某种方式影响词条的更新时间使词条重新解析
+        </Notice>
         <div class="deleteBtn">
-            <button class="danger" @click="deleteMaterial(detailId)">删除</button>
+            <button class="danger" @click="deleteMaterial(detailId)">删除本素材</button>
         </div>
     </SideBar>
 </template>

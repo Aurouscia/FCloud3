@@ -136,6 +136,7 @@ namespace FCloud3.Services.Files
             return _storage.FullUrl(storePathName);
         }
 
+        //仅压缩jpg格式图片，压缩png有爆内存风险
         private readonly List<string> needCompressExts = [".jpg", ".jpeg"];
         private const int compressLowerThrs = 512 * 1024;
         private const int compressUpperThrs = 5 * 1024 * 1024;
@@ -153,7 +154,7 @@ namespace FCloud3.Services.Files
             Image img;
             try
             {
-                img = Image.Load(s); //内存限制在本项目 AddToService.cs 内
+                img = Image.Load(s);
             }
             catch
             {

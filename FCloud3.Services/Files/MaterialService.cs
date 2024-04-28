@@ -94,7 +94,7 @@ namespace FCloud3.Services.Files
                     errmsg = "不支持的文件格式";
                     return 0;
                 }
-
+                stream.Close();
                 compressed.Seek(0, SeekOrigin.Begin);
 
                 string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
@@ -224,18 +224,22 @@ namespace FCloud3.Services.Files
 
 
         private const int materialMaxSide = 256;
-        public static bool CompressImage(Stream input, Stream output, out string? errmsg)
+        public static bool CompressImage(Stream input, MemoryStream output, out string? errmsg)
         {
             Image img;
             try
             {
-                var imgInfo = Image.Identify(input);
-                if (imgInfo.Size.Height * imgInfo.Size.Width > 2000 * 2000)
+                using MemoryStream inputData = new();
+                input.CopyTo(inputData);
+                inputData.Seek(0, SeekOrigin.Begin);
+                var imgInfo = Image.Identify(inputData);
+                if (imgInfo.Width > 2000 || imgInfo.Height > 2000)
                 {
-                    errmsg = "请勿上传像素过大图片";
+                    errmsg = "请勿上传长宽超过2000像素的图片";
                     return false;
                 }
-                img = Image.Load(input);
+                inputData.Seek(0, SeekOrigin.Begin);
+                img = Image.Load(inputData);
             }
             catch
             {
