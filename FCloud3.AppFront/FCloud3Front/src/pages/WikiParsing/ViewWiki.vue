@@ -254,6 +254,8 @@ onUnmounted(()=>{
     position: relative;
     transition: 0.3s;
     background-color: white;
+
+    margin-right: 40px;
 }
 .subTitlesFoldBtn{
     position: fixed;
@@ -281,7 +283,9 @@ onUnmounted(()=>{
     flex-grow: 1;
     overflow-y: scroll;
     overflow-x: hidden;
-    scrollbar-width: none;
+
+    margin-right: -220px;
+    padding-right: 220px;
 }
 
 .info{
@@ -295,12 +299,17 @@ onUnmounted(()=>{
 }
 
 @media screen and (max-width: 700px){
+    .wikiView{
+        margin-right: 0px;
+        padding-right: 0px;
+    }
     .subTitles{
         position: fixed;
         right: 0px;
         top: 0px;
         padding-top: var(--main-div-margin-top);
         box-shadow: 0px 0px 12px 0px black;
+        margin-right: 0px;
     }
     .subTitles.folded{
         right: -180px;
