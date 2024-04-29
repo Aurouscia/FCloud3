@@ -8,6 +8,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.WikiParsing;
 using FCloud3.Repos.Diff;
+using FCloud3.Repos.Messages;
 
 namespace FCloud3.Repos
 {
@@ -35,6 +36,8 @@ namespace FCloud3.Repos
             services.AddScoped<FileItemRepo>();
             services.AddScoped<FileDirRepo>();
             services.AddScoped<MaterialRepo>();
+
+            services.AddScoped<CommentRepo>();
 
             services.AddScoped<DiffContentRepo>();
 

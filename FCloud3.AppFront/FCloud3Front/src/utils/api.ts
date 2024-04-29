@@ -22,6 +22,7 @@ import { DiffContentType } from '../models/diff/DiffContentType';
 import { DiffContentHistoryResult } from '../models/diff/DiffContentHistory';
 import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
 import { HeartbeatRequest } from '../models/sys/heartbeat';
+import { Comment, CommentTargetType, CommentViewResult } from '../models/messages/comment';
 
 
 export class Api{
@@ -847,6 +848,30 @@ export class Api{
             )
             if(resp.success){
                 return resp.data as DiffContentDetailResult
+            }
+        }
+    }
+    messages = {
+        comment:{
+            create:async(cmt:Comment)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Comment/Create",
+                    "postRaw",
+                    cmt,
+                    "成功评论",
+                    true
+                )
+                return resp.success
+            },
+            view:async(type:CommentTargetType, objId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Comment/View",
+                    "get",
+                    {type, objId}
+                )
+                if(resp.success){
+                    return resp.data as CommentViewResult[]
+                }
             }
         }
     }

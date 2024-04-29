@@ -1,6 +1,7 @@
 ﻿using FCloud3.Entities.Diff;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
+using FCloud3.Entities.Messages;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
@@ -27,6 +28,7 @@ namespace FCloud3.DbContexts
         public DbSet<Material> Materials { get; set; }
         public DbSet<DiffContent> DiffContents { get; set; }
         public DbSet<DiffSingle> DiffSingles { get; set; }
+        public DbSet<Comment> Comments { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations

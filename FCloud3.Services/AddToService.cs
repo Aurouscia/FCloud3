@@ -15,6 +15,7 @@ using SixLabors.ImageSharp.Memory;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Etc.Metadata;
+using FCloud3.Services.Messages;
 
 namespace FCloud3.Services
 {
@@ -41,6 +42,8 @@ namespace FCloud3.Services
             services.AddScoped<WikiTemplateService>();
             services.AddScoped<WikiParsingService>();
             services.AddSingleton<WikiParsedResultService>();
+
+            services.AddScoped<CommentService>();
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();

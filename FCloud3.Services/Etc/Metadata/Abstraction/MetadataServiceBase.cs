@@ -22,6 +22,23 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
             DataList.Add(w);
             return w;
         }
+        public List<TMeta> GetRange(IEnumerable<int> ids)
+        {
+            var found = new List<TMeta>();
+            var notFound = new List<int>();
+            foreach(var id in ids)
+            {
+                var stored = DataList.FirstOrDefault(x => x.Id == id);
+                if(stored is not null)
+                    found.Add(stored);
+                else
+                    notFound.Add(id);
+            }
+            var fill = GetFromDbModel(_repo.GetRangeByIds(notFound)).ToList();
+            DataList.AddRange(fill);
+            found.AddRange(fill);
+            return found;
+        }
         public void Create(TMeta meta)
         {
             DataList.Add(meta);

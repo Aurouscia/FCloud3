@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { ParserTitleTreeNode } from '../../models/wikiParsing/wikiParsingResult';
 import { removeDefaultFoldedMark } from '../../utils/wikiView/titleClickFold';
 
@@ -26,6 +27,16 @@ function highlight(id:number):number|undefined{
     ele.classList.toggle(highlightClassName,true);
     return ele.offsetTop;
 }
+onMounted(()=>{
+    if(props.isMaster){
+        props.titleTree.push({
+            Text: "评论区",
+            Id: 666666666,
+            Level: 0,
+            Subs:[]
+        })
+    }
+})
 defineExpose({
     highlight
 })

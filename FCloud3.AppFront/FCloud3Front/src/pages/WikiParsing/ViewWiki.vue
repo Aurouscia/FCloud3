@@ -8,6 +8,8 @@ import { WikiLinkClick } from '../../utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
 import Loading from '../../components/Loading.vue';
 import TitleTree from '../../components/Wiki/TitleTree.vue';
+import Comment from '../../components/Messages/Comment.vue';
+import { CommentTargetType } from '../../models/messages/comment';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import menuImg from '../../assets/menu.svg';
 import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
@@ -70,6 +72,7 @@ function getIdFromElementId(ele:HTMLElement):number{
 }
 function moveToTitle(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
+    console.log(title)
     if(title){
         wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
     }
@@ -207,11 +210,16 @@ onUnmounted(()=>{
                 </div>
             </div>
         </div>
-        <div class="footNotes">
-            <div v-for="f in data.FootNotes" v-html="f" class="footNote">
+        <div class="refbodies">
+            <div v-for="f in data.FootNotes" v-html="f">
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
+
+        <h1 id="t_666666666">评论区</h1>
+        <div class="comments">
+            <Comment v-if="data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
+        </div>
     </div>
     <div class="wikiView" v-else>
         <Loading></Loading>
@@ -221,7 +229,6 @@ onUnmounted(()=>{
 
     </div>
     <div class="subTitles" :class="{folded:subtitlesFolded}" ref="subTitles">
-
         <TitleTree v-if="data" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
@@ -314,5 +321,10 @@ onUnmounted(()=>{
     .cover.folded{
         display: none;
     }
+}
+
+.comments{
+    margin-top: 30px;
+    margin-bottom: 100px;
 }
 </style>
