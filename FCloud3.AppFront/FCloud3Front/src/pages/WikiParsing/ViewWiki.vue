@@ -77,7 +77,10 @@ function moveToTitle(titleId:number){
         wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
     }
 }
+
+
 let lastScrollTime = 0;
+const commentsLoaded = ref(false);
 function viewAreaScrollHandler(){
     if(Date.now() - lastScrollTime < 50){return;}
     lastScrollTime = Date.now();
@@ -85,6 +88,9 @@ function viewAreaScrollHandler(){
         t.offsetTop > wikiViewArea.value!.scrollTop - 20);
     if(currentTitleIdx == -1){
         return
+    }
+    if(currentTitleIdx == titlesInContent.length-1){
+        commentsLoaded.value = true
     }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
@@ -155,7 +161,11 @@ async function init(){
     await nextTick();
     clickFold = new TitleClickFold();
     titlesInContent = clickFold.listen(wikiViewArea.value);
+    const commentTitle = document.getElementById("t_666666666");
+    if(commentTitle)
+        titlesInContent.push(commentTitle)
 
+    viewAreaScrollHandler();
     wikiViewArea.value?.addEventListener('scroll',viewAreaScrollHandler);
 
     wikiLinkClick = new WikiLinkClick(pathName => {
@@ -216,10 +226,12 @@ onUnmounted(()=>{
         </div>
         <div class="invisible" ref="postScripts"></div>
 
-        <h1 id="t_666666666">评论区</h1>
-        <div class="comments">
-            <Comment v-if="data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
+        <h1 id="t_666666666">评论区<div class="h1Sep"></div></h1>
+        <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
+            <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
+            <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
         </div>
+        
     </div>
     <div class="wikiView" v-else>
         <Loading></Loading>
@@ -293,8 +305,11 @@ onUnmounted(()=>{
     justify-content: space-between;
     align-items: center;
     .owner{
-        font-size: 14px;
+        font-size: 16px;
         color: #666;
+        img{
+            margin: 0px 5px 10px 5px
+        }
     }
 }
 
@@ -334,6 +349,9 @@ onUnmounted(()=>{
 
 .comments{
     margin-top: 30px;
-    margin-bottom: 100px;
+    margin-bottom: 40px;
+}
+.commentsNotLoaded{
+    margin-bottom: 100vh;
 }
 </style>

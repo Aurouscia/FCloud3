@@ -22,5 +22,6 @@ export interface CommentViewResult
     UserName:string
     UserAvtSrc:string
     Time:string
+    Replying:number
     Replies:Array<CommentViewResult>
 }

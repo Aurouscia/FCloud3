@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Comment, CommentTargetType, CommentViewResult } from '../../models/messages/comment';
 import { injectApi, injectPop } from '../../provides';
+import { rateColor, rateText } from './rateTextColor';
 import CommentItem from './CommentItem.vue';
 
 const props = defineProps<{
@@ -19,7 +20,7 @@ async function load(){
     }
 }
 async function send() {
-    if(rate.value == 0 && !writing.value){
+    if(!writing.value){
         pop.value.show("不能提交空评论", "failed");
         return;
     }
@@ -38,39 +39,7 @@ async function send() {
     }
     await load();
 }
-function rateColor(pos: number) {
-    if (pos==-1 && rate.value==0){
-        return "#666"
-    }
-    if (pos >= rate.value) {
-        return "#ccc"
-    }
-    if (rate.value <= 2){
-        return "red"
-    }
-    if (rate.value <= 5){
-        return "orange"
-    }
-    if (rate.value <= 8){
-        return "cornflowerblue"
-    }
-    return "green"
-}
-const rateText = computed(()=>{
-    if (rate.value == 0){
-        return "评分"
-    }
-    if (rate.value <= 2){
-        return "太差"
-    }
-    if (rate.value <= 5){
-        return "一般"
-    }
-    if (rate.value <= 8){
-        return "不错"
-    }
-    return "超棒"
-})
+
 async function inputKeyDown(e:KeyboardEvent){
     console.log(e.key)
     if(e.key=="Enter"){
@@ -89,25 +58,25 @@ onMounted(async ()=>{
     <div class="give">
         <div class="rate">
             <div class="rates">
-                <div @mouseenter="rate=0" style="width:38px;" :style="{backgroundColor: rateColor(-1)}">{{ rateText }}</div>
-                <div v-for="_,idx in Array(10)" @mouseenter="rate = idx+1" :style="{backgroundColor: rateColor(idx)}">
+                <div @mouseenter="rate=0" style="width:38px;" :style="{backgroundColor: rateColor(rate)}">{{ rateText(rate) }}</div>
+                <div v-for="_,idx in Array(10)" @mouseenter="rate = idx+1" :style="{backgroundColor: rateColor(rate, idx)}">
                     {{ idx + 1 }}
                 </div>
             </div>
         </div>
         <div class="write">
-            <input v-model="writing" placeholder="写评论(最多200字)" @keydown="inputKeyDown">
+            <input v-model="writing" placeholder="评论该词条(200字以内)" @keydown="inputKeyDown">
             <button class="ok" @click="send">发送</button>
         </div>
     </div>
     <div class="comments">
-        <CommentItem v-for="c in comments" :c="c" :objType="type" :objId="objId" @needLoad="load"></CommentItem>
+        <CommentItem v-for="c in comments" :c="c" :siblings="comments" :objType="type" :objId="objId" @needLoad="load"></CommentItem>
     </div>
 </template>
 
 <style scoped lang="scss">
 .give{
-    background-color: #eee;
+    background-color: #f2f2f2;
     padding: 10px;
 }
 .write{
