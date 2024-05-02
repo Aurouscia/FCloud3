@@ -33,7 +33,6 @@
     <Folder Include="Data\FileStorage\" />
     <Folder Include="Data\TempDataDB\" />
     <Folder Include="Logs\" />
-    <Folder Include="Views\Shared\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +40,11 @@
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
     <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />
   </ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+		<Content Remove="Data\**" />
+		<Content Remove="Logs\**" />
+	</ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
