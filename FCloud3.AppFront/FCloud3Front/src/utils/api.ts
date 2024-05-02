@@ -127,7 +127,7 @@ export class Api{
             },
             getInfo: async(id:number)=>{
                 var res = await this.httpClient.request(
-                    "/api/User/Edit",
+                    "/api/User/GetInfo",
                     "get",
                     {id})
                 if(res.success){

@@ -22,26 +22,28 @@ namespace FCloud3.Services.Etc.Metadata
             return w;
         }
 
-        public void Create(int id, string title, string urlPathName)
+        public void Create(int id, int ownerId, string title, string urlPathName)
         {
-            WikiItemMetadata w = new(id, title, urlPathName, DateTime.Now);
+            WikiItemMetadata w = new(id, ownerId, title, urlPathName, DateTime.Now);
             base.Create(w);
         }
 
         protected override IQueryable<WikiItemMetadata> GetFromDbModel(IQueryable<WikiItem> dbModels)
         {
-            return dbModels.Select(x => new WikiItemMetadata(x.Id, x.Title, x.UrlPathName, x.Updated));
+            return dbModels.Select(x => new WikiItemMetadata(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
         }
     }
 
     public class WikiItemMetadata : MetadataBase<WikiItem>
     {
+        public int OwnerId { get; set; }
         public string? Title { get; set; }
         public string? UrlPathName { get; set; }
         public DateTime Update { get; set; }
-        public WikiItemMetadata(int id, string? title, string? urlPathName, DateTime update)
+        public WikiItemMetadata(int id, int ownerId, string? title, string? urlPathName, DateTime update)
         {
             Id = id;
+            OwnerId = ownerId;
             Title = title;
             UrlPathName = urlPathName;
             Update = update;

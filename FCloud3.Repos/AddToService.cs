@@ -38,6 +38,7 @@ namespace FCloud3.Repos
             services.AddScoped<MaterialRepo>();
 
             services.AddScoped<CommentRepo>();
+            services.AddScoped<NotificationRepo>();
 
             services.AddScoped<DiffContentRepo>();
 

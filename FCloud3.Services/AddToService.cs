@@ -44,6 +44,7 @@ namespace FCloud3.Services
             services.AddSingleton<WikiParsedResultService>();
 
             services.AddScoped<CommentService>();
+            services.AddScoped<NotificationService>();
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();

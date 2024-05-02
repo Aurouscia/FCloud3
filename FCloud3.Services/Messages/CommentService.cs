@@ -9,21 +9,31 @@ namespace FCloud3.Services.Messages
         CommentRepo commentRepo,
         UserService userService,
         UserMetadataService userMetadataService,
-        MaterialMetadataService materialMetadataService)
+        MaterialMetadataService materialMetadataService,
+        NotificationService notificationService)
     {
         private readonly CommentRepo _commentRepo = commentRepo;
         private readonly UserService _userService = userService;
         private readonly UserMetadataService _userMetadataService = userMetadataService;
         private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly NotificationService _notificationService = notificationService;
 
         public bool Create(Comment comment, out string? errmsg)
         {
-            return _commentRepo.TryAdd(comment, out errmsg);
+            var success = _commentRepo.TryAdd(comment, out errmsg);
+            if(success)
+            {
+                if(comment.TargetType == CommentTargetType.Wiki)
+                    _notificationService.CommentWiki(comment.TargetObjId);
+            }
+            return success;
         }
 
         public List<CommentViewResult> View(CommentTargetType type, int objId)
         {
             var all = _commentRepo.GetComments(type, objId).OrderBy(x => x.Created).ToList();
+            if (all.Count == 0)
+                return [];
             var relatedUsers = all.Select(x => x.CreatorUserId).Distinct().ToList();
             var users = _userMetadataService.GetRange(relatedUsers);
             var relatedMaterials = users.Select(x => x.AvatarMaterialId).Distinct().ToList();
@@ -59,9 +69,9 @@ namespace FCloud3.Services.Messages
                 Func<string?, string> avtSrc,
                 int layer)
             {
-                layer++;
                 if (layer > allc.Count)
                     throw new Exception("评论加载异常");
+                layer++;
                 Replies = allc.FindAll(x => x.ReplyingTo == Id).ConvertAll(x => {
                     var owner = allu.FirstOrDefault(u => u.Id == x.CreatorUserId);
                     var ownerAvtMat = allm.FirstOrDefault(m => m.Id == owner?.AvatarMaterialId);

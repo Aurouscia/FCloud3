@@ -26,6 +26,7 @@ namespace FCloud3.Services.Wiki
         private readonly FileItemRepo _fileItemRepo;
         private readonly FreeTableRepo _freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService;
+        private readonly IOperatingUserIdProvider _operatingUserIdProvider;
         private readonly IStorage _storage;
         public const int maxWikiTitleLength = 30;
         public WikiItemService(
@@ -38,6 +39,7 @@ namespace FCloud3.Services.Wiki
             FileItemRepo fileItemRepo,
             FreeTableRepo freeTableRepo,
             CacheExpTokenService cacheExpTokenService,
+            IOperatingUserIdProvider operatingUserIdProvider,
             IStorage storage)
         {
             _transaction = transaction;
@@ -49,6 +51,7 @@ namespace FCloud3.Services.Wiki
             _fileItemRepo = fileItemRepo;
             _freeTableRepo = freeTableRepo;
             _cacheExpTokenService = cacheExpTokenService;
+            _operatingUserIdProvider = operatingUserIdProvider;
             _storage = storage;
         }
         public WikiItem? GetById(int id)
@@ -223,7 +226,8 @@ namespace FCloud3.Services.Wiki
             {
                 if(_wikiToDirRepo.AddWikisToDir([id], dirId, out errmsg))
                 {
-                    _wikiMetadataService.Create(id, title, urlPathName);
+                    int uid = _operatingUserIdProvider.Get();
+                    _wikiMetadataService.Create(id, uid, title, urlPathName);
                     return true;
                 }
             }

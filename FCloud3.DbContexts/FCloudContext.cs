@@ -29,6 +29,7 @@ namespace FCloud3.DbContexts
         public DbSet<DiffContent> DiffContents { get; set; }
         public DbSet<DiffSingle> DiffSingles { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations
