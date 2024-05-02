@@ -14,9 +14,14 @@ namespace FCloud3.Repos.Messages
         ICommitingUserIdProvider userIdProvider) 
         : RepoBase<Notification>(context, userIdProvider)
     {
-        public IQueryable<Notification> TakeRange(int skip, int take)
-        {
-            return Existing.OrderByDescending(x=>x.Created).Skip(skip).Take(take);
-        }
+        public IQueryable<Notification> TakeRange(int skip, int take) 
+            => Mine.OrderByDescending(x=>x.Created).Skip(skip).Take(take);
+        public void MarkRead(int id) 
+            => Mine.Where(x=>x.Id == id).ExecuteUpdate(x => x.SetProperty(n => n.Read, true));
+        public void MarkAllRead() 
+            => Mine.ExecuteUpdate(x => x.SetProperty(n => n.Read, true));
+
+        public IQueryable<Notification> Mine => Existing.Where(x => x.Receiver == _userIdProvider.Get());
+        public IQueryable<Notification> MineUnread => Mine.Where(x => !x.Read);
     }
 }

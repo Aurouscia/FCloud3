@@ -8,6 +8,7 @@ import { Api } from '../../utils/api';
 import { injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
 import { jumpToRegister } from './routes';
+import { useNotifCount } from '../../utils/notifCountUse';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -20,6 +21,7 @@ const identityInfo = ref<IdentityInfo|undefined>()
 var httpClient:HttpClient;
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
+const notif = useNotifCount();
 const router = useRouter();
 async function Login(){
     const token = await api.identites.authen.login({
@@ -31,6 +33,7 @@ async function Login(){
         identityInfoProvider.clearCache();
         if (identityInfoProvider) {
             identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
+            notif.clear();
             if(props.backAfterSuccess){
                 router.back()
             }else{

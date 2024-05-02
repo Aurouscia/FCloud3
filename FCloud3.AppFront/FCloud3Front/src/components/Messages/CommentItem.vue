@@ -45,6 +45,7 @@ const pop = injectPop();
 async function send(){
     if(!writingContent.value){
         pop.value.show("回复不能为空","failed")
+        return;
     }
     const cmt:Comment={
         Id:0,

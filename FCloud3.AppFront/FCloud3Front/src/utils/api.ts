@@ -23,6 +23,7 @@ import { DiffContentHistoryResult } from '../models/diff/DiffContentHistory';
 import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
 import { HeartbeatRequest } from '../models/sys/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '../models/messages/comment';
+import { NotifViewResult, NotificationGetRequest } from '../models/messages/notification';
 
 
 export class Api{
@@ -872,6 +873,31 @@ export class Api{
                 if(resp.success){
                     return resp.data as CommentViewResult[]
                 }
+            }
+        },
+        notification:{
+            get: async(skip: number)=>{
+                const req: NotificationGetRequest = {
+                    Skip: skip
+                }
+                const resp = await this.httpClient.request(
+                    "/api/Notification/Get", "postRaw" ,req ,"" ,true
+                )
+                return resp.data as NotifViewResult
+            },
+            count: async()=>{
+                const resp = await this.httpClient.request(
+                    "/api/Notification/Count", "get"
+                )
+                return resp.data as number
+            },
+            markRead: async(id:number|'all')=>{
+                if(id=='all')
+                    id = -1;
+                const resp = await this.httpClient.request(
+                    "/api/Notification/MarkRead", "get", {id}
+                )
+                return resp.success
             }
         }
     }

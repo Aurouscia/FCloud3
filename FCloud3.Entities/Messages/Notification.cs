@@ -25,6 +25,7 @@ namespace FCloud3.Entities.Messages
     public enum NotifType
     {
         None = 0,
-        CommentMyWiki = 10,
+        CommentWiki = 10,
+        CommentWikiReply = 11,
     }
 }

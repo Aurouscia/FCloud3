@@ -4,8 +4,11 @@ import { TopbarModel, TopbarModelItem } from './topbarModel';
 import { ref } from 'vue';
 import foldImg from '../../assets/fold.svg';
 import { SwipeListener } from '../../utils/swipeListener'
+import { useNotifCount } from '../../utils/notifCountUse';
+import { jumpToNotifs } from '../../pages/Message/routes';
 
 const router = useRouter();
+const {notifCount} = useNotifCount();
 const props = defineProps<{
     data: TopbarModel
 }>();
@@ -67,6 +70,10 @@ let swl: SwipeListener|undefined
             </div>
         </div>
     </div>
+    <div class="topbarItem">
+        <div class="topbarText" @click="jumpToNotifs">消息</div>
+        <div v-show="notifCount>0" class="notifExists"></div>
+    </div>
 </div>
 <div class="cover" :class="{folded}" @click="toggleFold('fold')">
 
@@ -75,7 +82,11 @@ let swl: SwipeListener|undefined
 
 <style scoped lang="scss">
 $topbar-body-vert-width: 180px;
-
+.notifExists{
+    position: absolute;
+    top: 9px;
+    left: 46px;
+}
 .topbarBodyVertical{
     position: fixed;
     top: 0px;
@@ -111,6 +122,7 @@ $topbar-body-vert-width: 180px;
     }
 }
 .topbarItem{
+    position: relative;
     padding: 10px;
     font-size: 20px;
     border-bottom: 1px solid #ddd;

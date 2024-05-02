@@ -7,12 +7,14 @@ import { jumpToLogin } from './pages/Identities/routes';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
+import { NotifCount } from './utils/notifCount';
 
 const popKey = 'pop';
 const httpKey = 'http';
 const apiKey = 'api';
 const userInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
+const notifCountKey = 'notifCount';
 
 export type SetTopbarFunc = (display:boolean)=>void
 
@@ -49,6 +51,8 @@ export function useProvidesSetup() {
     const displayTopbar = ref<boolean>(true);
     provide(setTopBarKey, (display:boolean) => { displayTopbar.value = display })
 
+    const notifCount = new NotifCount(api, displayTopbar);
+    provide(notifCountKey, notifCount);
     
     return { pop, displayTopbar, needMemberWarning, wait }
 }
@@ -67,4 +71,7 @@ export function injectUserInfo(){
 }
 export function injectSetTopbar(){
     return inject(setTopBarKey) as SetTopbarFunc
+}
+export function injectNotifCount(){
+    return inject(notifCountKey) as NotifCount
 }

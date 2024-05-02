@@ -20,11 +20,17 @@ namespace FCloud3.Services.Messages
 
         public bool Create(Comment comment, out string? errmsg)
         {
-            var success = _commentRepo.TryAdd(comment, out errmsg);
+            var createdId = _commentRepo.TryAddAndGetId(comment, out errmsg);
+            bool success = createdId > 0;
             if(success)
             {
-                if(comment.TargetType == CommentTargetType.Wiki)
-                    _notificationService.CommentWiki(comment.TargetObjId);
+                if (comment.TargetType == CommentTargetType.Wiki)
+                {
+                    if(comment.ReplyingTo == 0)
+                        _notificationService.CommentWiki(comment.TargetObjId, createdId);
+                    else
+                        _notificationService.CommentWikiReply(comment.TargetObjId, createdId, comment.ReplyingTo);
+                }
             }
             return success;
         }

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { TopbarModel, TopbarModelItem } from './topbarModel';
+import { jumpToNotifs } from '../../pages/Message/routes';
+import { useNotifCount } from '../../utils/notifCountUse';
 
+const {notifCount} = useNotifCount();
 const router = useRouter();
 defineProps<{
     data: TopbarModel
@@ -23,10 +26,19 @@ function clickHandler(item: TopbarModelItem){
             </div>
         </div>
     </div>
+    <div class="topbarItem">
+        <div class="topbarText" @click="jumpToNotifs">消息</div>
+        <div v-show="notifCount>0" class="notifExists"></div>
+    </div>
 </div>
 </template>
 
 <style scoped lang="scss">
+.notifExists{
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}
 .topbarBodyHorizontal{
     display: flex;
     justify-content: left;

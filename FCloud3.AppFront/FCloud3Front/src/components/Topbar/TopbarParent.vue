@@ -5,8 +5,10 @@ import itemsImg from '../../assets/items.svg';
 import { TopbarModel } from './topbarModel';
 import TopbarBodyHorizontal from './TopbarBodyHorizontal.vue';
 import TopbarBodyVertical from './TopbarBodyVertical.vue';
+import { useNotifCount } from '../../utils/notifCountUse';
 
 const topbarModel = ref<TopbarModel>();
+const {notifCount} = useNotifCount();
 onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
 })
@@ -35,6 +37,7 @@ function toggleFold(){
     </div>
     <div class="foldBtn">
         <img :src="itemsImg" @click="toggleFold"/>
+        <div v-show="notifCount>0" class="notifExists"></div>
     </div>
 </div>
 <div v-if="topbarModel" class="topbarVert">
@@ -43,6 +46,10 @@ function toggleFold(){
 </template>
 
 <style scoped lang="scss">
+.notifExists{
+    position: absolute;
+    top:-4px;right: -4px;
+}
 .logo{
     width: 130px;
     height: 42px;

@@ -12,6 +12,7 @@ import { addTable } from './pages/Table/routes';
 import { addWikiParsing } from './pages/WikiParsing/routes';
 import { addDiff } from './pages/Diff/routes';
 import { recoverTitle } from './utils/titleSetter';
+import { addMessages } from './pages/Message/routes';
 
 const routes = [{
         path: '/:pathMatch(.*)*',
@@ -30,6 +31,7 @@ addTextSection(router)
 addTable(router)
 addFiles(router)
 addDiff(router)
+addMessages(router)
 
 recoverTitle()
 
