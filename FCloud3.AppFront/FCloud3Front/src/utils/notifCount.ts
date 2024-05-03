@@ -25,7 +25,7 @@ export class NotifCount{
             const storedObj = JSON.parse(stored)
             if(_.has(storedObj, 'count') && _.has(storedObj, 'update')){
                 obj = storedObj as NotifInfo;
-                if(getTimeStamp() - obj.update < 50){
+                if(getTimeStamp() - obj.update < 170){
                     needRequest = false;
                 }
             }

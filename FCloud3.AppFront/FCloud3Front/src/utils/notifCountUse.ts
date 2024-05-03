@@ -18,7 +18,7 @@ export function useNotifCount(){
     const clear = () => {notifCountSource.clear(); get()};
     if(!intervalSet){
         get();
-        setInterval(get, 60000);
+        setInterval(get, 180000);
         intervalSet = true;
     }
     return {notifCount, readOne, readAll, clear}

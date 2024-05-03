@@ -4,7 +4,6 @@ import { LatestWorkViewItem, LatestWorkType } from '../models/etc/latestWork';
 import { injectApi } from '../provides';
 import { getFileIconStyle, getFileExt } from '../utils/fileUtils';
 import { jumpToViewWiki } from '../pages/WikiParsing/routes';
-import { useRouter } from 'vue-router';
 import { jumpToUserCenter } from '../pages/Identities/routes';
 
 const props = defineProps<{
@@ -22,7 +21,6 @@ async function load(){
         list.value = resp;
     }
 }
-const router = useRouter();
 function jumpTo(w:LatestWorkViewItem){
     if(w.Type == LatestWorkType.Wiki){
         jumpToViewWiki(w.JumpParam);
