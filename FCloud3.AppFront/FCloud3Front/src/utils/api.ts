@@ -734,7 +734,11 @@ export class Api{
                     if(num>0){
                         this.httpClient.httpCallBack("ok",`${num}个操作成功`);
                     }
-                    this.httpClient.httpCallBack("warn",`${reqNum-num}个操作失败`);
+                    const failNum = reqNum - num;
+                    if(failNum > 1)
+                        this.httpClient.httpCallBack("warn",`${failNum}个操作失败`);
+                    else if(failNum == 1)
+                        this.httpClient.httpCallBack("err", data.FailMsg || "操作失败")
                 }
                 return data
             }

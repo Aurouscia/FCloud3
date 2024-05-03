@@ -136,10 +136,16 @@ onMounted(()=>{
         </div>
         <input @change="inputChange" ref="fileInput" :id="`fileInput_${randId}`" type="file" multiple/>
         <input @change="inputChange" ref="dirInput" :id="`dirInput_${randId}`" type="file" webkitdirectory>
+        <div class="note">提示：点击文件名可上传前重命名</div>
     </div>
 </template>
 
 <style scoped>
+.note{
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
 .nameEdit input{
     border: none;
     margin: 2px;
