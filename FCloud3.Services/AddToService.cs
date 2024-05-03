@@ -16,6 +16,7 @@ using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Messages;
+using FCloud3.Services.Wiki.Support;
 
 namespace FCloud3.Services
 {
@@ -42,6 +43,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiTemplateService>();
             services.AddScoped<WikiParsingService>();
             services.AddSingleton<WikiParsedResultService>();
+            services.AddScoped<WikiRecommendService>();
 
             services.AddScoped<CommentService>();
             services.AddScoped<NotificationService>();

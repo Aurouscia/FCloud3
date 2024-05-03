@@ -479,7 +479,7 @@ namespace FCloud3.Services.Files
                 errmsg = "只能删除空文件夹";
                 return false;
             }
-            var wikis = _wikiToDirRepo.GetDirWikiIds(dirId).Count;
+            var wikis = _wikiToDirRepo.GetWikiIdsByDir(dirId).Count;
             if (wikis > 0)
             {
                 errmsg = "只能删除空文件夹";

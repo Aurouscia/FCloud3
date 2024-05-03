@@ -24,6 +24,7 @@ import { useRouter } from 'vue-router';
 import { SwipeListener } from '../../utils/swipeListener';
 import { sleep } from '../../utils/sleep';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import Recommends from './Recommends.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -222,12 +223,13 @@ onUnmounted(()=>{
                 </div>
             </div>
         </div>
-        <div class="refbodies">
+        <div class="refbodies" v-if="data.FootNotes.length>0">
             <div v-for="f in data.FootNotes" v-html="f">
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
 
+        <Recommends :path-name="wikiPathName"></Recommends>
         <h1 id="t_666666666">评论区<div class="h1Sep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>

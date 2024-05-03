@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Services.Wiki.Paragraph
+namespace FCloud3.Services.Wiki.Support
 {
     public class WikiParaDisplay
     {

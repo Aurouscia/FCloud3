@@ -26,6 +26,7 @@ import { Comment, CommentTargetType, CommentViewResult } from '../models/message
 import { NotifViewResult, NotificationGetRequest } from '../models/messages/notification';
 import { OpRecordGetRequest, OpRecordViewModel } from '../models/messages/opRecord';
 import { LatestWorkViewItem } from '../models/etc/latestWork';
+import { WikiRecommendModel } from '../models/wikiParsing/wikiRecommend';
 
 
 export class Api{
@@ -508,6 +509,14 @@ export class Api{
                     ruleNames)
                 if(res.success){
                     return res.data as WikiRulesCommonsResult
+                }
+            },
+            getRecommend: async(pathName:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiParsing/GetRecommends",
+                    "get",{pathName})
+                if(res.success){
+                    return res.data as WikiRecommendModel
                 }
             }
         }

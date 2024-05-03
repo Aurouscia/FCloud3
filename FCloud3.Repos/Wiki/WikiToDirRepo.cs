@@ -13,10 +13,12 @@ namespace FCloud3.Repos.Wiki
         public WikiToDirRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
-        public List<int> GetDirWikiIds(int dirId)
-        {
-            return Existing.Where(x=>x.DirId==dirId).Select(x=>x.WikiId).ToList();
-        }
+        public List<int> GetWikiIdsByDir(int dirId) => 
+            Existing.Where(x=>x.DirId == dirId).Select(x=>x.WikiId).ToList();
+        public List<int> GetWikiIdsByDirs(List<int> dirIds) =>
+            Existing.Where(x => dirIds.Contains(x.DirId)).Select(x => x.WikiId).ToList();
+        public IQueryable<int> GetDirIdsByWikiId(int wikiId) =>
+            Existing.Where(x => x.WikiId == wikiId).Select(x => x.DirId);
         public bool AddWikisToDir(List<int> wikiIds,int dirId,out string? errmsg)
         {
             if (dirId <= 0)

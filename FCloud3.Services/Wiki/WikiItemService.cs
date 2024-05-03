@@ -12,8 +12,7 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Wiki.Paragraph;
-using Microsoft.Extensions.Caching.Memory;
+using FCloud3.Services.Wiki.Support;
 
 namespace FCloud3.Services.Wiki
 {
