@@ -1,9 +1,11 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Messages;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +20,7 @@ namespace FCloud3.Services.Files
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
-        private readonly DbTransactionService _transaction;
+        private readonly OpRecordRepo _opRecordRepo;
         private readonly IStorage _storage;
 
         public FileDirService(
@@ -28,7 +30,7 @@ namespace FCloud3.Services.Files
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
-            DbTransactionService transaction,
+            OpRecordRepo opRecordRepo,
             IStorage storage)
         {
             _userRepo = userRepo;
@@ -37,7 +39,7 @@ namespace FCloud3.Services.Files
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
-            _transaction = transaction;
+            _opRecordRepo = opRecordRepo;
             _storage = storage;
         }
 
@@ -220,11 +222,20 @@ namespace FCloud3.Services.Files
                 return false;
             }
 
+            string record = "";
+            if (target.Name != name)
+                record += $"将[{target.Name}]更名为[{name}];";
+            if (target.UrlPathName != urlPathName)
+                record += $"将路径名[{target.UrlPathName}]改为[{urlPathName}]";
+
             target.Name = name;
             target.UrlPathName = urlPathName;
 
             if(!_fileDirRepo.TryEdit(target, out errmsg))
                 return false;
+
+            if (!string.IsNullOrEmpty(record))
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, record);
             return true;
         }
 
@@ -396,7 +407,14 @@ namespace FCloud3.Services.Files
                 UrlPathName = urlPathName,
                 Depth = depth
             };
-            return _fileDirRepo.TryAdd(newDir, out errmsg);
+            if(_fileDirRepo.TryAdd(newDir, out errmsg))
+            {
+                string parentName = parent?.Name ?? "根文件夹";
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
+                    $"在[{parentName}]中新建[{name}][{urlPathName}]");
+                return true;
+            }
+            return false;
         }
         public bool Delete(int dirId,out string? errmsg)
         {
@@ -422,7 +440,12 @@ namespace FCloud3.Services.Files
                 errmsg = "只能删除空文件夹";
                 return false;
             }
-            return _fileDirRepo.TryRemove(item,out errmsg);
+            if(_fileDirRepo.TryRemove(item,out errmsg))
+            {
+                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $"[{item.Name}]");
+                return true;
+            }
+            return false;
         }
 
 

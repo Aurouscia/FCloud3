@@ -1,9 +1,11 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Messages;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Messages;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
@@ -26,6 +28,7 @@ namespace FCloud3.Services.Wiki
         private readonly FileItemRepo _fileItemRepo;
         private readonly FreeTableRepo _freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService;
+        private readonly OpRecordRepo _opRecordRepo;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider;
         private readonly IStorage _storage;
         public const int maxWikiTitleLength = 30;
@@ -39,6 +42,7 @@ namespace FCloud3.Services.Wiki
             FileItemRepo fileItemRepo,
             FreeTableRepo freeTableRepo,
             CacheExpTokenService cacheExpTokenService,
+            OpRecordRepo opRecordRepo,
             IOperatingUserIdProvider operatingUserIdProvider,
             IStorage storage)
         {
@@ -51,6 +55,7 @@ namespace FCloud3.Services.Wiki
             _fileItemRepo = fileItemRepo;
             _freeTableRepo = freeTableRepo;
             _cacheExpTokenService = cacheExpTokenService;
+            _opRecordRepo = opRecordRepo;
             _operatingUserIdProvider = operatingUserIdProvider;
             _storage = storage;
         }
@@ -158,7 +163,12 @@ namespace FCloud3.Services.Wiki
             });
             errmsg = msg;
             if (success)
+            {
                 SetWikiUpdated(wikiId);
+                var name = _wikiMetadataService.Get(wikiId)?.Title;
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, 
+                    $"为[{name}]插入了新[{WikiParaTypes.Readable(type)}]段落");
+            }
             return success;
         }
         public bool SetParaOrders(int wikiId, List<int> orderedParaIds, out string? errmsg)
@@ -186,6 +196,9 @@ namespace FCloud3.Services.Wiki
                 return false;
 
             SetWikiUpdated(wikiId);
+            var name = _wikiMetadataService.Get(wikiId)?.Title;
+            _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
+                $"为[{name}]调整段落顺序");
             return true;
         }
         public bool RemovePara(int id, int paraId, out string? errmsg)
@@ -200,17 +213,26 @@ namespace FCloud3.Services.Wiki
             paras.Remove(target);
             paras.EnsureOrderDense();
             string? msg = null;
-            bool success = _transaction.DoTransaction(() =>
-            {
-                if (!_paraRepo.TryEditRange(paras, out msg))
-                    return false;
-                if (!_paraRepo.TryRemove(target, out msg))
-                    return false;
-                return true;
-            });
+            using var t = _transaction.BeginTransaction();
+
+            var editParasSuccess = !_paraRepo.TryEditRange(paras, out msg);
+            var removeParaSuccess = false;
+            if (editParasSuccess)
+                removeParaSuccess = !_paraRepo.TryRemove(target, out msg);
+
+            var success = removeParaSuccess && editParasSuccess;
+            if (success)
+                t.Commit();
+            else
+                t.Rollback();
             errmsg = msg;
             if (success)
+            {
                 SetWikiUpdated(id);
+                var name = _wikiMetadataService.Get(id)?.Title;
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
+                    $"从[{name}]移除了段落");
+            }
             return success;
         }
 
@@ -228,6 +250,7 @@ namespace FCloud3.Services.Wiki
                 {
                     int uid = _operatingUserIdProvider.Get();
                     _wikiMetadataService.Create(id, uid, title, urlPathName);
+                    _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $"取名为[{title}][{urlPathName}]");
                     return true;
                 }
             }
@@ -235,7 +258,13 @@ namespace FCloud3.Services.Wiki
         }
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
         {
-            return _wikiToDirRepo.RemoveWikisFromDir(new() { wikiId}, dirId, out errmsg);
+            if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
+            {
+                var title = _wikiMetadataService.Get(wikiId)?.Title;
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"移除词条[{title}]");
+                return true;
+            }
+            return false;
         }
         public WikiItem? GetInfo(string urlPathName, out string? errmsg)
         {
@@ -257,6 +286,13 @@ namespace FCloud3.Services.Wiki
                 return false;
             }
             bool changed = target.Title != title || target.UrlPathName != urlPathName;
+
+            string record = "";
+            if (target.Title != title)
+                record += $"将[{target.Title}]更名为[{title}];";
+            if (target.UrlPathName != urlPathName)
+                record += $"将路径名[{target.UrlPathName}]改为[{urlPathName}]";
+
             target.Title = title;
             target.UrlPathName = urlPathName;
             if (changed)
@@ -270,6 +306,8 @@ namespace FCloud3.Services.Wiki
                         w.UrlPathName = urlPathName;
                         w.Update = DateTime.Now;
                     });
+                    if(record.Length>0)
+                        _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, record);
                     return true;
                 }
                 else

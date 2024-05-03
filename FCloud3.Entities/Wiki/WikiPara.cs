@@ -61,5 +61,15 @@ namespace FCloud3.Entities.Wiki
                 WikiParaType.Table
             };
         }
+        public static string Readable(WikiParaType type)
+        {
+            if (type == WikiParaType.Text)
+                return "文本";
+            else if (type == WikiParaType.File)
+                return "文件";
+            else if (type == WikiParaType.Table)
+                return "表格";
+            return "未知";
+        }
     }
 }

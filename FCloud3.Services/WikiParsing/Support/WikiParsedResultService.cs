@@ -82,7 +82,11 @@ namespace FCloud3.Services.WikiParsing.Support
         }
         private static string FileName(DateTime lastUpdate)
         {
+            if (lastUpdate < UpdateTimeLowerConstraint)
+                lastUpdate = UpdateTimeLowerConstraint;
             return new DateTimeOffset(lastUpdate).ToUnixTimeSeconds().ToString()+".json";
         }
+
+        private static readonly DateTime UpdateTimeLowerConstraint = new DateTime(1980, 1, 1);
     }
 }
