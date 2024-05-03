@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Identities;
 using FCloud3.Entities.Messages;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
@@ -8,6 +9,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Identities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Files
@@ -21,6 +23,7 @@ namespace FCloud3.Services.Files
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
+        private readonly AuthGrantService _authGrantService;
         private readonly IStorage _storage;
 
         public FileDirService(
@@ -31,6 +34,7 @@ namespace FCloud3.Services.Files
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
+            AuthGrantService authGrantService,
             IStorage storage)
         {
             _userRepo = userRepo;
@@ -40,6 +44,7 @@ namespace FCloud3.Services.Files
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
             _opRecordRepo = opRecordRepo;
+            _authGrantService = authGrantService;
             _storage = storage;
         }
 
@@ -242,10 +247,15 @@ namespace FCloud3.Services.Files
         public List<int>? MoveFilesIn(int distDirId, List<int> fileItemIds,out string? failMsg, out string? errmsg)
         {
             failMsg = null;
-            //TODO权限验证，文件是不是自己的，文件夹有没有放文件权限
-
-            //fileItemIds = fileItemIds;//过滤掉没有权限的
-            
+            if (fileItemIds.Count > 5)
+            {
+                errmsg = "太多了，请一个个移";
+                return null;
+            }
+            int originalCount = fileItemIds.Count;
+            fileItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.FileItem, x));
+            if (originalCount > fileItemIds.Count)
+                failMsg = "无权移动该文件";
             if (distDirId < 0)
             {
                 errmsg = "请刷新后重试(未找到指定路径的文件夹)";
@@ -256,8 +266,12 @@ namespace FCloud3.Services.Files
                 errmsg = "不能将文件放到根目录";
                 return null;
             }
-            if (!_fileItemRepo.SetInDirForRange(distDirId, fileItemIds, out errmsg))
-                return null;
+
+            if (fileItemIds.Count >= 1)
+            {
+                if (!_fileItemRepo.SetInDirForRange(distDirId, fileItemIds, out errmsg))
+                    return null;
+            }
 
             errmsg = null;
             return fileItemIds;
@@ -279,6 +293,11 @@ namespace FCloud3.Services.Files
         }
         public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
         {
+            if(!_authGrantService.Test(AuthGrantOn.FileItem, fileItemId))
+            {
+                errmsg = "无权移动该文件";
+                return false;
+            }
             var list = new List<int>() { fileItemId };
             _ = MoveFilesIn(distDirId, list, out string? failMsg, out errmsg);
             if (errmsg is null && failMsg is not null)
@@ -297,8 +316,23 @@ namespace FCloud3.Services.Files
                 errmsg = "未找到目的地文件夹";
                 return null; 
             }
-            //TODO权限验证，文件夹是不是自己的，文件夹有没有放文件权限
-            //fileDirIds = fileDirIds 过滤掉没权限的，并写入failMsg
+
+            if (fileDirIds.Count > 5)
+            {
+                errmsg = "太多了，请一个个移";
+                return null;
+            }
+            int originalCount = fileDirIds.Count;
+            fileDirIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.Dir, x));
+            if (originalCount > fileDirIds.Count)
+                failMsg = "无权移动该目录";
+
+            if (fileDirIds.Count == 0)
+            {
+                errmsg = null;
+                return null;
+            }
+
             errmsg = null;
             var ds = _fileDirRepo.GetRangeByIds(fileDirIds).ToList();
 
@@ -325,12 +359,24 @@ namespace FCloud3.Services.Files
             }
             return MoveDirsIn(distDirId, fileDirIds,out failMsg, out errmsg);
         }
-        public List<int>? MoveWikisIn(int distDirId, List<int>wikiItemIds,out string? failMsg, out string? errmsg)
+        public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds,out string? failMsg, out string? errmsg)
         {
             failMsg = null;
-            //TODO 身份验证什么的，过滤没有权限的
-            if (!_wikiToDirRepo.AddWikisToDir(wikiItemIds, distDirId, out errmsg))
+            if (wikiItemIds.Count > 5)
+            {
+                errmsg = "太多了，请一个个移";
                 return null;
+            }
+            int originalCount = wikiItemIds.Count;
+            wikiItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.WikiItem, x));
+            if (originalCount > wikiItemIds.Count)
+                failMsg = "无权移动该词条";
+            if (wikiItemIds.Count > 0)
+            {
+                if (!_wikiToDirRepo.AddWikisToDir(wikiItemIds, distDirId, out errmsg))
+                    return null;
+            }
+            errmsg = null;
             return wikiItemIds;
         }
 
@@ -366,16 +412,22 @@ namespace FCloud3.Services.Files
                     return null;
                 }
                 fileDirSuccess = MoveDirsIn(distDirId, fileDirIds, out failMsg, out errmsg);
+                if (errmsg is not null)
+                    return null;
                 didSth = true;
             }
             if (fileItemIds is not null && fileItemIds.Count > 0)
             {
                 fileItemSuccess = MoveFilesIn(distDirId, fileItemIds, out failMsg, out errmsg);
+                if (errmsg is not null)
+                    return null;
                 didSth = true;
             }
             if (wikiItemIds is not null && wikiItemIds.Count > 0)
             {
                 wikiItemSuccess = MoveWikisIn(distDirId, wikiItemIds, out failMsg, out errmsg);
+                if (errmsg is not null)
+                    return null;
                 didSth = true;
             }
             if (!didSth)
@@ -395,7 +447,6 @@ namespace FCloud3.Services.Files
         }
         public bool Create(int parentDir, string? name, string? urlPathName, out string? errmsg)
         {
-            //TODO验证在父文件夹有没有权限
             FileDir? parent = _fileDirRepo.GetById(parentDir);
             int depth = 0;
             if (parent is not null)

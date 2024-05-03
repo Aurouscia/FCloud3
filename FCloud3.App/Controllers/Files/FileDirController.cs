@@ -69,22 +69,22 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp();
         }
         [Authorize]
-        [AuthGranted]
+        [AuthGranted(ignoreZero: true)]//检查了操作者在目标文件夹是否有权限，文件有没有权限在service里检查
         [UserTypeRestricted]
         public IActionResult PutInFile([FromBody] PutInFileRequest req)
         {
-            if(req is null || req.DirId == default) 
+            if(req is null) 
                 return BadRequest();
             if (!_fileDirService.MoveFileIn(req.DirId, req.FileItemId, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
         [Authorize]
-        [AuthGranted]
+        [AuthGranted(ignoreZero: true)]//检查了操作者在目标文件夹是否有权限，被移动的东西有没有权限在service里检查
         [UserTypeRestricted]
         public IActionResult PutInThings([FromBody] PutInThingsRequest req)
         {
-            if(req is null || req.DirId == default)
+            if(req is null)
                 return BadRequest();
             var res = _fileDirService.MoveThingsIn(req.DirId,req.FileItemIds,req.FileDirIds,req.WikiItemIds,out string? errmsg);
             if (res is null || errmsg is not null)
@@ -92,7 +92,7 @@ namespace FCloud3.App.Controllers.Files
             return this.ApiResp(res);  
         }
         [Authorize]
-        [AuthGranted(ignoreZero: true)]
+        [AuthGranted(ignoreZero: true)]//检查了操作者在目标夫文件夹是否有权限
         [UserTypeRestricted]
         public IActionResult Create([FromBody] FileDirCreateRequest req)
         {

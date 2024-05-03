@@ -16,6 +16,7 @@ export type ClipBoardCallBack = (item:ClipBoardItem,clickE:MouseEvent)=>void;
 const showBody = ref<boolean>(false);
 const list = ref<Array<ClipBoardItem & {highlight?:boolean}>>([]);
 function insert(item:ClipBoardItem,clickE:MouseEvent){
+    failMsg.value = undefined
     const existing = list.value.find(x=>isSameItem(x,item))
     if(existing){
         var delay = 200;
@@ -69,9 +70,11 @@ function playGuideAnim(fromX:number,fromY:number){
 
 const failMsg = ref<string|undefined>();
 function putDownOne(item:ClipBoardItem){
+    failMsg.value = undefined
     emit('putDown',[item],putEmitCallBackHandler)
 }
 function putDownAll(){
+    failMsg.value = undefined
     emit('putDown',list.value,putEmitCallBackHandler)
 }
 function putEmitCallBackHandler(success:ClipBoardItem[],failMessage?:string){
@@ -110,7 +113,7 @@ const emit = defineEmits<{
             <div class="clearBtn" @click="clear">清空(保留原位)</div>
             <div class="putDown" @click="putDownAll">全部拿出</div>
         </div>
-        <div v-if="failMsg" style="color:red;text-align: center;">{{ failMsg }}</div>
+        <div v-if="failMsg" style="color:red;text-align: center;"><b>{{ failMsg }}</b></div>
     </div>
     <div class="head" @click="showBody=!showBody">
         剪切板<b>({{ list.length }}个物品)</b> <span v-show="showBody" style="font-size: small;">点击收起</span>

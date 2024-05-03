@@ -26,6 +26,7 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FileItemRepo _fileItemRepo;
+        private readonly FileDirRepo _fileDirRepo;
         private readonly FreeTableRepo _freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly OpRecordRepo _opRecordRepo;
@@ -40,6 +41,7 @@ namespace FCloud3.Services.Wiki
             WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo,
             FileItemRepo fileItemRepo,
+            FileDirRepo fileDirRepo,
             FreeTableRepo freeTableRepo,
             CacheExpTokenService cacheExpTokenService,
             OpRecordRepo opRecordRepo,
@@ -53,6 +55,7 @@ namespace FCloud3.Services.Wiki
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
             _fileItemRepo = fileItemRepo;
+            _fileDirRepo = fileDirRepo;
             _freeTableRepo = freeTableRepo;
             _cacheExpTokenService = cacheExpTokenService;
             _opRecordRepo = opRecordRepo;
@@ -260,9 +263,10 @@ namespace FCloud3.Services.Wiki
         {
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
+                var d = _fileDirRepo.GetqById(dirId).Select(x=>x.Name).FirstOrDefault();
                 var w = _wikiMetadataService.Get(wikiId);
-                if (w is not null)
-                    _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"移除词条 {w.Title} ({w.UrlPathName})");
+                if (w is not null && d is not null)
+                    _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"从 {d} 移除词条 {w.Title} ({w.UrlPathName})");
                 return true;
             }
             return false;

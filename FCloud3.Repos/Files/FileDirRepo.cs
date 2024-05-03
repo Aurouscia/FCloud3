@@ -52,7 +52,7 @@ namespace FCloud3.Repos.Files
         {
             if (id == 0)
             {
-                return null;
+                return [];
             }
             List<int> res = new();
             var targetId = id;

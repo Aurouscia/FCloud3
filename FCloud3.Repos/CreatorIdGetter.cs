@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
+using FCloud3.Entities.Wiki;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,13 @@ namespace FCloud3.Repos
         }
         public int Get<T>(int modelId) where T : class, IDbModel
         {
+            if(typeof(T) == typeof(WikiItem))
+            {
+                return _context.Set<WikiItem>()
+                    .Where(x => x.Id == modelId)
+                    .Select(x => x.OwnerUserId)
+                    .FirstOrDefault();
+            }
             return _context.Set<T>()
                 .Where(x=>x.Id==modelId)
                 .Select(x=>x.CreatorUserId)
