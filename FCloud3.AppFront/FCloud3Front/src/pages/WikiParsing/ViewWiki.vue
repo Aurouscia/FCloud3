@@ -192,7 +192,7 @@ onUnmounted(()=>{
         <div class="info">
             <div class="owner">
                 所有者<img :src="userAvtSrc" class="smallAvatar"/>{{ userName }}<br/>
-                上次更新于 {{ data.Update }}
+                更新于 {{ data.Update }}
             </div>
             <button @click="jumpToWikiEdit(wikiPathName)">编辑本词条</button>
         </div>

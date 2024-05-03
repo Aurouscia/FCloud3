@@ -82,5 +82,12 @@ namespace FCloud3.Repos.Wiki
             }
             return true;
         }
+
+        public override IQueryable<WikiItem> OwnedByUser(int uid = -1)
+        {
+            if (uid == -1)
+                return Existing;
+            return Existing.Where(x => x.OwnerUserId == uid);
+        }
     }
 }

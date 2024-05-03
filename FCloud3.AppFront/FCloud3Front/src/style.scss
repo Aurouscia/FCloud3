@@ -194,6 +194,29 @@ a{
   border-radius: 1000px;
 }
 
+.icon{
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid white;
+  border-radius: 3px;
+  font-size: 10px;
+  color:white;
+}
+.wikiIcon{
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 3px;
+  text-align: center;
+  background-color: white;
+  border:1px solid black;
+  color:black;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 15px;
+}
+
 :root{
   --top-bar-height:50px;
   --main-div-margin-top:60px;

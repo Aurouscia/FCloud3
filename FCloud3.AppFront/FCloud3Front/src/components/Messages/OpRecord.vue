@@ -27,7 +27,7 @@ onMounted(async()=>{
 </script>
 
 <template>
-<div v-if="loaded" class="opRecords">
+<div class="opRecords">
     <div v-for="r in records" :key="r.Id" class="record">
         <div class="meta">
             <div class="un">{{ r.UserName }}</div>
@@ -40,8 +40,9 @@ onMounted(async()=>{
         <div class="t">{{ r.Time }}</div>
     </div>
     <div class="more" @click="load">加载更多</div>
+    <Loading v-if="!loaded"></Loading>
 </div>
-<Loading v-else></Loading>
+
 </template>
 
 <style scoped lang="scss">

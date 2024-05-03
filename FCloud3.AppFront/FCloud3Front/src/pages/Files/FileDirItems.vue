@@ -134,28 +134,6 @@ const emit = defineEmits<{
     gap:5px;
     flex-grow: 1;
 }
-.wikiIcon{
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    border-radius: 3px;
-    text-align: center;
-    background-color: white;
-    border:1px solid black;
-    color:black;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 15px;
-}
-.icon{
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    text-align: center;
-    border: 1px solid white;
-    border-radius: 3px;
-    font-size: 10px;
-    color:white;
-}
 .name{
     flex-grow: 0;
     flex-shrink: 0;

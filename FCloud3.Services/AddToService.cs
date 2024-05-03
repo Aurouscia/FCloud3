@@ -49,6 +49,7 @@ namespace FCloud3.Services
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();
+            services.AddScoped<LatestWorkService>();
 
             services.AddScoped<WikiItemMetadataService>();
             services.AddScoped<MaterialMetadataService>();

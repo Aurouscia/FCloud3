@@ -25,6 +25,7 @@ import { HeartbeatRequest } from '../models/sys/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '../models/messages/comment';
 import { NotifViewResult, NotificationGetRequest } from '../models/messages/notification';
 import { OpRecordGetRequest, OpRecordViewModel } from '../models/messages/opRecord';
+import { LatestWorkViewItem } from '../models/etc/latestWork';
 
 
 export class Api{
@@ -997,6 +998,14 @@ export class Api{
                 req
             )
             return resp.success
+        },
+        latestWork:async(uid=-1)=>{
+            const resp = await this.httpClient.request(
+                "/api/LatestWork/Get", "get", {uid}
+            )
+            if(resp.success){
+                return resp.data as LatestWorkViewItem[]
+            }
         }
     }
 }

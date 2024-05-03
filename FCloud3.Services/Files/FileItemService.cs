@@ -3,6 +3,8 @@ using FCloud3.Entities.Files;
 using FCloud3.Services.Files.Storage.Abstractions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using FCloud3.Entities.Messages;
+using FCloud3.Repos.Messages;
 
 namespace FCloud3.Services.Files
 {
@@ -11,12 +13,14 @@ namespace FCloud3.Services.Files
         private readonly FileItemRepo _fileItemRepo;
         private readonly FileDirRepo _fileDirRepo;
         private readonly IStorage _storage;
+        private readonly OpRecordRepo _opRecordRepo; 
 
-        public FileItemService(FileItemRepo fileItemRepo, FileDirRepo fileDirRepo, IStorage storage)
+        public FileItemService(FileItemRepo fileItemRepo, FileDirRepo fileDirRepo, IStorage storage, OpRecordRepo opRecordRepo)
         {
             _fileItemRepo = fileItemRepo;
             _fileDirRepo = fileDirRepo;
             _storage = storage;
+            _opRecordRepo = opRecordRepo;
         }
 
         public FileItemDetail? GetDetail(int id, out string? errmsg)
@@ -108,7 +112,13 @@ namespace FCloud3.Services.Files
                 if (!_storage.Save(stream, storePathName, out errmsg))
                     return 0;
             }
-            return _fileItemRepo.TryAddAndGetId(f, out errmsg);
+            var createdId = _fileItemRepo.TryAddAndGetId(f, out errmsg);
+            if(createdId > 0)
+            {
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileItem, $"{displayName}");
+                return createdId;
+            }
+            return 0;
         }
 
         private static readonly string[] invalidChars = ["/", "\\", ":", "*", "?", ":", "<", ">", "|"];

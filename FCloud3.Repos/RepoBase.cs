@@ -24,6 +24,12 @@ namespace FCloud3.Repos
         public int ExistingCount => Existing.Count();
         public void SetUpdateTime(int id) => Existing.Where(x => x.Id == id).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
         public void SetUpdateTime(List<int> ids) => Existing.Where(x=>ids.Contains(x.Id)).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
+        public virtual IQueryable<T> OwnedByUser(int uid = -1)
+        {
+            if (uid == -1)
+                return Existing;
+            return Existing.Where(x => x.CreatorUserId == uid);
+        }
 
         public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
         {
