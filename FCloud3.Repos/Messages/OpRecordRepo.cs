@@ -24,5 +24,10 @@ namespace FCloud3.Repos.Messages
             };
             _ = TryAdd(r, out _);
         }
+
+        public IQueryable<OpRecord> TakeRange(int skip) 
+            => Existing.OrderByDescending(x => x.Created).Skip(skip).Take(20);
+        public IQueryable<OpRecord> TakeRange(int skip, int user)
+            => Existing.Where(x => x.CreatorUserId == user).OrderByDescending(x => x.Created).Skip(skip).Take(20);
     }
 }

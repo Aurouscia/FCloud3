@@ -45,6 +45,7 @@ namespace FCloud3.Services
 
             services.AddScoped<CommentService>();
             services.AddScoped<NotificationService>();
+            services.AddScoped<OpRecordService>();
 
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();

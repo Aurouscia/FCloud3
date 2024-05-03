@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { NotifViewItem, NotifType } from '../../models/messages/notification';
-import { injectApi } from '../../provides';
+import { injectApi, injectUserInfo } from '../../provides';
 import Loading from '../../components/Loading.vue';
 import { useNotifCount } from '../../utils/notifCountUse';
 
@@ -10,8 +10,12 @@ const notifs = ref<NotifViewItem[]>([])
 const loaded = ref(false);
 const totalCount = ref(0);
 const {readAll, readOne, notifCount} = useNotifCount();
+const iden = injectUserInfo()
 
 async function load(){
+    const identity = await iden.getIdentityInfo()
+    if(identity.Id <= 0)
+        return;
     const res = await api.messages.notification.get(notifs.value.length);
     if(res){
         totalCount.value = res.TotalCount;

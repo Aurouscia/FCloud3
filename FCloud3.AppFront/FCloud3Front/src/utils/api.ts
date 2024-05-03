@@ -24,6 +24,7 @@ import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
 import { HeartbeatRequest } from '../models/sys/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '../models/messages/comment';
 import { NotifViewResult, NotificationGetRequest } from '../models/messages/notification';
+import { OpRecordGetRequest, OpRecordViewModel } from '../models/messages/opRecord';
 
 
 export class Api{
@@ -898,6 +899,18 @@ export class Api{
                     "/api/Notification/MarkRead", "get", {id}
                 )
                 return resp.success
+            }
+        },
+        opRecord:{
+            get: async(skip:number, user?:number)=>{
+                const req: OpRecordGetRequest = {
+                    Skip:skip, User:user || -1
+                }
+                const resp = await this.httpClient.request(
+                    "/api/OpRecord/Get", "postRaw", req, undefined, skip>0
+                )
+                if(resp.success)
+                    return resp.data as Array<OpRecordViewModel>
             }
         }
     }
