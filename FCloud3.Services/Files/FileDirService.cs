@@ -224,9 +224,9 @@ namespace FCloud3.Services.Files
 
             string record = "";
             if (target.Name != name)
-                record += $"将[{target.Name}]更名为[{name}];";
+                record += $"将 {target.Name} 更名为 {name} ; ";
             if (target.UrlPathName != urlPathName)
-                record += $"将路径名[{target.UrlPathName}]改为[{urlPathName}]";
+                record += $"将路径名 {target.UrlPathName} 改为 {urlPathName}";
 
             target.Name = name;
             target.UrlPathName = urlPathName;
@@ -411,7 +411,7 @@ namespace FCloud3.Services.Files
             {
                 string parentName = parent?.Name ?? "根文件夹";
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
-                    $"在[{parentName}]中新建[{name}][{urlPathName}]");
+                    $"在 {parentName} 中新建 {name} ({urlPathName})");
                 return true;
             }
             return false;
@@ -442,7 +442,7 @@ namespace FCloud3.Services.Files
             }
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
-                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $"[{item.Name}]");
+                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $" {item.Name} ");
                 return true;
             }
             return false;

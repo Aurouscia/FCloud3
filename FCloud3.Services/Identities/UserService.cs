@@ -1,7 +1,9 @@
 ﻿using FCloud3.Entities.Identities;
+using FCloud3.Entities.Messages;
 using FCloud3.Repos;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Messages;
 using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using System.Text.RegularExpressions;
@@ -13,6 +15,7 @@ namespace FCloud3.Services.Identities
         UserMetadataService userMetadataService,
         MaterialRepo materialRepo,
         MaterialMetadataService materialMetadataService,
+        OpRecordRepo opRecordRepo,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
         IOperatingUserIdProvider operatingUserIdProvider)
@@ -21,6 +24,7 @@ namespace FCloud3.Services.Identities
         private readonly UserMetadataService _userMetadataService = userMetadataService;
         private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
@@ -204,10 +208,15 @@ namespace FCloud3.Services.Identities
                     return false;
                 }
             }
+            string? record = null;
+            if (u.Type != targetType)
+                record = $"将 {u.Name} 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
             if(_repo.TryEdit(u, out errmsg))
             {
                 _userMetadataService.Update(id, u => u.Type = targetType);
+                if (record is not null)
+                    _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, record);
                 return true;
             }
             return false;

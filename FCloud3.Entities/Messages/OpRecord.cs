@@ -22,6 +22,7 @@ namespace FCloud3.Entities.Messages
         None = 0,
         Create = 10,
         Edit = 20,
+        EditImportant = 21,
         Remove = 30,
     }
     public enum OpRecordTargetType

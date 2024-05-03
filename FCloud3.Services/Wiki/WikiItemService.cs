@@ -167,7 +167,7 @@ namespace FCloud3.Services.Wiki
                 SetWikiUpdated(wikiId);
                 var name = _wikiMetadataService.Get(wikiId)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, 
-                    $"为[{name}]插入了新[{WikiParaTypes.Readable(type)}]段落");
+                    $"为 {name} 插入了新 {WikiParaTypes.Readable(type)} 段落");
             }
             return success;
         }
@@ -198,7 +198,7 @@ namespace FCloud3.Services.Wiki
             SetWikiUpdated(wikiId);
             var name = _wikiMetadataService.Get(wikiId)?.Title;
             _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
-                $"为[{name}]调整段落顺序");
+                $"为 {name} 调整段落顺序");
             return true;
         }
         public bool RemovePara(int id, int paraId, out string? errmsg)
@@ -231,7 +231,7 @@ namespace FCloud3.Services.Wiki
                 SetWikiUpdated(id);
                 var name = _wikiMetadataService.Get(id)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
-                    $"从[{name}]移除了段落");
+                    $"从 {name} 移除了段落");
             }
             return success;
         }
@@ -250,7 +250,7 @@ namespace FCloud3.Services.Wiki
                 {
                     int uid = _operatingUserIdProvider.Get();
                     _wikiMetadataService.Create(id, uid, title, urlPathName);
-                    _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $"取名为[{title}][{urlPathName}]");
+                    _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
                     return true;
                 }
             }
@@ -260,8 +260,9 @@ namespace FCloud3.Services.Wiki
         {
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
-                var title = _wikiMetadataService.Get(wikiId)?.Title;
-                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"移除词条[{title}]");
+                var w = _wikiMetadataService.Get(wikiId);
+                if (w is not null)
+                    _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"移除词条 {w.Title} ({w.UrlPathName})");
                 return true;
             }
             return false;
@@ -289,9 +290,9 @@ namespace FCloud3.Services.Wiki
 
             string record = "";
             if (target.Title != title)
-                record += $"将[{target.Title}]更名为[{title}];";
+                record += $"将 {target.Title} 更名为 {title} ; ";
             if (target.UrlPathName != urlPathName)
-                record += $"将路径名[{target.UrlPathName}]改为[{urlPathName}]";
+                record += $"将路径名 {target.UrlPathName} 改为 {urlPathName}";
 
             target.Title = title;
             target.UrlPathName = urlPathName;

@@ -55,7 +55,10 @@ onMounted(async()=>{
 }
 .meta{
     display: flex;
-    gap: 10px
+    gap: 5px
+}
+.un{
+    font-weight: bold;
 }
 .t{
     color: #666
@@ -63,6 +66,8 @@ onMounted(async()=>{
 .c{
     color: black;
     background-color: #ddd;
+    margin: 5px 0px 5px 0px;
+    padding: 5px;
 }
 .more{
     text-align: center;

@@ -13,6 +13,7 @@ export enum OpRecordOpType
     None = 0,
     Create = 10,
     Edit = 20,
+    EditImportant = 21,
     Remove = 30,
 }
 export enum OpRecordTargetType
@@ -38,6 +39,8 @@ export function OpTypeReadable(t:OpRecordOpType){
         return "创建"
     if(t == OpRecordOpType.Edit)
         return "编辑"
+    if(t == OpRecordOpType.EditImportant)
+        return "变动"
     if(t == OpRecordOpType.Remove)
         return "删除"
 }
@@ -46,6 +49,8 @@ export function OpTypeColor(t:OpRecordOpType){
         return "green"
     if(t == OpRecordOpType.Edit)
         return "cornflowerblue"
+    if(t == OpRecordOpType.EditImportant)
+        return "fuchsia"
     if(t == OpRecordOpType.Remove)
         return "red"
 }

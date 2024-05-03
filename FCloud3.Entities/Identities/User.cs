@@ -27,4 +27,24 @@ namespace FCloud3.Entities.Identities
         Admin = 8,
         SuperAdmin = 9
     }
+
+    public static class UserTypes
+    {
+        public static string Readable(UserType type)
+        {
+            switch (type)
+            {
+                case UserType.Tourist:
+                    return "游客";
+                case UserType.Member:
+                    return "会员";
+                case UserType.Admin:
+                    return "管理";
+                case UserType.SuperAdmin:
+                    return "超管";
+                default:
+                    return "??";
+            }
+        }
+    }
 }
