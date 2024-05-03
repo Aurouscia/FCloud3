@@ -8,6 +8,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ namespace FCloud3.Services.Files
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
         private readonly AuthGrantService _authGrantService;
+        private readonly UserMetadataService _userMetadataService;
         private readonly IStorage _storage;
 
         public FileDirService(
@@ -35,6 +37,7 @@ namespace FCloud3.Services.Files
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
+            UserMetadataService userMetadataService,
             IStorage storage)
         {
             _userRepo = userRepo;
@@ -45,6 +48,7 @@ namespace FCloud3.Services.Files
             _wikiToDirRepo = wikiToDirRepo;
             _opRecordRepo = opRecordRepo;
             _authGrantService = authGrantService;
+            _userMetadataService = userMetadataService;
             _storage = storage;
         }
 
@@ -79,12 +83,15 @@ namespace FCloud3.Services.Files
                 thisDirId = chain.Last().Id;
 
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
+            var ownerName = "";
+            if(ownerId > 0)
+                ownerName = _userMetadataService.Get(ownerId)?.Name ?? "??";
 
             var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
             if(subDirsQ is null)
                 return null;
             var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ,q);
-            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData = subDirs.TakePage(q,x => new FileDirIndexResult.FileDirSubDir()
+            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData = subDirs.TakePageAndConvertOneByOne(q,x => new FileDirIndexResult.FileDirSubDir()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -107,14 +114,18 @@ namespace FCloud3.Services.Files
                 var itemsQ = _fileItemRepo.GetByDirId(thisDirId);
                 var items = _fileItemRepo.IndexFilterOrder(itemsQ, q, keyReplaceForFileItem);
 
-                itemsData = items.TakePage(q, x => new FileDirIndexResult.FileDirItem()
-                {
-                    Id = x.Id,
-                    Name = x.DisplayName,
-                    OwnerName = "",
-                    ByteCount = x.ByteCount,
-                    Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                    Url = _storage.FullUrl(x.StorePathName ?? "missing")
+                itemsData = items.TakePageAndConvertAll(q, list => {
+                    var relatedUserIds = list.ConvertAll(x => x.CreatorUserId);
+                    var users = _userMetadataService.GetRange(relatedUserIds);
+                    return list.ConvertAll(x => new FileDirIndexResult.FileDirItem()
+                    {
+                        Id = x.Id,
+                        Name = x.DisplayName,
+                        OwnerName = users.Find(u=>u.Id == x.CreatorUserId)?.Name ?? "??",
+                        ByteCount = x.ByteCount,
+                        Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
+                        Url = _storage.FullUrl(x.StorePathName ?? "missing")
+                    });
                 });
             }
 
@@ -134,7 +145,7 @@ namespace FCloud3.Services.Files
                              select wiki;
                 var wikis = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
 
-                wikisData = wikis.TakePage(q, x => new FileDirIndexResult.FileDirWiki()
+                wikisData = wikis.TakePageAndConvertOneByOne(q, x => new FileDirIndexResult.FileDirWiki()
                 {
                     Id = x.Id,
                     Name = x.Title,
@@ -149,6 +160,7 @@ namespace FCloud3.Services.Files
                 Wikis = wikisData,
                 ThisDirId = thisDirId,
                 OwnerId = ownerId,
+                OwnerName = ownerName,
                 FriendlyPath = friendlyPath
             };
         }
@@ -186,7 +198,7 @@ namespace FCloud3.Services.Files
             }
             var items = _fileItemRepo.IndexFilterOrder(homelessFiles, q, keyReplaceForFileItem);
             IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
-            itemsData = items.TakePage(q, x => new FileDirIndexResult.FileDirItem()
+            itemsData = items.TakePageAndConvertOneByOne(q, x => new FileDirIndexResult.FileDirItem()
             {
                 Id = x.Id,
                 Name = x.DisplayName,
@@ -514,6 +526,7 @@ namespace FCloud3.Services.Files
         public IndexResult<FileDirWiki>? Wikis { get; set; }
         public int ThisDirId { get; set; }
         public int OwnerId { get; set; }
+        public string? OwnerName { get; set; }
         public List<string>? FriendlyPath { get; set; }
 
         public class FileDirSubDir

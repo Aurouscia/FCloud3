@@ -56,7 +56,7 @@ namespace FCloud3.Repos
         }
         public virtual IndexResult<T> Index(IndexQuery query)
         {
-            return  IndexFilterOrder(query).TakePage(query,x=>x);
+            return  IndexFilterOrder(query).TakePageAndConvertOneByOne(query,x=>x);
         }
         public virtual IQueryable<T> Filter(IQueryable<T> q, SearchDict dict)
         {

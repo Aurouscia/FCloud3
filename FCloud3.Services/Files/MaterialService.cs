@@ -43,7 +43,7 @@ namespace FCloud3.Services.Files
             }
             else
                 from = _materialRepo.Existing;
-            var m = _materialRepo.IndexFilterOrder(from, q).TakePage(q, x => new MaterialIndexItem(x, _storage.FullUrl));
+            var m = _materialRepo.IndexFilterOrder(from, q).TakePageAndConvertOneByOne(q, x => new MaterialIndexItem(x, _storage.FullUrl));
             return m;
         }
 

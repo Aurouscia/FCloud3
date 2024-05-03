@@ -73,7 +73,7 @@ onMounted(async ()=>{
     cursor: pointer;
     flex-basis: 10px;
     border-radius: 5px 5px 0px 0px;
-    transition: 0.5s;
+    transition: 0.2s;
 }
 .controls{
     display: flex;

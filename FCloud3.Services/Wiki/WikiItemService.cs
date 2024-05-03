@@ -67,7 +67,7 @@ namespace FCloud3.Services.Wiki
         }
         public IndexResult<WikiItemIndexItem> Index(IndexQuery query)
         {
-            return _wikiRepo.IndexFilterOrder(query).TakePage(query,x=>new WikiItemIndexItem(x));
+            return _wikiRepo.IndexFilterOrder(query).TakePageAndConvertOneByOne(query,x=>new WikiItemIndexItem(x));
         }
 
         /// <summary>

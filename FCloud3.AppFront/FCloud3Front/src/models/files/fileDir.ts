@@ -23,6 +23,7 @@ export interface FileDirIndexResult{
     Wikis:IndexResult|undefined,//FileDirWiki
     ThisDirId:number,
     OwnerId:number,
+    OwnerName:string,
     FriendlyPath:string[]
 }
 export interface FileDirSubDir{

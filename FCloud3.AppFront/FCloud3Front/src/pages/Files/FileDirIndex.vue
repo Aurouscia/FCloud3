@@ -22,6 +22,7 @@ import { IdentityInfo } from '../../utils/userInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { jumpToUserCenter } from '../Identities/routes';
 
 
 const props = defineProps<{
@@ -44,6 +45,7 @@ const thisOwnerId = ref<number>(0);
 const friendlyPath = ref<string[]>([]);
 const friendlyPathAncestors = ref<string[]>([]);
 const friendlyPathThisName = ref<string>();
+const thisOwnerName = ref<string>();
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     var p = props.path;
@@ -53,8 +55,9 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     }
     const res = await api.fileDir.index(q,p)
     if(res){
-        thisDirId.value = res?.ThisDirId || 0;
-        thisOwnerId.value = res?.OwnerId || 0;
+        thisDirId.value = res.ThisDirId || 0;
+        thisOwnerId.value = res.OwnerId || 0;
+        thisOwnerName.value = res.OwnerName;
         renderItems(res.Items);
         renderSubdirs(res.SubDirs);
         renderWikis(res.Wikis);
@@ -269,6 +272,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                 <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
         </div>
+        <div v-if="thisDirId>0" class="owner">
+            目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
+        </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
             :hide-page="!isRoot" :hide-fn="hideFn">
             <tr v-for="item in subDirs" :key="item.Id">
@@ -317,6 +323,17 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 </template>
 
 <style scoped>
+.owner{
+    color: #999;
+    margin-bottom: 10px;
+}
+.owner span{
+    font-weight: bold;
+    cursor: pointer;
+}
+.owner span:hover{
+    text-decoration: underline;
+}
 .items{
     padding-left: 20px;
 }
@@ -353,7 +370,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 .thisName{
     font-size: 20px;
     margin-top: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     user-select: none;
     display: flex;
     flex-direction: row;

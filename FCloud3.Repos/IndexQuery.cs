@@ -48,13 +48,23 @@
             q = q.Skip(skip).Take(pageSize);
             return q;
         }
-        public static IndexResult<TDisplay> TakePage<TModel, TDisplay>(
+        public static IndexResult<TDisplay> TakePageAndConvertOneByOne<TModel, TDisplay>(
             this IQueryable<TModel> q, IndexQuery? query, Func<TModel, TDisplay> map)
         {
             q = q.TakePage(query, out int totalCount, out int pageIdx, out int pageCount);
             var list = q.ToList();
 
             var mapped = list.ConvertAll(x => map(x));
+
+            return new(mapped, pageIdx, pageCount, totalCount);
+        }
+        public static IndexResult<TDisplay> TakePageAndConvertAll<TModel, TDisplay>(
+            this IQueryable<TModel> q, IndexQuery? query, Func<List<TModel>, List<TDisplay>> mapRange)
+        {
+            q = q.TakePage(query, out int totalCount, out int pageIdx, out int pageCount);
+            var list = q.ToList();
+
+            var mapped = mapRange(list);
 
             return new(mapped, pageIdx, pageCount, totalCount);
         }

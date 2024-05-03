@@ -5,6 +5,7 @@ import { Api } from '../../utils/api';
 import SideBar from '../../components/SideBar.vue';
 import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '../../utils/fileUtils';
 import { FileDirItem } from '../../models/files/fileDir';
+import { jumpToUserCenter } from '../Identities/routes';
 
 const editingFileId = ref<number>();
 const editingFileName = ref<string>();
@@ -12,6 +13,7 @@ const editingFileExt = ref<string>();
 const editingFileBytes = ref<number>();
 const editingFileUrl = ref<string>();
 const editFileSidebar = ref<InstanceType<typeof SideBar>>();
+const owner = ref<string>();
 let ok:(newName:string|-1)=>void
 async function startEditingFile(f:FileDirItem, okCallBack:(newName:string|-1)=>void){
     editingFileId.value = f.Id;
@@ -19,6 +21,7 @@ async function startEditingFile(f:FileDirItem, okCallBack:(newName:string|-1)=>v
     editingFileExt.value = getFileExt(f.Name, false, true);
     editingFileBytes.value = f.ByteCount;
     editingFileUrl.value = f.Url;
+    owner.value = f.OwnerName;
     editFileSidebar.value?.extend();
     ok = okCallBack;
 }
@@ -32,6 +35,7 @@ async function editingFileOk(){
         editingFileName.value = undefined;
         editingFileExt.value = undefined;
         editingFileId.value = undefined;
+        owner.value = undefined;
         editFileSidebar.value?.fold();
         ok(fullName)
     }
@@ -66,6 +70,7 @@ onMounted(()=>{
     <SideBar ref="editFileSidebar">
         <h1>编辑文件信息</h1>
         <div class="fileEdit">
+            <div class="owner">文件所有者 <span @click="jumpToUserCenter(owner||'??')">{{ owner }}</span></div>
             <img v-if="canDisplayAsImage(editingFileExt||'', editingFileBytes||0)" :src="editingFileUrl"/>
             <div>
                 <input v-model="editingFileName" type="text" />{{ editingFileExt }}
@@ -77,6 +82,17 @@ onMounted(()=>{
 </template>
 
 <style scoped>
+.owner{
+    color: #999;
+    margin-bottom: 10px;
+}
+.owner span{
+    font-weight: bold;
+    cursor: pointer;
+}
+.owner span:hover{
+    text-decoration: underline;
+}
 .fileEdit{
     display: flex;
     flex-direction: column;

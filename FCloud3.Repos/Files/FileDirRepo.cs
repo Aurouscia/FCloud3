@@ -172,5 +172,12 @@ namespace FCloud3.Repos.Files
             }
             return true;
         }
+
+        public override int GetOwnerIdById(int id)
+        {
+            if (id == 0)
+                return 0;
+            return base.GetOwnerIdById(id);
+        }
     }
 }
