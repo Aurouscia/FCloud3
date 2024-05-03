@@ -12,16 +12,16 @@ const records = ref<OpRecordViewModel[]>([])
 const loaded = ref(false)
 const pop = injectPop()
 
-async function load(){
+async function load(active:boolean){
     const resp = await api.messages.opRecord.get(records.value.length, props.user)
     if(resp){
         records.value.push(...resp);
-        if(resp.length === 0)
+        if(resp.length === 0 && active)
             pop.value.show("没有更多了", "warning")
     }
 }
 onMounted(async()=>{
-    await load();
+    await load(false);
     loaded.value = true
 })
 </script>
@@ -39,7 +39,7 @@ onMounted(async()=>{
         <div class="c">{{ r.Content }}</div>
         <div class="t">{{ r.Time }}</div>
     </div>
-    <div class="more" @click="load">加载更多</div>
+    <div class="more" @click="load(true)">加载更多</div>
     <Loading v-if="!loaded"></Loading>
 </div>
 
@@ -74,6 +74,7 @@ onMounted(async()=>{
     text-align: center;
     color:#666;
     cursor: pointer;
+    margin-bottom: 50px;
     &:hover{
         color: black;
         text-decoration: underline;

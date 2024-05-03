@@ -17,6 +17,7 @@ import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { jumpToFreeTableEdit } from '../Table/routes';
 import { jumpToWikiEdit } from '../Wiki/routes';
 import { jumpToDiffContentHistory } from '../Diff/routes';
+import { jumpToUserCenter } from '../Identities/routes';
 import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
 import { canDisplayAsImage } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
@@ -191,7 +192,8 @@ onUnmounted(()=>{
         </div>
         <div class="info">
             <div class="owner">
-                所有者<img :src="userAvtSrc" class="smallAvatar"/>{{ userName }}<br/>
+                所有者<img :src="userAvtSrc" class="smallAvatar"/>
+                <span @click="jumpToUserCenter(userName)">{{ userName }}</span><br/>
                 更新于 {{ data.Update }}
             </div>
             <button @click="jumpToWikiEdit(wikiPathName)">编辑本词条</button>
@@ -309,6 +311,12 @@ onUnmounted(()=>{
         color: #666;
         img{
             margin: 0px 5px 10px 5px
+        }
+        span{
+            cursor: pointer;
+            &:hover{
+                text-decoration: underline;
+            }
         }
     }
 }

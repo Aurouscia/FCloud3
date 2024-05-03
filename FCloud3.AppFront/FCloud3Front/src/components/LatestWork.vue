@@ -5,9 +5,11 @@ import { injectApi } from '../provides';
 import { getFileIconStyle, getFileExt } from '../utils/fileUtils';
 import { jumpToViewWiki } from '../pages/WikiParsing/routes';
 import { useRouter } from 'vue-router';
+import { jumpToUserCenter } from '../pages/Identities/routes';
 
 const props = defineProps<{
-    uid?: number
+    uid?: number,
+    noWrap?: boolean
 }>()
 const api = injectApi();
 const list = ref<LatestWorkViewItem[]>([])
@@ -35,15 +37,15 @@ onMounted(async()=>{
 </script>
 
 <template>
-<div class="latests">
-    <div v-for="i in list" class="latest" @click="jumpTo(i)">
-        <div class="t">
+<div class="latests" :class="{canWrap:!noWrap}">
+    <div v-for="i in list" class="latest">
+        <div class="t" @click="jumpTo(i)">
             <div v-if="i.Type==LatestWorkType.Wiki" class="wikiIcon">W</div>
             <div v-else-if="i.Type==LatestWorkType.File" class="icon" :style="getFileIconStyle(i.Title)">{{ getFileExt(i.Title) }}</div>
-            {{ i.Title }}
+            <div class="tt">{{ i.Title }}</div>
         </div>
         <div class="right">
-            <div class="u">{{ i.UserName }}</div>
+            <div class="u" @click="jumpToUserCenter(i.UserName)">{{ i.UserName }}</div>
             <div class="time">{{ i.Time }}</div>
         </div>
     </div>
@@ -57,11 +59,21 @@ onMounted(async()=>{
 }
 .u{
     font-weight: bold;
+    cursor: pointer;
+    &:hover{
+        text-decoration: underline;
+    }
 }
 .t{
     display: flex;
     align-items: center;
-    gap: 5px
+    gap: 5px;
+}
+.tt{
+    cursor: pointer;
+    &:hover{
+        text-decoration: underline;
+    }
 }
 .time{
     color: #888;
@@ -77,7 +89,6 @@ onMounted(async()=>{
     gap: 10px;
     &:hover{
         background-color: #d8d8d8;
-        cursor: pointer;
     }
 }
 @media screen and (max-width: 500px) {
@@ -91,7 +102,7 @@ onMounted(async()=>{
     flex-direction: column;
 }
 @media screen and (min-width: 1000px) {
-    .latests{
+    .canWrap{
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: space-between;

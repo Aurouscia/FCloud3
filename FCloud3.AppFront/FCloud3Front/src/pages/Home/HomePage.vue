@@ -14,8 +14,10 @@ import Help from './Help.vue';
         目前是半成品状态，对操作时遇到的不满意情况请及时反馈
     </div>
     <SwitchingTabs :texts="['作品', '动态' ,'指南']">
-        <LatestWork>
-        </LatestWork>
+        <div>
+            <LatestWork>
+            </LatestWork>
+        </div>
         <OpRecord>
         </OpRecord>
         <Help></Help>

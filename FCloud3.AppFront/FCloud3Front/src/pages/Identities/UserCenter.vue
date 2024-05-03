@@ -3,7 +3,8 @@ import { Ref, onMounted, onUnmounted, ref, watch } from 'vue';
 import SideBar from '../../components/SideBar.vue';
 import Personal from './PersonalSettings.vue';
 import Loading from '../../components/Loading.vue';
-import IndexWikiItem from '../../components/Index/IndexWikiItem.vue'
+import LatestWork from '../../components/LatestWork.vue';
+import OpRecord from '../../components/Messages/OpRecord.vue';
 import { User } from '../../models/identities/user';
 import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
@@ -74,17 +75,17 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <div v-if="ok" class="user">
+    <div v-if="ok && user" class="user">
         <div class="info">
             <img :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
             <div class="settings"><button v-if="username==identity?.Name" @click="editInfoSidebar?.extend">编辑信息</button></div>
         </div>
-        <SwitchingTabs style="width: 300px;height: 400px;" :texts="['用户动态','自荐作品','最新作品']">
-            <IndexWikiItem></IndexWikiItem>
-            <div>自荐作品</div>
-            <div>最新作品</div>
+        <SwitchingTabs style="width: 300px;height: 400px;" :texts="['最新作品','最近动态','自荐']">
+            <div><LatestWork :uid="user.Id" :noWrap="true"></LatestWork></div>
+            <OpRecord :user="user.Id"></OpRecord>
+            <div style="text-align:center">暂未开放</div>
         </SwitchingTabs>
     </div>
     <div v-else><Loading></Loading></div>
@@ -128,6 +129,8 @@ onUnmounted(()=>{
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: start;
+    height: calc(100vh - var(--main-div-margin-top) - 20px);
+    margin-top: 10px;
 }
 .user>*{
     flex-grow: 1;

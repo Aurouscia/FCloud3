@@ -5,6 +5,7 @@ import { injectApi, injectPop, injectUserInfo } from '../../provides';
 import { truncate } from 'lodash'; 
 import { rateColor, rateText } from './rateTextColor';
 import { IdentityInfo } from '../../utils/userInfo';
+import { jumpToUserCenter } from '../../pages/Identities/routes';
 
 const props = defineProps<{
     c:CommentViewResult,
@@ -74,7 +75,7 @@ async function inputKeyDown(e:KeyboardEvent){
     <div class="commentItem">
         <div class="info">
             <img :src="c.UserAvtSrc" class="smallAvatar"/>
-            <div class="uname">{{ c.UserName }}</div>
+            <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
             <div class="time">{{ c.Time }}</div>
             <div v-if="c.Rate>0" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
         </div>
@@ -109,6 +110,10 @@ async function inputKeyDown(e:KeyboardEvent){
 .uname{
     color: #666;
     white-space: nowrap;
+    cursor: pointer;
+    &:hover{
+        text-decoration: underline;
+    }
 }
 .time{
     color: #aaa;
