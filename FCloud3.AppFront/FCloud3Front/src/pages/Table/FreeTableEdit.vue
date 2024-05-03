@@ -13,6 +13,7 @@ import SideBar from '../../components/SideBar.vue';
 import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
 import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     id:string
@@ -56,6 +57,7 @@ const loadComplete = ref<boolean>(false);
 const titleContainSidebar = ref<InstanceType<typeof SideBar>>();
 let heartbeatSender:HeartbeatSender|undefined;
 onMounted(async()=>{
+    setTitleTo('表格编辑器')
     api = injectApi();
     setTopBar = injectSetTopbar();
     setTopBar(false);
@@ -63,6 +65,7 @@ onMounted(async()=>{
     loadComplete.value = true;
 })
 onUnmounted(()=>{
+    recoverTitle()
     if(setTopBar)
         setTopBar(true);
     heartbeatSender?.stop();

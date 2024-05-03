@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref,Ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref,Ref } from 'vue';
 import { HttpClient} from '../../utils/httpClient';
 import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
 import { userTypeText } from '../../models/identities/user';
@@ -9,6 +9,7 @@ import { injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
 import { jumpToRegister } from './routes';
 import { useNotifCount } from '../../utils/notifCountUse';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -51,11 +52,15 @@ async function Logout() {
     }
 }
 onMounted(async()=>{
+    setTitleTo('登录')
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
     identityInfoProvider = injectUserInfo();
     identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
+})
+onUnmounted(()=>{
+    recoverTitle()
 })
 </script>
 

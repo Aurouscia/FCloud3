@@ -6,6 +6,7 @@ import Loading from '../../components/Loading.vue';
 import UserGroupDetail from './UserGroupDetail.vue';
 import SideBar from '../../components/SideBar.vue';
 import { useRouter } from 'vue-router';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     id?:string
@@ -61,6 +62,7 @@ function wide(){
     return windowWidth.value > 800;
 }
 onMounted(async()=>{
+    setTitleTo('用户组一览')
     getWidth();
     window.addEventListener('resize',getWidth);
     api = inject('api') as Api;
@@ -68,6 +70,7 @@ onMounted(async()=>{
     lookingDetail.value = parseInt(props.id||"")||undefined
 });
 onUnmounted(()=>{
+    recoverTitle()
     window.removeEventListener('resize',getWidth);
 })
 

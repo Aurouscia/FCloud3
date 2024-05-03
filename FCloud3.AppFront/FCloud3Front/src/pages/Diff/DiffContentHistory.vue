@@ -8,6 +8,7 @@ import DiffContentDetail from './DiffContentDetail.vue';
 import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
 import { watchWindowWidth } from '../../utils/windowSizeWatcher';
 import SideBar from '../../components/SideBar.vue';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     type: string;
@@ -39,12 +40,14 @@ function tooNarrowOrNot(width:number){
 let api:Api;
 let disposeWidthWatch:undefined|(()=>void)
 onMounted(async()=>{
+    setTitleTo('编辑历史')
     api = injectApi();
     history.value = await api.diffContent.history(type, objId)
     disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
+    recoverTitle()
     disposeWidthWatch?.()
 })
 </script>

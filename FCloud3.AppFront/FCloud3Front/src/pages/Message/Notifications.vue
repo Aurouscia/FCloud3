@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { NotifViewItem, NotifType } from '../../models/messages/notification';
 import { injectApi, injectUserInfo } from '../../provides';
 import Loading from '../../components/Loading.vue';
 import { useNotifCount } from '../../utils/notifCountUse';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])
@@ -41,8 +42,12 @@ async function markRead(id:number|"all") {
 }
 
 onMounted(async()=>{
+    setTitleTo('通知消息')
     await load();
     loaded.value = true;
+})
+onUnmounted(()=>{
+    recoverTitle()
 })
 
 watch(notifCount, (newVal, oldVal)=>{

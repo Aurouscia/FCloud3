@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, provide, ref, watch } from 'vue';
+import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import IndexMini, { IndexColumn } from '../../components/Index/IndexMini.vue';
 import { Api } from '../../utils/api';
 import { IndexQuery, IndexResult } from '../../components/Index';
@@ -21,6 +21,7 @@ import { injectApi, injectUserInfo } from '../../provides';
 import { IdentityInfo } from '../../utils/userInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 
 const props = defineProps<{
@@ -147,10 +148,12 @@ function setFriendlyPathData(){
         friendlyPath.value = [];
         friendlyPathThisName.value = '';
         friendlyPathAncestors.value = [];
+        setTitleTo('作品目录')
     }else{
         friendlyPath.value = _.filter(friendlyPath.value, x=>!!x)
         friendlyPathAncestors.value = _.take(friendlyPath.value,friendlyPath.value.length-1)
         friendlyPathThisName.value = _.last(friendlyPath.value)||"";
+        setTitleTo(friendlyPathThisName.value)
     }
 }
 const sidebar = ref<InstanceType<typeof SideBar>>();
@@ -186,6 +189,9 @@ onMounted(async()=>{
     index.value?.setPageSizeOverride(isRoot.value?20:1000)
     iden = await injectUserInfo().getIdentityInfo()
     ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
+})
+onUnmounted(()=>{
+    recoverTitle()
 })
 watch(props,async(_newVal)=>{
     const timer = setTimeout(()=>{

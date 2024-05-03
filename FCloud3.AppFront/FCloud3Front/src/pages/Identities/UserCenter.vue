@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, onMounted, ref, watch } from 'vue';
+import { Ref, onMounted, onUnmounted, ref, watch } from 'vue';
 import SideBar from '../../components/SideBar.vue';
 import Personal from './PersonalSettings.vue';
 import Loading from '../../components/Loading.vue';
@@ -11,6 +11,7 @@ import { IdentityInfo } from '../../utils/userInfo';
 import { injectApi, injectPop, injectUserInfo } from '../../provides';
 import { jumpToLogin } from './routes';
 import Pop from '../../components/Pop.vue';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const props = defineProps<{
     username?:string
@@ -52,6 +53,10 @@ onMounted(async()=>{
     api = injectApi();
     pop = injectPop();
     username = props.username;
+    if(username)
+        setTitleTo(username)
+    else
+        setTitleTo('用户中心')
     identity = await injectUserInfo().getIdentityInfo();
     if(!username){    
         if(identity.Id==0){
@@ -62,6 +67,9 @@ onMounted(async()=>{
         username = identity.Name
     }
     await load();
+})
+onUnmounted(()=>{
+    recoverTitle()
 })
 </script>
 

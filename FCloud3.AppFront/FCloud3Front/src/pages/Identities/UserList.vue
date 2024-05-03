@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
 import Index, { IndexColumn } from '../../components/Index/Index.vue';
@@ -7,6 +7,7 @@ import { IndexResult } from '../../components/Index';
 import { UserIndexItem, getUserIndexItemsFromIndexResult } from '../../models/identities/user';
 import SideBar from '../../components/SideBar.vue';
 import ToUserOperation from './ToUserOperation.vue';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const columns:IndexColumn[] = [
     {
@@ -43,8 +44,12 @@ function selectUser(u:UserIndexItem){
 let api:Api;
 const injected = ref<boolean>(false);
 onMounted(async()=>{
+    setTitleTo('用户列表')
     api = injectApi();
     injected.value = true;
+})
+onUnmounted(()=>{
+    recoverTitle()
 })
 </script>
 

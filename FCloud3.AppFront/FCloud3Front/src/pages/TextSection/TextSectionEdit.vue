@@ -19,6 +19,7 @@ import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '../../utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -227,6 +228,7 @@ const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFoo
 let saveShortcut: ShortcutListener|undefined;
 let heartbeatSender:HeartbeatSender|undefined;
 onMounted(async()=>{
+    setTitleTo('文本段编辑器')
     pop = injectPop();
     api = injectApi();
     setTopbar = injectSetTopbar();
@@ -241,6 +243,7 @@ onMounted(async()=>{
     await nextTick();
 })
 onUnmounted(()=>{
+    recoverTitle()
     if(setTopbar)
         setTopbar(true);
     disposeFootNoteJump();

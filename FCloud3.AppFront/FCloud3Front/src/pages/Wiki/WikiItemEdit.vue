@@ -26,6 +26,7 @@ import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
 import WikiParaInfo from './WikiParaInfo.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
+import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -192,6 +193,7 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
         info.value = infoResp;
         editingWikiTitle.value = info.value.Title;
         editingUrlPathName.value = info.value.UrlPathName;
+        setTitleTo("词条编辑 - " + editingWikiTitle.value)
     }
     if(loadParas){
         if(!info.value){return;}
@@ -276,6 +278,7 @@ onMounted(async()=>{
     //initLisenters();
 })
 onUnmounted(()=>{
+    recoverTitle()
     disposeListeners();
 })
 </script>
