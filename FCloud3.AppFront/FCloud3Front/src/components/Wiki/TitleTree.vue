@@ -79,7 +79,7 @@ defineExpose({
 .titleTreeNodeText{
     color: #666;
     margin: 10px 0px 10px 0px;
-    height: 22px;
+    min-height: 22px;
     font-size: 14px;
     display: flex;
     align-items: center;

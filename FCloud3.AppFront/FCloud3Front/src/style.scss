@@ -203,6 +203,7 @@ a{
   border-radius: 3px;
   font-size: 10px;
   color:white;
+  flex-shrink: 0;
 }
 .wikiIcon{
   width: 20px;
@@ -215,6 +216,7 @@ a{
   color:black;
   font-family: 'Times New Roman', Times, serif;
   font-size: 15px;
+  flex-shrink: 0;
 }
 
 :root{
