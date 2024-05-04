@@ -25,7 +25,7 @@ namespace FCloud3.Entities.Files
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
 
-        public const int displayNameMaxLength = 30;
-        public const int storePathNameMaxLength = 50;
+        public const int displayNameMaxLength = 64;
+        public const int storePathNameMaxLength = 64;
     }
 }
