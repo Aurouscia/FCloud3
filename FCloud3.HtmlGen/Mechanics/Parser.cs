@@ -16,7 +16,7 @@ namespace FCloud3.HtmlGen.Mechanics
     {
         private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
-        public const int maxInputLength = 5000;
+        public const int maxInputLength = 30000;
         public ParserContext Context { get { return _ctx; } }
         public Parser(ParserOptions options)
         {
