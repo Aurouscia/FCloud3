@@ -94,6 +94,7 @@ async function setSearch(colName:string) {
         target.searchText = "";
         target.editing = false;
     }
+    searchPanelOpen.value = false;
     reloadData();
 }
 async function clearSearch(noReload?:boolean) {
@@ -121,6 +122,25 @@ const search = ref<HTMLInputElement[]>([]);
 
 const searchPanelOpen = ref<boolean>(false);
 const orderPanelOpen = ref<boolean>(false);
+let fnLeaveTimer = 0;
+function fnLeave(){
+    clearTimeout(fnLeaveTimer)
+    fnLeaveTimer = setTimeout(()=>{
+        orderPanelOpen.value = false;
+        if(search.value.every(i=>i !== document.activeElement))
+            searchPanelOpen.value = false;
+    }, 500)
+}
+function fnEnter(){
+    clearTimeout(fnLeaveTimer)
+}
+function searchInputEnter(e:KeyboardEvent, colName:string){
+    if(e.key == "Enter"){
+        setSearch(colName)
+        searchPanelOpen.value = false;
+    }
+}
+
 onMounted(async()=>{
     if(props.qInit){
         query.value = props.qInit;
@@ -154,41 +174,46 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     </div>
                     <div v-else>　</div>
-                    <div v-if="!hideFn">
-                        <button class="tabToggle" 
-                            @click="searchPanelOpen=!searchPanelOpen;orderPanelOpen=false"
-                            :class="{highlightToggle:highlightSearchBtn}">
-                            {{ (query.Search && query.Search.length>0)?'已筛选':'搜索' }}
-                        </button>
-                        <button class="tabToggle"
-                            @click="orderPanelOpen=!orderPanelOpen;searchPanelOpen=false"
-                            :class="{highlightToggle:highlightOrderBtn}">
-                            {{ query.OrderBy?'已排序':'排序' }}
-                        </button>
-                    </div>
-                    <div v-if="searchPanelOpen" class="searchPanel">
-                        <div  v-for="c in cols">
-                            <div v-if="c.canSearch" class="searchItem">
-                                {{ c.alias }}
-                                <input class="search" v-model="c.searchText" ref="search" @blur="setSearch(c.name)" placeholder="搜索">
-                            </div>
-                        </div>
-                        <div class="searchPanelBtns">
-                            <button class="cancel" @click="()=>clearSearch()">清空</button>
-                            <button class="ok" @click="searchPanelOpen=false">OK</button>
-                        </div>
-                    </div>
-                    <div v-if="orderPanelOpen" class="orderPanel">
-                        <div  v-for="c in cols">
-                            <div v-if="c.canSetOrder" class="orderItem">
-                                <div>{{ c.alias }}</div>
-                                <div>
-                                    <button class="queryAdjust" @click="setOrder(c.name,true)" :class="{highlight:query.OrderBy==c.name && query.OrderRev}">▲</button>
-                                    <button class="queryAdjust" @click="setOrder(c.name,false)" :class="{highlight:query.OrderBy==c.name && !query.OrderRev}">▼</button>
+                    <div v-if="!hideFn" class="fn">
+                        <div @mouseleave="fnLeave" @mouseenter="fnEnter">
+                            <button class="tabToggle" 
+                                @click="searchPanelOpen=!searchPanelOpen;orderPanelOpen=false"
+                                :class="{highlightToggle:highlightSearchBtn}">
+                                {{ (query.Search && query.Search.length>0)?'已筛选':'搜索' }}
+                            </button>
+                            <div v-if="searchPanelOpen" class="searchPanel">
+                                <div  v-for="c in cols">
+                                    <div v-if="c.canSearch" class="searchItem">
+                                        {{ c.alias }}
+                                        <input class="search" v-model="c.searchText" ref="search" 
+                                            @blur="setSearch(c.name)" @keydown="searchInputEnter($event, c.name)" placeholder="搜索">
+                                    </div>
+                                </div>
+                                <div class="searchPanelBtns">
+                                    <button class="cancel" @click="()=>clearSearch()">清空</button>
+                                    <button class="ok" @click="searchPanelOpen=false">OK</button>
                                 </div>
                             </div>
                         </div>
-                        <button class="cancel" @click="clearOrder">清空</button>
+                        <div @mouseleave="fnLeave" @mouseenter="fnEnter">
+                            <button class="tabToggle"
+                                @click="orderPanelOpen=!orderPanelOpen;searchPanelOpen=false"
+                                :class="{highlightToggle:highlightOrderBtn}">
+                                {{ query.OrderBy?'已排序':'排序' }}
+                            </button>
+                            <div v-if="orderPanelOpen" class="orderPanel">
+                                <div  v-for="c in cols">
+                                    <div v-if="c.canSetOrder" class="orderItem">
+                                        <div>{{ c.alias }}</div>
+                                        <div>
+                                            <button class="queryAdjust" @click="setOrder(c.name,true)" :class="{highlight:query.OrderBy==c.name && query.OrderRev}">▲</button>
+                                            <button class="queryAdjust" @click="setOrder(c.name,false)" :class="{highlight:query.OrderBy==c.name && !query.OrderRev}">▼</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="cancel" @click="clearOrder">清空</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </th>
@@ -235,7 +260,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 }
 .searchPanel,.orderPanel{
     position: absolute;
-    top:2em;
+    top:0px;
     right:0px;
     background-color: white;
     padding: 5px;
@@ -293,6 +318,9 @@ th{
 }
 th *{
     white-space: nowrap;
+}
+.fn{
+    display: flex;
 }
 .indexControl{
     border: 2px #bbb solid;
