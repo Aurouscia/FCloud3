@@ -19,7 +19,7 @@ namespace FCloud3.DbContexts
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(_options.ConnStr);
+            optionsBuilder.UseSqlServer(_options.ConnStr, o => o.UseCompatibilityLevel(120));//我自己用的数据库版本太老，不支持新版contains翻译
         }
     }
 }
