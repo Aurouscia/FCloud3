@@ -4,6 +4,7 @@ using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
+using FCloud3.Services.Etc.TempData.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,16 +13,19 @@ namespace FCloud3.App.Controllers.Sys
     public class InitController:Controller
     {
         private readonly FCloudContext _context;
+        private readonly TempDataContext _tempDataContext;
         private readonly static Object migrateLockObj = new();
-        public InitController(FCloudContext context)
+        public InitController(FCloudContext context, TempDataContext tempDataContext)
         {
             _context = context;
+            _tempDataContext = tempDataContext;
         }
         public IActionResult InitDb()
         {
             lock (migrateLockObj)
             {
                 _context.Database.Migrate();
+                _tempDataContext.Database.Migrate();
                 return Ok("已Migrate成功");
             }
         }
