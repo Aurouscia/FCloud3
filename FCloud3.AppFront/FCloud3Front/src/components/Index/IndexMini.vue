@@ -51,6 +51,7 @@ async function reloadData(){
         window.clearTimeout(timer);
         hide.value = false;
         i.value = resp;
+        query.value.Page = resp.PageIdx;
         emit('reloadData',i.value);
     }
 }
@@ -85,7 +86,7 @@ async function setOrder(by:string, rev:boolean) {
         await reloadData()
     }
 }
-async function setSearch(colName:string) {
+function setSearch(colName:string) {
     const target = cols.value.find(x=>x.name==colName);
     if(!target){return;}
     if(target.searchText?.trim()){
@@ -94,13 +95,16 @@ async function setSearch(colName:string) {
         target.searchText = "";
         target.editing = false;
     }
+}
+async function startSearch() {
     searchPanelOpen.value = false;
-    reloadData();
+    await reloadData();
 }
 async function clearSearch(noReload?:boolean) {
+    const originalEmpty = cols.value.every(x=>!x.searchText)
     cols.value.forEach(x=>{x.searchText="";x.editing=false});
     searchPanelOpen.value = false;
-    if(!noReload)
+    if(!noReload && !originalEmpty)
         await reloadData();
 }
 async function clearOrder() {
@@ -134,10 +138,10 @@ function fnLeave(){
 function fnEnter(){
     clearTimeout(fnLeaveTimer)
 }
-function searchInputEnter(e:KeyboardEvent, colName:string){
+async function searchInputEnter(e:KeyboardEvent, colName:string){
     if(e.key == "Enter"){
         setSearch(colName)
-        searchPanelOpen.value = false;
+        await startSearch()
     }
 }
 
@@ -170,7 +174,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                 <div class="indexControl">
                     <div v-if="!props.hidePage" class="pageControl">
                         <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
-                        第{{ query.Page }}页
+                        第{{ query.Page }}/{{i.PageCount}}页
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     </div>
                     <div v-else>　</div>
@@ -186,12 +190,12 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                                     <div v-if="c.canSearch" class="searchItem">
                                         {{ c.alias }}
                                         <input class="search" v-model="c.searchText" ref="search" 
-                                            @blur="setSearch(c.name)" @keydown="searchInputEnter($event, c.name)" placeholder="搜索">
+                                            @blur="setSearch(c.name);fnLeave()" @keydown="searchInputEnter($event, c.name)" placeholder="搜索">
                                     </div>
                                 </div>
                                 <div class="searchPanelBtns">
-                                    <button class="cancel" @click="()=>clearSearch()">清空</button>
-                                    <button class="ok" @click="searchPanelOpen=false">OK</button>
+                                    <button class="cancel" @click="clearSearch(false)">清空</button>
+                                    <button class="ok" @click="startSearch">确定</button>
                                 </div>
                             </div>
                         </div>
@@ -260,7 +264,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 }
 .searchPanel,.orderPanel{
     position: absolute;
-    top:0px;
+    top:2em;
     right:0px;
     background-color: white;
     padding: 5px;

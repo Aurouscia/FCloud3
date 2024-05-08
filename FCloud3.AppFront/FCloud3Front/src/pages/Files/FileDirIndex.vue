@@ -425,5 +425,6 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     padding-bottom: 200px;
     box-sizing: border-box;
     height: calc(100vh - var(--main-div-margin-top) - 10px);
+    overflow-y: scroll;
 }
 </style>
