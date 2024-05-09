@@ -11,7 +11,7 @@ import settingsImg from '../../assets/settings.svg';
 import newDirImg from '../../assets/newDir.svg';
 import authgrantsImg from '../../assets/authgrants.svg';
 import FileDirEdit from './FileDirEdit.vue';
-import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki } from '../../models/files/fileDir';
+import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '../../models/files/fileDir';
 import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '../../components/ClipBoard.vue';
 import Functions from '../../components/Functions.vue';
@@ -58,55 +58,15 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         thisDirId.value = res.ThisDirId || 0;
         thisOwnerId.value = res.OwnerId || 0;
         thisOwnerName.value = res.OwnerName;
-        renderItems(res.Items);
-        renderSubdirs(res.SubDirs);
-        renderWikis(res.Wikis);
+        items.value = getFileItemsFromIndexResult(res.Items)
+        subDirs.value = getSubDirsFromIndexResult(res.SubDirs)
+        wikis.value = getWikiItemsFromIndexResult(res.Wikis)
         friendlyPath.value = res.FriendlyPath;
         setFriendlyPathData();
         hideFn.value = false;
         loading.value = false;
         return res?.SubDirs;
     }
-}
-//TODO：这三个难看的玩意是不是可以改进一下
-function renderItems(i:IndexResult|undefined){
-    items.value = [];
-    i?.Data?.forEach(r=>{
-        items.value.push({
-            Id:parseInt(r[0]),
-            Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
-            ByteCount:parseInt(r[4]),
-            Url:r[5]
-        })
-    })
-}
-function renderSubdirs(i:IndexResult|undefined){
-    subDirs.value = [];
-    i?.Data?.forEach(r=>{
-        subDirs.value?.push({
-            Id: parseInt(r[0]),
-            Name:r[1],
-            UrlPathName:r[2],
-            Updated:r[3],
-            OwnerName:r[4],
-            ByteCount:parseInt(r[5]),
-            FileNumber:parseInt(r[6])
-        })
-    })
-}
-function renderWikis(i:IndexResult|undefined){
-    wikis.value = [];
-    i?.Data?.forEach(r=>{
-        wikis.value?.push({
-            Id: parseInt(r[0]),
-            Name:r[1],
-            UrlPathName:r[2],
-            Updated:r[3],
-            OwnerName:r[4],
-        })
-    })
 }
 
 

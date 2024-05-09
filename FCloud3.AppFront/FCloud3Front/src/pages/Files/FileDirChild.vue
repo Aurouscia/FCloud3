@@ -31,45 +31,9 @@ async function deleteDir(dirId:number){
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
 const items = ref<FileDirItem[]>([]);
 const wikis = ref<FileDirWiki[]>([]);
-//TODO：这三个难看的玩意是不是可以改进一下
-function renderItems(i:IndexResult|undefined){
-    items.value = [];
-    i?.Data?.forEach(r=>{
-        items.value.push({
-            Id:parseInt(r[0]),
-            Name:r[1],
-            Updated:r[2],
-            OwnerName:r[3],
-            ByteCount:parseInt(r[4]),
-            Url:r[5]
-        })
-    })
-}
-function renderSubdirs(i:IndexResult|undefined){
-    subDirs.value = [];
-    i?.Data?.forEach(r=>{
-        subDirs.value?.push({
-            Id: parseInt(r[0]),
-            Name:r[1],
-            UrlPathName:r[2],
-            Updated:r[3],
-            OwnerName:r[4],
-            ByteCount:parseInt(r[5]),
-            FileNumber:parseInt(r[6])
-        })
-    })
-}
-function renderWikis(i:IndexResult|undefined){
-    wikis.value = [];
-    i?.Data?.forEach(r=>{
-        wikis.value?.push({
-            Id: parseInt(r[0]),
-            Name:r[1],
-            UrlPathName:r[2],
-            Updated:r[3],
-            OwnerName:r[4],
-        })
-    })
+const more = ref<(()=>void)|undefined>(undefined);
+const moreJump = ()=>{
+    jumpToSubDir("")
 }
 
 const props = defineProps<{
@@ -92,9 +56,9 @@ async function loadData(){
     if(data){
         window.clearTimeout(timer);
         showLoading.value = false;
-        renderItems(data.Items);
-        renderSubdirs(data.SubDirs);
-        renderWikis(data.Wikis);
+        items.value = getFileItemsFromIndexResult(data.Items)
+        subDirs.value = getSubDirsFromIndexResult(data.SubDirs)
+        wikis.value = getWikiItemsFromIndexResult(data.Wikis)
     }
 }
 

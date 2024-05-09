@@ -53,6 +53,47 @@ export interface FileDirWiki
     OwnerName:string,
 }
 
+export function getSubDirsFromIndexResult(r?:IndexResult):Array<FileDirSubDir>{
+    if(!r)
+        return []
+    return r.Data.map(r=>{return{
+            Id: parseInt(r[0]),
+            Name:r[1],
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
+            ByteCount:parseInt(r[5]),
+            FileNumber:parseInt(r[6])
+        }
+    })
+}
+export function getFileItemsFromIndexResult(r?:IndexResult):Array<FileDirItem>{
+    if(!r)
+        return []
+    return r.Data.map(r=>{
+        return {
+            Id:parseInt(r[0]),
+            Name:r[1],
+            Updated:r[2],
+            OwnerName:r[3],
+            ByteCount:parseInt(r[4]),
+            Url:r[5]
+        }
+    })
+}
+export function getWikiItemsFromIndexResult(r?:IndexResult):Array<FileDirWiki>{
+    if(!r)
+        return []
+    return r.Data.map(r=>{
+        return{
+            Id: parseInt(r[0]),
+            Name:r[1],
+            UrlPathName:r[2],
+            Updated:r[3],
+            OwnerName:r[4],
+        }
+    })
+}
 
 
 export interface PutInFileRequest {
