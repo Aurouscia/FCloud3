@@ -112,13 +112,16 @@ async function clearOrder() {
     orderPanelOpen.value = false;
     reloadData();
 }
+function resetPage(){
+    query.value.Page = 1;
+}
 
 const emit = defineEmits<{
     (e: 'reloadData', value: IndexResult): void
 }>()
-defineExpose({reloadData,setPageSizeOverride,clearSearch})
+defineExpose({reloadData,setPageSizeOverride,clearSearch,resetPage})
 
-const query = ref<IndexQuery>(indexQueryDefault)
+const query = ref<IndexQuery>(indexQueryDefault())
 const searchStrsAlias = ref<string[]>([]);
 const orderByAlias = ref<string>("");
 const cols = ref<IndexColumn[]>([]);

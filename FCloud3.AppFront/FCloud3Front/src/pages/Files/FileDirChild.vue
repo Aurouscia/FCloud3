@@ -7,8 +7,8 @@ import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import Functions from '../../components/Functions.vue';
 import Loading from '../../components/Loading.vue';
-import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki } from '../../models/files/fileDir';
-import { IndexQuery, IndexResult, unlimitedIndexQueryDefault } from '../../components/Index';
+import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '../../models/files/fileDir';
+import { IndexQuery, indexQueryDefault } from '../../components/Index';
 import { Api } from '../../utils/api';
 
 const router = useRouter();
@@ -31,8 +31,8 @@ async function deleteDir(dirId:number){
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
 const items = ref<FileDirItem[]>([]);
 const wikis = ref<FileDirWiki[]>([]);
-const more = ref<(()=>void)|undefined>(undefined);
-const moreJump = ()=>{
+const more = ref<boolean>(false);
+function moreJump(){
     jumpToSubDir("")
 }
 
@@ -52,13 +52,14 @@ async function loadData(){
     var timer = window.setTimeout(()=>{
         showLoading.value = true;
     },20);
-    var data = await props.fetchFrom(unlimitedIndexQueryDefault, path);    
+    var data = await props.fetchFrom(indexQueryDefault(), path);    
     if(data){
         window.clearTimeout(timer);
         showLoading.value = false;
         items.value = getFileItemsFromIndexResult(data.Items)
         subDirs.value = getSubDirsFromIndexResult(data.SubDirs)
         wikis.value = getWikiItemsFromIndexResult(data.Wikis)
+        more.value = data.SubDirs.PageCount > 1
     }
 }
 
@@ -104,6 +105,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
             <Loading v-if="showLoading"></Loading>
             <div v-else>空文件夹</div>
         </div>
+        <div v-if="more" @click="moreJump" class="emptyDir more">点击查看更多</div>
     </div>
 </template>
 
@@ -118,8 +120,12 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 .emptyDir{
     margin-top: 10px;
     text-align: left;
-    color:#999;
+    color:#666;
     font-size: small;
+}
+.more:hover{
+    text-decoration: underline;
+    cursor: pointer;
 }
 .foldBtn{
     width: 20px;

@@ -64,6 +64,7 @@ namespace FCloud3.Services.Files
 
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
+            q.SelfCheck();
             if (path.Length == 1 || path.Length == 2)
             {
                 if (path[0] == homelessItems)
@@ -87,19 +88,22 @@ namespace FCloud3.Services.Files
             if(ownerId > 0)
                 ownerName = _userMetadataService.Get(ownerId)?.Name ?? "??";
 
+            var indexQueryObjInUse = q;
+
             var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
             if(subDirsQ is null)
                 return null;
-            var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ,q);
-            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData = subDirs.TakePageAndConvertOneByOne(q,x => new FileDirIndexResult.FileDirSubDir()
+            var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ, indexQueryObjInUse);
+            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData 
+                = subDirs.TakePageAndConvertOneByOne(indexQueryObjInUse, x => new FileDirIndexResult.FileDirSubDir()
             {
                 Id = x.Id,
                 Name = x.Name,
                 UrlPathName = x.UrlPathName,
                 Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                 ByteCount = x.ByteCount,
-            });
-
+            }, true);
+            indexQueryObjInUse = q.AdvanceWith([subDirsData]);
 
             //三个查询共用一个IndexQuery，查询前翻译一下名字
             static string keyReplaceForFileItem(string k)
@@ -109,12 +113,12 @@ namespace FCloud3.Services.Files
                 return k;
             }
             IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
-            if (thisDirId != 0)
+            if (thisDirId != 0 && !indexQueryObjInUse.Disabled)
             {
                 var itemsQ = _fileItemRepo.GetByDirId(thisDirId);
-                var items = _fileItemRepo.IndexFilterOrder(itemsQ, q, keyReplaceForFileItem);
+                var items = _fileItemRepo.IndexFilterOrder(itemsQ, indexQueryObjInUse, keyReplaceForFileItem);
 
-                itemsData = items.TakePageAndConvertAll(q, list => {
+                itemsData = items.TakePageAndConvertAll(indexQueryObjInUse, list => {
                     var relatedUserIds = list.ConvertAll(x => x.CreatorUserId);
                     var users = _userMetadataService.GetRange(relatedUserIds);
                     return list.ConvertAll(x => new FileDirIndexResult.FileDirItem()
@@ -126,9 +130,10 @@ namespace FCloud3.Services.Files
                         Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                         Url = _storage.FullUrl(x.StorePathName ?? "missing")
                     });
-                });
+                }, true);
             }
 
+            indexQueryObjInUse = q.AdvanceWith([subDirsData, itemsData]);
             static string keyReplaceForWikiItem(string k)
             {
                 if (k == nameof(FileDir.Name))
@@ -136,16 +141,16 @@ namespace FCloud3.Services.Files
                 return k;
             }
             IndexResult<FileDirIndexResult.FileDirWiki>? wikisData = null;
-            if (thisDirId != 0)
+            if (thisDirId != 0 && indexQueryObjInUse.PageSize > 0)
             {
                 var wikisQ = from wiki in _wikiItemRepo.Existing
                              from relation in _wikiToDirRepo.Existing
                              where relation.DirId == thisDirId
                              where wiki.Id == relation.WikiId
                              select wiki;
-                var wikis = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
+                var wikis = _wikiItemRepo.IndexFilterOrder(wikisQ, indexQueryObjInUse, keyReplaceForWikiItem);
 
-                wikisData = wikis.TakePageAndConvertOneByOne(q, x => new FileDirIndexResult.FileDirWiki()
+                wikisData = wikis.TakePageAndConvertOneByOne(indexQueryObjInUse, x => new FileDirIndexResult.FileDirWiki()
                 {
                     Id = x.Id,
                     Name = x.Title,
@@ -154,6 +159,19 @@ namespace FCloud3.Services.Files
                     Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
                 });
             }
+
+            int totalCountOverride = 0;
+            totalCountOverride += subDirsData.TotalCount;
+            totalCountOverride += itemsData?.TotalCount ?? 0;
+            totalCountOverride += wikisData?.TotalCount ?? 0;
+            int pageCountOverride = totalCountOverride / q.PageSize;
+            if (totalCountOverride % q.PageSize == 0 || pageCountOverride == 0)
+                pageCountOverride += 1;
+
+            //subDirsData会被用来显示页数
+            subDirsData.PageCount = pageCountOverride;
+            subDirsData.TotalCount = totalCountOverride;
+
             return new() { 
                 Items = itemsData,
                 SubDirs = subDirsData,

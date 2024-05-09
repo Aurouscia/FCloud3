@@ -149,7 +149,7 @@ const ok = ref<boolean>(false);
 onMounted(async()=>{
     api = injectApi();
     setPathData();
-    index.value?.setPageSizeOverride(isRoot.value?20:1000)
+    index.value?.setPageSizeOverride(20)
     iden = await injectUserInfo().getIdentityInfo()
     ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
 })
@@ -164,8 +164,8 @@ watch(props,async(_newVal)=>{
     }, 200)
     setPathData();
     sidebar.value?.fold();
-    index.value?.setPageSizeOverride(isRoot.value?20:1000)
     index.value?.clearSearch(true);
+    index.value?.resetPage();
     await index.value?.reloadData();
     clearTimeout(timer);
 });
@@ -236,7 +236,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
             目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
-            :hide-page="!isRoot" :hide-fn="hideFn">
+            :hide-page="false" :hide-fn="hideFn">
             <tr v-for="item in subDirs" :key="item.Id">
                 <td>
                     <div class="subdir">

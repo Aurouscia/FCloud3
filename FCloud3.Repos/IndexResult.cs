@@ -8,14 +8,21 @@ using System.Threading.Tasks;
 
 namespace FCloud3.Repos
 {
-    public class IndexResult<T>
+    public class IndexResult
     {
         public int PageIdx { get; set; }
         public int PageCount { get; set; }
         public int TotalCount { get; set; }
-        public string[] ColumnNames { get; set; }
         public string[][] Data { get; set; }
-        public IndexResult(List<T> data, int pageIdx,int pageCount,int totalCount) 
+        public IndexResult(int dataCount)
+        {
+            Data = new string[dataCount][];
+        }
+    }
+    public class IndexResult<T> : IndexResult
+    {
+        public string[] ColumnNames { get; set; }
+        public IndexResult(List<T> data, int pageIdx, int pageCount, int totalCount) : base(data.Count)
         { 
             PageIdx = pageIdx;
             PageCount = pageCount;
@@ -23,7 +30,6 @@ namespace FCloud3.Repos
             Type t = typeof(T);
             var props = t.GetProperties().ToList();
             int colCount = props.Count;
-            Data = new string[data.Count][];
             ColumnNames = new string[colCount];
 
             for (var pIdx = 0; pIdx < colCount; pIdx++)
