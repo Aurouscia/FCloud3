@@ -1,21 +1,17 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FCloud3.DbContexts
 {
     public class DbContextOptions
     {
-        public string ConnStr { get; }
-        public string Type { get; }
-        public DbContextOptions(string type, string connStr)
+        public string? ConnStr { get; set; }
+        public string? Type { get; set; }
+        public SqlServerOptions? SqlServer { get; set; }
+
+        public class SqlServerOptions
         {
-            Type = type;
-            ConnStr = connStr;
+            public int CompatibilityLevel { get; set; }
         }
     }
 
@@ -25,12 +21,11 @@ namespace FCloud3.DbContexts
         public static IServiceCollection AddDb(this IServiceCollection services, IConfiguration config)
         {
             var section = config.GetSection("Db");
-            string dbType = section["Type"] ?? throw new Exception("Db:Type未填");
-            string connStr = section["ConnStr"] ?? throw new Exception("Db:ConnStr未填");
-            dbType = dbType.ToLower();
-
-            DbContextOptions options = new(dbType, connStr);
+            var options = new DbContextOptions();
+            section.Bind(options);
             services.AddSingleton<DbContextOptions>(options);
+
+            string dbType = options.Type?.ToLower() ?? throw new Exception("数据库类型(配置项Db:Type)未填");
 
             if (dbType == "sqlite")
             {
