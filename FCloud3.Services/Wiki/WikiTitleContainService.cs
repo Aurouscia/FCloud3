@@ -29,13 +29,17 @@ namespace FCloud3.Services.Wiki
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string content)
         {
             //之前被删过的就不会再自动添加
-            var excludes = _wikiTitleContainRepo
+            IQueryable<int> excludeWikiIds = _wikiTitleContainRepo
                 .BlackListed
                 .WithTypeAndId(containType, objId)
                 .Select(x => x.WikiId);
+            //自身的词条不添加
+            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
+
             var wikis = _wikiItemRepo.Existing
                 .Where(x => x.Title != null && content.Contains(x.Title))
-                .Where(x => !excludes.Contains(x.Id))
+                .Where(x => !excludeWikiIds.Contains(x.Id))
+                .Where(x => !containingSelf.Contains(x.Id))
                 .Select(x => new { x.Id, x.Title }).ToList();
             WikiTitleContainAutoFillResult res = new();
             wikis.ForEach(x =>
@@ -81,11 +85,7 @@ namespace FCloud3.Services.Wiki
 
             if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
             {
-                WikiParaType pt = WikiParaType.Text;
-                if (type == WikiTitleContainType.TextSection)
-                    pt = WikiParaType.Text;
-                else if (type == WikiTitleContainType.FreeTable)
-                    pt = WikiParaType.Table;
+                WikiParaType pt = GetWikiParaType(type);
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
                 foreach(int w in wIds)
                     _cacheExpTokenService.WikiTitleContain.GetByKey(w).CancelAll();
@@ -94,6 +94,15 @@ namespace FCloud3.Services.Wiki
             }
             _dbTransactionService.CommitTransaction(t);
             return true;
+        }
+
+        private static WikiParaType GetWikiParaType(WikiTitleContainType wikiTitleContainType)
+        {
+            if (wikiTitleContainType == WikiTitleContainType.TextSection)
+                return WikiParaType.Text;
+            else if (wikiTitleContainType == WikiTitleContainType.FreeTable)
+                return WikiParaType.Table;
+            throw new NotImplementedException();
         }
 
         public class WikiTitleContainListModel
