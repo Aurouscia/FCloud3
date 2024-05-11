@@ -13,7 +13,7 @@ namespace FCloud3.DbContexts
         private const string acceptDbType = "sqlitedev";
         public FCloudSqliteDevContext(DbContextOptions options)
         {
-            if (options.Type.ToLower() != acceptDbType)
+            if (options.Type?.ToLower() != acceptDbType)
                 throw new Exception($"数据库类型配置异常，应为:{acceptDbType}");
             _options = options;
         }

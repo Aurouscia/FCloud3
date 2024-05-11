@@ -4,12 +4,14 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc.Metadata.Abstraction;
 using FCloud3.Services.Files.Storage.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Services.Etc.Metadata
 {
     public class UserMetadataService(
-        UserRepo repo) 
-        : MetadataServiceBase<UserMetadata, User>(repo)
+        UserRepo repo,
+        ILogger<MetadataServiceBase<UserMetadata, User>> logger) 
+        : MetadataServiceBase<UserMetadata, User>(repo, logger)
     {
         protected override IQueryable<UserMetadata> GetFromDbModel(IQueryable<User> dbModels)
         {
@@ -22,11 +24,12 @@ namespace FCloud3.Services.Etc.Metadata
         }
         public UserMetadata? GetByName(string name)
         {
-            var stored = DataList.FirstOrDefault(x => x.Name == name);
+            var stored = DataListSearch(x => x.Name == name);
             if (stored is not null)
                 return stored;
             var u = GetFromDbModel(_repo.Existing.Where(x=>x.Name == name)).FirstOrDefault();
-            if (u is null) return null;
+            if (u is null)
+                return null;
             DataList.Add(u);
             return u;
         }

@@ -1,18 +1,21 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc.Metadata.Abstraction;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Services.Etc.Metadata
 {
     /// <summary>
     /// 获取和缓存词条对象的元数据，有更改必须在存入数据库时向其汇报
     /// </summary>
-    public class WikiItemMetadataService(WikiItemRepo wikiItemRepo) 
-        : MetadataServiceBase<WikiItemMetadata, WikiItem>(wikiItemRepo)
+    public class WikiItemMetadataService(
+        WikiItemRepo wikiItemRepo,
+        ILogger<MetadataServiceBase<WikiItemMetadata, WikiItem>> logger) 
+        : MetadataServiceBase<WikiItemMetadata, WikiItem>(wikiItemRepo, logger)
     {
         public WikiItemMetadata? Get(string urlPathName)
         {
-            var stored = DataList.FirstOrDefault(x => x.UrlPathName == urlPathName);
+            var stored = DataListSearch(x => x.UrlPathName == urlPathName);
             if (stored is not null)
                 return stored;
             var w = GetFromDbModel(_repo.Existing.Where(x => x.UrlPathName == urlPathName))

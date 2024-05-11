@@ -1,6 +1,7 @@
 ﻿using FCloud3.Entities.Files;
 using FCloud3.Repos.Files;
 using FCloud3.Services.Etc.Metadata.Abstraction;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,10 @@ using System.Threading.Tasks;
 
 namespace FCloud3.Services.Etc.Metadata
 {
-    public class MaterialMetadataService(MaterialRepo repo) : MetadataServiceBase<MaterialMetaData, Material>(repo)
+    public class MaterialMetadataService(
+        MaterialRepo repo,
+        ILogger<MetadataServiceBase<MaterialMetaData, Material>> logger) 
+        : MetadataServiceBase<MaterialMetaData, Material>(repo, logger)
     {
         public void Create(int id, string name, string pathName)
         {
@@ -22,7 +26,7 @@ namespace FCloud3.Services.Etc.Metadata
         }
         public string GetPathName(string name)
         {
-            return DataList.Where(x => x.Name == name).Select(x => x.PathName).FirstOrDefault() ?? "??";
+            return DataListSearch(x => x.Name == name)?.PathName ?? "??";
         }
     }
 
