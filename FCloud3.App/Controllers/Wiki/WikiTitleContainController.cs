@@ -35,9 +35,9 @@ namespace FCloud3.App.Controllers.Wiki
             return this.ApiResp();
         }
         [UserTypeRestricted]
-        public IActionResult AutoFill(int objId, string content)
+        public IActionResult AutoFill(int objId, WikiTitleContainType containType, string content)
         {
-            var resp = _wikiTitleContainService.AutoFill(objId, content);
+            var resp = _wikiTitleContainService.AutoFill(objId, containType, content);
             return this.ApiResp(resp);
         }
 

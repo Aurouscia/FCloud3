@@ -42,7 +42,7 @@ async function autoFill(){
     if(!data.value){return}
     const content = props.getContent();
     if(!content){return}
-    const res = await api.wiki.wikiTitleContain.autoFill(props.objectId ,content);
+    const res = await api.wiki.wikiTitleContain.autoFill(props.objectId, props.type, content);
     if(res){
         const newItems:WikiTitleContainListModelItem[] = res.Items.map(x => {
             return {

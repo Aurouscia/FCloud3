@@ -26,11 +26,12 @@ namespace FCloud3.Services.Wiki
             return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
         }
 
-        public WikiTitleContainAutoFillResult AutoFill(int objId, string content)
+        public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string content)
         {
             //之前被删过的就不会再自动添加
-            var excludes = _wikiTitleContainRepo.Deleted
-                .Where(x => x.ObjectId == objId)
+            var excludes = _wikiTitleContainRepo
+                .BlackListed
+                .WithTypeAndId(containType, objId)
                 .Select(x => x.WikiId);
             var wikis = _wikiItemRepo.Existing
                 .Where(x => x.Title != null && content.Contains(x.Title))
@@ -47,7 +48,7 @@ namespace FCloud3.Services.Wiki
         {
             var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
             var wikiIds = list.ConvertAll(x => x.WikiId);
-            var wikis = _wikiItemRepo.GetRangeByIds(wikiIds).Select(x => new { x.Id,x.Title }).ToList();
+            var wikis = _wikiItemMetadataService.GetRange(wikiIds);
             WikiTitleContainListModel model = new();
             list.ForEach(c =>
             {
@@ -61,34 +62,18 @@ namespace FCloud3.Services.Wiki
         {
             wikiIds = wikiIds.Distinct().ToList();
             var all = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, false);
-            var needRemove = all.FindAll(x => !x.Deleted && !wikiIds.Contains(x.WikiId));
-            var needRecover = all.FindAll(x => x.Deleted && wikiIds.Contains(x.WikiId));
+            var needRemove = all.FindAll(x => !x.BlackListed && !wikiIds.Contains(x.WikiId));
+            var needRecover = all.FindAll(x => x.BlackListed && wikiIds.Contains(x.WikiId));
             var needAdd = wikiIds.FindAll(x => !all.Any(c => c.WikiId == x));
-           
-            using var t = _dbTransactionService.BeginTransaction();
-
-            _wikiTitleContainRepo.TryRemoveRange(needRemove, out errmsg);
-            if(errmsg is not null)
-            {
-                _dbTransactionService.RollbackTransaction(t);
-                return false;
-            }
-
-            _wikiTitleContainRepo.TryRecoverRange(needRecover, out errmsg);
-            if (errmsg is not null)
-            {
-                _dbTransactionService.RollbackTransaction(t);
-                return false;
-            }
-
             var newObjs = needAdd.ConvertAll(x => new WikiTitleContain
             {
                 WikiId = x,
                 Type = type,
                 ObjectId = objectId,
             });
-            _wikiTitleContainRepo.TryAddRange(newObjs, out errmsg);
-            if (errmsg is not null)
+
+            using var t = _dbTransactionService.BeginTransaction();
+            if (!_wikiTitleContainRepo.SetStatus(needRemove, needRecover, newObjs, out errmsg))
             {
                 _dbTransactionService.RollbackTransaction(t);
                 return false;

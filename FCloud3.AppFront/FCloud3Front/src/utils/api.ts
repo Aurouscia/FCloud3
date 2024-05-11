@@ -17,7 +17,7 @@ import { AuthGrant, AuthGrantViewModel, AuthGrantOn } from '../models/identities
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
-import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest } from '../models/wiki/wikiTitleContain';
+import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest, WikiTitleContainType } from '../models/wiki/wikiTitleContain';
 import { DiffContentType } from '../models/diff/DiffContentType';
 import { DiffContentHistoryResult } from '../models/diff/DiffContentHistory';
 import { DiffContentDetailResult } from '../models/diff/DiffContentDetail';
@@ -422,11 +422,11 @@ export class Api{
                     true)
                 return res.success
             },
-            autoFill:async(objId:number, content:string)=>{
+            autoFill:async(objId:number, containType:WikiTitleContainType, content:string)=>{
                 const res = await this.httpClient.request(
                     "/api/WikiTitleContain/AutoFill",
                     "postForm",
-                    {objId, content},
+                    {objId, containType, content},
                     undefined,
                     true)
                 if(res.success){
