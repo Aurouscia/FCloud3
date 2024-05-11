@@ -31,6 +31,7 @@ const props = defineProps<{
 }>()
 watch(()=>props.wikiPathName,async()=>{
     data.value = undefined;
+    commentsLoaded.value = false;
     await init();
 })
 
