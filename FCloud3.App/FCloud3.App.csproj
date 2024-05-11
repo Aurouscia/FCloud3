@@ -46,6 +46,21 @@
 		<Content Remove="Logs\**" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Data\ParsedResult\本文件夹存储词条解析结果.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\SqliteFilesDev\此处用于存放测试版sqlite文件.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\SqliteFiles\此处用于存放sqlite文件.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Data\TempDataDB\此文件夹用来存放临时数据sqlite文件.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>
