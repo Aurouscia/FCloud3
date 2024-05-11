@@ -60,9 +60,25 @@ async function setOrder(by:string, rev:boolean) {
     const target = cols.value.find(x=>x.name==by);
     if(!target){return;}
     if(query.value){
+        let changed = 
+            query.value.OrderBy != target.name 
+            || query.value.OrderRev != rev;
         query.value.OrderBy = target.name;
         query.value.OrderRev = rev;
         orderByAlias.value = target.alias;
+        if(changed){
+            query.value.Page = 1
+            await reloadData()
+        }    
+    }
+}
+async function clearOrder() {
+    let changed = query.value.OrderBy != undefined;
+    query.value.OrderBy = undefined
+    orderByAlias.value = ""
+    
+    if(changed){
+        query.value.Page = 1;
         await reloadData()
     }
 }
@@ -98,7 +114,7 @@ const emit = defineEmits<{
 }>()
 defineExpose({reloadData})
 
-const query = ref<IndexQuery>(indexQueryDefault)
+const query = ref<IndexQuery>(indexQueryDefault())
 const searchStrsAlias = ref<string[]>([]);
 const orderByAlias = ref<string>("");
 const cols = ref<IndexColumn[]>([]);
@@ -116,28 +132,34 @@ onMounted(async()=>{
 <table class="index" v-if="query&&i">
     <tbody>
         <tr v-if="!props.hidePage" class="indexControl">
-            <th class="info" :colspan="cols.length-1">
-                <div>
-                    <b style="margin-right: 10px;">{{ i.TotalCount }}条数据</b>
-                    <span v-if="orderByAlias">排序:{{ orderByAlias }}{{ query.OrderRev?'(反)':'(正)' }}</span>
-                </div>
-                <div v-if="searchStrsAlias && searchStrsAlias.length>0">
-                    {{ searchStrsAlias.join(" & ") }}
-                </div>
-
-            </th>
-            <th>
-                <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
-                        第{{ query.Page }}页
+            <th :colspan="3">
+                <div class="ops">
+                    <div class="pageOps">
+                        <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
+                            第{{ query.Page }}页
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
-                    <br/>
-                    <span style="font-size: small;text-wrap: nowrap;">
-                        共{{ i.PageCount }}页
-                        每页<input v-model="query.PageSize" @blur="reloadData" class="miniInput"/>条
-                    </span>
+                        <br/>
+                        <span style="font-size: small;text-wrap: nowrap;">
+                                共{{ i.PageCount }}页
+                                每页<input v-model="query.PageSize" @blur="reloadData" class="miniInput"/>条
+                        </span>
+                    </div>
+                    <div class="info">
+                        <div>
+                            <b style="margin-right: 10px;">{{ i.TotalCount }}条数据</b>
+                            <span v-if="orderByAlias">
+                                排序:{{ orderByAlias }}{{ query.OrderRev?'(反)':'(正)' }}
+                                <span class="clearOrder" @click="clearOrder">清除</span>
+                            </span>
+                        </div>
+                        <div v-if="searchStrsAlias && searchStrsAlias.length>0">
+                            {{ searchStrsAlias.join(" & ") }}
+                        </div>
+                    </div>
+                </div>
             </th>
         </tr>
-        <tr v-if="!props.hideHead">
+        <tr v-if="!props.hideHead" class="colNamesTr">
             <th v-for="c in cols">
                 <span v-if="c.searchText||c.editing">
                     <input class="search" v-model="c.searchText" ref="search" @blur="setSearch(c.name)" placeholder="搜索">
@@ -158,11 +180,30 @@ onMounted(async()=>{
 </div>
 </template>
 
-<style scoped>
-.info{
-    font-size: small;
-    font-weight: normal;
-    line-height: 1.8em;
+<style scoped lang="scss">
+.ops{
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 5px 10px 5px 10px;
+    height: 50px;
+    align-items: center;
+    .info{
+        font-size: small;
+        font-weight: normal;
+        line-height: 1.8em;
+        text-align: left;
+        .clearOrder{
+            text-decoration: underline;
+            cursor: pointer;
+            &:hover{
+                font-weight: bold;
+            }
+        }
+    }
+    .pageOps{
+        width: 150px
+    }
 }
 .order{
     margin: 0px 0px 0px 5px;
@@ -176,6 +217,11 @@ onMounted(async()=>{
 }
 .colName{
     cursor: pointer;
+}
+.colNamesTr{
+    height: 40px;
+    position: sticky;
+    top:72px;
 }
 th{
     padding:5px;
@@ -204,8 +250,12 @@ button.queryAdjust{
 button.highlight{
     color:white
 }
-.indexControl th{
-    background-color: #bbb;
+.indexControl{ 
+    position: sticky;
+    top:0px;
+    th{
+        background-color: #bbb;
+    }
 }
 .index{
     width: 100%;

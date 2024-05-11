@@ -54,28 +54,34 @@ onUnmounted(()=>{
 </script>
 
 <template>
-<Index v-if="injected" :fetch-index="api.identites.user.index" :columns="columns" @reload-data="onLoadData" ref="index">
-    <tr v-for="u in users" @click="selectUser(u)">
-        <td>
-            <div class="nameAndAvatar">
-                <img :src="u.Avatar"/>
-                <div>{{ u.Name }}</div>
-            </div>
-        </td>
-        <td>
-            {{ u.LastOperation }}
-        </td>
-        <td :style="{color:u.TypeColor}">
-            {{ u.Type }}
-        </td>
-    </tr>
-</Index>
-<SideBar ref="toUserOperationSidebar">
-    <ToUserOperation v-if="selectedUser" :user="selectedUser" @type-changed="index?.reloadData(); toUserOperationSidebar?.fold()"></ToUserOperation>
-</SideBar>
+<div class="userList">
+    <Index v-if="injected" :fetch-index="api.identites.user.index" :columns="columns" @reload-data="onLoadData" ref="index">
+        <tr v-for="u in users" @click="selectUser(u)">
+            <td>
+                <div class="nameAndAvatar">
+                    <img :src="u.Avatar"/>
+                    <div class="uname">{{ u.Name }}</div>
+                </div>
+            </td>
+            <td>
+                {{ u.LastOperation }}
+            </td>
+            <td :style="{color:u.TypeColor}">
+                {{ u.Type }}
+            </td>
+        </tr>
+    </Index>
+    <SideBar ref="toUserOperationSidebar">
+        <ToUserOperation v-if="selectedUser" :user="selectedUser" @type-changed="index?.reloadData(); toUserOperationSidebar?.fold()"></ToUserOperation>
+    </SideBar>
+</div>
 </template>
 
 <style scoped lang="scss">
+.userList{
+    height: calc(100vh - var(--main-div-margin-top));
+    position: relative;
+}
 .nameAndAvatar{
     display: flex;
     gap:10px;
@@ -90,5 +96,17 @@ onUnmounted(()=>{
 }
 td{
     cursor: pointer;
+}
+.uname{
+    text-align: left;
+    width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+@media screen and (max-width: 600px){
+    .uname{
+        width: 120px;
+    }
 }
 </style>
