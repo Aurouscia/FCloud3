@@ -157,8 +157,6 @@ namespace FCloud3.Services.Files
                     return true;
             return false;
         }
-
-
         private static bool Compress(Stream s, Stream output, int maxSide, out string? errmsg)
         {
             Image img;
@@ -198,6 +196,30 @@ namespace FCloud3.Services.Files
             img.Dispose();
             errmsg = null;
             return true;
+        }
+        
+        public FileItemReadResult? Read(int id, out string? errmsg)
+        {
+            var target = _fileItemRepo.GetById(id);
+            if (target is null || target.StorePathName is null)
+            {
+                errmsg = "找不到指定文件";
+                return null;
+            }
+            var pathName = target.StorePathName;
+            var stream = _storage.Read(pathName);
+            if(stream is null)
+            {
+                errmsg = "文件丢失";
+                return null;
+            }
+            errmsg = null;
+            return new(stream, target.DisplayName ?? "??");
+        }
+        public class FileItemReadResult(Stream s, string downloadName)
+        {
+            public Stream Stream { get; set; } = s;
+            public string DownloadName { get; set; } = downloadName;
         }
 
         public class FileItemDetail

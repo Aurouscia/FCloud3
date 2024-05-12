@@ -78,10 +78,6 @@ function enter(){
         border-radius:30px;
         transition: 0.2s;
     }
-    img.showing{
-        border:2px solid #666 !important;
-        box-shadow: 0px 0px 5px black;
-    }
     .buttons{
         position: absolute;
         top:0px;
@@ -90,11 +86,10 @@ function enter(){
         display: flex;
         flex-direction: column;
         background-color: white;
-        border:2px solid #666;
         border-radius: 5px;
         opacity: 0;
         transition: 0.2s;
-        box-shadow: 0px 0px 5px black;
+        box-shadow: 0px 0px 10px black;
         padding: 4px;
     }
     .buttons.showing{

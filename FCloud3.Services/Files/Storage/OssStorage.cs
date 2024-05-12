@@ -51,7 +51,8 @@ namespace FCloud3.Services.Files.Storage
         }
         public Stream? Read(string pathName)
         {
-            throw new NotImplementedException();
+            var obj = _ossClient.Value.GetObject(_config.BucketName, pathName);
+            return obj.ResponseStream;
         }
     }
 

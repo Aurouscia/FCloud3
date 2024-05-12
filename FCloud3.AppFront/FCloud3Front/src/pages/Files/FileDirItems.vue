@@ -47,6 +47,9 @@ function editFile(f:FileDirItem){
         }
     });
 }
+function downloadHref(fileId:number){
+    return import.meta.env.VITE_BASEURL + '/api/FileItem/Download?id=' + fileId
+}
 
 let editPanel: Ref<InstanceType<typeof FileItemEdit>>
 onMounted(()=>{
@@ -83,6 +86,7 @@ const emit = defineEmits<{
                 <a :href="item.Url" target="_blank">{{ item.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
+                <a :href="downloadHref(item.Id)" download target="_blank" class="downloadBtn">下载</a>
                 <button @click="editFile(item)">编辑</button>
                 <button class="minor" @click="toClipBoard($event,item,'fileItem')">移动</button>
             </Functions>
@@ -94,7 +98,24 @@ const emit = defineEmits<{
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.downloadBtn{
+    display: block;
+    background-color: green;
+    color:white;
+    padding: 5px;
+    margin: 2px;
+    border-radius: 5px;
+    border: none;
+    font-size: unset;
+    margin-bottom: 2px;
+    transition: 0.4s;
+    cursor: pointer;
+    &:hover{
+        background-color: darkgreen;
+        text-decoration: none;
+    }
+}
 .itemPanelEntry:hover{
     background-color: #ccc;
 }

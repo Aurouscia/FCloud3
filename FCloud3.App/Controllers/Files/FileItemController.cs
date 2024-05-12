@@ -4,6 +4,7 @@ using FCloud3.Entities.Identities;
 using FCloud3.Services.Files;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace FCloud3.App.Controllers.Files
 {
@@ -69,6 +70,22 @@ namespace FCloud3.App.Controllers.Files
             if (id <= 0)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(new {CreatedId = id});
+        }
+
+        /// <summary>
+        /// 下载指定文件并保留上传时的名称，文件和网页不在同一域名下时，download标签会被无视
+        /// 必须通过服务端转发stream才能附上文件名
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public IActionResult Download(int id)
+        {
+            var res = _fileService.Read(id, out string? errmsg);
+            if(res is not null)
+            {
+                return File(res.Stream, Application.Octet, res.DownloadName);
+            }
+            return this.ApiFailedResp(errmsg);
         }
 
         public class FileUploadRequest
