@@ -84,11 +84,18 @@ function moveToTitle(titleId:number){
 
 let lastScrollTime = 0;
 const commentsLoaded = ref(false);
+const recommendsLoaded = ref(false);
 function viewAreaScrollHandler(){
+    const sh = wikiViewArea.value!.scrollHeight;
+    const st = wikiViewArea.value!.scrollTop;
+    if(sh - st < 2000){
+        recommendsLoaded.value = true
+    }
+
     if(Date.now() - lastScrollTime < 50){return;}
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
-        t.offsetTop > wikiViewArea.value!.scrollTop - 20);
+        t.offsetTop > st - 20);
     if(currentTitleIdx == -1){
         return
     }
@@ -150,6 +157,8 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
     }
 }
 
+//let scrollListener:ScrollListener|undefined;
+
 async function init(){
     if(data.value){
         data.value.Paras = []
@@ -175,6 +184,8 @@ async function init(){
         router.push(`/w/${pathName}`)
     });
     wikiLinkClick.listen(wikiViewArea.value);
+
+    //scrollListener = new ScrollListener(wikiViewArea.value!, 0.5, )
 }
 onUnmounted(()=>{
     clickFold.dispose();
@@ -230,7 +241,7 @@ onUnmounted(()=>{
         </div>
         <div class="invisible" ref="postScripts"></div>
 
-        <Recommends :path-name="wikiPathName"></Recommends>
+        <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
         <h1 id="t_666666666">评论区<div class="h1Sep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
