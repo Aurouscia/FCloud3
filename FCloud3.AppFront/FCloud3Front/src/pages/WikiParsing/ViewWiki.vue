@@ -32,6 +32,7 @@ const props = defineProps<{
 watch(()=>props.wikiPathName,async()=>{
     data.value = undefined;
     commentsLoaded.value = false;
+    recommendsLoaded.value = false;
     await init();
 })
 
@@ -157,8 +158,6 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
     }
 }
 
-//let scrollListener:ScrollListener|undefined;
-
 async function init(){
     if(data.value){
         data.value.Paras = []
@@ -184,8 +183,6 @@ async function init(){
         router.push(`/w/${pathName}`)
     });
     wikiLinkClick.listen(wikiViewArea.value);
-
-    //scrollListener = new ScrollListener(wikiViewArea.value!, 0.5, )
 }
 onUnmounted(()=>{
     clickFold.dispose();

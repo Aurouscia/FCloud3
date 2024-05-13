@@ -28,7 +28,10 @@ namespace FCloud3.Services.Wiki.Support
                 select new WikiRecommendModel.Dir(d.Id, d.Name)).ToList();
             res.Dirs.AddRange(RandomSelect(dirs, 4));
             var dirIds = res.Dirs.ConvertAll(x => x.Id);
-            var neighborIds = _wikiToDirRepo.GetWikiIdsByDirs(dirIds).Distinct();
+            var neighborIds = _wikiToDirRepo.GetWikiIdsByDirs(dirIds);
+
+            var thisId = _wikiItemMetadataService.Get(pathName)?.Id ?? 0;
+            neighborIds.Remove(thisId);
             var neighbors = _wikiItemMetadataService.GetRange(neighborIds)
                 .ConvertAll(x=>new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
             res.Wikis.AddRange(RandomSelect(neighbors, 8));

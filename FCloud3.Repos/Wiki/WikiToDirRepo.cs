@@ -14,9 +14,9 @@ namespace FCloud3.Repos.Wiki
         {
         }
         public List<int> GetWikiIdsByDir(int dirId) => 
-            Existing.Where(x=>x.DirId == dirId).Select(x=>x.WikiId).ToList();
+            Existing.Where(x=>x.DirId == dirId).Select(x=>x.WikiId).Distinct().ToList();
         public List<int> GetWikiIdsByDirs(List<int> dirIds) =>
-            Existing.Where(x => dirIds.Contains(x.DirId)).Select(x => x.WikiId).ToList();
+            Existing.Where(x => dirIds.Contains(x.DirId)).Select(x => x.WikiId).Distinct().ToList();
         public IQueryable<int> GetDirIdsByWikiId(int wikiId) =>
             Existing.Where(x => x.WikiId == wikiId).Select(x => x.DirId);
         public bool AddWikisToDir(List<int> wikiIds,int dirId,out string? errmsg)
