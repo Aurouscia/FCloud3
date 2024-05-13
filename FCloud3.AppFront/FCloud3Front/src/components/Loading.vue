@@ -23,7 +23,7 @@ var cycleTimer:number=0;
 var showRetryTimer:number=0;
 onMounted(()=>{
     cycle();
-    cycleTimer = window.setInterval(cycle,2000);
+    cycleTimer = window.setInterval(cycle,1100);
     showRetryTimer = window.setTimeout(()=>{
         showRetryBtn.value = true;
     },5000)

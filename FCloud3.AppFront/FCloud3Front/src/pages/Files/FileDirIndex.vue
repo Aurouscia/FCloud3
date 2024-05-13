@@ -23,6 +23,8 @@ import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 import { jumpToUserCenter } from '../Identities/routes';
+import { getWantViewWiki } from './wantViewWiki';
+import { jumpToViewWiki } from '../WikiParsing/routes';
 
 
 const props = defineProps<{
@@ -157,6 +159,13 @@ onUnmounted(()=>{
     recoverTitle()
 })
 watch(props,async(_newVal)=>{
+    const wantViewWiki = getWantViewWiki();
+    if(wantViewWiki){
+        //如果是“想要查看词条”触发了跳转，则不需要加载本文件夹实际内容，只需在路径历史里留下印记，可以返回这里即可
+        jumpToViewWiki(wantViewWiki)
+        return;
+    }
+
     const timer = setTimeout(()=>{
         friendlyPathThisName.value = "跳转中..."
         thisDirId.value = -1;
@@ -169,6 +178,11 @@ watch(props,async(_newVal)=>{
     await index.value?.reloadData();
     clearTimeout(timer);
 });
+function wantViewWiki(){
+    const w = getWantViewWiki()
+    jumpToViewWiki(w);
+}
+
 const hideFn = ref<boolean>(false);
 function hideFnUpdate(){
     if(subDirs.value.length==0 || subDirs.value.every(x=>!x.showChildren)){
@@ -259,7 +273,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
             </tr>
             <tr v-if="items.length>0 || wikis.length>0">
                 <td>
-                    <FileDirItems :dir-id="thisDirId" :items="items" :wikis="wikis" @need-refresh="index?.reloadData"></FileDirItems>
+                    <FileDirItems :dir-id="thisDirId" :items="items" :wikis="wikis" @need-refresh="index?.reloadData" @before-jump-to-wiki="wantViewWiki"></FileDirItems>
                 </td>
             </tr>
             <tr v-if="subDirs.length==0 && items.length==0 && wikis.length==0">

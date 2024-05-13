@@ -7,8 +7,8 @@ import FileItemEdit from './FileItemEdit.vue';
 import Functions from '../../components/Functions.vue';
 import { Api } from '../../utils/api';
 import { useRouter } from 'vue-router';
-import { jumpToViewWiki } from '../WikiParsing/routes';
 import _ from 'lodash';
+import { setWantViewWiki } from './wantViewWiki';
 
 const props = defineProps<{
     dirId:number,
@@ -25,6 +25,14 @@ function toClipBoard(e:MouseEvent, item:FileDirItem|FileDirWiki, type:ClipBoardI
         name:item.Name,
         type:type
     },e)
+}
+
+function jumpToWiki(urlPathName:string){
+    //告知包含本组件的父组件想要跳转到词条
+    //如果父组件是个FileDirChild（列表展开文件夹）
+    //那么其会使用router.push跳转到自身对应的文件夹，再取出想要跳转的词条名
+    setWantViewWiki(urlPathName)
+    emit('beforeJumpToWiki')
 }
 async function removeWiki(id:number){
     if(!props.dirId){return}
@@ -58,7 +66,8 @@ onMounted(()=>{
     editPanel = inject('fileItemEdit') as Ref<InstanceType<typeof FileItemEdit>>
 })
 const emit = defineEmits<{
-    (e:'needRefresh'):void
+    (e:'needRefresh'):void,
+    (e:'beforeJumpToWiki'):void
 }>()
 </script>
 
@@ -68,7 +77,7 @@ const emit = defineEmits<{
         <div class="iconName">
             <div class="wikiIcon">W</div>
             <div class="name">
-                <a @click="jumpToViewWiki(wiki.UrlPathName)">{{ wiki.Name }}</a> 
+                <a @click="jumpToWiki(wiki.UrlPathName)">{{ wiki.Name }}</a> 
             </div>
             <Functions x-align="left" :entry-size="20">
                 <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>

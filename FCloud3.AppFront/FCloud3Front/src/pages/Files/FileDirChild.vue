@@ -18,6 +18,14 @@ function jumpToSubDir(name:string){
     path = _.filter(path, x=>!!x)
     router.push({name:'files',params:{path}});
 }
+
+function beforeJumpWiki(){
+    //此处为文件夹视图内展开的文件夹显示处（可能有很多层），
+    //在跳转到词条之前，先跳转到文件夹本身的页面，避免进入词条后回退到根文件夹
+    //跳转到词条本身的操作在FileDirIndex.vue的watch里
+    jumpToSubDir('')
+}
+
 function isEmptyDir(){
     return items.value.length==0 && subDirs.value.length==0 && wikis.value.length==0;
 }
@@ -43,18 +51,14 @@ const props = defineProps<{
 }>();
 
 //const data = ref<FileDirIndexResult>();
-const showLoading = ref<boolean>(false);
+const showLoading = ref<boolean>(true);
 var clip:Ref<InstanceType<typeof ClipBoard>>
 var api:Api;
 
 async function loadData(){
     var path = _.filter(props.path, x=>!!x)
-    var timer = window.setTimeout(()=>{
-        showLoading.value = true;
-    },20);
     var data = await props.fetchFrom(indexQueryDefault(), path);    
     if(data){
-        window.clearTimeout(timer);
         showLoading.value = false;
         items.value = getFileItemsFromIndexResult(data.Items)
         subDirs.value = getSubDirsFromIndexResult(data.SubDirs)
@@ -100,7 +104,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                 </FileDirChild>
             </div>
         </div>
-        <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData"></FileDirItems>
+        <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData" @beforeJumpToWiki="beforeJumpWiki"></FileDirItems>
         <div v-if="isEmptyDir()" class="emptyDir">
             <Loading v-if="showLoading"></Loading>
             <div v-else>空文件夹</div>
