@@ -63,6 +63,8 @@ namespace FCloud3.Services.Messages
                 wikiOwner = wiki.OwnerId;
             }
             var sender = _operatingUserIdProvider.Get();
+            if (sender == wikiOwner)
+                return;
             Notification notif = new()
             {
                 Sender = sender,
