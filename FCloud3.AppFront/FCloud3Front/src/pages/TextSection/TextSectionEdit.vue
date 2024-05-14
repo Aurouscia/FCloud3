@@ -183,7 +183,7 @@ async function init(){
         loadComplete.value = true;
         await nextTick();
         if(!writeArea.value){return}
-        textNode().textContent = data.value.Content || "";
+        textNode().textContent = data.value.Content || "\n";
         writeArea.value.addEventListener("keydown", enterKeyHandler);
         await contentInput();
         releasePreventLeaving()
