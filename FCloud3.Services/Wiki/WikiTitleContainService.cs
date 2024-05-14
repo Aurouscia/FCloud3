@@ -26,6 +26,11 @@ namespace FCloud3.Services.Wiki
             return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
         }
 
+        /// <summary>
+        /// 用于排除emoji，不知道为什么，任意字符串.Contains("🐷")都会返回true<br/>
+        /// 搞一个生僻字符串排除emoji即可
+        /// </summary>
+        private const string someStrangeWord = "亐髵";
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string content)
         {
             //之前被删过的就不会再自动添加
@@ -37,7 +42,7 @@ namespace FCloud3.Services.Wiki
             IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
 
             var wikis = _wikiItemRepo.Existing
-                .Where(x => x.Title != null && content.Contains(x.Title))
+                .Where(x => x.Title != null && content.Contains(x.Title) && !someStrangeWord.Contains(x.Title))
                 .Where(x => !excludeWikiIds.Contains(x.Id))
                 .Where(x => !containingSelf.Contains(x.Id))
                 .Select(x => new { x.Id, x.Title }).ToList();
