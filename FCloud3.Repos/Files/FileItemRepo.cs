@@ -12,7 +12,10 @@ namespace FCloud3.Repos.Files
         }
         public IQueryable<FileItem> QuickSearch(string str)
         {
-            return Existing.Where(x => x.DisplayName != null && x.DisplayName.Contains(str));
+            return Existing
+                .Where(x => x.DisplayName != null && x.DisplayName.Contains(str))
+                .OrderBy(x => x.DisplayName!.Length)
+                .ThenByDescending(x => x.Updated);
         }
         public string? GetStorePathName(int id)
         {

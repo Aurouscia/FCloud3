@@ -8,9 +8,12 @@ namespace FCloud3.Repos.Files
         public MaterialRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         { }
 
-        public IQueryable<Material> QuickSearch(string s)
+        public IQueryable<Material> QuickSearch(string str)
         {
-            return _context.Materials.Where(x => x.Name != null && x.Name.Contains(s));
+            return Existing
+                .Where(x => x.Name != null && x.Name.Contains(str))
+                .OrderBy(x => x.Name!.Length)
+                .ThenByDescending(x => x.Updated);
         }
     }
 }

@@ -61,7 +61,10 @@ namespace FCloud3.Repos.Identities
         }
         public IQueryable<User> QuickSearch(string str)
         {
-            return Existing.Where(x => x.Name != null && x.Name.Contains(str));
+            return Existing
+                .Where(x => x.Name != null && x.Name.Contains(str))
+                .OrderBy(x => x.Name!.Length)
+                .ThenByDescending(x => x.Updated);
         }
     }
 }

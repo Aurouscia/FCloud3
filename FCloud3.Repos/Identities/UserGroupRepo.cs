@@ -16,10 +16,12 @@ namespace FCloud3.Repos.Identities
         {
         }
 
-        public IQueryable<UserGroup> QuickSearch(string s)
+        public IQueryable<UserGroup> QuickSearch(string str)
         {
-            return Existing.Where(x => x.Name != null && x.Name.Contains(s))
-                .OrderBy(x => x.Updated);
+            return Existing
+                .Where(x => x.Name != null && x.Name.Contains(str))
+                .OrderBy(x => x.Name!.Length)
+                .ThenByDescending(x => x.Updated);
         }
         public override bool TryAddCheck(UserGroup item, out string? errmsg)
         {

@@ -15,7 +15,8 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing
                 .Where(x => x.Title != null && x.Title.Contains(str))
-                .OrderBy(x => x.Updated);//可能要按什么别的办法排序
+                .OrderBy(x => x.Title!.Length)
+                .ThenByDescending(x => x.Updated);
         }
         public IQueryable<WikiItem> GetByUrlPathName(string urlPathName)
         {
