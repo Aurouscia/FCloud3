@@ -1,4 +1,4 @@
-﻿using FCloud3.HtmlGen.Rules;
+﻿using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.Repos.WikiParsing;
 using System.Text;
 

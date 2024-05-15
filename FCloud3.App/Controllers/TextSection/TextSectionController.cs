@@ -1,10 +1,10 @@
 ﻿using FCloud3.Services.TextSec;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using FCloud3.HtmlGen.Mechanics;
+using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.Entities.TextSection;
 using FCloud3.Services.WikiParsing.Support;
-using FCloud3.HtmlGen.Util;
+using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Entities.Wiki;
 using FCloud3.Services.Wiki;
 using FCloud3.App.Services.Filters;

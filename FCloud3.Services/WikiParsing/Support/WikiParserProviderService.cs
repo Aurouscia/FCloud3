@@ -1,6 +1,6 @@
 ﻿using FCloud3.Entities.Wiki;
-using FCloud3.HtmlGen.Mechanics;
-using FCloud3.HtmlGen.Options;
+using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Options;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Files;

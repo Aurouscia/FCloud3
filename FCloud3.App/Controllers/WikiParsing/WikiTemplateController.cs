@@ -1,8 +1,8 @@
 ﻿using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.WikiParsing;
-using FCloud3.HtmlGen.Mechanics;
-using FCloud3.HtmlGen.Rules;
+using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.Services.WikiParsing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

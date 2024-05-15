@@ -1,5 +1,5 @@
 ﻿using FCloud3.App.Utils;
-using FCloud3.HtmlGen.Util;
+using FCloud3.WikiPreprocessor.Util;
 
 namespace FCloud3.App.Services.Utils
 {

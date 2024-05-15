@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Diff\FCloud3.Diff.csproj" />
-    <ProjectReference Include="..\FCloud3.HtmlGen\FCloud3.HtmlGen.csproj" />
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
+    <ProjectReference Include="..\FCloud3.WikiPreprocessor\FCloud3.WikiPreprocessor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

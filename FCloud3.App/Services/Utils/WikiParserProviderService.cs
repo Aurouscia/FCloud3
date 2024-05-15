@@ -1,6 +1,6 @@
-﻿using FCloud3.HtmlGen.Mechanics;
-using FCloud3.HtmlGen.Options;
-using FCloud3.HtmlGen.Util;
+﻿using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Options;
+using FCloud3.WikiPreprocessor.Util;
 using FCloud3.App.Utils;
 using Microsoft.Extensions.Caching.Memory;
 
