@@ -49,7 +49,6 @@ onMounted(async ()=>{
 </template>
 
 <style scoped>
-
 .tabsContainer{
     position: relative;
 }
@@ -59,16 +58,19 @@ onMounted(async ()=>{
     background-color: #fff;
     gap:5px
 }
+.controls>div:hover{
+    color: #999
+}
 .controls>div.selected{
-    background-color: #aaa;
-    color: white;
+    color: cornflowerblue;
+    border-bottom: 4px solid cornflowerblue;
     font-weight: bold;
 }
 .controls>div{
-    background-color: #eee;
     flex-grow: 1;
-    padding: 10px 3px 10px 3px;
-    color:black;
+    padding: 10px 4px 10px 3px;
+    color:#333;
+    border-bottom: 5px solid #ccc;
     text-align: center;
     cursor: pointer;
     flex-basis: 10px;
@@ -78,10 +80,9 @@ onMounted(async ()=>{
 .controls{
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content:space-around;
     align-items: center;
     user-select: none;
-    gap:5px;
-    border-bottom: 10px solid #aaa;
+    background-color: #f6f6f6;
 }
 </style>
