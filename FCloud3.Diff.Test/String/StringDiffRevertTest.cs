@@ -1,12 +1,7 @@
 ﻿using FCloud3.Diff.String;
-using FCloud3.DiffTest.String.Support;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Diff.Test.String.Support;
 
-namespace FCloud3.DiffTest.String
+namespace FCloud3.Diff.Test.String
 {
     [TestClass]
     public class StringDiffRevertTest

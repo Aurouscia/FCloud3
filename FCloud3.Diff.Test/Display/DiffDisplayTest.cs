@@ -1,12 +1,7 @@
 ﻿using FCloud3.Diff.Display;
 using FCloud3.Diff.String;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FCloud3.DiffTest.Display
+namespace FCloud3.Diff.Test.Display
 {
     [TestClass]
     public class DiffDisplayTest

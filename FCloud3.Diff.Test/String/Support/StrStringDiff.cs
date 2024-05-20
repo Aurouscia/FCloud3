@@ -1,6 +1,6 @@
 ﻿using FCloud3.Diff.String;
 
-namespace FCloud3.DiffTest.String.Support
+namespace FCloud3.Diff.Test.String.Support
 {
     public static class StrStringDiff
     {

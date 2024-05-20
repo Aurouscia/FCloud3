@@ -1,7 +1,7 @@
 ﻿using FCloud3.Diff.Object;
 using Newtonsoft.Json;
 
-namespace FCloud3.DiffTest.Object
+namespace FCloud3.Diff.Test.Object
 {
     [TestClass]
     public class ObjectDiffRevertTest

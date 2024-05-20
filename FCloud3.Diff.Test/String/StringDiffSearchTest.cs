@@ -1,7 +1,7 @@
 ﻿using FCloud3.Diff.String;
-using FCloud3.DiffTest.String.Support;
+using FCloud3.Diff.Test.String.Support;
 
-namespace FCloud3.DiffTest.String
+namespace FCloud3.Diff.Test.String
 {
     [TestClass]
     public class StringDiffSearchTest
