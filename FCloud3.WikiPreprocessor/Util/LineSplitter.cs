@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ganss.Xss;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,13 @@ namespace FCloud3.WikiPreprocessor.Util
 {
     public class LineSplitter
     {
+        private static Lazy<HtmlSanitizer> Sanitizer = new(() =>
+        {
+            var s = new HtmlSanitizer();
+            s.AllowedAttributes.Add("class");
+            s.AllowedTags.Add("style");
+            return s;
+        });
         public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash)
         {
             List<string> lines;
@@ -37,7 +45,7 @@ namespace FCloud3.WikiPreprocessor.Util
             {
                 x = x.Trim();
                 string? hash = locatorHash?.Hash(x);
-                return new LineAndHash(hash, WebUtility.HtmlEncode(x));
+                return new LineAndHash(hash, Sanitizer.Value.Sanitize(x));
             });
             hashedLines.RemoveAll(line => string.IsNullOrWhiteSpace(line.Text));
             return hashedLines;

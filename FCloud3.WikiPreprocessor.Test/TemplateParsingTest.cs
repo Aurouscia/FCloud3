@@ -196,6 +196,9 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow(
             "{{名称信息}\n中文名::充电宝\n &amp;&amp; 英文名：：Power{哼哼}Baby}",
             "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]
+        [DataRow(
+            "123<style>a{color:red}</style>456",
+            "123<style>a{color:red}</style>456")]
         public void ParseImplant(string input,string answer)
         {
             _ctx.SetInitialFrameCount();

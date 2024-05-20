@@ -3,7 +3,7 @@ using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor;
 
-namespace FCloud3..WikiPreprocessor.Test
+namespace FCloud3.WikiPreprocessor.Test
 {
     [TestClass]
     public class TemplateSourceTest

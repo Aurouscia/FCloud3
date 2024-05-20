@@ -50,7 +50,7 @@ namespace FCloud3.WikiPreprocessor.Test
             "<p>更多有趣内容<i>见<a href=\"/w/6\">3C教育体系大纲</a></i>和3C教育体系大纲第二版等词条</p>")]
         [DataRow(
             "Au一边喊着\"咪咪么么么么\"，一边把小兔子拍拍拍拿放",
-            "<p>Au一边喊着&quot;咪<a href=\"/w/14\">咪么么么</a>么&quot;，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>")]
+            "<p>Au一边喊着\"咪<a href=\"/w/14\">咪么么么</a>么\"，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>")]
         [DataRow(
             "咪么",
             "<p><a href=\"/w/28\">咪么</a></p>")]
