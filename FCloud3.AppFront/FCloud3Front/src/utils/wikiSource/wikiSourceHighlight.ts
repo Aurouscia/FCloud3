@@ -1,6 +1,7 @@
 export class WikiSourceHighlighter {
     t:Text|undefined = undefined;
     ranges:[number,number][] = [];
+    private styleTagPattern = new RegExp("<style>(.|\n)*?</style>", "g");
 
     run(t:Text){
         CSS.highlights.clear();
@@ -8,14 +9,15 @@ export class WikiSourceHighlighter {
         this.t = t;
         this.matchAndMake(/\*\*.+?\*\*/g, "bold");
         this.matchAndMake(/\*.+?\*/g, "italic");
-        this.matchAndMake(/~~.+~~/g, "lineThrough")
+        this.matchAndMake(/~~.+?~~/g, "lineThrough")
         this.matchAndMake(/(?<=(^|\n))#+ .*(?=($|\n))/g, "subtitle");
         this.matchAndMake(/(?<=(^|\n))\[\^.+\].+/g, "footnoteBody");
         this.matchAndMake(/\[\^.+?\]/g, "footnoteEntry");
         this.matchAndMake(/(?<=(^|\n))> /g, "quote")
         this.matchAndMake(/(?<=(^|\n))\- /g, "list")
+        this.matchAndMake(this.styleTagPattern, "styleTag")
         this.matchAndMake(/(?<!\{)\{[a-zA-Z0-9\u4e00-\u9fa5:]{2,16}\}(?!\})/g, "implant")
-        this.matchAndMake(/#.{3,}#/g, "color")
+        this.matchAndMake(/#.{3,}?#/g, "color")
         this.matchAndMake(/(?<=(^|\n))\-{3,}(?=($|\n))/g, "sep")
         this.matchAndMake(/\{\{[a-zA-Z0-9\u4e00-\u9fa5]{2,10}\}(.|\n)*?\}/g, "template")
         this.matchAndMake(/\[.+?\](?=(\())/g, "anchorText")

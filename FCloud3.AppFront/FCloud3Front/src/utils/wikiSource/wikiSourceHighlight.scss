@@ -36,6 +36,9 @@
     color: rgb(159, 159, 159)
 }
 
+::highlight(styleTag){
+    color: rgb(209, 174, 174)
+}
 ::highlight(template){
     color: rgb(255, 226, 173);
 }
