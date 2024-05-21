@@ -11,7 +11,7 @@ const props = defineProps<{
     onId:number
 }>();
 
-const data = ref<AuthGrantViewModel[]>();
+const data = ref<AuthGrantViewModel>();
 const touchedOrder = ref<boolean>(false);
 async function load(){
     const resp = await api.identites.authGrant.getList(props.on,props.onId);
@@ -48,14 +48,14 @@ async function remove(id:number) {
 const rowId = (id:number)=>`auth_grant_row_${id}`;
 async function moveUp(id:number) {
     if(!data.value){return;}
-    const idx = data.value.findIndex(x=>x.Id==id);
+    const idx = data.value.Local.findIndex(x=>x.Id==id);
     if(idx>0){
         const ele = document.getElementById(rowId(id));
         if(ele){
             await elementBlinkClass(ele, 'blinking', 1, 100);
         }
-        const it = data.value.splice(idx,1);
-        data.value.splice(idx-1,0,...it);
+        const it = data.value.Local.splice(idx,1);
+        data.value.Local.splice(idx-1,0,...it);
         touchedOrder.value = true;
         if(ele){
             setTimeout(()=>{
@@ -66,7 +66,7 @@ async function moveUp(id:number) {
 }
 async function saveOrder() {
     if(!data.value){return;}
-    const ids = data.value.map(x=>x.Id);
+    const ids = data.value.Local.map(x=>x.Id);
     const resp = await api.identites.authGrant.setOrder(props.on, props.onId, ids);
     if(resp){
         await load();
@@ -116,8 +116,30 @@ onMounted(()=>{
             </table>
         </div>
     </div>
-    <table v-if="data && data.length>0">
-        <tr v-for="ag in data" :key="ag.Id" :id="rowId(ag.Id)">
+    <table v-if="data">
+        <tr v-for="ag in data.BuiltIn">
+            <td class="creator">系统</td>
+            <td>
+                <div v-if="ag.IsReject" class="reject">阻止</div>
+                <div v-else class="allow">允许</div>
+            </td>
+            <td>
+                {{ ag.ToName }}
+            </td>
+            <td><div class="overlapNote">系统内置</div></td>
+        </tr>
+        <tr v-for="ag in data.Global">
+            <td class="creator">{{ ag.CreatorName }}</td>
+            <td>
+                <div v-if="ag.IsReject" class="reject">阻止</div>
+                <div v-else class="allow">允许</div>
+            </td>
+            <td>
+                {{ ag.ToName }}
+            </td>
+            <td><div class="overlapNote">全局设置</div></td>
+        </tr>
+        <tr v-for="ag in data.Local" :key="ag.Id" :id="rowId(ag.Id)">
             <td class="creator">
                 {{ ag.CreatorName }}
             </td>
@@ -135,18 +157,14 @@ onMounted(()=>{
                 </div>
             </td>
         </tr>
-        <tr v-if="data.length>1">
+        <tr v-if="data.Local.length>1">
             <td colspan="4" class="overlapNote">
-                注：下方的规则会覆盖上方的
+                下方的规则会覆盖上方的
             </td>
         </tr>
     </table>
-    <div v-else class="tempNone">
-        暂无授权设置
-    </div>
-    <div class="defaultNote">
-        默认情况下只有自己有权限<br/>
-        无需"允许自己"或"阻止所有人"
+    <div v-if="data?.Global && data.Global.length>0" class="defaultNote">
+        "全局设置"请在个人中心调整
     </div>
 </div>
 </template>

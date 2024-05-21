@@ -24,6 +24,11 @@ namespace FCloud3.Entities.Identities
         public int RelationMainId => OnId;
         public int RelationSubId => ToId;
         public const int maxCountOnSameOn = 25;
+
+        /// <summary>
+        /// onId取-1时，表示该规则对该类型所有对象生效
+        /// </summary>
+        public const int onIdForAll = -1;
     }
     public enum AuthGrantOn
     {
@@ -46,6 +51,7 @@ namespace FCloud3.Entities.Identities
         None = 0,
         User = 1,
         UserGroup = 2,
-        EveryOne = 3
+        EveryOne = 3,
+        SameGroup = 4
     }
 }

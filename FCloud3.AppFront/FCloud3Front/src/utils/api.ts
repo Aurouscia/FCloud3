@@ -13,7 +13,7 @@ import { QuickSearchResult } from '../models/sys/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '../models/identities/userGroup';
 import { WikiItem } from '../models/wiki/wikiItem';
 import { FreeTable } from '../models/table/freeTable';
-import { AuthGrant, AuthGrantViewModel, AuthGrantOn } from '../models/identities/authGrant';
+import { AuthGrant, AuthGrantOn, AuthGrantViewModel } from '../models/identities/authGrant';
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '../models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '../models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '../models/wikiParsing/wikiRulesCommonsResult';
@@ -249,7 +249,7 @@ export class Api{
                     {on,onId}
                 )
                 if(resp.success){
-                    return resp.data as AuthGrantViewModel[];
+                    return resp.data as AuthGrantViewModel;
                 }
             },
             setOrder:async(on:AuthGrantOn, onId:number, ids:number[])=>{

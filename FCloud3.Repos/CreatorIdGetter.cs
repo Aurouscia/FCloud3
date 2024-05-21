@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
+using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,13 @@ namespace FCloud3.Repos
             if(typeof(T) == typeof(WikiItem))
             {
                 return _context.Set<WikiItem>()
+                    .Where(x => x.Id == modelId)
+                    .Select(x => x.OwnerUserId)
+                    .FirstOrDefault();
+            }
+            if (typeof(T) == typeof(UserGroup))
+            {
+                return _context.Set<UserGroup>()
                     .Where(x => x.Id == modelId)
                     .Select(x => x.OwnerUserId)
                     .FirstOrDefault();

@@ -11,7 +11,35 @@ namespace FCloud3.Repos.Identities
         }
         public List<AuthGrant> GetByOn(AuthGrantOn on, int onId)
         {
-            return Existing.OrderBy(x => x.Order).Where(x => x.On == on && x.OnId == onId).ToList();
+            var res = Existing
+                .Where(x => x.On == on)
+                .Where(x => x.OnId == onId || x.OnId == AuthGrant.onIdForAll)
+                .ToList();
+            res.Sort((x, y) =>
+            {
+                var xIsAll = x.OnId == AuthGrant.onIdForAll ? 1 : 0;
+                var yIsAll = y.OnId == AuthGrant.onIdForAll ? 1 : 0;
+                if(xIsAll != yIsAll)
+                    return yIsAll - xIsAll;
+                return x.Order - y.Order;
+            });
+            return res;
+        }
+        public List<AuthGrant> GetByOnLocal(AuthGrantOn on, int onId)
+        {
+            return Existing
+                .Where(x => x.On == on)
+                .Where(x => x.OnId == onId)
+                .OrderBy(x => x.Order)
+                .ToList();
+        }
+        public List<AuthGrant> GetByOnGlobal(AuthGrantOn on)
+        {
+            return Existing
+                .Where(x => x.On == on)
+                .Where(x => x.OnId == AuthGrant.onIdForAll)
+                .OrderBy(x => x.Order)
+                .ToList();
         }
         public override bool TryAdd(AuthGrant item, out string? errmsg)
         {

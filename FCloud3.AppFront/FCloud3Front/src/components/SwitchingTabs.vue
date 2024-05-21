@@ -59,7 +59,8 @@ onMounted(async ()=>{
     gap:5px
 }
 .controls>div:hover{
-    color: #999
+    background-color: #eee;
+    border-bottom: 4px solid #aaa;
 }
 .controls>div.selected{
     color: cornflowerblue;
@@ -70,7 +71,7 @@ onMounted(async ()=>{
     flex-grow: 1;
     padding: 10px 4px 10px 3px;
     color:#333;
-    border-bottom: 5px solid #ccc;
+    border-bottom: 4px solid #ccc;
     text-align: center;
     cursor: pointer;
     flex-basis: 10px;

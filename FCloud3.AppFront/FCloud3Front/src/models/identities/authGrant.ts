@@ -7,9 +7,15 @@ export interface AuthGrant{
     IsReject:boolean
 }
 
-export interface AuthGrantViewModel extends AuthGrant{
+export interface AuthGrantViewModelItem extends AuthGrant{
     ToName:string
     CreatorName:string
+}
+
+export interface AuthGrantViewModel{
+    BuiltIn: AuthGrantViewModelItem[]
+    Global: AuthGrantViewModelItem[]
+    Local: AuthGrantViewModelItem[]
 }
 
 export enum AuthGrantOn{
@@ -31,5 +37,6 @@ export enum AuthGrantTo{
     None = 0,
     User = 1,
     UserGroup = 2,
-    EveryOne = 3
+    EveryOne = 3,
+    SameGroup = 4
 }

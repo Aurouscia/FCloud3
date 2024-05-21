@@ -130,6 +130,9 @@ button.lite{
   color:#666;
   padding: 0px;
   margin: 0px;
+  &:hover{
+    text-decoration: underline;
+  }
 }
 
 .section{

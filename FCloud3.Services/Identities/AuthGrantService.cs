@@ -5,6 +5,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Repos;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Etc.Metadata;
 
 namespace FCloud3.Services.Identities
 {
@@ -13,7 +14,7 @@ namespace FCloud3.Services.Identities
         private readonly AuthGrantRepo _authGrantRepo;
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
-        private readonly UserRepo _userRepo;
+        private readonly UserMetadataService _userMetadataService;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
@@ -22,7 +23,7 @@ namespace FCloud3.Services.Identities
             AuthGrantRepo authGrantRepo,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
-            UserRepo userRepo,
+            UserMetadataService userMetadataService,
             WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
             CreatorIdGetter creatorIdGetter)
@@ -30,7 +31,7 @@ namespace FCloud3.Services.Identities
             _authGrantRepo = authGrantRepo;
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
-            _userRepo = userRepo;
+            _userMetadataService = userMetadataService;
             _wikiParaRepo = wikiParaRepo;
             _userIdProvider = userIdProvider;
             _creatorIdGetter = creatorIdGetter;
@@ -45,17 +46,20 @@ namespace FCloud3.Services.Identities
 
             if (on == AuthGrantOn.None)
                 return false;
-
-            var gs = _authGrantRepo.GetByOn(on, onId);//按order从下到上的顺序，下面覆盖上面，所以先检验
-            gs.Reverse();
             var ownerId = GetOwnerId(on, onId);
             if (userId == ownerId)
-                return true;
+                return true;//如果所有者就是访问者，直接提供
             else
             {
-                if(gs.Count == 0)
-                    return false;
+                if(OwnerOnly(on))
+                    return false;//如果所有者不是访问者，但是该类型只允许所有者访问，直接拒绝
             }
+
+            var gs = _authGrantRepo.GetByOn(on, onId);
+            gs.Reverse();//下面覆盖上面，所以先检验
+
+            if(GetBuiltInOf(on) is List<AuthGrant> baseAuths)
+                gs.AddRange(baseAuths);//添加该类型的系统默认权限在队尾
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
             var groupDict = _userToGroupRepo.GetUserIdDicByGroupIds(groupIds);
@@ -79,9 +83,21 @@ namespace FCloud3.Services.Identities
                         return !g.IsReject;
                     }
                 }
+                if (g.To == AuthGrantTo.SameGroup)
+                {
+                    if(_userToGroupRepo.IsInSameGroup(userId, ownerId))
+                        return !g.IsReject;
+                }
             }
             return ownerId == userId;
         }
+        /// <summary>
+        /// TODO：目前不支持一个段落存在于多个词条中，段落的权限验证转换为其词条的权限验证
+        /// </summary>
+        /// <param name="on"></param>
+        /// <param name="onId"></param>
+        /// <param name="toOn"></param>
+        /// <param name="toOnId"></param>
         private void Redirect(AuthGrantOn on, int onId, out AuthGrantOn toOn, out int toOnId)
         {
             toOn = on;
@@ -127,17 +143,45 @@ namespace FCloud3.Services.Identities
             }
         }
 
-        public List<AuthGrantViewModel> GetList(AuthGrantOn on, int onId)
+        private List<AuthGrantOn> OwnerOnlyOnTypes = [AuthGrantOn.User, AuthGrantOn.UserGroup, AuthGrantOn.None];
+        private bool OwnerOnly(AuthGrantOn on) => OwnerOnlyOnTypes.Contains(on);
+        public List<AuthGrant>? GetBuiltInOf(AuthGrantOn on)
         {
-            var list = _authGrantRepo.GetByOn(on, onId);
+            if (on == AuthGrantOn.WikiItem)
+                return [new (){
+                    On = AuthGrantOn.WikiItem,
+                    OnId = AuthGrant.onIdForAll,
+                    To = AuthGrantTo.SameGroup
+                }];
+            return null;
+        }
+
+
+        public AuthGrantViewModel GetList(AuthGrantOn on, int onId)
+        {
+            var list = new List<AuthGrant>();
+            var builtIn = GetBuiltInOf(on) ?? [];
+            list.AddRange(builtIn);
+            var userDefined = _authGrantRepo.GetByOn(on, onId);
+            var globalDefined = new List<AuthGrant>();
+            var localDefined = new List<AuthGrant>();
+            userDefined.ForEach(x =>
+            {
+                if (x.OnId == AuthGrant.onIdForAll)
+                    globalDefined.Add(x);
+                else
+                    localDefined.Add(x);
+            });
+            list.AddRange(globalDefined);
+            list.AddRange(localDefined);
             var groupIds = list.Where(x => x.To == AuthGrantTo.UserGroup).Select(x=>x.ToId).ToList();
             var userIds = list.Where(x => x.To == AuthGrantTo.User).Select(x => x.ToId).ToList();
             var creatorIds = list.Select(x => x.CreatorUserId).ToList();
             userIds = userIds.Union(creatorIds).ToList();
-
-            var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id,x.Name}).ToList();
-            var userNames = _userRepo.GetRangeByIds(userIds).Select(x => new { x.Id, x.Name }).ToList();
-            return list.ConvertAll(x =>
+            userIds.RemoveAll(x => x == 0);
+            var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id, x.Name}).ToList();
+            var userNames = _userMetadataService.GetRange(userIds).Select(x => new { x.Id, x.Name }).ToList();
+            Func<AuthGrant, AuthGrantViewModelItem> convert = x =>
             {
                 string? toName = null;
                 if (x.To == AuthGrantTo.UserGroup)
@@ -146,13 +190,26 @@ namespace FCloud3.Services.Identities
                     toName = userNames.FirstOrDefault(u => u.Id == x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.EveryOne)
                     toName = "所有人";
+                else if (x.To == AuthGrantTo.SameGroup)
+                    toName = "同组用户";
                 toName ??= "N/A";
                 string creatorName = userNames.FirstOrDefault(u=>u.Id==x.CreatorUserId)?.Name ?? "N/A";
-                return new AuthGrantViewModel(x, toName, creatorName);
-            });
+                return new AuthGrantViewModelItem(x, toName, creatorName);
+            };
+
+            AuthGrantViewModel model = new();
+            builtIn.ForEach(x => model.BuiltIn.Add(convert(x)));
+            globalDefined.ForEach(x => model.Global.Add(convert(x)));
+            localDefined.ForEach(x => model.Local.Add(convert(x)));
+            return model;
         }
         public bool Add(AuthGrant newGrant, out string? errmsg)
         {
+            if (OwnerOnly(newGrant.On))
+            {
+                errmsg = "该权限类型不允许设置";
+                return false;
+            }
             int userId = _userIdProvider.Get();
             int owner = GetOwnerId(newGrant.On, newGrant.OnId);
             if (userId != owner)
@@ -247,19 +304,23 @@ namespace FCloud3.Services.Identities
             }
             else if (on == AuthGrantOn.UserGroup)
             {
-                return _userGroupRepo.Existing
-                    .Where(x => x.Id == onId)
-                    .Select(x=>x.OwnerUserId)
-                    .FirstOrDefault();
+                return _creatorIdGetter.Get<UserGroup>(onId);
             }
             throw new Exception("获取所有者失败");
         }
 
-        public class AuthGrantViewModel:AuthGrant
+
+        public class AuthGrantViewModel
+        {
+            public List<AuthGrantViewModelItem> BuiltIn { get; } = [];
+            public List<AuthGrantViewModelItem> Global { get; } = [];
+            public List<AuthGrantViewModelItem> Local { get; } = [];
+        }
+        public class AuthGrantViewModelItem:AuthGrant
         {
             public string ToName { get; }
             public string CreatorName { get; }
-            public AuthGrantViewModel(AuthGrant authGrant, string toName, string creatorName)
+            public AuthGrantViewModelItem(AuthGrant authGrant, string toName, string creatorName)
             {
                 this.Id = authGrant.Id;
                 this.ToId = authGrant.ToId;

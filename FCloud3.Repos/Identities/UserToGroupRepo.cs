@@ -30,6 +30,7 @@ namespace FCloud3.Repos.Identities
         }
         public bool IsInSameGroup(int user1,int user2)
         {
+            //TODO可优化
             var g1s = Existing.Where(x => x.UserId == user1).Select(x => x.GroupId).ToList();
             if(g1s.Count==0)
                 return false;
@@ -60,7 +61,6 @@ namespace FCloud3.Repos.Identities
         }
         public bool AcceptInvitaion(int userId, int groupId, out string? errmsg)
         {
-            //TODO：验证身份是否与userId一致
             var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
             if(existing is null)
             {
@@ -77,7 +77,6 @@ namespace FCloud3.Repos.Identities
         }
         public bool RejectInvitaion(int userId, int groupId, out string? errmsg)
         {
-            //TODO：验证身份是否与userId一致
             var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
             if (existing is null)
             {
@@ -93,7 +92,6 @@ namespace FCloud3.Repos.Identities
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
-            //TODO：验证身份是否与userId一致
             var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
             if (existing is null)
             {
