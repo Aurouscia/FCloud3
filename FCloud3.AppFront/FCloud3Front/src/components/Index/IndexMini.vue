@@ -21,7 +21,9 @@ const props = defineProps<{
 
     hidePage?:boolean|undefined,
     hideHead?:boolean|undefined,
-    hideFn?:boolean|undefined
+    hideFn?:boolean|undefined,
+
+    noLoadOnMounted?:boolean
 }>();
 const i = ref<IndexResult>();
 
@@ -119,7 +121,7 @@ function resetPage(){
 const emit = defineEmits<{
     (e: 'reloadData', value: IndexResult): void
 }>()
-defineExpose({reloadData,setPageSizeOverride,clearSearch,resetPage})
+defineExpose({reloadData,setPageSizeOverride,clearSearch,resetPage,getPosElement,getQObj})
 
 const query = ref<IndexQuery>(indexQueryDefault())
 const searchStrsAlias = ref<string[]>([]);
@@ -156,7 +158,8 @@ onMounted(async()=>{
         }
     }
     cols.value = props.columns;
-    await reloadData();
+    if(!props.noLoadOnMounted)
+        await reloadData();
 })
 
 const highlightSearchBtn = computed<boolean>(()=>{
@@ -167,9 +170,17 @@ const highlightSearchBtn = computed<boolean>(()=>{
     return true;
 })
 const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.value.OrderBy)
+const pos = ref<HTMLElement>()
+function getPosElement(){
+    return pos.value
+}
+function getQObj(){
+    return query.value
+}
 </script>
 
 <template>
+<div ref="pos"></div>
 <table class="index" v-if="query && i && !hide">
     <tbody>
         <tr v-if="!props.hideHead">
@@ -177,7 +188,7 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
                 <div class="indexControl">
                     <div v-if="!props.hidePage" class="pageControl">
                         <button class="queryAdjust" @click="changePage('prev')" :class="{highlight:query.Page && query.Page>1}">◀</button>
-                        第{{ query.Page }}/{{i.PageCount}}页
+                        <div>第{{ query.Page }}/{{i.PageCount}}页</div>
                         <button class="queryAdjust" @click="changePage('next')" :class="{highlight:query.Page && query.Page<i.PageCount}">▶</button>
                     </div>
                     <div v-else>　</div>
@@ -279,6 +290,15 @@ const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.
 .pageControl{
     padding: 4px;
     background-color: #bbb;
+    gap: 10px;
+    box-sizing: border-box;
+    height: 110%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pageControl>div{
+    min-width: 80px;
 }
 .order{
     margin: 0px 0px 0px 5px;

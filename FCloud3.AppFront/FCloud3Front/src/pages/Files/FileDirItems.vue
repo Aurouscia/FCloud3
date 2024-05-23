@@ -79,10 +79,10 @@ const emit = defineEmits<{
             <div class="name">
                 <a @click="jumpToWiki(wiki.UrlPathName)">{{ wiki.Name }}</a> 
             </div>
-            <Functions x-align="left" :entry-size="20">
-                <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>
-                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">移动</button>
+            <Functions x-align="left" y-align="up" :entry-size="20">
                 <button class="cancel" @click="removeWiki(wiki.Id)">移出</button>
+                <button class="minor" @click="toClipBoard($event,wiki,'wikiItem')">移动</button>
+                <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>
             </Functions>
         </div>
         <div class="size">
@@ -94,10 +94,10 @@ const emit = defineEmits<{
             <div class="name">
                 <a :href="item.Url" target="_blank">{{ item.Name }}</a> 
             </div>
-            <Functions x-align="left" :entry-size="20">
-                <a :href="downloadHref(item.Id)" download target="_blank" class="downloadBtn">下载</a>
-                <button @click="editFile(item)">编辑</button>
+            <Functions x-align="left" y-align="up" :entry-size="20">
                 <button class="minor" @click="toClipBoard($event,item,'fileItem')">移动</button>
+                <button @click="editFile(item)">设置</button>
+                <a :href="downloadHref(item.Id)" download target="_blank" class="downloadBtn">下载</a>
             </Functions>
         </div>
         <div class="size">
@@ -108,6 +108,10 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
+.size{
+    font-size: 15px;
+    color: #666
+}
 .downloadBtn{
     display: block;
     background-color: green;

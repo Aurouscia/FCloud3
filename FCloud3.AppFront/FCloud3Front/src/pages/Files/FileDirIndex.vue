@@ -144,18 +144,44 @@ function startGrantingAuth(){
     authgrantsSidebar.value?.extend()
 }
 
+function autoPageSize() {
+    const pos = index.value?.getPosElement();
+    if (pos) {
+        const posTop = pos.offsetTop
+        const winH = window.innerHeight;
+        const itemCount = Math.floor((winH - posTop - 5) / 40) - 1;//如果样式调整，这里可能失效
+        index.value?.setPageSizeOverride(itemCount)
+    }
+    else
+        index.value?.setPageSizeOverride(20)
+}
+let resizeStopTimer = 0;
+function windowResizeHandler(){
+    window.clearTimeout(resizeStopTimer);
+    resizeStopTimer = window.setTimeout(()=>{
+        const qobj = index.value?.getQObj();
+        const anyOpened = subDirs.value.length==0 || subDirs.value.every(x=>!x.showChildren)
+        if(anyOpened && qobj && qobj.Page==1){
+            //当用户停止resize500ms后，且当前在第一页，且没有文件夹被展开，则重设pageSize并重新加载
+            autoPageSize();
+            index.value?.reloadData()
+        }
+    }, 500)
+}
+
 const index = ref<InstanceType<typeof IndexMini>>();
-var api:Api;
-var iden:IdentityInfo
-const ok = ref<boolean>(false);
+let api:Api = injectApi();
+let iden:IdentityInfo;
+let idenProvider = injectUserInfo()
 onMounted(async()=>{
-    api = injectApi();
     setPathData();
-    index.value?.setPageSizeOverride(20)
-    iden = await injectUserInfo().getIdentityInfo()
-    ok.value = true;//api的inject必须和Index的Mount不在一个tick里，否则里面获取不到fetchIndex
+    autoPageSize();
+    window.addEventListener('resize', windowResizeHandler)
+    iden = await idenProvider.getIdentityInfo();
+    await index.value?.reloadData()
 })
 onUnmounted(()=>{
+    window.removeEventListener('resize', windowResizeHandler)
     recoverTitle()
 })
 watch(props,async(_newVal)=>{
@@ -222,7 +248,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 </script>
 
 <template>
-    <div v-if="ok" class="fileDir">
+    <div class="fileDir">
         <div>
             <div class="ancestors">
                 <div>
@@ -249,8 +275,11 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         <div v-if="thisDirId>0" class="owner">
             目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
         </div>
+        <div v-else class="owner">
+            　
+        </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
-            :hide-page="false" :hide-fn="hideFn">
+            :hide-page="false" :hide-fn="hideFn" :no-load-on-mounted="true">
             <tr v-for="item in subDirs" :key="item.Id">
                 <td>
                     <div class="subdir">
@@ -258,9 +287,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                             <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren=true;hideFnUpdate()" style="color:#999">▶</div>
                             <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren=false;hideFnUpdate()" style="color:black">▼</div>
                             <div class="subdirName" @click="jumpToSubDir(item.UrlPathName)">{{ item.Name }}</div>
-                            <Functions :entry-size="20" x-align="left">
-                                <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
+                            <Functions :entry-size="20" x-align="left" y-align="up">
                                 <button class="danger" @click="deleteDir(item.Id)">删除</button>
+                                <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
                             </Functions>
                         </div>
                         <div>
@@ -299,7 +328,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 <style scoped>
 .owner{
     color: #999;
-    margin-bottom: 10px;
+    margin-bottom: 2px;
 }
 .owner span{
     font-weight: bold;
@@ -343,8 +372,8 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 }
 .thisName{
     font-size: 20px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     user-select: none;
     display: flex;
     flex-direction: row;
@@ -394,9 +423,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     gap:20px;
     align-items: center;
     padding: 4px;
+    height: 20px;
 }
 .fileDir{
-    padding-bottom: 200px;
     box-sizing: border-box;
     height: calc(100vh - var(--main-div-margin-top) - 10px);
     overflow-y: scroll;

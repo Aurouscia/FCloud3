@@ -31,7 +31,7 @@ namespace FCloud3.App.Controllers.Files
 
         public IActionResult Index([FromBody]FileDirIndexRequest req)
         {
-            if (req.Query is null || req.Path is null)
+            if (req is null || req.Query is null || req.Path is null)
                 return BadRequest();
             var res = _fileDirService.GetContent(req.Query, req.Path,out string? errmsg);
             if (res is not null)

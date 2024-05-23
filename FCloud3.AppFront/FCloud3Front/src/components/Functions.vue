@@ -5,6 +5,7 @@ const show = ref<boolean>(false);
 const opaque = ref<boolean>(false);
 const props = defineProps<{
     xAlign?:"left"|"center"|"right",
+    yAlign?:"up"|"down"
     imgSrc?:string,
     entrySize?:number,
     leaveKeep?:boolean|undefined
@@ -12,11 +13,17 @@ const props = defineProps<{
 const entrySizeDefault = 20;
 const entrySize = props.entrySize||entrySizeDefault;
 
-var btnsXStyle:CSSProperties;
-if(props.xAlign=="left"){btnsXStyle={left:"0px"}}
-else if(props.xAlign=="right"){btnsXStyle={right:"0px"}}
-else{btnsXStyle={right:(-46+entrySize/2)+'px'}}
-btnsXStyle.top=(entrySize)+'px'
+var btnsStyle:CSSProperties;
+if(props.xAlign=="left"){btnsStyle={left:"0px"}}
+else if(props.xAlign=="right"){btnsStyle={right:"0px"}}
+else{btnsStyle={right:(-46+entrySize/2)+'px'}}
+if(props.yAlign=="up"){
+    btnsStyle.top='unset'
+    btnsStyle.bottom=(entrySize)+'px'
+}
+else{
+    btnsStyle.top=entrySize+'px'
+}
 
 var outerStyle:CSSProperties = {
     width:(entrySize)+'px',
@@ -59,7 +66,7 @@ function enter(){
 <template>
     <div class="functions" @click="toggleShow" @mouseleave="leave" @mouseenter="enter" :style="outerStyle">
         <img class="menu" :class="{showing:opaque}" :src="imgSrc||menuIconSrc" :style="entryStyle"/>
-        <div class="buttons" v-if="show" :class="{showing:opaque}" :style="btnsXStyle">
+        <div class="buttons" v-if="show" :class="{showing:opaque}" :style="btnsStyle">
             <slot></slot>
         </div>
     </div>
