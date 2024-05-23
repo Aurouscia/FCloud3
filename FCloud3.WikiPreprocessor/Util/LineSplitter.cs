@@ -19,27 +19,34 @@ namespace FCloud3.WikiPreprocessor.Util
         });
         public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash)
         {
+            var htmlRanges = HtmlArea.FindRanges(input);
+
             List<string> lines;
-            int start = 0;
-            int length = 0;
+            StringBuilder sb = new();
             lines = new();
             int layer = 0;
-            foreach (var c in input)
+            for(int i = 0; i < input.Length; i++)
             {
+                char c = input[i];
+                if (htmlRanges.Any(x => i >= x.Start.Value && i <= x.End.Value))
+                {
+                    if(!Consts.htmlAvoidChars.Contains(c))
+                        sb.Append(c);
+                    continue;
+                }
                 if (c == Consts.tplt_L)
                     layer++;
                 if (c == Consts.tplt_R)
                     layer--;
                 if (c == Consts.lineSep && layer == 0)
                 {
-                    lines.Add(input.Substring(start, length));
-                    start += length + 1;
-                    length = 0;
+                    lines.Add(sb.ToString());
+                    sb.Clear();
                 }
                 else
-                    length++;
+                    sb.Append(c);
             }
-            lines.Add(input.Substring(start));
+            lines.Add(sb.ToString());
 
             var hashedLines = lines.ConvertAll(x =>
             {

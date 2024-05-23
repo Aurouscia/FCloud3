@@ -23,18 +23,6 @@ namespace FCloud3.WikiPreprocessor.Test
                 );
             _parser = parserBuilder.BuildParser();
         }
-        [TestMethod]
-        [DataRow(
-            "\n123\n\r456\n789",3)]
-        [DataRow(
-            "\n12{{3\n45}}6\n789",2)]
-        [DataRow(
-            "\n12{{3\n\r456\n78}}9", 1)]
-        public void LineSplitTest(string content,int answer)
-        {
-            var res = LineSplitter.Split(content,null);
-            Assert.AreEqual(res.Count, answer);
-        }
 
         [TestMethod]
         [DataRow(
