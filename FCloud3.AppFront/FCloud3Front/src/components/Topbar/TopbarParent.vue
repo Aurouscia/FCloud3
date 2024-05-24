@@ -40,6 +40,7 @@ function toggleFold(){
         <div v-show="notifCount>0" class="notifExists"></div>
     </div>
 </div>
+<div class="topbarParentShadow"></div>
 <div v-if="topbarModel" class="topbarVert">
     <TopbarBodyVertical :data="topbarModel" ref="topbarBodyVert"></TopbarBodyVertical>
 </div>
@@ -90,20 +91,35 @@ function toggleFold(){
     display: flex;
     justify-content: left;
     align-items: center;
-    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.7);
     background-color: white;
+}
+.topbarParentShadow{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: var(--top-bar-height);
+    z-index: 900;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.7);
 }
 
 .foldBtn{
     position: absolute;
     right: 10px;
     height: 25px;
+    width: 25px;
+    padding: 5px;
+    border-radius: 5px;
     cursor: pointer;
     img{
         width: 25px;
         height: 25px;
         object-fit: contain;
     }
+    &:hover{
+        background-color: #eee;
+    }
+    transition: 0.5s;
 }
 
 .topbarHori{
