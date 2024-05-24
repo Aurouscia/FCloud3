@@ -20,64 +20,6 @@
             if (PageSize > 30)
                 PageSize = 30;
         }
-
-        public IndexQuery() { }
-        public IndexQuery(bool disabled) { Disabled = disabled; }
-        public bool Disabled { get; private set; } = false;
-        public IndexQuery(int skipLess, int takeLess) {  SkipLess = skipLess; TakeLess = takeLess; }
-        public int SkipLess { get; private set; } = 0;
-        public int TakeLess { get; private set; } = 0;
-
-        /// <summary>
-        /// 当几种东西共用一个Index时，查询完某种东西后，从原始查询对象取得用于查询下一个东西的对象
-        /// </summary>
-        /// <param name="resBefore">之前查询的结果</param>
-        /// <returns>用于下一种东西的新的查询对象</returns>
-        public IndexQuery AdvanceWith(List<IndexResult?> resBefore)
-        {
-            if(resBefore is null || resBefore.Count == 0)
-                return this;
-            var totalCountBefore = resBefore.Select(x => x?.TotalCount ?? 0).Sum();
-            if(totalCountBefore == 0)
-                return this;
-
-            //如果之前几次查询的东西的总量超出了前面所有页+我这页的范围，那就说明还没轮到本东西，返回一个disabled的对象，后面都不用做了
-            if (totalCountBefore > Page * PageSize)
-                return new(true);
-
-            //之前查询东西形成的“完整页”数量
-            var totalCompletePagesBefore = totalCountBefore / PageSize;
-            //之前查询东西超出“完整页”的部分
-            var exceededCompletedPages = totalCountBefore % PageSize;
-            //之前查询东西的结果，将会返回的数据总量
-            var displayingCount = resBefore.Select(x => x?.Data.Length ?? 0).Sum();
-            if (displayingCount > 0)
-            {
-                //本页就在之前查询结果的末尾，后面剩下的部分可以放本东西的开头(newPage=1)，少Take一些避免超出页尺寸
-                var newPage = 1;
-                var takeLess = displayingCount;
-                return GetCloned(newPage, 0, takeLess);
-            }
-            else
-            {
-                //本页已经超过之前查询结果的末尾，本东西的查询需要照顾到之前查询结果超出“完整页”部分，少Skip一些
-                var newPage = Page - totalCompletePagesBefore;
-                var skipLess = exceededCompletedPages;
-                return GetCloned(newPage, skipLess, 0);
-            }
-        }
-
-        private IndexQuery GetCloned(int newPage, int skipLess = 0, int takeLess = 0)
-        {
-            return new IndexQuery(skipLess, takeLess)
-            {
-                Page = newPage,
-                PageSize = PageSize,
-                OrderBy = OrderBy,
-                OrderRev = OrderRev,
-                Search = Search
-            };
-        }
     }
 
     public static class QueryablePagingExtension
@@ -91,14 +33,10 @@
 
             pageIdx = 1;
             int pageSize = 30;
-            int skipLess = 0;
-            int takeLess = 0;
             if (query is not null)
             {
                 query.SelfCheck();
                 pageIdx = query.Page;
-                skipLess = query.SkipLess;
-                takeLess = query.TakeLess;
                 pageSize = query.PageSize;
             }
 
@@ -112,8 +50,8 @@
                 pageIdx = pageCount;
             }
 
-            int skip = (pageIdx - 1) * pageSize - skipLess;
-            int take = pageSize - takeLess;
+            int skip = (pageIdx - 1) * pageSize;
+            int take = pageSize;
             q = q.Skip(skip).Take(take);
             return q;
         }

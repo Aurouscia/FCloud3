@@ -104,7 +104,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                 </FileDirChild>
             </div>
         </div>
-        <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData" @beforeJumpToWiki="beforeJumpWiki"></FileDirItems>
+        <FileDirItems :dir-id="props.dirId" :items="items" :wikis="wikis" @need-refresh="loadData" @beforeJumpToWiki="beforeJumpWiki" :compact="true"></FileDirItems>
         <div v-if="isEmptyDir()" class="emptyDir">
             <Loading v-if="showLoading"></Loading>
             <div v-else>空文件夹</div>
@@ -145,7 +145,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
     display: flex;
     flex-direction: column;
     gap:5px;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     border-left: 1px solid black;
     border-bottom: 1px solid black;
     margin-left: 11px;

@@ -154,15 +154,31 @@ namespace FCloud3.Repos
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault() ?? throw new Exception("找不到目标");
         }
-        public virtual IQueryable<T> GetRangeByIds(List<int> ids)
+        public virtual IQueryable<T> GetRangeByIds(IEnumerable<int> ids)
         {
-            if (ids.Count == 0) 
+            if (ids.Count() == 0) 
                 return new List<T>().AsQueryable();
             return Existing.Where(x => ids.Contains(x.Id));
         }
         public virtual IQueryable<T> GetRangeByIds(IQueryable<int> ids)
         {
             return Existing.Where(x => ids.Contains(x.Id));
+        }
+        public virtual List<T2> GetRangeByIdsOrdered<T2>(IEnumerable<int> ids, Func<IQueryable<T>, Dictionary<int, T2>> converter)
+        {
+            var vals = converter(GetRangeByIds(ids));
+            if(vals.Count == 0) 
+                return [];
+            var res = new List<T2>();
+            foreach(var id in ids)
+            {
+                vals.TryGetValue(id, out T2? val);
+                if(val is not null)
+                {
+                    res.Add(val);
+                }
+            }
+            return res;
         }
         public virtual IQueryable<T> GetqById(int id)
         {

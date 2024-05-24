@@ -13,7 +13,8 @@ import { setWantViewWiki } from './wantViewWiki';
 const props = defineProps<{
     dirId:number,
     items?: Array<FileDirItem>|undefined,
-    wikis?: Array<FileDirWiki>|undefined
+    wikis?: Array<FileDirWiki>|undefined,
+    compact?:boolean
 }>()
 const router = useRouter();
 
@@ -72,7 +73,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-<div v-if="props.items" class="dirItems">
+<div v-if="props.items" class="dirItems" :class="{compact}">
     <div class="item" v-for="wiki in props.wikis" :key="wiki.Id">
         <div class="iconName">
             <div class="wikiIcon">W</div>
@@ -167,6 +168,7 @@ const emit = defineEmits<{
     align-items: center;
     gap:5px;
     flex-grow: 1;
+    height: 100%;
 }
 .name{
     flex-grow: 0;
@@ -184,8 +186,12 @@ const emit = defineEmits<{
     gap:10px;
     padding: 5px;
     transition: 0.3s;
+    height: 30px;
+}
+.compact .item{
+    height: unset;
 }
 .dirItems{
-    margin-top: 5px;
+    margin-top: 0px;
 }
 </style>

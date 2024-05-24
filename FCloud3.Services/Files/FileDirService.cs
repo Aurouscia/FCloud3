@@ -62,6 +62,16 @@ namespace FCloud3.Services.Files
             return _fileDirRepo.GetPathById(id);
         }
 
+
+        private enum FileDirContentItemType
+        {
+            Dir, WikiItem, FileItem
+        }
+        private struct FileDirContentItem(int id, FileDirContentItemType type)
+        {
+            public int Id { get; } = id;
+            public FileDirContentItemType Type { get; } = type;
+        }
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
             q.SelfCheck();
@@ -74,108 +84,82 @@ namespace FCloud3.Services.Files
             }
             errmsg = null;
             var chain = _fileDirRepo.GetChainByPath(path);
-            if(chain is null) {
+            if (chain is null) {
                 errmsg = "找不到指定路径的文件夹";
                 return null;
             }
-            List<string> friendlyPath = chain.ConvertAll(x => x.Name??"??").ToList();
+            List<string> friendlyPath = chain.ConvertAll(x => x.Name ?? "??").ToList();
             var thisDirId = 0;
-            if(chain.Count>0)
+            if (chain.Count > 0)
                 thisDirId = chain.Last().Id;
 
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
             var ownerName = "";
-            if(ownerId > 0)
+            if (ownerId > 0)
                 ownerName = _userMetadataService.Get(ownerId)?.Name ?? "??";
 
-            var indexQueryObjInUse = q;
 
-            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
-            if(subDirsQ is null)
-                return null;
-            var subDirs = _fileDirRepo.IndexFilterOrder(subDirsQ, indexQueryObjInUse);
-            IndexResult<FileDirIndexResult.FileDirSubDir> subDirsData 
-                = subDirs.TakePageAndConvertOneByOne(indexQueryObjInUse, x => new FileDirIndexResult.FileDirSubDir()
-            {
-                Id = x.Id,
-                Name = x.Name,
-                UrlPathName = x.UrlPathName,
-                Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                ByteCount = x.ByteCount,
-            }, true);
-            indexQueryObjInUse = q.AdvanceWith([subDirsData]);
-
-            //三个查询共用一个IndexQuery，查询前翻译一下名字
-            static string keyReplaceForFileItem(string k)
-            {
-                if (k == nameof(FileDir.Name))
-                    return nameof(FileItem.DisplayName);
-                return k;
-            }
-            IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
-            if (thisDirId != 0 && !indexQueryObjInUse.Disabled)
-            {
-                var itemsQ = _fileItemRepo.GetByDirId(thisDirId);
-                var items = _fileItemRepo.IndexFilterOrder(itemsQ, indexQueryObjInUse, keyReplaceForFileItem);
-
-                itemsData = items.TakePageAndConvertAll(indexQueryObjInUse, list => {
-                    var relatedUserIds = list.ConvertAll(x => x.CreatorUserId);
-                    var users = _userMetadataService.GetRange(relatedUserIds);
-                    return list.ConvertAll(x => new FileDirIndexResult.FileDirItem()
-                    {
-                        Id = x.Id,
-                        Name = x.DisplayName,
-                        OwnerName = users.Find(u=>u.Id == x.CreatorUserId)?.Name ?? "??",
-                        ByteCount = x.ByteCount,
-                        Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                        Url = _storage.FullUrl(x.StorePathName ?? "missing")
-                    });
-                }, true);
-            }
-
-            indexQueryObjInUse = q.AdvanceWith([subDirsData, itemsData]);
+            List<FileDirContentItem> contents = [];
             static string keyReplaceForWikiItem(string k)
             {
                 if (k == nameof(FileDir.Name))
                     return nameof(WikiItem.Title);
                 return k;
             }
-            IndexResult<FileDirIndexResult.FileDirWiki>? wikisData = null;
-            if (thisDirId != 0 && indexQueryObjInUse.PageSize > 0)
+            static string keyReplaceForFileItem(string k)
+            {
+                if (k == nameof(FileDir.Name))
+                    return nameof(FileItem.DisplayName);
+                return k;
+            }
+
+
+            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
+            if (subDirsQ is null)
+                return null;
+            subDirsQ = _fileDirRepo.IndexFilterOrder(subDirsQ, q);
+            contents.AddRange(subDirsQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.Dir)).ToList());
+
+            if (thisDirId > 0)
             {
                 var wikisQ = from wiki in _wikiItemRepo.Existing
                              from relation in _wikiToDirRepo.Existing
                              where relation.DirId == thisDirId
                              where wiki.Id == relation.WikiId
                              select wiki;
-                var wikis = _wikiItemRepo.IndexFilterOrder(wikisQ, indexQueryObjInUse, keyReplaceForWikiItem);
+                wikisQ = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
+                contents.AddRange(wikisQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.WikiItem)).ToList());
+            
 
-                wikisData = wikis.TakePageAndConvertOneByOne(indexQueryObjInUse, x => new FileDirIndexResult.FileDirWiki()
-                {
-                    Id = x.Id,
-                    Name = x.Title,
-                    UrlPathName = x.UrlPathName,
-                    OwnerName = "",
-                    Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                });
+                var filesQ = _fileItemRepo.GetByDirId(thisDirId);
+                filesQ = _fileItemRepo.IndexFilterOrder(filesQ, q, keyReplaceForFileItem);
+                contents.AddRange(filesQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.FileItem)).ToList());
             }
+            var itemsPaged = contents.AsQueryable().TakePage(q, out int totalCount, out int pageIdx, out int pageCount).ToList();
 
-            int totalCountOverride = 0;
-            totalCountOverride += subDirsData.TotalCount;
-            totalCountOverride += itemsData?.TotalCount ?? 0;
-            totalCountOverride += wikisData?.TotalCount ?? 0;
-            int pageCountOverride = totalCountOverride / q.PageSize;
-            if (totalCountOverride % q.PageSize == 0 || pageCountOverride == 0)
-                pageCountOverride += 1;
+            var subDirList = _fileDirRepo.GetRangeByIdsOrdered(
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.Dir).Select(x => x.Id),
+                converter: FileDirIndexResult.FileDirSubDir.Converter);
+            var wikiList = _wikiItemRepo.GetRangeByIdsOrdered(
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.WikiItem).Select(x => x.Id),
+                converter: FileDirIndexResult.FileDirWiki.Converter);
+            var fileList = _fileItemRepo.GetRangeByIdsOrdered(
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id),
+                converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl));
+
+            var subDirData = new IndexResult<FileDirIndexResult.FileDirSubDir>(subDirList, 0, 0, 0);
+            var wikiData = new IndexResult<FileDirIndexResult.FileDirWiki>(wikiList, 0, 0, 0);
+            var fileData = new IndexResult<FileDirIndexResult.FileDirItem>(fileList, 0, 0, 0);
 
             //subDirsData会被用来显示页数
-            subDirsData.PageCount = pageCountOverride;
-            subDirsData.TotalCount = totalCountOverride;
+            subDirData.PageCount = pageCount;
+            subDirData.TotalCount = totalCount;
+            subDirData.PageIdx = pageIdx;
 
             return new() { 
-                Items = itemsData,
-                SubDirs = subDirsData,
-                Wikis = wikisData,
+                Items = fileData,
+                SubDirs = subDirData,
+                Wikis = wikiData,
                 ThisDirId = thisDirId,
                 OwnerId = ownerId,
                 OwnerName = ownerName,
@@ -216,15 +200,9 @@ namespace FCloud3.Services.Files
             }
             var items = _fileItemRepo.IndexFilterOrder(homelessFiles, q, keyReplaceForFileItem);
             IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
-            itemsData = items.TakePageAndConvertOneByOne(q, x => new FileDirIndexResult.FileDirItem()
-            {
-                Id = x.Id,
-                Name = x.DisplayName,
-                OwnerName = "",
-                ByteCount = x.ByteCount,
-                Updated = x.Updated.ToString("yy/MM/dd HH:mm"),
-                Url = _storage.FullUrl(x.StorePathName ?? "missing")
-            });
+            itemsData = items.TakePageAndConvertOneByOne(q, x => 
+                new FileDirIndexResult.FileDirItem(x.Id,x.DisplayName,x.Updated,x.ByteCount, _storage.FullUrl(x.StorePathName ?? "??"))
+            );
 
             FileDirIndexResult res = new()
             {
@@ -547,32 +525,49 @@ namespace FCloud3.Services.Files
         public string? OwnerName { get; set; }
         public List<string>? FriendlyPath { get; set; }
 
-        public class FileDirSubDir
+        public class FileDirSubDir(int id, string? name, string? urlPathName, DateTime updated)
         {
-            public int Id { get; set; }
-            public string? Name { get; set; }
-            public string? UrlPathName { get; set; }
-            public string? Updated { get; set; }
-            public string? OwnerName { get; set; }
-            public int ByteCount { get; set; }
-            public int FileNumber { get; set; }
+            public int Id { get; set; } = id;
+            public string? Name { get; set; } = name;
+            public string? UrlPathName { get; set; } = urlPathName;
+            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
+            public string? OwnerName { get; set; } = "";
+            public int ByteCount { get; set; } = 0;
+            public int FileNumber { get; set; } = 0;
+
+            public static Dictionary<int, FileDirSubDir> Converter(IQueryable<FileDir> fileDirs)
+            {
+                var data = fileDirs.Select(x => new FileDirSubDir(x.Id, x.Name, x.UrlPathName, x.Updated)).ToList();
+                return data.ToDictionary(x => x.Id, x => x);
+            }
         }
-        public class FileDirItem
+        public class FileDirItem(int id, string? name, DateTime updated, int byteCount, string? url)
         {
-            public int Id { get; set; }
-            public string? Name { get; set; }
-            public string? Updated { get; set; }
-            public string? OwnerName { get; set; }
-            public int ByteCount { get; set; }
-            public string? Url { get; set; }
+            public int Id { get; set; } = id;
+            public string? Name { get; set; } = name;
+            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
+            public string? OwnerName { get; set; } = "";
+            public int ByteCount { get; set; } = byteCount;
+            public string? Url { get; set; } = url;
+
+            public static Dictionary<int, FileDirItem> Converter(IQueryable<FileItem> files, Func<string, string> url)
+            {
+                var data = files.Select(x => new FileDirItem(x.Id, x.DisplayName, x.Updated, x.ByteCount, url(x.StorePathName ?? "??"))).ToList();
+                return data.ToDictionary(x => x.Id, x => x);
+            }
         }
-        public class FileDirWiki
+        public class FileDirWiki(int id, string? name, string? urlPathName, DateTime updated)
         {
-            public int Id { get; set; }
-            public string? Name { get; set; }
-            public string? UrlPathName { get; set; }
-            public string? Updated { get; set; }
-            public string? OwnerName { get; set; }
+            public int Id { get; set; } = id;
+            public string? Name { get; set; } = name;
+            public string? UrlPathName { get; set; } = urlPathName;
+            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
+            public string? OwnerName { get; set; } = "";
+            public static Dictionary<int, FileDirWiki> Converter(IQueryable<WikiItem> wikis)
+            {
+                var data = wikis.Select(x => new FileDirWiki(x.Id, x.Title, x.UrlPathName, x.Updated)).ToList();
+                return data.ToDictionary(x => x.Id, x => x);
+            }
         }
     }
     public class FileDirPutInResult

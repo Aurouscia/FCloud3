@@ -149,7 +149,7 @@ function autoPageSize() {
     if (pos) {
         const posTop = pos.offsetTop
         const winH = window.innerHeight;
-        const itemCount = Math.floor((winH - posTop - 5) / 40) - 1;//如果样式调整，这里可能失效
+        const itemCount = Math.floor((winH - posTop - 20) / 40) - 1;//如果样式调整，这里可能失效
         index.value?.setPageSizeOverride(itemCount)
     }
     else
@@ -336,9 +336,6 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 }
 .owner span:hover{
     text-decoration: underline;
-}
-.items{
-    padding-left: 20px;
 }
 .settingsBtn:hover{
     background-color: #999;
