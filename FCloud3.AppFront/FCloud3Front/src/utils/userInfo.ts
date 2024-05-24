@@ -1,18 +1,23 @@
+import { defineStore, storeToRefs } from "pinia"
 import { UserType } from "../models/identities/user"
 import { Api } from "./api"
+import { ref } from "vue"
 
 export interface IdentityInfo{
     Name:string
     Id:number
     LeftHours:number
-    Type: UserType
+    Type: UserType,
+    AvtSrc: string
 }
 
-const defaultValue = {
+const defaultAvatar = "/defaultAvatar.svg"
+const defaultValue:IdentityInfo = {
     Name:"游客",
     Id:0,
     LeftHours:0,
-    Type: UserType.Tourist
+    Type: UserType.Tourist,
+    AvtSrc: defaultAvatar
 }
 
 export class IdentityInfoProvider{
@@ -32,6 +37,8 @@ export class IdentityInfoProvider{
             }
         }
         this.setCache(res)
+        const {iden} = storeToRefs(useIdentityInfoStore())
+        iden.value = res;
         return res;
     }
 
@@ -56,3 +63,10 @@ export class IdentityInfoProvider{
         localStorage.setItem(this.localStorageKey, JSON.stringify(stored));
     }
 }
+
+
+export const useIdentityInfoStore = defineStore('iden', {
+    state:()=>{
+        return {iden: ref(defaultValue)}
+    }
+})

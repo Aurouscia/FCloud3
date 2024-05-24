@@ -185,6 +185,7 @@ namespace FCloud3.Services.Identities
         }
 
         private const string defaultAvatar = "/defaultAvatar.svg";
+        public string DefaultAvatar() => defaultAvatar;
         public string AvatarFullUrl(string? x) => string.IsNullOrEmpty(x) ? defaultAvatar : _storage.FullUrl(x);
 
         public void SetLastUpdateToNow()

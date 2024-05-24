@@ -17,8 +17,8 @@ import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '..
 import Functions from '../../components/Functions.vue';
 import FileDirCreate from './FileDirCreate.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
-import { injectApi, injectUserInfo } from '../../provides';
-import { IdentityInfo } from '../../utils/userInfo';
+import { injectApi } from '../../provides';
+import { useIdentityInfoStore } from '../../utils/userInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
@@ -171,13 +171,11 @@ function windowResizeHandler(){
 
 const index = ref<InstanceType<typeof IndexMini>>();
 let api:Api = injectApi();
-let iden:IdentityInfo;
-let idenProvider = injectUserInfo()
+const iden = useIdentityInfoStore().iden
 onMounted(async()=>{
     setPathData();
     autoPageSize();
     window.addEventListener('resize', windowResizeHandler)
-    iden = await idenProvider.getIdentityInfo();
     await index.value?.reloadData()
 })
 onUnmounted(()=>{

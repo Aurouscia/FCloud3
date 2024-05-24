@@ -2,8 +2,9 @@
 import { onMounted, ref } from 'vue';
 import { Api } from '../../utils/api';
 import { UserIndexItem, UserType } from '../../models/identities/user';
-import { injectApi, injectUserInfo } from '../../provides';
-import { IdentityInfo } from '../../utils/userInfo';
+import { injectApi } from '../../provides';
+import { useIdentityInfoStore } from '../../utils/userInfo';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     user:UserIndexItem
@@ -18,11 +19,10 @@ async function setType(){
 }
 
 let api:Api;
-let iden:IdentityInfo
+const {iden} = storeToRefs(useIdentityInfoStore())
 const ready = ref<boolean>(false);
 onMounted(async()=>{
     api = injectApi();
-    iden = await injectUserInfo().getIdentityInfo()
     ready.value = true;
 })
 

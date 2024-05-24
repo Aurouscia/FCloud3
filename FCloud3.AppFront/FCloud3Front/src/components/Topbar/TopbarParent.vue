@@ -6,9 +6,12 @@ import { TopbarModel } from './topbarModel';
 import TopbarBodyHorizontal from './TopbarBodyHorizontal.vue';
 import TopbarBodyVertical from './TopbarBodyVertical.vue';
 import { useNotifCount } from '../../utils/notifCountUse';
+import { useIdentityInfoStore } from '../../utils/userInfo';
+import { storeToRefs } from 'pinia';
 
 const topbarModel = ref<TopbarModel>();
 const {notifCount} = useNotifCount();
+const {iden} = storeToRefs(useIdentityInfoStore())
 onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
 })
@@ -35,9 +38,14 @@ function toggleFold(){
     <div v-if="topbarModel" class="topbarHori">
         <TopbarBodyHorizontal :data="topbarModel"></TopbarBodyHorizontal>
     </div>
-    <div class="foldBtn">
-        <img :src="itemsImg" @click="toggleFold"/>
-        <div v-show="notifCount>0" class="notifExists"></div>
+    <div class="right">
+        <div v-if="iden?.Id>0" class="avt">
+            <img :src="iden?.AvtSrc"/>
+        </div>
+        <div class="foldBtn">
+            <img :src="itemsImg" @click="toggleFold"/>
+            <div v-show="notifCount>0" class="notifExists"></div>
+        </div>
     </div>
 </div>
 <div class="topbarParentShadow"></div>
@@ -103,23 +111,34 @@ function toggleFold(){
     box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.7);
 }
 
-.foldBtn{
+.right{
     position: absolute;
     right: 10px;
-    height: 25px;
-    width: 25px;
-    padding: 5px;
-    border-radius: 5px;
-    cursor: pointer;
-    img{
-        width: 25px;
+    display: flex;
+    justify-content: right;
+    gap: 7px;
+    align-items: center;
+    .avt{
+        img{
+            width: 35px;
+            height: 35px;
+            border-radius: 1000px;
+            object-fit: contain;
+        }
+    }
+    .foldBtn{
         height: 25px;
-        object-fit: contain;
-    }
-    &:hover{
+        width: 25px;
+        padding: 5px;
+        border-radius: 1000px;
         background-color: #eee;
+        cursor: pointer;
+        img{
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+        }
     }
-    transition: 0.5s;
 }
 
 .topbarHori{

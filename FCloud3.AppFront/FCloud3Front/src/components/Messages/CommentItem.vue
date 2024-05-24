@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { CommentViewResult, Comment, CommentTargetType } from '../../models/messages/comment';
-import { injectApi, injectPop, injectUserInfo } from '../../provides';
+import { injectApi, injectPop } from '../../provides';
 import { truncate } from 'lodash'; 
 import { rateColor, rateText } from './rateTextColor';
-import { IdentityInfo } from '../../utils/userInfo';
 import { jumpToUserCenter } from '../../pages/Identities/routes';
 
 const props = defineProps<{
@@ -35,8 +34,6 @@ const replyInfo = computed<ReplyInfo|undefined>(()=>{
 })
 const needFold = props.c.Replies.some(r=>r.Replying != 0);
 const foldOpened = ref(false);
-const iden = ref<IdentityInfo>();
-injectUserInfo().getIdentityInfo().then(x => iden.value = x)
 
 const wantWrite = ref<boolean>(false);
 const writingContent = ref<string>();

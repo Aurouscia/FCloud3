@@ -128,10 +128,6 @@ $topbar-body-vert-width: 180px;
     border-top: 1px solid #ddd;
     color: #333;
     cursor: pointer;
-    &:hover{
-        background-color: #eee;
-        color: black;
-    }
 }
 .topbarSubItemList{
     font-size: 16px;

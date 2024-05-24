@@ -13,8 +13,10 @@ namespace FCloud3.App.Services.Utils
         public string Name { get; } = "未登录";
         public UserType Type { get; } = UserType.Tourist;
         public int LeftHours { get; } = 0;
+        public string? AvtSrc { get; }
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {
+            AvtSrc = userService.DefaultAvatar();
             var ctx = httpContextAccessor.HttpContext;
             if (ctx is null)
                 return;
@@ -28,6 +30,7 @@ namespace FCloud3.App.Services.Utils
                 {
                     Name = user.Name ?? "";
                     Type = user.Type;
+                    AvtSrc = user.AvatarSrc;
                 }
                 var expClaim = ctx.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp);
                 if (expClaim is not null && long.TryParse(expClaim.Value, out long exp))

@@ -24,22 +24,21 @@ var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
 const notif = useNotifCount();
 const router = useRouter();
+
 async function Login(){
     const token = await api.identites.authen.login({
         userName:userName.value,
         password:password.value
     })
-    if(token){
+    if (token) {
         httpClient.setToken(token);
         identityInfoProvider.clearCache();
-        if (identityInfoProvider) {
-            identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
-            notif.clear();
-            if(props.backAfterSuccess){
-                router.back()
-            }else{
-                router.push("/")
-            }
+        identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
+        notif.clear();
+        if (props.backAfterSuccess) {
+            router.back()
+        } else {
+            router.push("/")
         }
     }
 };
@@ -47,9 +46,8 @@ async function Logout() {
     httpClient.clearToken();
     identityInfoProvider.clearCache();
     pop.value.show("已经成功退出登录","success");
-    if(identityInfoProvider){
-        identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
-    }
+    identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
+    notif.clear();
 }
 onMounted(async()=>{
     setTitleTo('登录')

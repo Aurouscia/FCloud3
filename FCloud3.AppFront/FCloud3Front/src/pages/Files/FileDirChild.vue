@@ -149,6 +149,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
     border-left: 1px solid black;
     border-bottom: 1px solid black;
     margin-left: 11px;
+    margin-bottom: 5px;
     padding-left: 4px;
 }
 .subdir div{

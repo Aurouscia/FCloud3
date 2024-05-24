@@ -8,11 +8,12 @@ import OpRecord from '../../components/Messages/OpRecord.vue';
 import { User } from '../../models/identities/user';
 import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { IdentityInfo } from '../../utils/userInfo';
+import { useIdentityInfoStore } from '../../utils/userInfo';
 import { injectApi, injectPop, injectUserInfo } from '../../provides';
 import { jumpToLogin } from './routes';
 import Pop from '../../components/Pop.vue';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     username?:string
@@ -26,7 +27,7 @@ watch(props, _newVal=>{
     location.reload();
 })
 
-async function load(){
+async function load(clearCache?:boolean){
     let nameChanged = false;
     //user.value可能被个人设置组件所更改，这里需要检查是否有改动，有改动就跳转去登录页面
     if(user.value){
@@ -34,6 +35,10 @@ async function load(){
             nameChanged = true;
         }
         username = user.value.Name;
+    }
+    if(clearCache){
+        idenProvider.clearCache();
+        idenProvider.getIdentityInfo();
     }
     if(username){
         user.value = await api.identites.user.getInfoByName(username);
@@ -48,8 +53,10 @@ async function load(){
 }
 
 let username:string|undefined;
-let identity:IdentityInfo|undefined;
+const idenStore = useIdentityInfoStore()
+const {iden} = storeToRefs(idenStore)
 let pop: Ref<InstanceType<typeof Pop>>;
+const idenProvider = injectUserInfo();
 onMounted(async()=>{
     api = injectApi();
     pop = injectPop();
@@ -58,14 +65,13 @@ onMounted(async()=>{
         setTitleTo(username)
     else
         setTitleTo('用户中心')
-    identity = await injectUserInfo().getIdentityInfo();
     if(!username){    
-        if(identity.Id==0){
+        if(iden.value.Id==0){
             pop.value.show("请登录","failed");
             jumpToLogin();
             return;
         }
-        username = identity.Name
+        username = iden.value.Name
     }
     await load();
 })
@@ -80,7 +86,7 @@ onUnmounted(()=>{
             <img :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
-            <div class="settings"><button v-if="username==identity?.Name" @click="editInfoSidebar?.extend">编辑信息</button></div>
+            <div class="settings"><button v-if="username==iden?.Name" @click="editInfoSidebar?.extend">编辑信息</button></div>
         </div>
         <SwitchingTabs style="width: 300px;height: 400px;" :texts="['最新作品','最近动态','自荐']">
             <div><LatestWork :uid="user.Id" :noWrap="true"></LatestWork></div>
@@ -90,7 +96,7 @@ onUnmounted(()=>{
     </div>
     <div v-else><Loading></Loading></div>
     <SideBar ref="editInfoSidebar">
-        <Personal v-if="user" :user="user" @require-reload="load"></Personal>
+        <Personal v-if="user" :user="user" @require-reload="()=>load(true)"></Personal>
     </SideBar>
 </template>
 

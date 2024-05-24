@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './style.scss'
 import App from './App.vue'
+import { createPinia } from 'pinia';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { addIdentities } from './pages/Identities/routes'
 import NotFound from './pages/NotFoundPage.vue';
@@ -35,4 +36,6 @@ addMessages(router)
 
 recoverTitle()
 
-createApp(App).use(router).mount('#app')
+const pinia = createPinia();
+
+createApp(App).use(router).use(pinia).mount('#app')
