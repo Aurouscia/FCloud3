@@ -1,6 +1,6 @@
 import { Ref, provide, inject, ref} from 'vue';
 import { HttpCallBack, HttpClient } from './utils/httpClient';
-import { IdentityInfoProvider } from './utils/userInfo';
+import { IdentityInfoProvider } from './utils/identityInfo';
 import Pop from './components/Pop.vue';
 import { Api } from './utils/api';
 import { jumpToLogin } from './pages/Identities/routes';
@@ -12,7 +12,7 @@ import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from '
 const popKey = 'pop';
 const httpKey = 'http';
 const apiKey = 'api';
-const userInfoKey = 'userInfo';
+const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
 const notifCountKey = 'notifCount';
 
@@ -49,7 +49,7 @@ export function useProvidesSetup() {
 
     const idenProvider = new IdentityInfoProvider(api);
     idenProvider.getIdentityInfo();//启动时获取一次身份信息(可能读缓存)
-    provide(userInfoKey, idenProvider)
+    provide(IdentityInfoKey, idenProvider)
 
     const displayTopbar = ref<boolean>(true);
     provide(setTopBarKey, (display:boolean) => { displayTopbar.value = display })
@@ -70,12 +70,12 @@ export function injectHttp(){
 export function injectApi(){
     return inject(apiKey) as Api;
 }
-export function injectUserInfo(){
-    return inject(userInfoKey) as IdentityInfoProvider
+export function injectIdentityInfoProvider(){
+    return inject(IdentityInfoKey) as IdentityInfoProvider
 }
 export function injectSetTopbar(){
     return inject(setTopBarKey) as SetTopbarFunc
 }
-export function injectNotifCount(){
+export function injectNotifCountProvider(){
     return inject(notifCountKey) as NotifCountProvider
 }

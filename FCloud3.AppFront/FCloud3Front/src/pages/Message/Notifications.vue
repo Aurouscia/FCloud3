@@ -6,7 +6,7 @@ import Loading from '../../components/Loading.vue';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 import { useNotifCountStore } from '../../utils/notifCount';
 import { storeToRefs } from 'pinia';
-import { useIdentityInfoStore } from '../../utils/userInfo';
+import { useIdentityInfoStore } from '../../utils/identityInfo';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])

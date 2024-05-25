@@ -3,7 +3,7 @@ import { Api } from "./api";
 import { getTimeStamp } from "./timeStamp";
 import _ from 'lodash'
 import { defineStore } from "pinia";
-import { useIdentityInfoStore } from "./userInfo";
+import { useIdentityInfoStore } from "./identityInfo";
 
 const key = "notifInfo"
 interface NotifInfo{
@@ -13,6 +13,7 @@ interface NotifInfo{
 const notifCountPollIntervalSec = 180;
 const notifCountCacheExpireSec = 170;
 
+//获取未读消息数量的途径（有缓存）会自动更新piniaStore
 export class NotifCountProvider{
     private api:Api
     private showTopbar:Ref<boolean>
@@ -63,13 +64,13 @@ export class NotifCountProvider{
     }
 }
 
-
+//初始化
 export function setupPollCycle(provider:NotifCountProvider){
     setTimeout(()=>provider.get(), 1000) //初始化时立即查询一次
     setInterval(()=>provider.get(), notifCountPollIntervalSec*1000) //每隔x秒查询一次
 }
 
-
+//存储未读消息数量的piniaStore，显示应该从这里获取
 export const useNotifCountStore = defineStore('notifCount', {
     state:()=>{
         return {notifCount: ref(0)}

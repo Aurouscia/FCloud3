@@ -5,7 +5,7 @@ import { TextSection, TextSectionPreviewResponse } from "../models/textSection/t
 import { WikiParaDisplay } from "../models/wiki/wikiPara";
 import { WikiParaTypes } from "../models/wiki/wikiParaTypes";
 import { HttpClient } from "./httpClient";
-import { IdentityInfo } from "./userInfo";
+import { IdentityInfo } from "./identityInfo";
 import { FileItemDetail, FileUploadRequest, StagingFile } from "../models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '../models/files/fileDir';
 import { FileDir } from "../models/files/fileDir";

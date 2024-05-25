@@ -18,7 +18,7 @@ import Functions from '../../components/Functions.vue';
 import FileDirCreate from './FileDirCreate.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
 import { injectApi } from '../../provides';
-import { useIdentityInfoStore } from '../../utils/userInfo';
+import { useIdentityInfoStore } from '../../utils/identityInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';

@@ -5,7 +5,7 @@ import itemsImg from '../../assets/items.svg';
 import { TopbarModel } from './topbarModel';
 import TopbarBodyHorizontal from './TopbarBodyHorizontal.vue';
 import TopbarBodyVertical from './TopbarBodyVertical.vue';
-import { useIdentityInfoStore } from '../../utils/userInfo';
+import { useIdentityInfoStore } from '../../utils/identityInfo';
 import { storeToRefs } from 'pinia';
 import { useNotifCountStore } from '../../utils/notifCount';
 

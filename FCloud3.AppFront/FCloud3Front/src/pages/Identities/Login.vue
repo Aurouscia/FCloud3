@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref,Ref } from 'vue';
 import { HttpClient} from '../../utils/httpClient';
-import { IdentityInfoProvider, useIdentityInfoStore } from '../../utils/userInfo';
+import { IdentityInfoProvider, useIdentityInfoStore } from '../../utils/identityInfo';
 import { userTypeText } from '../../models/identities/user';
 import Pop from '../../components/Pop.vue'
 import { Api } from '../../utils/api';
-import { injectNotifCount as injectNotifCountProvider, injectUserInfo } from '../../provides';
+import { injectNotifCountProvider, injectIdentityInfoProvider } from '../../provides';
 import { useRouter } from 'vue-router';
 import { jumpToRegister } from './routes';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
@@ -54,7 +54,7 @@ onMounted(async()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
-    identityInfoProvider = injectUserInfo();
+    identityInfoProvider = injectIdentityInfoProvider();
     await identityInfoProvider.getIdentityInfo(true);
 })
 onUnmounted(()=>{

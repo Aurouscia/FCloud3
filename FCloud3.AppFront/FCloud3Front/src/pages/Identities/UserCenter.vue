@@ -8,8 +8,8 @@ import OpRecord from '../../components/Messages/OpRecord.vue';
 import { User } from '../../models/identities/user';
 import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { useIdentityInfoStore } from '../../utils/userInfo';
-import { injectApi, injectPop, injectUserInfo } from '../../provides';
+import { useIdentityInfoStore } from '../../utils/identityInfo';
+import { injectApi, injectPop, injectIdentityInfoProvider } from '../../provides';
 import { jumpToLogin } from './routes';
 import Pop from '../../components/Pop.vue';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
@@ -56,7 +56,7 @@ let username:string|undefined;
 const idenStore = useIdentityInfoStore()
 const {iden} = storeToRefs(idenStore)
 let pop: Ref<InstanceType<typeof Pop>>;
-const idenProvider = injectUserInfo();
+const idenProvider = injectIdentityInfoProvider();
 onMounted(async()=>{
     api = injectApi();
     pop = injectPop();

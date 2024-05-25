@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { Api } from '../../utils/api';
 import { UserIndexItem, UserType } from '../../models/identities/user';
 import { injectApi } from '../../provides';
-import { useIdentityInfoStore } from '../../utils/userInfo';
+import { useIdentityInfoStore } from '../../utils/identityInfo';
 import { storeToRefs } from 'pinia';
 
 const props = defineProps<{

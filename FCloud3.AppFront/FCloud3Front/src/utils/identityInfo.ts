@@ -23,6 +23,7 @@ const defaultValue:IdentityInfo = {
 const identityCacheExpireSec = 60*60
 export { defaultValue as defaultIdentity }
 
+//获取身份信息的途径（有缓存）获取时会自动更新piniaStore
 export class IdentityInfoProvider{
     api:Api
     constructor(api:Api){
@@ -72,7 +73,7 @@ export class IdentityInfoProvider{
     }
 }
 
-
+//存储身份信息的piniaStore，获取时应该通过这里获取
 export const useIdentityInfoStore = defineStore('iden', {
     state:()=>{
         return {iden: ref(defaultValue)}
