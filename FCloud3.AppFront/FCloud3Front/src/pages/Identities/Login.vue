@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref,Ref } from 'vue';
 import { HttpClient} from '../../utils/httpClient';
-import { IdentityInfo,IdentityInfoProvider } from '../../utils/userInfo';
+import { IdentityInfoProvider, useIdentityInfoStore } from '../../utils/userInfo';
 import { userTypeText } from '../../models/identities/user';
 import Pop from '../../components/Pop.vue'
 import { Api } from '../../utils/api';
-import { injectUserInfo } from '../../provides';
+import { injectNotifCount as injectNotifCountProvider, injectUserInfo } from '../../provides';
 import { useRouter } from 'vue-router';
 import { jumpToRegister } from './routes';
-import { useNotifCount } from '../../utils/notifCountUse';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -18,11 +18,11 @@ const props = defineProps<{
 const userName = ref<string>("")
 const password = ref<string>("")
 var identityInfoProvider:IdentityInfoProvider;
-const identityInfo = ref<IdentityInfo|undefined>()
+const {iden} = storeToRefs(useIdentityInfoStore())
 var httpClient:HttpClient;
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
-const notif = useNotifCount();
+const notifProvider = injectNotifCountProvider();
 const router = useRouter();
 
 async function Login(){
@@ -33,8 +33,9 @@ async function Login(){
     if (token) {
         httpClient.setToken(token);
         identityInfoProvider.clearCache();
-        identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
-        notif.clear();
+        await identityInfoProvider.getIdentityInfo(true);
+        notifProvider.clear();//立即清除消息个数缓存，重新获取消息个数
+        notifProvider.get();
         if (props.backAfterSuccess) {
             router.back()
         } else {
@@ -46,8 +47,7 @@ async function Logout() {
     httpClient.clearToken();
     identityInfoProvider.clearCache();
     pop.value.show("已经成功退出登录","success");
-    identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
-    notif.clear();
+    notifProvider.clear();
 }
 onMounted(async()=>{
     setTitleTo('登录')
@@ -55,7 +55,7 @@ onMounted(async()=>{
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
     identityInfoProvider = injectUserInfo();
-    identityInfo.value = await identityInfoProvider.getIdentityInfo(true);
+    await identityInfoProvider.getIdentityInfo(true);
 })
 onUnmounted(()=>{
     recoverTitle()
@@ -88,10 +88,10 @@ onUnmounted(()=>{
             注册账号
         </div>
     </div>
-    <div class="loginInfo" v-if="identityInfo">
+    <div class="loginInfo" v-if="iden">
         当前登录：
-        [{{ userTypeText(identityInfo.Type).type }}]{{ identityInfo?.Name }}<br/>
-        登录有效期：{{ identityInfo?.LeftHours }}小时<br/>
+        [{{ userTypeText(iden.Type).type }}]{{ iden?.Name }}<br/>
+        登录有效期：{{ iden?.LeftHours }}小时<br/>
         <button @click="Logout" class="logout">退出登录</button>
     </div>
 </template>

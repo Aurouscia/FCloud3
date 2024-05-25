@@ -5,12 +5,12 @@ import itemsImg from '../../assets/items.svg';
 import { TopbarModel } from './topbarModel';
 import TopbarBodyHorizontal from './TopbarBodyHorizontal.vue';
 import TopbarBodyVertical from './TopbarBodyVertical.vue';
-import { useNotifCount } from '../../utils/notifCountUse';
 import { useIdentityInfoStore } from '../../utils/userInfo';
 import { storeToRefs } from 'pinia';
+import { useNotifCountStore } from '../../utils/notifCount';
 
 const topbarModel = ref<TopbarModel>();
-const {notifCount} = useNotifCount();
+const {notifCount} = storeToRefs(useNotifCountStore())
 const {iden} = storeToRefs(useIdentityInfoStore())
 onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
@@ -57,7 +57,7 @@ function toggleFold(){
 <style scoped lang="scss">
 .notifExists{
     position: absolute;
-    top:-4px;right: -4px;
+    top:-1px;right: -1px;
 }
 .logo{
     width: 130px;
@@ -133,6 +133,7 @@ function toggleFold(){
         border-radius: 1000px;
         background-color: #eee;
         cursor: pointer;
+        position: relative;
         img{
             width: 25px;
             height: 25px;

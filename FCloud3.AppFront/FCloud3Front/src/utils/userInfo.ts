@@ -1,7 +1,8 @@
-import { defineStore, storeToRefs } from "pinia"
+import { defineStore } from "pinia"
 import { UserType } from "../models/identities/user"
 import { Api } from "./api"
 import { ref } from "vue"
+import { getTimeStamp } from "./timeStamp"
 
 export interface IdentityInfo{
     Name:string
@@ -19,6 +20,8 @@ const defaultValue:IdentityInfo = {
     Type: UserType.Tourist,
     AvtSrc: defaultAvatar
 }
+const identityCacheExpireSec = 60*60
+export { defaultValue as defaultIdentity }
 
 export class IdentityInfoProvider{
     api:Api
@@ -30,34 +33,39 @@ export class IdentityInfoProvider{
         if(res === undefined || enforceNew){
             res = await this.api.identites.authen.identityTest()
             if (res) {
-                console.log("获取身份信息为:", res)
+                console.log("获取服务器响应的身份信息:", res)
             }
             else{
                 res = defaultValue;
             }
+            this.setCache(res)
         }
-        this.setCache(res)
-        const {iden} = storeToRefs(useIdentityInfoStore())
-        iden.value = res;
+        else{
+            console.log("获取缓存中的身份信息:",res)
+        }
+        useIdentityInfoStore().iden = res//更新pinia中的数据
         return res;
     }
 
     private localStorageKey = "identityInfo";
     public clearCache(){
         localStorage.removeItem(this.localStorageKey);
+        useIdentityInfoStore().iden = defaultValue;//更新pinia中的数据
+        console.log("清除缓存中的身份信息")
     }
     public readCache():{update:number,info:IdentityInfo}|undefined{
         const stored = localStorage.getItem(this.localStorageKey);
         if(stored){
             const data = JSON.parse(stored)
             if(data.update && data.info){
-                return data;
+                if(getTimeStamp() - identityCacheExpireSec < (data.update as number)) //缓存未过期
+                    return data;
             }
         }
     }
     public setCache(info:IdentityInfo){
         const stored = {
-            update: new Date().getTime(),
+            update: getTimeStamp(),
             info: info
         };
         localStorage.setItem(this.localStorageKey, JSON.stringify(stored));

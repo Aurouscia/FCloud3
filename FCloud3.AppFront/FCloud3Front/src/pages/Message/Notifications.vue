@@ -1,21 +1,23 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { NotifViewItem, NotifType } from '../../models/messages/notification';
-import { injectApi, injectUserInfo } from '../../provides';
+import { injectApi } from '../../provides';
 import Loading from '../../components/Loading.vue';
-import { useNotifCount } from '../../utils/notifCountUse';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { useNotifCountStore } from '../../utils/notifCount';
+import { storeToRefs } from 'pinia';
+import { useIdentityInfoStore } from '../../utils/userInfo';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])
 const loaded = ref(false);
 const totalCount = ref(0);
-const {readAll, readOne, notifCount} = useNotifCount();
-const iden = injectUserInfo()
+const notifCountStore = useNotifCountStore();
+const {notifCount} = storeToRefs(notifCountStore);
+const idenStore = useIdentityInfoStore();
 
 async function load(){
-    const identity = await iden.getIdentityInfo()
-    if(identity.Id <= 0)
+    if(idenStore.iden.Id <= 0)
         return;
     const res = await api.messages.notification.get(notifs.value.length);
     if(res){
@@ -29,13 +31,13 @@ async function markRead(id:number|"all") {
         if(id == 'all')
         {
             notifs.value.forEach(n=>n.Read=true);
-            readAll()
+            notifCountStore.readAll()
         }
         else{
             const target = notifs.value.find(x=>x.Id==id);
             if(target){
                 target.Read = true;
-                readOne();
+                notifCountStore.readOne();
             }
         }
     }

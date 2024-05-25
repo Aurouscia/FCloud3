@@ -7,7 +7,7 @@ import { jumpToLogin } from './pages/Identities/routes';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
-import { NotifCount } from './utils/notifCount';
+import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from './utils/notifCount';
 
 const popKey = 'pop';
 const httpKey = 'http';
@@ -46,13 +46,17 @@ export function useProvidesSetup() {
     provide(httpKey, httpClient)
     const api = new Api(httpClient);
     provide(apiKey, api)
-    provide(userInfoKey, new IdentityInfoProvider(api))
+
+    const idenProvider = new IdentityInfoProvider(api);
+    idenProvider.getIdentityInfo();//启动时获取一次身份信息(可能读缓存)
+    provide(userInfoKey, idenProvider)
 
     const displayTopbar = ref<boolean>(true);
     provide(setTopBarKey, (display:boolean) => { displayTopbar.value = display })
 
-    const notifCount = new NotifCount(api, displayTopbar);
-    provide(notifCountKey, notifCount);
+    const notifCountProvider = new NotifCountProvider(api, displayTopbar);
+    setupNotifCountPollCycle(notifCountProvider);//启动时获取一次通知数量，并设置轮询循环
+    provide(notifCountKey, notifCountProvider);
     
     return { pop, displayTopbar, needMemberWarning, wait }
 }
@@ -73,5 +77,5 @@ export function injectSetTopbar(){
     return inject(setTopBarKey) as SetTopbarFunc
 }
 export function injectNotifCount(){
-    return inject(notifCountKey) as NotifCount
+    return inject(notifCountKey) as NotifCountProvider
 }
