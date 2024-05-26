@@ -8,7 +8,7 @@ import Functions from '../../components/Functions.vue';
 import { Api } from '../../utils/com/api';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
-import { setWantViewWiki } from './wantViewWiki';
+import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 
 const props = defineProps<{
     dirId:number,
@@ -17,6 +17,7 @@ const props = defineProps<{
     compact?:boolean
 }>()
 const router = useRouter();
+const wantViewWikiStore = useWantViewWikiStore();
 
 var clipBoard:Ref<InstanceType<typeof ClipBoard>>
 var api:Api;
@@ -31,8 +32,10 @@ function toClipBoard(e:MouseEvent, item:FileDirItem|FileDirWiki, type:ClipBoardI
 function jumpToWiki(urlPathName:string){
     //告知包含本组件的父组件想要跳转到词条
     //如果父组件是个FileDirChild（列表展开文件夹）
-    //那么其会使用router.push跳转到自身对应的文件夹，再取出想要跳转的词条名
-    setWantViewWiki(urlPathName)
+    //    那么其会使用router.push跳转到自身对应的文件夹，再取出想要跳转的词条名
+    //如果父组件是个FileDirIndex（文件夹主视图）
+    //    那么其会直接取出要跳转的词条名跳转
+    wantViewWikiStore.set(urlPathName)
     emit('beforeJumpToWiki')
 }
 async function removeWiki(id:number){

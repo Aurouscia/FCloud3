@@ -4,12 +4,12 @@ import FileDirChild from './FileDirChild.vue'
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import FileDirItems from './FileDirItems.vue';
-import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
-import Functions from '../../components/Functions.vue';
-import Loading from '../../components/Loading.vue';
-import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '../../models/files/fileDir';
-import { IndexQuery, indexQueryDefault } from '../../components/Index';
-import { Api } from '../../utils/com/api';
+import ClipBoard, { ClipBoardItemType } from '@/components/ClipBoard.vue';
+import Functions from '@/components/Functions.vue';
+import Loading from '@/components/Loading.vue';
+import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '@/models/files/fileDir';
+import { IndexQuery, indexQueryDefault } from '@/components/Index';
+import { Api } from '@/utils/com/api';
 
 const router = useRouter();
 
@@ -23,6 +23,7 @@ function beforeJumpWiki(){
     //此处为文件夹视图内展开的文件夹显示处（可能有很多层），
     //在跳转到词条之前，先跳转到文件夹本身的页面，避免进入词条后回退到根文件夹
     //跳转到词条本身的操作在FileDirIndex.vue的watch里
+    //jump之后会引起路由参数变化，触发FileDirIndex.vue的watch，完成跳转
     jumpToSubDir('')
 }
 

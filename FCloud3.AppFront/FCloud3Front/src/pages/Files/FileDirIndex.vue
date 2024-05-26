@@ -23,7 +23,7 @@ import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import { getWantViewWiki } from './wantViewWiki';
+import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 
 
@@ -33,6 +33,7 @@ const props = defineProps<{
 const router = useRouter();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToUserCenter } = useIdentityRoutesJump();
+const wantViewWikiStore = useWantViewWikiStore();
 const columns:IndexColumn[] = 
 [
     {name:'Name',alias:'名称',canSearch:true,canSetOrder:true},
@@ -185,7 +186,7 @@ onUnmounted(()=>{
     recoverTitle()
 })
 watch(props,async(_newVal)=>{
-    const wantViewWiki = getWantViewWiki();
+    const wantViewWiki = wantViewWikiStore.readAndReset();
     if(wantViewWiki){
         //如果是“想要查看词条”触发了跳转，则不需要加载本文件夹实际内容，只需在路径历史里留下印记，可以返回这里即可
         jumpToViewWiki(wantViewWiki)
@@ -205,7 +206,7 @@ watch(props,async(_newVal)=>{
     clearTimeout(timer);
 });
 function wantViewWiki(){
-    const w = getWantViewWiki()
+    const w = wantViewWikiStore.readAndReset()
     jumpToViewWiki(w);
 }
 
