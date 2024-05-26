@@ -134,7 +134,7 @@ const orderPanelOpen = ref<boolean>(false);
 let fnLeaveTimer = 0;
 function fnLeave(){
     clearTimeout(fnLeaveTimer)
-    fnLeaveTimer = setTimeout(()=>{
+    fnLeaveTimer = window.setTimeout(()=>{
         orderPanelOpen.value = false;
         if(search.value.every(i=>i !== document.activeElement))
             searchPanelOpen.value = false;

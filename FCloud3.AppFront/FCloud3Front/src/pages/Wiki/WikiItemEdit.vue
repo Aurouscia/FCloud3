@@ -18,21 +18,24 @@ import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import TextParaListItem from './ParaListItem/TextParaListItem.vue';
 import FileParaListItem from './ParaListItem/FileParaListItem.vue';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
-import { jumpToTextSectionEdit } from '../TextSection/routes';
 import { injectApi } from '../../provides';
-import { jumpToFreeTableEdit } from '../Table/routes';
-import { jumpToViewWiki } from '../WikiParsing/routes';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
 import WikiParaInfo from './WikiParaInfo.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
+import { useTableRoutesJump } from '../Table/routes/routesJump';
+import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
 const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
+const { jumpToViewWiki } = useWikiParsingRoutesJump();
+const { jumpToFreeTableEdit } = useTableRoutesJump();
+const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 
 const props = defineProps<{
     urlPathName:string

@@ -308,7 +308,7 @@ function rightToLeft(e:MouseEvent){
         return;
     }
     lastRightToLeftHash = targetHash;
-    lastRightToLeftHashFadeTimer = setTimeout(()=>{lastRightToLeftHash = ""}, 10000)
+    lastRightToLeftHashFadeTimer = window.setTimeout(()=>{lastRightToLeftHash = ""}, 10000)
     const target = document.querySelector(`[loc="${targetHash}"]`) as HTMLElement;
     if(!target){return;}
     if(previewArea.value){

@@ -10,7 +10,7 @@ import { Api } from '../../utils/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import { useIdentityInfoStore } from '../../utils/identityInfo';
 import { injectApi, injectPop, injectIdentityInfoProvider } from '../../provides';
-import { jumpToLogin } from './routes';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import Pop from '../../components/Pop.vue';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 import { storeToRefs } from 'pinia';
@@ -22,6 +22,7 @@ const user = ref<User>();
 var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
+const { jumpToLogin } = useIdentityRoutesJump();
 
 watch(props, _newVal=>{
     location.reload();

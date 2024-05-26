@@ -7,7 +7,7 @@ import Pop from '../../components/Pop.vue'
 import { Api } from '../../utils/api';
 import { injectNotifCountProvider, injectIdentityInfoProvider } from '../../provides';
 import { useRouter } from 'vue-router';
-import { jumpToRegister } from './routes';
+import { useIdentityRoutesJump } from './routes/routesJump';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
 import { storeToRefs } from 'pinia';
 
@@ -24,6 +24,7 @@ var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
 const notifProvider = injectNotifCountProvider();
 const router = useRouter();
+const { jumpToRegister } = useIdentityRoutesJump();
 
 async function Login(){
     const token = await api.identites.authen.login({

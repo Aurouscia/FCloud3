@@ -3,8 +3,8 @@ import { onMounted, ref } from 'vue';
 import { LatestWorkViewItem, LatestWorkType } from '../models/etc/latestWork';
 import { injectApi } from '../provides';
 import { getFileIconStyle, getFileExt } from '../utils/fileUtils';
-import { jumpToViewWiki } from '../pages/WikiParsing/routes';
-import { jumpToUserCenter } from '../pages/Identities/routes';
+import { useWikiParsingRoutesJump } from '../pages/WikiParsing/routes/routesJump';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const props = defineProps<{
     uid?: number,
@@ -13,6 +13,8 @@ const props = defineProps<{
 const api = injectApi();
 const list = ref<LatestWorkViewItem[]>([])
 const loaded = ref(false);
+const { jumpToViewWiki } = useWikiParsingRoutesJump();
+const { jumpToUserCenter } = useIdentityRoutesJump();
 
 async function load(){
     const resp = await api.utils.latestWork(props.uid || -1)

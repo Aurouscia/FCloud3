@@ -5,8 +5,9 @@ import { Api } from '../../utils/api';
 import SideBar from '../../components/SideBar.vue';
 import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '../../utils/fileUtils';
 import { FileDirItem } from '../../models/files/fileDir';
-import { jumpToUserCenter } from '../Identities/routes';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
+const { jumpToUserCenter } = useIdentityRoutesJump();
 const editingFileId = ref<number>();
 const editingFileName = ref<string>();
 const editingFileExt = ref<string>();

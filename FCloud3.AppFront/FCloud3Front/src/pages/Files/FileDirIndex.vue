@@ -22,15 +22,17 @@ import { useIdentityInfoStore } from '../../utils/identityInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
-import { jumpToUserCenter } from '../Identities/routes';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { getWantViewWiki } from './wantViewWiki';
-import { jumpToViewWiki } from '../WikiParsing/routes';
+import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 
 
 const props = defineProps<{
     path:string[]|string
 }>();
 const router = useRouter();
+const { jumpToViewWiki } = useWikiParsingRoutesJump();
+const { jumpToUserCenter } = useIdentityRoutesJump();
 const columns:IndexColumn[] = 
 [
     {name:'Name',alias:'名称',canSearch:true,canSetOrder:true},

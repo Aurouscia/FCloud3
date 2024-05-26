@@ -13,11 +13,11 @@ import { CommentTargetType } from '../../models/messages/comment';
 import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
 import menuImg from '../../assets/menu.svg';
 import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
-import { jumpToTextSectionEdit } from '../TextSection/routes';
-import { jumpToFreeTableEdit } from '../Table/routes';
-import { jumpToWikiEdit } from '../Wiki/routes';
-import { jumpToDiffContentHistory } from '../Diff/routes';
-import { jumpToUserCenter } from '../Identities/routes';
+import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
+import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
+import { useDiffRoutesJump } from '../Diff/routes/routesJump';
+import { useTableRoutesJump } from '../Table/routes/routesJump';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
 import { canDisplayAsImage } from '../../utils/fileUtils';
 import { useRouter } from 'vue-router';
@@ -125,6 +125,11 @@ const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNot
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
+const { jumpToDiffContentHistory } = useDiffRoutesJump();
+const { jumpToWikiEdit } = useWikiRoutesJump();
+const { jumpToFreeTableEdit } = useTableRoutesJump();
+const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
+const { jumpToUserCenter } = useIdentityRoutesJump();
 onMounted(async()=>{
     api = injectApi();
     await init();

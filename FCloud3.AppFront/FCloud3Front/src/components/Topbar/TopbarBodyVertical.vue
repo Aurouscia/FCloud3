@@ -4,12 +4,13 @@ import { TopbarModel, TopbarModelItem } from './topbarModel';
 import { ref } from 'vue';
 import foldImg from '../../assets/fold.svg';
 import { SwipeListener } from '../../utils/swipeListener'
-import { jumpToNotifs } from '../../pages/Message/routes';
+import { useMessageRoutesJump } from '@/pages/Message/routes/routesJump';
 import { useNotifCountStore } from '../../utils/notifCount';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter();
-const {notifCount} = storeToRefs(useNotifCountStore())
+const { notifCount } = storeToRefs(useNotifCountStore())
+const { jumpToNotifs } = useMessageRoutesJump();
 const props = defineProps<{
     data: TopbarModel
 }>();

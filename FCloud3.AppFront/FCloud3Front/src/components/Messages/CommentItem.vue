@@ -4,7 +4,7 @@ import { CommentViewResult, Comment, CommentTargetType } from '../../models/mess
 import { injectApi, injectPop } from '../../provides';
 import { truncate } from 'lodash'; 
 import { rateColor, rateText } from './rateTextColor';
-import { jumpToUserCenter } from '../../pages/Identities/routes';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const props = defineProps<{
     c:CommentViewResult,
@@ -12,6 +12,8 @@ const props = defineProps<{
     objType:CommentTargetType,
     objId:number
 }>()
+const { jumpToUserCenter } = useIdentityRoutesJump();
+
 const emits = defineEmits<{
     (e:'needLoad'):void
 }>()

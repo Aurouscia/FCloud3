@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { TopbarModel, TopbarModelItem } from './topbarModel';
-import { jumpToNotifs } from '../../pages/Message/routes';
+import { useMessageRoutesJump } from '@/pages/Message/routes/routesJump';
 import { useNotifCountStore } from '../../utils/notifCount';
 import { storeToRefs } from 'pinia';
 
-const {notifCount} = storeToRefs(useNotifCountStore())
+const { notifCount } = storeToRefs(useNotifCountStore())
+const { jumpToNotifs } = useMessageRoutesJump();
 const router = useRouter();
 defineProps<{
     data: TopbarModel

@@ -93,13 +93,13 @@ async function scrollHandler(role:"from"|"to"){
         toFollowing = true;
         to.value!.scrollTop = from.value!.scrollTop
         clearTimeout(toTimer);
-        toTimer = setTimeout(()=>{toFollowing=false},100)
+        toTimer = window.setTimeout(()=>{toFollowing=false},100)
     }else{
         if(toFollowing){return}
         fromFollowing = true;
         from.value!.scrollTop = to.value!.scrollTop
         clearTimeout(fromTimer);
-        fromTimer = setTimeout(()=>{fromFollowing=false},100)
+        fromTimer = window.setTimeout(()=>{fromFollowing=false},100)
     }
 }
 

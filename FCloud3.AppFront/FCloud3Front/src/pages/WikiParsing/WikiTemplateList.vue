@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { WikiTemplateListItem } from '../../models/wikiParsing/wikiTemplate';
 import { injectApi } from '../../provides';
 import { Api } from '../../utils/api';
-import { jumpToWikiTemplateEditor } from './routes';
+import { useWikiParsingRoutesJump } from './routes/routesJump';
 
 const data = ref<WikiTemplateListItem[]>([]);
 async function load() {
@@ -23,6 +23,7 @@ async function create() {
     }
 }
 
+const { jumpToWikiTemplateEditor } = useWikiParsingRoutesJump();
 async function enterEdit(id:number) {
     jumpToWikiTemplateEditor(id);
 }

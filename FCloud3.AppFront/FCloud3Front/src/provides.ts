@@ -3,7 +3,7 @@ import { HttpCallBack, HttpClient } from './utils/httpClient';
 import { IdentityInfoProvider } from './utils/identityInfo';
 import Pop from './components/Pop.vue';
 import { Api } from './utils/api';
-import { jumpToLogin } from './pages/Identities/routes';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
@@ -20,6 +20,7 @@ export type SetTopbarFunc = (display:boolean)=>void
 
 export function useProvidesSetup() {
     const pop = ref<InstanceType<typeof Pop> | null>(null);
+    const { jumpToLogin } = useIdentityRoutesJump();
     provide(popKey, pop)
     const httpCallBack: HttpCallBack = (result, msg) => {
         if (result == 'ok') { pop.value?.show(msg, 'success') }

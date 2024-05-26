@@ -50,7 +50,7 @@ function remove(idx:number){
 
 var interval:number; 
 onMounted(()=>{
-    interval = setInterval(refresh,50)
+    interval = window.setInterval(refresh,50)
 })
 onBeforeUnmount(()=>{
     clearInterval(interval);

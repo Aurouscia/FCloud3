@@ -24,7 +24,7 @@ export class HeartbeatSender{
     start(){
         const type = this.type;
         const id = this.id;
-        this.timer = setInterval(() => {
+        this.timer = window.setInterval(() => {
             this.api.utils.heartbeat({objType:type, objId:id});
         }, 1000 * 40);
     }

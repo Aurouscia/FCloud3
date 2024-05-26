@@ -3,12 +3,14 @@ import { ref } from 'vue';
 import { WikiRecommendModel } from '../../models/wikiParsing/wikiRecommend';
 import { injectApi } from '../../provides';
 import Loading from '../../components/Loading.vue';
-import { jumpToDirFromId } from '../Files/routes';
-import { jumpToViewWiki } from './routes';
+import { useFilesRoutesJump } from '../Files/routes/routesJump';
+import { useWikiParsingRoutesJump } from './routes/routesJump';
 
 const props = defineProps<{
     pathName:string
 }>()
+const { jumpToDirFromId } = useFilesRoutesJump();
+const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const api = injectApi();
 const model = ref<WikiRecommendModel>()
 api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)

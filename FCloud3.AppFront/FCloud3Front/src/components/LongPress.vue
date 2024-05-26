@@ -36,7 +36,7 @@ function refresh(){
 }
 var interval:number;
 onMounted(()=>{
-    interval = setInterval(refresh,refreshInterval);
+    interval = window.setInterval(refresh,refreshInterval);
 })
 onBeforeUnmount(()=>{
     clearInterval(interval);
