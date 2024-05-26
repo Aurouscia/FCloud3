@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import {ref, Ref, onMounted, computed, onUnmounted, nextTick} from 'vue'
-import Pop from '../../components/Pop.vue';
-import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
-import Loading from '../../components/Loading.vue';
-import { TextSection } from '../../models/textSection/textSection'
-import { Api } from '../../utils/api';
-import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
-import { LineAndHash,split } from '../../utils/wikiSource/textSecSplitLine';
-import { WikiSourceHighlighter } from '../../utils/wikiSource/wikiSourceHighlight';
+import Pop from '@/components/Pop.vue';
+import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
+import Loading from '@/components/Loading.vue';
+import { TextSection } from '@/models/textSection/textSection'
+import { Api } from '@/utils/com/api';
+import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
+import { LineAndHash,split } from '@/utils/wikiSource/textSecSplitLine';
+import { WikiSourceHighlighter } from '@/utils/wikiSource/wikiSourceHighlight';
 import md5 from 'md5';
-import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '../../provides';
+import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '@/provides';
 import { clone } from 'lodash';
-import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
-import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
-import SideBar from '../../components/SideBar.vue';
-import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
-import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
+import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
+import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
+import SideBar from '@/components/SideBar.vue';
+import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
+import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
-import { sleep } from '../../utils/sleep';
-import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { sleep } from '@/utils/sleep';
+import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -369,7 +369,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 </template>
 
 <style scoped lang="scss">
-    @import "../../utils/wikiSource/wikiSourceHighlight";
+    @import "@/utils/wikiSource/wikiSourceHighlight";
     .preventingLeaving{
         position: fixed;
         right: 10px;

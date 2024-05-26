@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { FileDir } from '../../models/files/fileDir';
 import Loading from '../../components/Loading.vue';
 import FileUpload from '../../components/FileUpload.vue';

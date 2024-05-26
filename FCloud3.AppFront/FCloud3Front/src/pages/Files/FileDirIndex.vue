@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import IndexMini, { IndexColumn } from '../../components/Index/IndexMini.vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { IndexQuery, IndexResult } from '../../components/Index';
 import FileDirChild from './FileDirChild.vue';
 import { useRouter } from 'vue-router';
@@ -18,7 +18,7 @@ import Functions from '../../components/Functions.vue';
 import FileDirCreate from './FileDirCreate.vue';
 import AuthGrants from '../../components/AuthGrants.vue';
 import { injectApi } from '../../provides';
-import { useIdentityInfoStore } from '../../utils/identityInfo';
+import { useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
 import FileItemEdit from './FileItemEdit.vue';
 import { AuthGrantOn } from '../../models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';

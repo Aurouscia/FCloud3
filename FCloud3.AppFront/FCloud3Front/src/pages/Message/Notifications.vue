@@ -4,9 +4,9 @@ import { NotifViewItem, NotifType } from '../../models/messages/notification';
 import { injectApi } from '../../provides';
 import Loading from '../../components/Loading.vue';
 import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
-import { useNotifCountStore } from '../../utils/notifCount';
+import { useNotifCountStore } from '../../utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
-import { useIdentityInfoStore } from '../../utils/identityInfo';
+import { useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])

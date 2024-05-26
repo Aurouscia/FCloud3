@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { AuTableEditor, AuTableData } from '@aurouscia/au-table-editor'
 import '@aurouscia/au-table-editor/style.css'
-import Loading from '../../components/Loading.vue';
+import Loading from '@/components/Loading.vue';
 import { onMounted, onUnmounted, ref } from 'vue';
-import { SetTopbarFunc, injectApi, injectSetTopbar } from '../../provides';
-import { Api } from '../../utils/api';
-import { FreeTable } from '../../models/table/freeTable';
-import WikiTitleContain from '../../components/Wiki/WikiTitleContain.vue';
-import { WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
+import { SetTopbarFunc, injectApi, injectSetTopbar } from '@/provides';
+import { Api } from '@/utils/com/api';
+import { FreeTable } from '@/models/table/freeTable';
+import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
+import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import { join } from 'lodash';
-import SideBar from '../../components/SideBar.vue';
-import UnsavedLeavingWarning from '../../components/UnsavedLeavingWarning.vue';
-import { usePreventLeavingUnsaved } from '../../utils/preventLeavingUnsaved';
-import { HeartbeatObjType, HeartbeatSender } from '../../models/sys/heartbeat';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import SideBar from '@/components/SideBar.vue';
+import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
+import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
+import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const props = defineProps<{
     id:string

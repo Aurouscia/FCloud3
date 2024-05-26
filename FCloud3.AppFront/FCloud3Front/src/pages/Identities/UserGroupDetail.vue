@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, ref, watch } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { UserGroup, UserGroupDetailResult } from '../../models/identities/userGroup';
 import Loading from '../../components/Loading.vue';
 import Search from '../../components/Search.vue';

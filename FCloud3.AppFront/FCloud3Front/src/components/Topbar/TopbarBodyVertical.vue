@@ -2,10 +2,10 @@
 import { useRouter } from 'vue-router';
 import { TopbarModel, TopbarModelItem } from './topbarModel';
 import { ref } from 'vue';
-import foldImg from '../../assets/fold.svg';
-import { SwipeListener } from '../../utils/swipeListener'
+import foldImg from '@/assets/fold.svg';
+import { SwipeListener } from '@/utils/eventListeners/swipeListener'
 import { useMessageRoutesJump } from '@/pages/Message/routes/routesJump';
-import { useNotifCountStore } from '../../utils/notifCount';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter();

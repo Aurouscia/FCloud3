@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { getTopbarModel } from './topbarModel';
-import itemsImg from '../../assets/items.svg';
+import itemsImg from '@/assets/items.svg';
 import { TopbarModel } from './topbarModel';
 import TopbarBodyHorizontal from './TopbarBodyHorizontal.vue';
 import TopbarBodyVertical from './TopbarBodyVertical.vue';
-import { useIdentityInfoStore } from '../../utils/identityInfo';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { storeToRefs } from 'pinia';
-import { useNotifCountStore } from '../../utils/notifCount';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 
 const topbarModel = ref<TopbarModel>();
 const {notifCount} = storeToRefs(useNotifCountStore())

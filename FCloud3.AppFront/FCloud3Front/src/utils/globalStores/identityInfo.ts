@@ -1,8 +1,8 @@
 import { defineStore } from "pinia"
-import { UserType } from "../models/identities/user"
-import { Api } from "./api"
+import { UserType } from "../../models/identities/user"
+import { Api } from "../com/api"
 import { ref } from "vue"
-import { getTimeStamp } from "./timeStamp"
+import { getTimeStamp } from "../timeStamp"
 
 export interface IdentityInfo{
     Name:string

@@ -9,7 +9,7 @@ import Functions from '../../components/Functions.vue';
 import Loading from '../../components/Loading.vue';
 import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '../../models/files/fileDir';
 import { IndexQuery, indexQueryDefault } from '../../components/Index';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 
 const router = useRouter();
 

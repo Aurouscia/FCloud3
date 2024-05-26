@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '../../provides';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import Index, { IndexColumn } from '../../components/Index/Index.vue';
 import { IndexResult } from '../../components/Index';
 import { UserIndexItem, getUserIndexItemsFromIndexResult } from '../../models/identities/user';

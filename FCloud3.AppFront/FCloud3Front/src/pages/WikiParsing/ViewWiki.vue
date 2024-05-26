@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi } from '../../provides';
-import { Api } from '../../utils/api';
-import { WikiParsingResult } from '../../models/wikiParsing/wikiParsingResult';
-import { TitleClickFold } from '../../utils/wikiView/titleClickFold';
-import { WikiLinkClick } from '../../utils/wikiView/wikiLinkClick';
-import { useFootNoteJump } from '../../utils/wikiView/footNoteJump';
-import Loading from '../../components/Loading.vue';
-import TitleTree from '../../components/Wiki/TitleTree.vue';
-import Comment from '../../components/Messages/Comment.vue';
-import { CommentTargetType } from '../../models/messages/comment';
-import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
-import menuImg from '../../assets/menu.svg';
-import { WikiParaTypes } from '../../models/wiki/wikiParaTypes';
+import { injectApi } from '@/provides';
+import { Api } from '@/utils/com/api';
+import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
+import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
+import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
+import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
+import Loading from '@/components/Loading.vue';
+import TitleTree from '@/components/Wiki/TitleTree.vue';
+import Comment from '@/components/Messages/Comment.vue';
+import { CommentTargetType } from '@/models/messages/comment';
+import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
+import menuImg from '@/assets/menu.svg';
+import { WikiParaTypes } from '@/models/wiki/wikiParaTypes';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
 import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import { diffContentTypeFromParaType } from '../../models/diff/DiffContentType';
-import { canDisplayAsImage } from '../../utils/fileUtils';
+import { diffContentTypeFromParaType } from '@/models/diff/DiffContentType';
+import { canDisplayAsImage } from '@/utils/fileUtils';
 import { useRouter } from 'vue-router';
-import { SwipeListener } from '../../utils/swipeListener';
-import { sleep } from '../../utils/sleep';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { SwipeListener } from '@/utils/eventListeners/swipeListener';
+import { sleep } from '@/utils/sleep';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import Recommends from './Recommends.vue';
 
 const props = defineProps<{

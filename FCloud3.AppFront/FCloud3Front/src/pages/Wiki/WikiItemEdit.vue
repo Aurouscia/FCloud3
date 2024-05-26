@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref} from 'vue'
-import { WikiParaDisplay, WikiParaRendered} from '../../models/wiki/wikiPara'
-import { WikiParaTypes} from '../../models/wiki/wikiParaTypes'
-import { MouseDragListener } from '../../utils/mouseDrag';
-import Functions from '../../components/Functions.vue';
+import { WikiParaDisplay, WikiParaRendered} from '@/models/wiki/wikiPara'
+import { WikiParaTypes} from '@/models/wiki/wikiParaTypes'
+import { MouseDragListener } from '@/utils/eventListeners/mouseDrag';
+import Functions from '@/components/Functions.vue';
 import { useRouter } from 'vue-router';
-import { Api } from '../../utils/api';
-import addIconSrc from '../../assets/add.svg';
-import dragYIconSrc from '../../assets/dragY.svg';
-import { WikiItem } from '../../models/wiki/wikiItem';
-import { watchWindowWidth } from '../../utils/windowSizeWatcher';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import Loading from '../../components/Loading.vue';
-import Notice from '../../components/Notice.vue';
-import SideBar from '../../components/SideBar.vue';
+import { Api } from '@/utils/com/api';
+import addIconSrc from '@/assets/add.svg';
+import dragYIconSrc from '@/assets/dragY.svg';
+import { WikiItem } from '@/models/wiki/wikiItem';
+import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import Loading from '@/components/Loading.vue';
+import Notice from '@/components/Notice.vue';
+import SideBar from '@/components/SideBar.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import TextParaListItem from './ParaListItem/TextParaListItem.vue';
 import FileParaListItem from './ParaListItem/FileParaListItem.vue';
-import { useUrlPathNameConverter } from '../../utils/urlPathName';
-import { injectApi } from '../../provides';
+import { useUrlPathNameConverter } from '@/utils/urlPathName';
+import { injectApi } from '@/provides';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
-import AuthGrants from '../../components/AuthGrants.vue';
+import AuthGrants from '@/components/AuthGrants.vue';
 import WikiParaInfo from './WikiParaInfo.vue';
-import { AuthGrantOn } from '../../models/identities/authGrant';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { AuthGrantOn } from '@/models/identities/authGrant';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';

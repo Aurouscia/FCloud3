@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { useUrlPathNameConverter } from '../../utils/urlPathName';
 
 const props = defineProps<{

@@ -5,7 +5,7 @@ import { StagingFile, FileUploadDist} from '../models/files/fileItem';
 import md5 from 'md5'
 import _ from 'lodash'
 import Pop from './Pop.vue';
-import { Api } from '../utils/api';
+import { Api } from '../utils/com/api';
 
 const props = defineProps<{
     dist:FileUploadDist,

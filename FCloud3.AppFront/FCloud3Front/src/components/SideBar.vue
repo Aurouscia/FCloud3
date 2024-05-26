@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CSSProperties, ref } from 'vue';
-import { SwipeListener } from '../utils/swipeListener';
+import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 
 const coverStyle = ref<CSSProperties>();
 const barStyle = ref<CSSProperties>();

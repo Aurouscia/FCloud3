@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { injectApi, injectPop } from '../../provides';
 import Index, { IndexColumn } from '../../components/Index/Index.vue';
 import { MaterialIndexItem, getMaterialItemsFromIndexResult } from '../../models/files/material';

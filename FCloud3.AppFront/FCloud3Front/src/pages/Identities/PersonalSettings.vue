@@ -2,7 +2,7 @@
 import { onMounted, ref,Ref, watch } from 'vue';
 import Pop from '../../components/Pop.vue';
 import {User} from '../../models/identities/user';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
 import { injectApi, injectPop } from '../../provides';
 import { random } from 'lodash';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { injectApi } from '../provides';
-import { Api } from '../utils/api';
+import { Api } from '../utils/com/api';
 import { AuthGrantOn, AuthGrantTo, AuthGrantViewModel } from '../models/identities/authGrant';
 import Search from './Search.vue';
 import { elementBlinkClass } from '../utils/elementBlink';

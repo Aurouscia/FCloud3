@@ -1,13 +1,13 @@
 import { Ref, provide, inject, ref} from 'vue';
-import { HttpCallBack, HttpClient } from './utils/httpClient';
-import { IdentityInfoProvider } from './utils/identityInfo';
+import { HttpCallBack, HttpClient } from './utils/com/httpClient';
+import { IdentityInfoProvider } from './utils/globalStores/identityInfo';
 import Pop from './components/Pop.vue';
-import { Api } from './utils/api';
+import { Api } from './utils/com/api';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
-import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from './utils/notifCount';
+import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from './utils/globalStores/notifCount';
 
 const popKey = 'pop';
 const httpKey = 'http';

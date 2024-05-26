@@ -5,7 +5,7 @@ import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
 import { Ref, inject, onMounted } from 'vue';
 import FileItemEdit from './FileItemEdit.vue';
 import Functions from '../../components/Functions.vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { setWantViewWiki } from './wantViewWiki';

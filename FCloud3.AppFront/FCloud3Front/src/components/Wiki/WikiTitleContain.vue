@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, onMounted, ref } from 'vue';
 import { injectApi, injectPop } from '../../provides';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { WikiTitleContainListModel, WikiTitleContainListModelItem, WikiTitleContainType } from '../../models/wiki/wikiTitleContain';
 import Loading from '../Loading.vue';
 import { pullAt, unionBy } from 'lodash';

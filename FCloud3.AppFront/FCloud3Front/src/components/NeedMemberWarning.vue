@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { injectApi } from '../provides';
-import { Api } from '../utils/api';
+import { Api } from '../utils/com/api';
 
 const show = ref<boolean>(false);
 const way = ref<string|undefined>();

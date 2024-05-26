@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { UserIndexItem, UserType } from '../../models/identities/user';
 import { injectApi } from '../../provides';
-import { useIdentityInfoStore } from '../../utils/identityInfo';
+import { useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
 import { storeToRefs } from 'pinia';
 
 const props = defineProps<{

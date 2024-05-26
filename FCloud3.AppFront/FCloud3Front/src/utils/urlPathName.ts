@@ -1,5 +1,5 @@
 import { inject, ref } from "vue";
-import { Api } from "./api";
+import { Api } from "./com/api";
 
 export function useUrlPathNameConverter(){
     const name = ref<string>();

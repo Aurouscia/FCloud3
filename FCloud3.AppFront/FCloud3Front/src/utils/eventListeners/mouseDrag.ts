@@ -1,4 +1,4 @@
-import { getTimeStamp } from "./timeStamp";
+import { getTimeStamp } from "../timeStamp";
 
 export class MouseDragListener{
     started:boolean = false

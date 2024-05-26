@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { injectApi } from '../../provides';
-import { Api } from '../../utils/api';
-import { diffContentTypeFromStr } from '../../models/diff/DiffContentType';
-import { DiffContentHistoryResult } from '../../models/diff/DiffContentHistory';
+import { injectApi } from '@/provides';
+import { Api } from '@/utils/com/api';
+import { diffContentTypeFromStr } from '@/models/diff/DiffContentType';
+import { DiffContentHistoryResult } from '@/models/diff/DiffContentHistory';
 import DiffContentDetail from './DiffContentDetail.vue';
-import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
-import { watchWindowWidth } from '../../utils/windowSizeWatcher';
-import SideBar from '../../components/SideBar.vue';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { DiffContentStepDisplay } from '@/models/diff/DiffContentDetail';
+import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
+import SideBar from '@/components/SideBar.vue';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const props = defineProps<{
     type: string;

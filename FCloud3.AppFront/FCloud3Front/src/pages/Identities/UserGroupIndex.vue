@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { UserGroupListResult } from '../../models/identities/userGroup';
 import Loading from '../../components/Loading.vue';
 import UserGroupDetail from './UserGroupDetail.vue';

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { injectApi } from '../../provides';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import SideBar from '../../components/SideBar.vue';
 import { wikiParaDefaultFoldMark } from '../../models/wiki/wikiPara';
 

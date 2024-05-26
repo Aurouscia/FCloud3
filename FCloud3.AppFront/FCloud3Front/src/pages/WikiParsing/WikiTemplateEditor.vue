@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { Api } from '../../utils/api';
+import { Api } from '../../utils/com/api';
 import { injectApi, injectSetTopbar } from '../../provides';
 import { WikiTemplate } from '../../models/wikiParsing/wikiTemplate';
 import SwitchingTabs from '../../components/SwitchingTabs.vue';
