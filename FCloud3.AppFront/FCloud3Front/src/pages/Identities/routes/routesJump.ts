@@ -5,11 +5,14 @@ export function useIdentityRoutesJump(){
     const jumpToUserCenter = (username:string) => {
         router.push({name:'userCenter', params:{username}})
     }
+    const jumpToSelfUserCenter = ()=>{
+        router.push({name:'userCenter'})
+    }
     const jumpToLogin = (backAfterSuccess:boolean = true) => {
         router.push({name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}})
     }
     const jumpToRegister = () => {
         router.push({name:'register'})
     }
-    return { jumpToLogin, jumpToUserCenter, jumpToRegister }
+    return { jumpToLogin, jumpToUserCenter, jumpToSelfUserCenter, jumpToRegister }
 }

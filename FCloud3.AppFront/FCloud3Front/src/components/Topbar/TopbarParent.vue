@@ -8,10 +8,12 @@ import TopbarBodyVertical from './TopbarBodyVertical.vue';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { storeToRefs } from 'pinia';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const topbarModel = ref<TopbarModel>();
-const {notifCount} = storeToRefs(useNotifCountStore())
-const {iden} = storeToRefs(useIdentityInfoStore())
+const { notifCount } = storeToRefs(useNotifCountStore())
+const { iden } = storeToRefs(useIdentityInfoStore())
+const { jumpToSelfUserCenter } = useIdentityRoutesJump();
 onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
 })
@@ -40,7 +42,7 @@ function toggleFold(){
     </div>
     <div class="right">
         <div v-if="iden?.Id>0" class="avt">
-            <img :src="iden?.AvtSrc"/>
+            <img :src="iden?.AvtSrc" @click="jumpToSelfUserCenter"/>
         </div>
         <div class="foldBtn">
             <img :src="itemsImg" @click="toggleFold"/>
@@ -139,6 +141,9 @@ function toggleFold(){
             height: 25px;
             object-fit: contain;
         }
+    }
+    img{
+        cursor: pointer;
     }
 }
 
