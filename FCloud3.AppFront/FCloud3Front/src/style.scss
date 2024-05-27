@@ -1,5 +1,6 @@
 @import './styles/wikiViewStyles.scss';
 @import './styles/paraListItem.scss';
+@import './styles/globalValues';
 
 *{
   margin: 0px;
@@ -8,10 +9,12 @@
 
 .main {
   margin: auto;
-  margin-top: var(--main-div-margin-top);
+  margin-top: $topbar-height;
   width: calc(100% - 40px);
   max-width: 1100px;
+  max-height: calc(100vh - $topbar-height);
   overflow-x: auto;
+  overflow-y: auto;
   padding-left: 20px;
   padding-right: 20px;
 }
@@ -151,7 +154,7 @@ h1 {
   font-size: 20px;
   padding-bottom: 10px;
   margin-bottom: 10px;
-  margin-top: 10px;
+  margin-top: 20px;
   border-bottom: 2px solid #aaa;
   color: #666;
   letter-spacing: 0.1em;
@@ -220,9 +223,4 @@ a{
   font-family: 'Times New Roman', Times, serif;
   font-size: 15px;
   flex-shrink: 0;
-}
-
-:root{
-  --top-bar-height:50px;
-  --main-div-margin-top:60px;
 }

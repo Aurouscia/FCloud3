@@ -57,6 +57,8 @@ function toggleFold(){
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .notifExists{
     position: absolute;
     top:-1px;right: -1px;
@@ -96,7 +98,7 @@ function toggleFold(){
     top: 0px;
     left: 0px;
     right: 0px;
-    height: var(--top-bar-height);
+    height: $topbar-height;;
     z-index: 1000;
     display: flex;
     justify-content: left;
@@ -108,7 +110,7 @@ function toggleFold(){
     top: 0px;
     left: 0px;
     right: 0px;
-    height: var(--top-bar-height);
+    height: $topbar-height;;
     z-index: 900;
     box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.7);
 }

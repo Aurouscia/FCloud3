@@ -326,7 +326,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'根文件夹'" @put-down="clipBoardAction"></ClipBoard>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .owner{
     color: #999;
     margin-bottom: 2px;
@@ -424,8 +426,6 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     height: 20px;
 }
 .fileDir{
-    box-sizing: border-box;
-    height: calc(100vh - var(--main-div-margin-top) - 10px);
-    overflow-y: scroll;
+    padding-top: 10px;
 }
 </style>

@@ -101,7 +101,9 @@ onUnmounted(()=>{
     </SideBar>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .info .settings{
     margin-top: 20px;
 }
@@ -136,8 +138,9 @@ onUnmounted(()=>{
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: start;
-    height: calc(100vh - var(--main-div-margin-top) - 20px);
-    margin-top: 10px;
+    padding-top: 20px;
+    box-sizing: border-box;
+    height: $body-height;
 }
 .user>*{
     flex-grow: 1;

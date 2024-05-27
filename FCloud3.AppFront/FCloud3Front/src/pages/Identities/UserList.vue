@@ -78,8 +78,12 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .userList{
-    height: calc(100vh - var(--main-div-margin-top));
+    box-sizing: border-box;
+    padding-top: 10px;
+    height: $body-height;
     position: relative;
 }
 .nameAndAvatar{

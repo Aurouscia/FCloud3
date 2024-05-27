@@ -270,8 +270,10 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .wikiViewFrame{
-    height:calc(96vh - var(--main-div-margin-top));
+    height: $body-height;
     display: flex;
     gap:20px;
 }
@@ -284,7 +286,8 @@ onUnmounted(()=>{
     position: relative;
     transition: 0.3s;
     background-color: white;
-
+    box-sizing: border-box;
+    padding-top: 10px;
     margin-right: 40px;
 }
 .subTitlesFoldBtn{
@@ -346,7 +349,7 @@ onUnmounted(()=>{
         position: fixed;
         right: 0px;
         top: 0px;
-        padding-top: var(--main-div-margin-top);
+        padding-top: calc($topbar-height + 10px);
         box-shadow: 0px 0px 12px 0px black;
         margin-right: 0px;
     }

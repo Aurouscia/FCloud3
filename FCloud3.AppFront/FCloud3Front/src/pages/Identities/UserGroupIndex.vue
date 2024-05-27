@@ -155,7 +155,10 @@ onUnmounted(()=>{
     </SideBar>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/globalValues';
+$user-group-items-height: calc($body-height - 80px);
+
 .acceptBtns button{
     margin-top: 5px;
     border: 2px solid white
@@ -199,12 +202,12 @@ onUnmounted(()=>{
     min-width: 310px;
     gap:5px;
     overflow: auto;
-    max-height: calc(100vh - var(--main-div-margin-top) - 60px);
+    max-height: $user-group-items-height;
 }
 .userGroupIndex .detail{
     flex-grow: 1;
     flex-basis: 250px;
-    max-height: calc(100vh - var(--main-div-margin-top) - 60px);
+    max-height: $user-group-items-height;
     overflow: auto;
 }
 </style>

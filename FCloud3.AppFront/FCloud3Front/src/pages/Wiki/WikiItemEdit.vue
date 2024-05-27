@@ -362,7 +362,9 @@ onUnmounted(()=>{
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/globalValues';
+
 h1{
     display: flex;
     justify-content: space-between;
@@ -397,7 +399,7 @@ h1 button{
 .paras {
     min-width: 100%;
     max-width: 600px;
-    max-height: calc(100vh - var(--main-div-margin-top) - 220px);
+    max-height: calc($body-height - 230px);
     overflow-y: auto;
     padding-bottom: 100px;
     position: relative;

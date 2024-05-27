@@ -87,11 +87,15 @@ onUnmounted(async()=>{
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .diffContentHistory{
     display: flex;
     flex-direction: row;
     gap: 10px;
-    height: calc(95vh - var(--main-div-margin-top));
+    height: $body-height;
+    box-sizing: border-box;
+    padding: 10px 0px 10px 0px;
 }
 .historyList{
     overflow-y: auto;
