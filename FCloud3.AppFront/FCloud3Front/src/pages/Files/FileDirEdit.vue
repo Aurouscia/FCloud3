@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
-import { Api } from '../../utils/com/api';
-import { FileDir } from '../../models/files/fileDir';
-import Loading from '../../components/Loading.vue';
-import FileUpload from '../../components/FileUpload.vue';
-import Search from '../../components/Search.vue';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import Notice from '../../components/Notice.vue';
-import { useUrlPathNameConverter } from '../../utils/urlPathName';
-import AuthProblem from '../../components/AuthProblem.vue';
+import { Api } from '@/utils/com/api';
+import { FileDir } from '@/models/files/fileDir';
+import Loading from '@/components/Loading.vue';
+import FileUpload from '@/components/FileUpload.vue';
+import Search from '@/components/Search.vue';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import Notice from '@/components/Notice.vue';
+import { useUrlPathNameConverter } from '@/utils/urlPathName';
+import AuthProblem from '@/components/AuthProblem.vue';
 
 const data = ref<FileDir>();
 const props = defineProps<{

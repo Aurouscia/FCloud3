@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { inject, onBeforeMount, ref } from 'vue';
-import FileUpload from '../../components/FileUpload.vue';
-import Search from '../../components/Search.vue';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { Api } from '../../utils/com/api';
-import { FileItemDetail } from '../../models/files/fileItem';
+import FileUpload from '@/components/FileUpload.vue';
+import Search from '@/components/Search.vue';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import { Api } from '@/utils/com/api';
+import { FileItemDetail } from '@/models/files/fileItem';
 import _ from 'lodash'
 import { useRouter } from 'vue-router';
 

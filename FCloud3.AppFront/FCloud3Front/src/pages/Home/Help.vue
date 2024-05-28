@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import settingsImg from '../../assets/settings.svg'
+import settingsImg from '@/assets/settings.svg'
 </script>
 
 <template>

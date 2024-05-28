@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IndexQuery, IndexResult } from './index.ts';
-import { Api } from '../../utils/com/api';
+import { Api } from '@/utils/com/api';
 import Index, { IndexColumn } from './Index.vue';
 import { inject, onMounted, ref } from 'vue';
 

@@ -1,4 +1,4 @@
-import foldImg from '../../assets/fold.svg';
+import foldImg from '@/assets/fold.svg';
 const clickables = ['H1','H2','H3','H4','H5','H6']
 const clickableFoldedClass = 'hFolded'
 const nextIdentifyClass = 'indent'

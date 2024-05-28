@@ -1,4 +1,4 @@
-import { Api } from "../../utils/com/api";
+import { Api } from "@/utils/com/api";
 
 export enum HeartbeatObjType{
     None = 0,

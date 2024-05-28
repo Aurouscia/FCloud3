@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { UserType } from "../../models/identities/user"
+import { UserType } from "@/models/identities/user"
 import { Api } from "../com/api"
 import { ref } from "vue"
 import { getTimeStamp } from "../timeStamp"

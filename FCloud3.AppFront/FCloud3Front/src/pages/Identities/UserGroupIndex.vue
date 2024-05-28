@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { Api } from '../../utils/com/api';
-import { UserGroupListResult } from '../../models/identities/userGroup';
-import Loading from '../../components/Loading.vue';
+import { Api } from '@/utils/com/api';
+import { UserGroupListResult } from '@/models/identities/userGroup';
+import Loading from '@/components/Loading.vue';
 import UserGroupDetail from './UserGroupDetail.vue';
-import SideBar from '../../components/SideBar.vue';
+import SideBar from '@/components/SideBar.vue';
 import { useRouter } from 'vue-router';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const props = defineProps<{
     id?:string

@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router';
 import { TopbarModel, TopbarModelItem } from './topbarModel';
 import { useMessageRoutesJump } from '@/pages/Message/routes/routesJump';
-import { useNotifCountStore } from '../../utils/globalStores/notifCount';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 
 const { notifCount } = storeToRefs(useNotifCountStore())

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { FileDirItem, FileDirWiki} from '../../models/files/fileDir';
-import { fileSizeStr, getFileIconStyle, getFileExt } from '../../utils/fileUtils';
-import ClipBoard, { ClipBoardItemType } from '../../components/ClipBoard.vue';
+import { FileDirItem, FileDirWiki} from '@/models/files/fileDir';
+import { fileSizeStr, getFileIconStyle, getFileExt } from '@/utils/fileUtils';
+import ClipBoard, { ClipBoardItemType } from '@/components/ClipBoard.vue';
 import { Ref, inject, onMounted } from 'vue';
 import FileItemEdit from './FileItemEdit.vue';
-import Functions from '../../components/Functions.vue';
-import { Api } from '../../utils/com/api';
+import Functions from '@/components/Functions.vue';
+import { Api } from '@/utils/com/api';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';

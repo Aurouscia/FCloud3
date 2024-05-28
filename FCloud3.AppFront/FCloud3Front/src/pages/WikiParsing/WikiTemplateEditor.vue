@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { Api } from '../../utils/com/api';
-import { injectApi, injectSetTopbar } from '../../provides';
-import { WikiTemplate } from '../../models/wikiParsing/wikiTemplate';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { updateScript } from '../../utils/wikiView/dynamicScriptUpdate';
+import { Api } from '@/utils/com/api';
+import { injectApi, injectSetTopbar } from '@/provides';
+import { WikiTemplate } from '@/models/wikiParsing/wikiTemplate';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
 
 const props = defineProps<{
     id:string

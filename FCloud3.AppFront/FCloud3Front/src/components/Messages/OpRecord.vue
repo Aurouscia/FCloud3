@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable } from '../../models/messages/opRecord';
-import { injectApi, injectPop } from '../../provides';
+import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable } from '@/models/messages/opRecord';
+import { injectApi, injectPop } from '@/provides';
 import Loading from '../Loading.vue';
 
 const props = defineProps<{

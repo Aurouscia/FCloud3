@@ -1,4 +1,4 @@
-import { IndexResult } from "../../components/Index";
+import { IndexResult } from "@/components/Index";
 
 export interface FileDir{
     Id:number,

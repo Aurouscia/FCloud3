@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { CommentViewResult, Comment, CommentTargetType } from '../../models/messages/comment';
-import { injectApi, injectPop } from '../../provides';
+import { CommentViewResult, Comment, CommentTargetType } from '@/models/messages/comment';
+import { injectApi, injectPop } from '@/provides';
 import { truncate } from 'lodash'; 
 import { rateColor, rateText } from './rateTextColor';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';

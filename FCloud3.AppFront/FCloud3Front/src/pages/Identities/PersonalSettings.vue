@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref,Ref, watch } from 'vue';
-import Pop from '../../components/Pop.vue';
-import {User} from '../../models/identities/user';
-import { Api } from '../../utils/com/api';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { injectApi, injectPop } from '../../provides';
+import Pop from '@/components/Pop.vue';
+import {User} from '@/models/identities/user';
+import { Api } from '@/utils/com/api';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import { injectApi, injectPop } from '@/provides';
 import { random } from 'lodash';
-import Notice from '../../components/Notice.vue';
-import Search from '../../components/Search.vue';
+import Notice from '@/components/Notice.vue';
+import Search from '@/components/Search.vue';
 
 const user = ref<User>();
 var api:Api;

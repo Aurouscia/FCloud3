@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import LatestWork from '../../components/LatestWork.vue';
-import OpRecord from '../../components/Messages/OpRecord.vue';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
+import LatestWork from '@/components/LatestWork.vue';
+import OpRecord from '@/components/Messages/OpRecord.vue';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import Help from './Help.vue';
 </script>
 

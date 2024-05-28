@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { ParserTitleTreeNode } from '../../models/wikiParsing/wikiParsingResult';
-import { removeDefaultFoldedMark } from '../../utils/wikiView/titleClickFold';
+import { ParserTitleTreeNode } from '@/models/wikiParsing/wikiParsingResult';
+import { removeDefaultFoldedMark } from '@/utils/wikiView/titleClickFold';
 
 const props = defineProps<{
     titleTree: ParserTitleTreeNode[];

@@ -1,5 +1,5 @@
 import { Router } from "vue-router";
-import { addToRouter } from "../../../utils/routerAdd";
+import { addToRouter } from "@/utils/routerAdd";
 import Login from "../Login.vue"
 import UserGroupIndex from "../UserGroupIndex.vue";
 import UserList from "../UserList.vue";

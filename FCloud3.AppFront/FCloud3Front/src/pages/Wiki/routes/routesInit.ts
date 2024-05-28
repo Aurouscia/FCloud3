@@ -1,5 +1,5 @@
 import { Router } from "vue-router";
-import { addToRouter } from "../../../utils/routerAdd";
+import { addToRouter } from "@/utils/routerAdd";
 import WikiItemEdit from "../WikiItemEdit.vue"
 
 export function addWiki(r:Router){

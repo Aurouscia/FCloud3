@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { WikiTemplateListItem } from '../../models/wikiParsing/wikiTemplate';
-import { injectApi } from '../../provides';
-import { Api } from '../../utils/com/api';
+import { WikiTemplateListItem } from '@/models/wikiParsing/wikiTemplate';
+import { injectApi } from '@/provides';
+import { Api } from '@/utils/com/api';
 import { useWikiParsingRoutesJump } from './routes/routesJump';
 
 const data = ref<WikiTemplateListItem[]>([]);

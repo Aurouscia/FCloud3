@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { injectApi } from '../../provides';
-import { Api } from '../../utils/com/api';
-import SideBar from '../../components/SideBar.vue';
-import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '../../utils/fileUtils';
-import { FileDirItem } from '../../models/files/fileDir';
+import { injectApi } from '@/provides';
+import { Api } from '@/utils/com/api';
+import SideBar from '@/components/SideBar.vue';
+import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '@/utils/fileUtils';
+import { FileDirItem } from '@/models/files/fileDir';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const { jumpToUserCenter } = useIdentityRoutesJump();

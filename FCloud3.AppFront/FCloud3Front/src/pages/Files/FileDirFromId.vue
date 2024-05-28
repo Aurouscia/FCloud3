@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { injectApi } from '../../provides';
+import { injectApi } from '@/provides';
 import { useRouter } from 'vue-router';
 
 const router = useRouter()

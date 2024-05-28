@@ -1,4 +1,4 @@
-import { sleep } from '../../utils/sleep';
+import { sleep } from '@/utils/sleep';
 import { ref } from "vue";
 
 const clickableTagName = "A";

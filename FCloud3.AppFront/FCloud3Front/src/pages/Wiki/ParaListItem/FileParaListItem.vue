@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import icon from '../../../assets/paraTypes/filePara.svg'
-import { canDisplayAsImage } from '../../../utils/fileUtils';
-import { WikiParaDisplay } from '../../../models/wiki/wikiPara'
+import icon from '@/assets/paraTypes/filePara.svg'
+import { canDisplayAsImage } from '@/utils/fileUtils';
+import { WikiParaDisplay } from '@/models/wiki/wikiPara'
 import { useParaListItem } from './paraListItemTitle';
 
 const props = defineProps<{

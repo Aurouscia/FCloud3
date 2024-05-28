@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { Comment, CommentTargetType, CommentViewResult } from '../../models/messages/comment';
-import { injectApi, injectPop } from '../../provides';
+import { Comment, CommentTargetType, CommentViewResult } from '@/models/messages/comment';
+import { injectApi, injectPop } from '@/provides';
 import { rateColor, rateText } from './rateTextColor';
 import CommentItem from './CommentItem.vue';
 

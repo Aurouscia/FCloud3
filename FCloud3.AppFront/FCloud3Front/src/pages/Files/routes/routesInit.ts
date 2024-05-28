@@ -1,5 +1,5 @@
 import { Router } from "vue-router";
-import { addToRouter } from "../../../utils/routerAdd";
+import { addToRouter } from "@/utils/routerAdd";
 import FileDirIndex from '../FileDirIndex.vue'
 import Material from "../Material.vue";
 import FileDirFromId from "../FileDirFromId.vue";

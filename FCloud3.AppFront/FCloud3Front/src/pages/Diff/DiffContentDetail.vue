@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { DiffContentStepDisplay } from '../../models/diff/DiffContentDetail';
-import { TimedLock } from '../../utils/timeStamp';
+import { DiffContentStepDisplay } from '@/models/diff/DiffContentDetail';
+import { TimedLock } from '@/utils/timeStamp';
 
 const props = defineProps<{
     display:DiffContentStepDisplay|undefined

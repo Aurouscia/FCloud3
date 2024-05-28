@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Ref, onMounted, ref } from 'vue';
-import { injectApi, injectPop } from '../../provides';
-import { Api } from '../../utils/com/api';
-import Pop from '../../components/Pop.vue';
+import { injectApi, injectPop } from '@/provides';
+import { Api } from '@/utils/com/api';
+import Pop from '@/components/Pop.vue';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import Notice from '../../components/Notice.vue';
+import Notice from '@/components/Notice.vue';
 
 const { jumpToLogin } = useIdentityRoutesJump();
 const userName = ref<string>("");

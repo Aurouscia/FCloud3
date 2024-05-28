@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import icon from '../../../assets/paraTypes/tablePara.svg'
-import SimpleTable from '../../../components/SimpleTable.vue';
-import { WikiParaDisplay } from '../../../models/wiki/wikiPara';
+import icon from '@/assets/paraTypes/tablePara.svg'
+import SimpleTable from '@/components/SimpleTable.vue';
+import { WikiParaDisplay } from '@/models/wiki/wikiPara';
 import { useParaListItem } from './paraListItemTitle';
 
 const props = defineProps<{

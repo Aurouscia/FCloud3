@@ -1,5 +1,5 @@
 import { DefineProps, computed } from 'vue'
-import { WikiParaDisplay, wikiParaDefaultFoldMark } from '../../../models/wiki/wikiPara';
+import { WikiParaDisplay, wikiParaDefaultFoldMark } from '@/models/wiki/wikiPara';
 
 export function useParaListItem(props:DefineProps<{ w: WikiParaDisplay }, never>){
     const mainname = computed<string>(()=>{

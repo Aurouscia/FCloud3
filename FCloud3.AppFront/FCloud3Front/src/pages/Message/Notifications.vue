@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { NotifViewItem, NotifType } from '../../models/messages/notification';
-import { injectApi } from '../../provides';
-import Loading from '../../components/Loading.vue';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
-import { useNotifCountStore } from '../../utils/globalStores/notifCount';
+import { NotifViewItem, NotifType } from '@/models/messages/notification';
+import { injectApi } from '@/provides';
+import Loading from '@/components/Loading.vue';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
-import { useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])

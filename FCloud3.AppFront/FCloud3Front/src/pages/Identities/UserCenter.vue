@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { Ref, onMounted, onUnmounted, ref, watch } from 'vue';
-import SideBar from '../../components/SideBar.vue';
+import SideBar from '@/components/SideBar.vue';
 import Personal from './PersonalSettings.vue';
-import Loading from '../../components/Loading.vue';
-import LatestWork from '../../components/LatestWork.vue';
-import OpRecord from '../../components/Messages/OpRecord.vue';
-import { User } from '../../models/identities/user';
-import { Api } from '../../utils/com/api';
-import SwitchingTabs from '../../components/SwitchingTabs.vue';
-import { useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
-import { injectApi, injectPop, injectIdentityInfoProvider } from '../../provides';
+import Loading from '@/components/Loading.vue';
+import LatestWork from '@/components/LatestWork.vue';
+import OpRecord from '@/components/Messages/OpRecord.vue';
+import { User } from '@/models/identities/user';
+import { Api } from '@/utils/com/api';
+import SwitchingTabs from '@/components/SwitchingTabs.vue';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { injectApi, injectPop, injectIdentityInfoProvider } from '@/provides';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import Pop from '../../components/Pop.vue';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import Pop from '@/components/Pop.vue';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
 
 const props = defineProps<{

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, ref,Ref } from 'vue';
-import { HttpClient} from '../../utils/com/httpClient';
-import { IdentityInfoProvider, useIdentityInfoStore } from '../../utils/globalStores/identityInfo';
-import { userTypeText } from '../../models/identities/user';
-import Pop from '../../components/Pop.vue'
-import { Api } from '../../utils/com/api';
-import { injectNotifCountProvider, injectIdentityInfoProvider } from '../../provides';
+import { HttpClient} from '@/utils/com/httpClient';
+import { IdentityInfoProvider, useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { userTypeText } from '@/models/identities/user';
+import Pop from '@/components/Pop.vue'
+import { Api } from '@/utils/com/api';
+import { injectNotifCountProvider, injectIdentityInfoProvider } from '@/provides';
 import { useRouter } from 'vue-router';
 import { useIdentityRoutesJump } from './routes/routesJump';
-import { recoverTitle, setTitleTo } from '../../utils/titleSetter';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
 
 const props = defineProps<{

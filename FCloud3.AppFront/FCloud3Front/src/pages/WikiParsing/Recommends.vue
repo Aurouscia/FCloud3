@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { WikiRecommendModel } from '../../models/wikiParsing/wikiRecommend';
-import { injectApi } from '../../provides';
-import Loading from '../../components/Loading.vue';
+import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
+import { injectApi } from '@/provides';
+import Loading from '@/components/Loading.vue';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useWikiParsingRoutesJump } from './routes/routesJump';
 

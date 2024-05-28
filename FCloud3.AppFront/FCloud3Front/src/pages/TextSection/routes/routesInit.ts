@@ -1,5 +1,5 @@
 import { Router } from "vue-router";
-import { addToRouter } from "../../../utils/routerAdd";
+import { addToRouter } from "@/utils/routerAdd";
 import TextSectionEdit from "../TextSectionEdit.vue";
 import { textSectionEditRouteName } from "./routesJump";
 

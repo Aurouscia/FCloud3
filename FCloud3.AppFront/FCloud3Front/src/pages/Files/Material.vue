@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { Api } from '../../utils/com/api';
-import { injectApi, injectPop } from '../../provides';
-import Index, { IndexColumn } from '../../components/Index/Index.vue';
-import { MaterialIndexItem, getMaterialItemsFromIndexResult } from '../../models/files/material';
-import { IndexQuery, IndexResult } from '../../components/Index';
-import SideBar from '../../components/SideBar.vue';
-import Pop from '../../components/Pop.vue';
-import Notice from '../../components/Notice.vue';
+import { Api } from '@/utils/com/api';
+import { injectApi, injectPop } from '@/provides';
+import Index, { IndexColumn } from '@/components/Index/Index.vue';
+import { MaterialIndexItem, getMaterialItemsFromIndexResult } from '@/models/files/material';
+import { IndexQuery, IndexResult } from '@/components/Index';
+import SideBar from '@/components/SideBar.vue';
+import Pop from '@/components/Pop.vue';
+import Notice from '@/components/Notice.vue';
 
 const onlyMine = ref<boolean>(true);
 const columns:IndexColumn[] = [
