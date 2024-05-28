@@ -11,19 +11,19 @@
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.2.7",
     "@aurouscia/keyboard-shortcut": "^0.0.2",
-    "axios": "^1.6.8",
+    "axios": "^1.7.2",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.23",
+    "vue": "^3.4.27",
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.0",
+    "@types/lodash": "^4.17.4",
     "@types/md5": "^2.3.5",
     "@types/node": "^20.12.12",
     "@vitejs/plugin-vue": "^4.6.2",
-    "sass": "^1.75.0",
+    "sass": "^1.77.2",
     "typescript": "^5.4.5",
     "vite": "^4.5.3",
     "vue-tsc": "^1.8.27"
