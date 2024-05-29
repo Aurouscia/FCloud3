@@ -22,7 +22,7 @@ const user = ref<User>();
 var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
-const { jumpToLogin } = useIdentityRoutesJump();
+const { jumpToLogin, jumpToGlobalAuthGrants } = useIdentityRoutesJump();
 
 watch(props, _newVal=>{
     location.reload();
@@ -87,7 +87,10 @@ onUnmounted(()=>{
             <img :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
-            <div class="settings"><button v-if="username==iden?.Name" @click="editInfoSidebar?.extend">编辑信息</button></div>
+            <div class="settings">
+                <button v-if="username==iden?.Name" @click="editInfoSidebar?.extend">编辑信息</button>
+                <button v-if="username==iden?.Name" @click="jumpToGlobalAuthGrants">授权设置</button>
+            </div>
         </div>
         <SwitchingTabs style="width: 300px;height: 400px;" :texts="['最新作品','最近动态','自荐']">
             <div><LatestWork :uid="user.Id" :noWrap="true"></LatestWork></div>
@@ -141,6 +144,7 @@ onUnmounted(()=>{
     padding-top: 20px;
     box-sizing: border-box;
     height: $body-height;
+    overflow-y: scroll;
 }
 .user>*{
     flex-grow: 1;

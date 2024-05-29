@@ -40,3 +40,4 @@ export enum AuthGrantTo{
     EveryOne = 3,
     SameGroup = 4
 }
+export const authGrantOnIdForAll = -1;

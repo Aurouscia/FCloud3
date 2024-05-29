@@ -5,6 +5,7 @@ import UserGroupIndex from "../UserGroupIndex.vue";
 import UserList from "../UserList.vue";
 import UserCenter from "../UserCenter.vue";
 import Register from "../Register.vue";
+import GlobalAuthGrants from "../GlobalAuthGrants.vue";
 
 export function addIdentities(r:Router){
     addToRouter(r,routes);
@@ -37,5 +38,10 @@ const routes = [
         component:UserCenter,
         props:true,
         name:'userCenter'
+    },
+    {
+        path:"/GlobalAuthGrants",
+        component:GlobalAuthGrants,
+        name:'gag'
     }
 ]

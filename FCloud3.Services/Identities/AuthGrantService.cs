@@ -165,13 +165,20 @@ namespace FCloud3.Services.Identities
             var userDefined = _authGrantRepo.GetByOn(on, onId);
             var globalDefined = new List<AuthGrant>();
             var localDefined = new List<AuthGrant>();
-            userDefined.ForEach(x =>
+            if (onId != AuthGrant.onIdForAll)
             {
-                if (x.OnId == AuthGrant.onIdForAll)
-                    globalDefined.Add(x);
-                else
-                    localDefined.Add(x);
-            });
+                userDefined.ForEach(x =>
+                {
+                    if (x.OnId == AuthGrant.onIdForAll)
+                        globalDefined.Add(x);
+                    else
+                        localDefined.Add(x);
+                });
+            }
+            else
+            {
+                localDefined.AddRange(userDefined);
+            }
             list.AddRange(globalDefined);
             list.AddRange(localDefined);
             var groupIds = list.Where(x => x.To == AuthGrantTo.UserGroup).Select(x=>x.ToId).ToList();

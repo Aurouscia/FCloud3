@@ -14,5 +14,8 @@ export function useIdentityRoutesJump(){
     const jumpToRegister = () => {
         router.push({name:'register'})
     }
-    return { jumpToLogin, jumpToUserCenter, jumpToSelfUserCenter, jumpToRegister }
+    const jumpToGlobalAuthGrants = () => {
+        router.push({name:'gag'})
+    }
+    return { jumpToLogin, jumpToUserCenter, jumpToSelfUserCenter, jumpToRegister, jumpToGlobalAuthGrants }
 }

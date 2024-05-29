@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { injectApi } from '../provides';
 import { Api } from '../utils/com/api';
-import { AuthGrantOn, AuthGrantTo, AuthGrantViewModel } from '../models/identities/authGrant';
+import { AuthGrantOn, AuthGrantTo, AuthGrantViewModel, authGrantOnIdForAll } from '../models/identities/authGrant';
 import Search from './Search.vue';
 import { elementBlinkClass } from '../utils/elementBlink';
 
@@ -163,7 +163,7 @@ onMounted(()=>{
             </td>
         </tr>
     </table>
-    <div v-if="data?.Global && data.Global.length>0" class="defaultNote">
+    <div v-if="props.onId != authGrantOnIdForAll && data?.Global && data.Global.length>0" class="defaultNote">
         "全局设置"请在个人中心调整
     </div>
 </div>
