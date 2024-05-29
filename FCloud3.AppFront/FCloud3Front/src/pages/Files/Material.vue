@@ -154,6 +154,7 @@ watch(onlyMine, async()=>{
             <input type="checkbox" v-model="onlyMine">只看自己的
         </div>
     </div>
+    <div class="matTable">
     <Index v-if="injected" :fetch-index="q => api.material.Index(q, onlyMine)" :columns="columns" @reload-data="setItems" ref="index" :q-init="qInit">
         <tr v-for="m in items" @click="showDetail(m)">
             <td>
@@ -170,6 +171,7 @@ watch(onlyMine, async()=>{
             </td>
         </tr>
     </Index>
+    </div>
     <SideBar ref="createSideBar">
         <h1>新建素材</h1>
         <div>
@@ -241,8 +243,13 @@ watch(onlyMine, async()=>{
 </template>
 
 <style scoped lang="scss">
+@import '@/styles/globalValues';
+
 tr{
     cursor: pointer;
+}
+.matTable{
+    height: calc(100vh - $topbar-height - 70px);
 }
 .materialContent{
     display: flex;
@@ -262,6 +269,7 @@ tr{
 .materialFunctions{
     display:flex;
     justify-content:space-between;
+    margin-top: 10px;
     margin-bottom:10px;
     .left{
         display: flex;

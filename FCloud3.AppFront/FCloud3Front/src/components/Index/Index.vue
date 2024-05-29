@@ -221,7 +221,7 @@ onMounted(async()=>{
 .colNamesTr{
     height: 40px;
     position: sticky;
-    top:72px;
+    top:74px;
 }
 th{
     padding:5px;
@@ -252,7 +252,7 @@ button.highlight{
 }
 .indexControl{ 
     position: sticky;
-    top:0px;
+    top:2px;
     th{
         background-color: #bbb;
     }
