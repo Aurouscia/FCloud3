@@ -76,6 +76,32 @@ namespace FCloud3.Repos.Files
         {
             return Existing.GetChainByPath(path);
         }
+        public bool SetUpdateTimeAncestrally(int id, out string? errmsg)
+        {
+            List<int>? chain = GetChainIdsById(id);
+            if (chain is null)
+            {
+                errmsg = "更新文件夹时间出错：树状结构溯源失败";
+                return false;
+            }
+            Existing.Where(x => chain.Contains(x.Id)).ExecuteUpdate(x=>x.SetProperty(d=>d.Updated, DateTime.Now));
+            errmsg = null;
+            return true;
+        }
+        public bool SetUpdateTimeRangeAncestrally(IQueryable<int> ids, out string? errmsg)
+        {
+            var dirs = GetRangeByIds(ids).Select(x => new {x.Id,x.Updated}).ToList();
+            dirs.RemoveAll(x => (DateTime.Now - x.Updated).TotalMinutes < 5);
+            foreach (var d in dirs)
+            {
+                if(!SetUpdateTimeAncestrally(d.Id, out errmsg))
+                    return false;
+            }
+            errmsg = null;
+            return true;
+        }
+
+
         public IQueryable<FileDir>? GetChildrenById(int id)
         {
             return Existing.Where(x => x.ParentDir == id);
@@ -161,6 +187,11 @@ namespace FCloud3.Repos.Files
             if (!Regex.IsMatch(item.UrlPathName, validUrlPathNamePattern))
             {
                 errmsg = "路径名只能有英文字母，数字和\"-\"";
+                return false;
+            }
+            if (item.Depth > 10)
+            {
+                errmsg = "文件夹层数过深";
                 return false;
             }
             var conflict = Existing.Where(x => x.Id!=item.Id && x.ParentDir == item.ParentDir && x.UrlPathName == item.UrlPathName)

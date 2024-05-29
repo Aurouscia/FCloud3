@@ -37,8 +37,7 @@ const wantViewWikiStore = useWantViewWikiStore();
 const columns:IndexColumn[] = 
 [
     {name:'Name',alias:'名称',canSearch:true,canSetOrder:true},
-    {name:'Updated',alias:'上次更新',canSearch:false,canSetOrder:true},
-    {name:'ByteCount',alias:'尺寸',canSearch:false,canSetOrder:true},
+    {name:'Updated',alias:'上次更新',canSearch:false,canSetOrder:true}
 ]
 
 const subDirs = ref<(FileDirSubDir & {showChildren?:boolean|undefined})[]>([]);
@@ -293,7 +292,8 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
                             </Functions>
                         </div>
-                        <div>
+                        <div class="date">
+                            {{ item.Updated }}
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
@@ -329,6 +329,15 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 <style scoped lang="scss">
 @import '@/styles/globalValues';
 
+.date{
+    font-size: 15px;
+    color: #666
+}
+@media screen and (max-width: 500px){
+    .date{
+        display: none !important;
+    }
+}
 .owner{
     color: #999;
     margin-bottom: 2px;
@@ -419,7 +428,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 .subdir{
     display: flex;
     flex-direction: row;
-    justify-content: left;
+    justify-content: space-between;
     gap:20px;
     align-items: center;
     padding: 4px;

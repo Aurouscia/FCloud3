@@ -284,21 +284,6 @@ namespace FCloud3.Services.Files
             errmsg = null;
             return fileItemIds;
         }
-        public List<int>? MoveFilesIn(string[] dirPath, List<int> fileItemIds, out string? failMsg, out string? errmsg)
-        {
-            int dirId = _fileDirRepo.GetIdByPath(dirPath);
-            return MoveFilesIn(dirId, fileItemIds, out failMsg, out errmsg);
-        }
-        public bool MoveFileIn(string[] dirPath, int fileItemId, out string? errmsg)
-        {
-            var list = new List<int>() { fileItemId };
-            _ = MoveFilesIn(dirPath, list ,out string? failMsg, out errmsg);
-            if (errmsg is null && failMsg is not null)
-                errmsg = failMsg;
-            if (errmsg is not null)
-                return false;
-            return true;
-        }
         public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
         {
             if(!_authGrantService.Test(AuthGrantOn.FileItem, fileItemId))
@@ -312,6 +297,7 @@ namespace FCloud3.Services.Files
                 errmsg = failMsg;
             if (errmsg is not null)
                 return false;
+            _fileDirRepo.SetUpdateTimeAncestrally(distDirId, out _);
             return true;
         }
 
@@ -443,6 +429,8 @@ namespace FCloud3.Services.Files
                 errmsg = "未选择任何要移入的对象";
                 return null;
             }
+            
+            _fileDirRepo.SetUpdateTime(dirIdsChain);
             var resp = new FileDirPutInResult()
             {
                 FileItemSuccess = fileItemSuccess,
@@ -469,6 +457,7 @@ namespace FCloud3.Services.Files
             if(_fileDirRepo.TryAdd(newDir, out errmsg))
             {
                 string parentName = parent?.Name ?? "根文件夹";
+                _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
                     $"在 {parentName} 中新建 {name} ({urlPathName})");
                 return true;

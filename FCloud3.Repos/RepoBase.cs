@@ -51,7 +51,10 @@ namespace FCloud3.Repos
                     orderBy = keyReplace(orderBy);
             }
             q = Filter(q, parsedSearch);
-            q = Order(q, orderBy, query.OrderRev);
+            if (orderBy != null)
+                q = Order(q, orderBy, query.OrderRev);
+            else
+                q = q.OrderByDescending(x => x.Updated);
             return q;
         }
         public virtual IndexResult<T> Index(IndexQuery query)

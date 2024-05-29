@@ -97,7 +97,8 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                         <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>
                     </Functions>
                 </div>
-                <div>
+                <div class="date">
+                    {{ subdir.Updated }}
                 </div>
             </div>
             <div class="detail" v-if="subdir.showChildren">
@@ -115,6 +116,16 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 </template>
 
 <style scoped>
+.date{
+    font-size: 15px;
+    color: #666
+}
+@media screen and (max-width: 500px){
+    .date{
+        display: none !important;
+    }
+}
+
 .subdirName{
     font-weight: bold;
 }
@@ -163,7 +174,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 .subdir{
     display: flex;
     flex-direction: row;
-    justify-content: left;
+    justify-content: space-between;
     gap:20px;
     align-items: center;
     padding: 4px;

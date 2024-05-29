@@ -9,6 +9,7 @@ using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Files;
 
 namespace FCloud3.Services.Table
 {
@@ -18,6 +19,8 @@ namespace FCloud3.Services.Table
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiItemMetadataService _wikiItemMetadataService;
+        private readonly WikiToDirRepo _wikiToDirRepo;
+        private readonly FileDirRepo _fileDirRepo;
         private readonly DiffContentService _diffContentService;
         private readonly ContentEditLockService _contentEditLockService;
         private readonly DbTransactionService _dbTransactionService;
@@ -28,6 +31,8 @@ namespace FCloud3.Services.Table
             WikiParaRepo wikiParaRepo,
             WikiItemRepo wikiItemRepo,
             WikiItemMetadataService wikiItemMetadataService,
+            WikiToDirRepo wikiToDirRepo,
+            FileDirRepo fileDirRepo,
             DiffContentService diffContentService,
             ContentEditLockService contentEditLockService,
             DbTransactionService dbTransactionService,
@@ -37,6 +42,8 @@ namespace FCloud3.Services.Table
             _wikiParaRepo = wikiParaRepo;
             _wikiItemRepo = wikiItemRepo;
             _wikiItemMetadataService = wikiItemMetadataService;
+            _wikiToDirRepo = wikiToDirRepo;
+            _fileDirRepo = fileDirRepo;
             _diffContentService = diffContentService;
             _contentEditLockService = contentEditLockService;
             _dbTransactionService = dbTransactionService;
@@ -107,6 +114,9 @@ namespace FCloud3.Services.Table
                 {
                     _wikiItemRepo.SetUpdateTime(affectedWikis);
                     _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+
+                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis);
+                    _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
                 return true;
             }

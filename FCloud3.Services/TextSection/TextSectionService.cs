@@ -10,6 +10,7 @@ using FCloud3.Services.Etc.TempData.EditLock;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Files;
 
 namespace FCloud3.Services.TextSec
 {
@@ -18,6 +19,8 @@ namespace FCloud3.Services.TextSec
         private readonly WikiParaRepo _paraRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly TextSectionRepo _textSectionRepo;
+        private readonly WikiToDirRepo _wikiToDirRepo;
+        private readonly FileDirRepo _fileDirRepo;
         private readonly int _userId;
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
@@ -30,6 +33,8 @@ namespace FCloud3.Services.TextSec
             WikiItemRepo wikiItemRepo,
             WikiParaRepo paraRepo,
             TextSectionRepo textsectionRepo,
+            WikiToDirRepo wikiToDirRepo,
+            FileDirRepo fileDirRepo,
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
             ContentEditLockService contentEditLockService,
@@ -39,6 +44,8 @@ namespace FCloud3.Services.TextSec
             _paraRepo = paraRepo;
             _wikiItemRepo = wikiItemRepo;
             _textSectionRepo = textsectionRepo;
+            _wikiToDirRepo = wikiToDirRepo;
+            _fileDirRepo = fileDirRepo;
             _userId = userIdProvider.Get();
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
@@ -164,8 +171,14 @@ namespace FCloud3.Services.TextSec
             if(title is not null || content is not null)
             {
                 var affectedWikis = _paraRepo.WikiContainingIt(WikiParaType.Text, id).ToList();
-                _wikiItemRepo.SetUpdateTime(affectedWikis);
-                _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+                if (affectedWikis.Count > 0)
+                {
+                    _wikiItemRepo.SetUpdateTime(affectedWikis);
+                    _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+
+                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis);
+                    _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
+                }
             }
             errmsg = null;
             return true;
