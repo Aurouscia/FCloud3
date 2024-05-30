@@ -23,7 +23,7 @@ namespace FCloud3.Repos.Table
         {
             if (ids.Count == 0)
                 return new();
-            return base.GetRangeByIds(ids).GetMetaData().ToList();
+            return base.GetRangeByIds(ids).GetMeta().ToList();
         }
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
@@ -143,7 +143,7 @@ namespace FCloud3.Repos.Table
     }
     public static class FreeTableMetaQuerier
     {
-        public static IQueryable<FreeTableMeta> GetMetaData(this IQueryable<FreeTable> freeTables)
+        public static IQueryable<FreeTableMeta> GetMeta(this IQueryable<FreeTable> freeTables)
         {
             return freeTables.Select(data => new FreeTableMeta()
             {

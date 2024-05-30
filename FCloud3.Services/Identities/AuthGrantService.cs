@@ -5,7 +5,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Identities
 {
@@ -14,7 +14,7 @@ namespace FCloud3.Services.Identities
         private readonly AuthGrantRepo _authGrantRepo;
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
-        private readonly UserMetadataRepo _userMetadataService;
+        private readonly UserCaching _userCaching;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
@@ -23,7 +23,7 @@ namespace FCloud3.Services.Identities
             AuthGrantRepo authGrantRepo,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
-            UserMetadataRepo userMetadataService,
+            UserCaching userCaching,
             WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
             CreatorIdGetter creatorIdGetter)
@@ -31,7 +31,7 @@ namespace FCloud3.Services.Identities
             _authGrantRepo = authGrantRepo;
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
-            _userMetadataService = userMetadataService;
+            _userCaching = userCaching;
             _wikiParaRepo = wikiParaRepo;
             _userIdProvider = userIdProvider;
             _creatorIdGetter = creatorIdGetter;
@@ -187,7 +187,7 @@ namespace FCloud3.Services.Identities
             userIds = userIds.Union(creatorIds).ToList();
             userIds.RemoveAll(x => x == 0);
             var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id, x.Name}).ToList();
-            var userNames = _userMetadataService.GetRange(userIds).Select(x => new { x.Id, x.Name }).ToList();
+            var userNames = _userCaching.GetRange(userIds).Select(x => new { x.Id, x.Name }).ToList();
             Func<AuthGrant, AuthGrantViewModelItem> convert = x =>
             {
                 string? toName = null;

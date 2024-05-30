@@ -8,8 +8,8 @@ using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Table
 {
@@ -18,7 +18,7 @@ namespace FCloud3.Services.Table
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly FileDirRepo _fileDirRepo;
         private readonly DiffContentService _diffContentService;
@@ -30,7 +30,7 @@ namespace FCloud3.Services.Table
             FreeTableRepo freeTableRepo,
             WikiParaRepo wikiParaRepo,
             WikiItemRepo wikiItemRepo,
-            WikiItemMetadataRepo wikiItemMetadataService,
+            WikiItemCaching wikiItemCaching,
             WikiToDirRepo wikiToDirRepo,
             FileDirRepo fileDirRepo,
             DiffContentService diffContentService,
@@ -41,7 +41,7 @@ namespace FCloud3.Services.Table
             _freeTableRepo = freeTableRepo;
             _wikiParaRepo = wikiParaRepo;
             _wikiItemRepo = wikiItemRepo;
-            _wikiItemMetadataService = wikiItemMetadataService;
+            _wikiItemCaching = wikiItemCaching;
             _wikiToDirRepo = wikiToDirRepo;
             _fileDirRepo = fileDirRepo;
             _diffContentService = diffContentService;
@@ -72,7 +72,7 @@ namespace FCloud3.Services.Table
                 if (affectedWikis.Count > 0)
                 {
                     _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
                 }
                 return true;
             }
@@ -113,7 +113,7 @@ namespace FCloud3.Services.Table
                 if (affectedWikis.Count > 0)
                 {
                     _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
 
                     var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis);
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);

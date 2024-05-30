@@ -2,28 +2,28 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.Services.Etc;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.WikiParsing.Support
 {
     public class WikiParserProviderService(
         IMemoryCache cache,
         CacheExpTokenService cacheExpTokenService,
-        WikiItemMetadataRepo wikiItemMetadataService,
+        WikiItemCaching wikiItemCaching,
         MaterialService materialService,
-        MaterialMetadataRepo materialMetadataService,
+        MaterialCaching materialCaching,
         ILogger<WikiParserProviderService> logger)
     {
         private readonly IMemoryCache _cache = cache;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly MaterialService _materialService = materialService;
-        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
+        private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly ILogger<WikiParserProviderService> _logger = logger;
 
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
@@ -61,8 +61,8 @@ namespace FCloud3.Services.WikiParsing.Support
         private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemMetadataService.GetAll();
-            var allMeterials = _materialMetadataService.GetAll();
+            var allWikis = _wikiItemCaching.GetAll();
+            var allMeterials = _materialCaching.GetAll();
             if (containInfos != null)
             {
                 //自动链接，需要在词条包含标题信息有变更时丢弃缓存

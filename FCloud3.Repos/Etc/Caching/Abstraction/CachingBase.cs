@@ -1,7 +1,7 @@
 ﻿using FCloud3.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace FCloud3.Repos.Etc.Metadata.Abstraction
+namespace FCloud3.Repos.Etc.Caching.Abstraction
 {
     /// <summary>
     /// 用于减少数据库查询的托管内存缓存及其相关操作<br/>
@@ -9,11 +9,11 @@ namespace FCloud3.Repos.Etc.Metadata.Abstraction
     /// </summary>
     /// <typeparam name="TMeta">内存缓存模型</typeparam>
     /// <typeparam name="TModel">数据库模型</typeparam>
-    public abstract class MetadataRepoBase<TMeta, TModel>
-        where TMeta: MetadataBase<TModel> where TModel: class, IDbModel
+    public abstract class CachingBase<TMeta, TModel>
+        where TMeta : CachingModelBase<TModel> where TModel : class, IDbModel
     {
         protected readonly RepoBase<TModel> _repo;
-        private readonly ILogger<MetadataRepoBase<TMeta, TModel>> _logger;
+        private readonly ILogger<CachingBase<TMeta, TModel>> _logger;
 
         /// <summary>
         /// 存储数据处（注意List线程不安全）
@@ -25,7 +25,7 @@ namespace FCloud3.Repos.Etc.Metadata.Abstraction
         protected abstract object Locker { get; }
         private int AllCount { get; set; }
         private const int allCountDefaultVal = -1;
-        public MetadataRepoBase(RepoBase<TModel> repo, ILogger<MetadataRepoBase<TMeta, TModel>> logger) 
+        public CachingBase(RepoBase<TModel> repo, ILogger<CachingBase<TMeta, TModel>> logger)
         {
             _repo = repo;
             _logger = logger;

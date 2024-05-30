@@ -1,19 +1,19 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Etc
 {
     public class LatestWorkService(
         WikiItemRepo wikiItemRepo,
         FileItemRepo fileItemRepo,
-        UserMetadataRepo userMetadataService,
+        UserCaching userCaching,
         IStorage storage)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
-        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
+        private readonly UserCaching _userCaching = userCaching;
         private readonly IStorage _storage = storage;
 
         public List<LatestWorkViewItem> Get(int uid = -1)
@@ -23,7 +23,7 @@ namespace FCloud3.Services.Etc
             var relatedUserIds =
                 wikis.ConvertAll(x => x.OwnerUserId)
                 .Union(files.ConvertAll(x => x.CreatorUserId)).ToList();
-            var users = _userMetadataService.GetRange(relatedUserIds);
+            var users = _userCaching.GetRange(relatedUserIds);
             string uname(int uid) => users.Find(x => x.Id == uid)?.Name ?? "??";
 
             List<LatestWorkViewItem> res = [];

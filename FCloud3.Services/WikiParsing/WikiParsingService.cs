@@ -11,18 +11,18 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.WikiParsing
 {
     public class WikiParsingService(
         WikiItemRepo wikiItemRepo,
-        WikiItemMetadataRepo wikiItemMetadataService,
+        WikiItemCaching wikiItemCaching,
         WikiParaRepo wikiParaRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
@@ -34,7 +34,7 @@ namespace FCloud3.Services.WikiParsing
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
@@ -47,7 +47,7 @@ namespace FCloud3.Services.WikiParsing
 
         public Stream? GetParsedWikiStream(string pathName)
         {
-            var w = _wikiItemMetadataService.Get(pathName);
+            var w = _wikiItemCaching.Get(pathName);
             if (w is null)
                 return null;
             return GetParsedWikiStream(w.Id, w.Update);

@@ -1,23 +1,23 @@
 ﻿using FCloud3.Entities.Files;
 using FCloud3.Repos.Files;
-using FCloud3.Repos.Etc.Metadata.Abstraction;
 using Microsoft.Extensions.Logging;
+using FCloud3.Repos.Etc.Caching.Abstraction;
 
-namespace FCloud3.Repos.Etc.Metadata
+namespace FCloud3.Repos.Etc.Caching
 {
-    public class MaterialMetadataRepo(
+    public class MaterialCaching(
         MaterialRepo repo,
-        ILogger<MetadataRepoBase<MaterialMetaData, Material>> logger) 
-        : MetadataRepoBase<MaterialMetaData, Material>(repo, logger)
+        ILogger<CachingBase<MaterialCachingModel, Material>> logger)
+        : CachingBase<MaterialCachingModel, Material>(repo, logger)
     {
         public void Create(int id, string name, string pathName)
         {
-            MaterialMetaData m = new(id, name, pathName);
-            base.Insert(m);
+            MaterialCachingModel m = new(id, name, pathName);
+            Insert(m);
         }
-        protected override IQueryable<MaterialMetaData> GetFromDbModel(IQueryable<Material> dbModels)
+        protected override IQueryable<MaterialCachingModel> GetFromDbModel(IQueryable<Material> dbModels)
         {
-            return dbModels.Select(x => new MaterialMetaData(x.Id, x.Name, x.StorePathName));
+            return dbModels.Select(x => new MaterialCachingModel(x.Id, x.Name, x.StorePathName));
         }
         public string GetPathName(string name)
         {
@@ -28,11 +28,11 @@ namespace FCloud3.Repos.Etc.Metadata
         protected override object Locker => LockObj;
     }
 
-    public class MaterialMetaData: MetadataBase<Material>
+    public class MaterialCachingModel : CachingModelBase<Material>
     {
         public string? Name { get; set; }
         public string? PathName { get; set; }
-        public MaterialMetaData(int id, string? name, string? pathName)
+        public MaterialCachingModel(int id, string? name, string? pathName)
         {
             Id = id;
             Name = name;

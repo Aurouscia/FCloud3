@@ -1,6 +1,6 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Wiki.Support
 {
@@ -8,12 +8,12 @@ namespace FCloud3.Services.Wiki.Support
         WikiToDirRepo wikiToDirRepo,
         WikiItemRepo wikiItemRepo,
         FileDirRepo fileDirRepo,
-        WikiItemMetadataRepo wikiItemMetadataService)
+        WikiItemCaching wikiItemCaching)
     {
         private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly FileDirRepo _fileDirRepo = fileDirRepo;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly Random _random = new();
         public WikiRecommendModel Get(string pathName)
         {
@@ -30,9 +30,9 @@ namespace FCloud3.Services.Wiki.Support
             var dirIds = res.Dirs.ConvertAll(x => x.Id);
             var neighborIds = _wikiToDirRepo.GetWikiIdsByDirs(dirIds);
 
-            var thisId = _wikiItemMetadataService.Get(pathName)?.Id ?? 0;
+            var thisId = _wikiItemCaching.Get(pathName)?.Id ?? 0;
             neighborIds.Remove(thisId);
-            var neighbors = _wikiItemMetadataService.GetRange(neighborIds)
+            var neighbors = _wikiItemCaching.GetRange(neighborIds)
                 .ConvertAll(x=>new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
             res.Wikis.AddRange(RandomSelect(neighbors, 8));
             return res;

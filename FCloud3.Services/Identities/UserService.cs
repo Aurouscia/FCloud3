@@ -4,26 +4,26 @@ using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using System.Text.RegularExpressions;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Identities
 {
     public partial class UserService(
         UserRepo repo,
-        UserMetadataRepo userMetadataService,
+        UserCaching userCaching,
         MaterialRepo materialRepo,
-        MaterialMetadataRepo materialMetadataService,
+        MaterialCaching materialCaching,
         OpRecordRepo opRecordRepo,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
         IOperatingUserIdProvider operatingUserIdProvider)
     {
         private readonly UserRepo _repo = repo;
-        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
+        private readonly UserCaching _userCaching = userCaching;
         private readonly MaterialRepo _materialRepo = materialRepo;
-        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
+        private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
@@ -39,12 +39,12 @@ namespace FCloud3.Services.Identities
 
         public UserComModel? GetById(int id)
         {
-            var u = _userMetadataService.Get(id);
+            var u = _userCaching.Get(id);
             if(u is null)
                 return null;
             string? avtStoreName = null;
             if(u.AvatarMaterialId > 0)
-                avtStoreName = _materialMetadataService.Get(u.AvatarMaterialId)?.PathName;
+                avtStoreName = _materialCaching.Get(u.AvatarMaterialId)?.PathName;
             string avatarUrl = AvatarFullUrl(avtStoreName);
             return new UserComModel()
             {
@@ -59,12 +59,12 @@ namespace FCloud3.Services.Identities
 
         public UserComModel? GetByName(string name)
         {
-            var u = _userMetadataService.GetByName(name);
+            var u = _userCaching.GetByName(name);
             if (u is null)
                 return null;
             string? avtStoreName = null;
             if (u.AvatarMaterialId > 0)
-                avtStoreName = _materialMetadataService.Get(u.AvatarMaterialId)?.PathName;
+                avtStoreName = _materialCaching.Get(u.AvatarMaterialId)?.PathName;
             string avatarUrl = AvatarFullUrl(avtStoreName);
             return new UserComModel()
             {
@@ -150,7 +150,7 @@ namespace FCloud3.Services.Identities
             var id = _repo.TryAddAndGetId(u, out errmsg);
             if (id > 0)
             {
-                _userMetadataService.Create(id, name!, UserType.Tourist);
+                _userCaching.Create(id, name!, UserType.Tourist);
                 return true;
             }
             return false;
@@ -170,7 +170,7 @@ namespace FCloud3.Services.Identities
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
-            _userMetadataService.Update(id, u => u.Name = name!);
+            _userCaching.Update(id, u => u.Name = name!);
             return true;
         }
 
@@ -180,7 +180,7 @@ namespace FCloud3.Services.Identities
             u.AvatarMaterialId = materialId;
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
-            _userMetadataService.Update(id, u => u.AvatarMaterialId = materialId);
+            _userCaching.Update(id, u => u.AvatarMaterialId = materialId);
             return true;
         }
 
@@ -215,7 +215,7 @@ namespace FCloud3.Services.Identities
             u.Type = targetType;
             if(_repo.TryEdit(u, out errmsg))
             {
-                _userMetadataService.Update(id, u => u.Type = targetType);
+                _userCaching.Update(id, u => u.Type = targetType);
                 if (record is not null)
                     _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, record);
                 return true;
@@ -226,7 +226,7 @@ namespace FCloud3.Services.Identities
         public UserType GetCurrentUserType()
         {
             var uid = _operatingUserIdProvider.Get();
-            if(_userMetadataService.Get(uid) is UserMetadata data)
+            if(_userCaching.Get(uid) is UserCachingModel data)
                 return data.Type;
             return UserType.Tourist;
         }

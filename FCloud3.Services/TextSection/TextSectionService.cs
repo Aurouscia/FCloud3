@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.TextSec
 {
@@ -23,7 +23,7 @@ namespace FCloud3.Services.TextSec
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ContentEditLockService _contentEditLockService;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching;
         private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
@@ -36,7 +36,7 @@ namespace FCloud3.Services.TextSec
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
             ContentEditLockService contentEditLockService,
-            WikiItemMetadataRepo wikiItemMetadataService,
+            WikiItemCaching wikiItemCaching,
             ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;
@@ -48,7 +48,7 @@ namespace FCloud3.Services.TextSec
             _contentDiffService = contentDiffService;
             _dbTransactionService = dbTransactionService;
             _contentEditLockService = contentEditLockService;
-            _wikiItemMetadataService = wikiItemMetadataService;
+            _wikiItemCaching = wikiItemCaching;
             _logger = logger;
         }
 
@@ -172,7 +172,7 @@ namespace FCloud3.Services.TextSec
                 if (affectedWikis.Count > 0)
                 {
                     _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemMetadataService.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
+                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
 
                     var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis);
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);

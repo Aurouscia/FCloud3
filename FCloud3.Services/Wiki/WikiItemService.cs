@@ -10,9 +10,9 @@ using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Wiki
 {
@@ -20,7 +20,7 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction;
         private readonly WikiItemRepo _wikiRepo;
-        private readonly WikiItemMetadataRepo _wikiMetadataService;
+        private readonly WikiItemCaching _wikiCaching;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
@@ -35,7 +35,7 @@ namespace FCloud3.Services.Wiki
         public WikiItemService(
             DbTransactionService transaction,
             WikiItemRepo wikiRepo,
-            WikiItemMetadataRepo wikiMetadataService,
+            WikiItemCaching wikiCaching,
             WikiToDirRepo wikiToDirRepo,
             WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo,
@@ -49,7 +49,7 @@ namespace FCloud3.Services.Wiki
         {
             _transaction = transaction;
             _wikiRepo = wikiRepo;
-            _wikiMetadataService = wikiMetadataService;
+            _wikiCaching = wikiCaching;
             _wikiToDirRepo = wikiToDirRepo;
             _paraRepo = paraRepo;
             _textSectionRepo = textSectionRepo;
@@ -167,7 +167,7 @@ namespace FCloud3.Services.Wiki
             if (success)
             {
                 SetWikiUpdated(wikiId);
-                var name = _wikiMetadataService.Get(wikiId)?.Title;
+                var name = _wikiCaching.Get(wikiId)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, 
                     $"为 {name} 插入了新 {WikiParaTypes.Readable(type)} 段落");
             }
@@ -198,7 +198,7 @@ namespace FCloud3.Services.Wiki
                 return false;
 
             SetWikiUpdated(wikiId);
-            var name = _wikiMetadataService.Get(wikiId)?.Title;
+            var name = _wikiCaching.Get(wikiId)?.Title;
             _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
                 $"为 {name} 调整段落顺序");
             return true;
@@ -231,7 +231,7 @@ namespace FCloud3.Services.Wiki
             if (success)
             {
                 SetWikiUpdated(id);
-                var name = _wikiMetadataService.Get(id)?.Title;
+                var name = _wikiCaching.Get(id)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
                     $"从 {name} 移除了段落");
             }
@@ -251,7 +251,7 @@ namespace FCloud3.Services.Wiki
                 if(_wikiToDirRepo.AddWikisToDir([id], dirId, out errmsg))
                 {
                     int uid = _operatingUserIdProvider.Get();
-                    _wikiMetadataService.Create(id, uid, title, urlPathName);
+                    _wikiCaching.Create(id, uid, title, urlPathName);
                     _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
                     return true;
                 }
@@ -263,7 +263,7 @@ namespace FCloud3.Services.Wiki
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
                 var d = _fileDirRepo.GetqById(dirId).Select(x=>x.Name).FirstOrDefault();
-                var w = _wikiMetadataService.Get(wikiId);
+                var w = _wikiCaching.Get(wikiId);
                 if (w is not null && d is not null)
                     _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"从 {d} 移除词条 {w.Title} ({w.UrlPathName})");
                 return true;
@@ -304,7 +304,7 @@ namespace FCloud3.Services.Wiki
                 if (_wikiRepo.TryEdit(target, out errmsg))
                 {
                     _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
-                    _wikiMetadataService.Update(id, w =>
+                    _wikiCaching.Update(id, w =>
                     {
                         w.Title = title;
                         w.UrlPathName = urlPathName;
@@ -324,7 +324,7 @@ namespace FCloud3.Services.Wiki
         private void SetWikiUpdated(int wikiId)
         {
             _wikiRepo.SetUpdateTime(wikiId);
-            _wikiMetadataService.Update(wikiId, w =>
+            _wikiCaching.Update(wikiId, w =>
             {
                 w.Update = DateTime.Now;
             });

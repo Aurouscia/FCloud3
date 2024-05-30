@@ -1,21 +1,21 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Repos.Etc.Metadata;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Messages
 {
     public class NotificationService(
         NotificationRepo notificationRepo,
         IOperatingUserIdProvider operatingUserIdProvider,
-        WikiItemMetadataRepo wikiItemMetadataService,
-        UserMetadataRepo userMetadataService,
+        WikiItemCaching wikiItemCaching,
+        UserCaching userCaching,
         CommentRepo commentRepo
         )
     {
         private readonly NotificationRepo _notificationRepo = notificationRepo;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
-        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
+        private readonly UserCaching _userCaching = userCaching;
         private readonly CommentRepo _commentRepo = commentRepo;
 
         public NotifViewResult View(int skip)
@@ -35,11 +35,11 @@ namespace FCloud3.Services.Messages
             return models.ConvertAll(x =>
             {
                 var senderId = x.Sender;
-                var senderName = _userMetadataService.Get(x.Sender)?.Name ?? "";
+                var senderName = _userCaching.Get(x.Sender)?.Name ?? "";
                 if(x.Type == NotifType.CommentWiki || x.Type == NotifType.CommentWikiReply)
                 {
                     var wikiId = x.Param1;
-                    var wikiTitle = _wikiItemMetadataService.Get(x.Param1)?.Title ?? "";
+                    var wikiTitle = _wikiItemCaching.Get(x.Param1)?.Title ?? "";
                     var cmtId = x.Param2;
                     var cmtBrief = relatedComments.Find(x => x.Id == cmtId)?.Content ?? "";
                     if(cmtBrief.Length>20)
@@ -58,7 +58,7 @@ namespace FCloud3.Services.Messages
         {
             if (wikiOwner == 0)
             {
-                var wiki = _wikiItemMetadataService.Get(wikiId) ?? throw new Exception("找不到指定词条");
+                var wiki = _wikiItemCaching.Get(wikiId) ?? throw new Exception("找不到指定词条");
                 wikiOwner = wiki.OwnerId;
             }
             var sender = _operatingUserIdProvider.Get();

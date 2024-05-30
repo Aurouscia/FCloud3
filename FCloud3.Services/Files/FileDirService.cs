@@ -8,10 +8,10 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using Microsoft.EntityFrameworkCore;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Files
 {
@@ -25,7 +25,7 @@ namespace FCloud3.Services.Files
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
         private readonly AuthGrantService _authGrantService;
-        private readonly UserMetadataRepo _userMetadataService;
+        private readonly UserCaching _userCaching;
         private readonly IStorage _storage;
 
         public FileDirService(
@@ -37,7 +37,7 @@ namespace FCloud3.Services.Files
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
-            UserMetadataRepo userMetadataService,
+            UserCaching userCaching,
             IStorage storage)
         {
             _userRepo = userRepo;
@@ -48,7 +48,7 @@ namespace FCloud3.Services.Files
             _wikiToDirRepo = wikiToDirRepo;
             _opRecordRepo = opRecordRepo;
             _authGrantService = authGrantService;
-            _userMetadataService = userMetadataService;
+            _userCaching = userCaching;
             _storage = storage;
         }
 
@@ -96,7 +96,7 @@ namespace FCloud3.Services.Files
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
             var ownerName = "";
             if (ownerId > 0)
-                ownerName = _userMetadataService.Get(ownerId)?.Name ?? "??";
+                ownerName = _userCaching.Get(ownerId)?.Name ?? "??";
 
 
             List<FileDirContentItem> contents = [];

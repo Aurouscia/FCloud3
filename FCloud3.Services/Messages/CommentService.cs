@@ -1,21 +1,21 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Identities;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Messages
 {
     public class CommentService(
         CommentRepo commentRepo,
         UserService userService,
-        UserMetadataRepo userMetadataService,
-        MaterialMetadataRepo materialMetadataService,
+        UserCaching userCaching,
+        MaterialCaching materialCaching,
         NotificationService notificationService)
     {
         private readonly CommentRepo _commentRepo = commentRepo;
         private readonly UserService _userService = userService;
-        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
-        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
+        private readonly UserCaching _userCaching = userCaching;
+        private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly NotificationService _notificationService = notificationService;
 
         public bool Create(Comment comment, out string? errmsg)
@@ -41,9 +41,9 @@ namespace FCloud3.Services.Messages
             if (all.Count == 0)
                 return [];
             var relatedUsers = all.Select(x => x.CreatorUserId).Distinct().ToList();
-            var users = _userMetadataService.GetRange(relatedUsers);
+            var users = _userCaching.GetRange(relatedUsers);
             var relatedMaterials = users.Select(x => x.AvatarMaterialId).Distinct().ToList();
-            var materials = _materialMetadataService.GetRange(relatedMaterials);
+            var materials = _materialCaching.GetRange(relatedMaterials);
             var root = new CommentViewResult() { Id = 0 };
             root.PopulateReplies(all, users, materials, _userService.AvatarFullUrl, 0);
             root.Replies.Reverse();
@@ -70,8 +70,8 @@ namespace FCloud3.Services.Messages
             public List<CommentViewResult> Replies { get; set; } = [];
             public void PopulateReplies(
                 List<Comment> allc,
-                List<UserMetadata> allu,
-                List<MaterialMetaData> allm,
+                List<UserCachingModel> allu,
+                List<MaterialCachingModel> allm,
                 Func<string?, string> avtSrc,
                 int layer)
             {

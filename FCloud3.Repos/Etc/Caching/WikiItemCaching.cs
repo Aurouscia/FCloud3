@@ -1,19 +1,19 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Metadata.Abstraction;
 using Microsoft.Extensions.Logging;
+using FCloud3.Repos.Etc.Caching.Abstraction;
 
-namespace FCloud3.Repos.Etc.Metadata
+namespace FCloud3.Repos.Etc.Caching
 {
     /// <summary>
     /// 获取和缓存词条对象的元数据，有更改必须在存入数据库时向其汇报
     /// </summary>
-    public class WikiItemMetadataRepo(
+    public class WikiItemCaching(
         WikiItemRepo wikiItemRepo,
-        ILogger<MetadataRepoBase<WikiItemMetadata, WikiItem>> logger) 
-        : MetadataRepoBase<WikiItemMetadata, WikiItem>(wikiItemRepo, logger)
+        ILogger<CachingBase<WikiItemCachingModel, WikiItem>> logger)
+        : CachingBase<WikiItemCachingModel, WikiItem>(wikiItemRepo, logger)
     {
-        public WikiItemMetadata? Get(string urlPathName)
+        public WikiItemCachingModel? Get(string urlPathName)
         {
             var stored = DataListSearch(x => x.UrlPathName == urlPathName);
             if (stored is not null)
@@ -21,32 +21,32 @@ namespace FCloud3.Repos.Etc.Metadata
             var w = GetFromDbModel(_repo.Existing.Where(x => x.UrlPathName == urlPathName))
                 .FirstOrDefault();
             if (w is null) return null;
-            base.Insert(w);
+            Insert(w);
             return w;
         }
 
         public void Create(int id, int ownerId, string title, string urlPathName)
         {
-            WikiItemMetadata w = new(id, ownerId, title, urlPathName, DateTime.Now);
-            base.Insert(w);
+            WikiItemCachingModel w = new(id, ownerId, title, urlPathName, DateTime.Now);
+            Insert(w);
         }
 
-        protected override IQueryable<WikiItemMetadata> GetFromDbModel(IQueryable<WikiItem> dbModels)
+        protected override IQueryable<WikiItemCachingModel> GetFromDbModel(IQueryable<WikiItem> dbModels)
         {
-            return dbModels.Select(x => new WikiItemMetadata(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
+            return dbModels.Select(x => new WikiItemCachingModel(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
         }
 
         private static readonly object LockObj = new();
         protected override object Locker => LockObj;
     }
 
-    public class WikiItemMetadata : MetadataBase<WikiItem>
+    public class WikiItemCachingModel : CachingModelBase<WikiItem>
     {
         public int OwnerId { get; set; }
         public string? Title { get; set; }
         public string? UrlPathName { get; set; }
         public DateTime Update { get; set; }
-        public WikiItemMetadata(int id, int ownerId, string? title, string? urlPathName, DateTime update)
+        public WikiItemCachingModel(int id, int ownerId, string? title, string? urlPathName, DateTime update)
         {
             Id = id;
             OwnerId = ownerId;

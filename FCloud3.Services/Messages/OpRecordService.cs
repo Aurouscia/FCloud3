@@ -1,15 +1,15 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Repos.Etc.Metadata;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Messages
 {
     public class OpRecordService(
         OpRecordRepo opRecordRepo,
-        UserMetadataRepo userMetadataService)
+        UserCaching userCaching)
     {
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
-        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
+        private readonly UserCaching _userCaching = userCaching;
 
         public List<OpRecordViewModel> Get(int skip, int user = -1)
         {
@@ -19,7 +19,7 @@ namespace FCloud3.Services.Messages
             else
                 ops = _opRecordRepo.TakeRange(skip, user).ToList();
             var userIds = ops.ConvertAll(x => x.CreatorUserId);
-            var users = _userMetadataService.GetRange(userIds);
+            var users = _userCaching.GetRange(userIds);
             return ops.ConvertAll(op =>
             {
                 var u = users.Find(x => x.Id == op.CreatorUserId);

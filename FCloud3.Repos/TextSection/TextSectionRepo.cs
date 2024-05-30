@@ -15,13 +15,13 @@ namespace FCloud3.Repos.TextSec
 
         public TextSectionMeta? GetMetaById(int id)
         {
-            return Existing.Where(x => x.Id == id).GetMetaData().FirstOrDefault();
+            return Existing.Where(x => x.Id == id).GetMeta().FirstOrDefault();
         }
         public List<TextSectionMeta> GetMetaRangeByIds(List<int> ids)
         {
             if (ids.Count == 0)
                 return new();
-            return base.GetRangeByIds(ids).GetMetaData().ToList();
+            return base.GetRangeByIds(ids).GetMeta().ToList();
         }
 
         public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
@@ -81,7 +81,7 @@ namespace FCloud3.Repos.TextSec
     }
     public static class TextSectionMetaQuerier
     {
-        public static IQueryable<TextSectionMeta> GetMetaData(this IQueryable<TextSection> source)
+        public static IQueryable<TextSectionMeta> GetMeta(this IQueryable<TextSection> source)
         {
             return source.Select(x => new TextSectionMeta()
             {

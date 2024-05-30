@@ -2,7 +2,7 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
-using FCloud3.Repos.Etc.Metadata;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Wiki
 {
@@ -10,14 +10,14 @@ namespace FCloud3.Services.Wiki
         WikiTitleContainRepo wikiTitleContainRepo,
         WikiItemRepo wikiItemRepo,
         WikiParaRepo wikiParaRepo,
-        WikiItemMetadataRepo wikiItemMetadataService,
+        WikiItemCaching wikiItemCaching,
         DbTransactionService dbTransactionService,
         CacheExpTokenService cacheExpTokenService)
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
-        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
 
@@ -57,7 +57,7 @@ namespace FCloud3.Services.Wiki
         {
             var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
             var wikiIds = list.ConvertAll(x => x.WikiId);
-            var wikis = _wikiItemMetadataService.GetRange(wikiIds);
+            var wikis = _wikiItemCaching.GetRange(wikiIds);
             WikiTitleContainListModel model = new();
             list.ForEach(c =>
             {
@@ -95,7 +95,7 @@ namespace FCloud3.Services.Wiki
                 foreach(int w in wIds)
                     _cacheExpTokenService.WikiTitleContain.GetByKey(w).CancelAll();
                 _wikiItemRepo.SetUpdateTime(wIds);
-                _wikiItemMetadataService.UpdateRange(wIds, wm => wm.Update = DateTime.Now);
+                _wikiItemCaching.UpdateRange(wIds, wm => wm.Update = DateTime.Now);
             }
             _dbTransactionService.CommitTransaction(t);
             return true;
