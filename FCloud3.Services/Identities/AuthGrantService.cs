@@ -55,7 +55,7 @@ namespace FCloud3.Services.Identities
                     return false;//如果所有者不是访问者，但是该类型只允许所有者访问，直接拒绝
             }
 
-            var gs = _authGrantRepo.GetByOn(on, onId);
+            var gs = _authGrantRepo.GetByOn(on, onId, ownerId);
             gs.Reverse();//下面覆盖上面，所以先检验
 
             if(GetBuiltInOf(on) is List<AuthGrant> baseAuths)
@@ -162,7 +162,8 @@ namespace FCloud3.Services.Identities
             var list = new List<AuthGrant>();
             var builtIn = GetBuiltInOf(on) ?? [];
             list.AddRange(builtIn);
-            var userDefined = _authGrantRepo.GetByOn(on, onId);
+            int owner = GetOwnerId(on, onId);
+            var userDefined = _authGrantRepo.GetByOn(on, onId, owner);
             var globalDefined = new List<AuthGrant>();
             var localDefined = new List<AuthGrant>();
             if (onId != AuthGrant.onIdForAll)
@@ -218,8 +219,7 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             int userId = _userIdProvider.Get();
-            int owner = GetOwnerId(newGrant.On, newGrant.OnId);
-            if (userId != owner)
+            if (!CanEdit(newGrant.On, newGrant.OnId))
             {
                 errmsg = "只有所有者能设置权限";
                 return false;
@@ -234,15 +234,13 @@ namespace FCloud3.Services.Identities
         }
         public bool Remove(int id, out string? errmsg)
         {
-            int userId = _userIdProvider.Get();
             AuthGrant? target = _authGrantRepo.GetById(id);
             if (target is null)
             {
                 errmsg = "找不到指定目标，请刷新后重试";
                 return false;
             }
-            int owner = GetOwnerId(target.On, target.OnId);
-            if (userId != owner)
+            if (!CanEdit(target.On, target.OnId))
             {
                 errmsg = "只有所有者能设置权限";
                 return false;
@@ -255,9 +253,7 @@ namespace FCloud3.Services.Identities
                 errmsg = null;
                 return true;
             }
-            int userId = _userIdProvider.Get();
-            int owner = GetOwnerId(on, onId);
-            if (userId != owner)
+            if (!CanEdit(on, onId))
             {
                 errmsg = "只有所有者能设置权限";
                 return false;
@@ -285,6 +281,15 @@ namespace FCloud3.Services.Identities
             }
             gs.ResetOrder(ids);
             return _authGrantRepo.TryEditRange(gs, out errmsg);
+        }
+
+        private bool CanEdit(AuthGrantOn on, int onId)
+        {
+            if (onId == AuthGrant.onIdForAll)
+                return true; // 表示正在设置全局设置，所有者肯定是自己
+            int userId = _userIdProvider.Get();
+            int owner = GetOwnerId(on, onId);
+            return userId == owner;
         }
 
         private int GetOwnerId(AuthGrantOn on, int onId)

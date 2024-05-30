@@ -10,12 +10,24 @@ namespace FCloud3.Repos.Identities
         public AuthGrantRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
-        public List<AuthGrant> GetByOn(AuthGrantOn on, int onId)
+        /// <summary>
+        /// 获取某对象的所有授权，包括本地和全局的，但不包括内置的
+        /// </summary>
+        /// <param name="on">对象类型</param>
+        /// <param name="onId">对象id</param>
+        /// <param name="owner">对象拥有者</param>
+        /// <returns></returns>
+        public List<AuthGrant> GetByOn(AuthGrantOn on, int onId, int owner)
         {
-            var res = Existing
+            //要么直接在对象上，要么被所有者定义为“所有我的”的
+            var q = Existing
                 .Where(x => x.On == on)
-                .Where(x => x.OnId == onId || x.OnId == AuthGrant.onIdForAll)
-                .ToList();
+                .Where(x => x.OnId == onId || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner));
+            
+            //如果要的就是“所有我的”，那么只返回当前登录用户的
+            if (onId == AuthGrant.onIdForAll)
+                q = q.Where(x => x.CreatorUserId == _userIdProvider.Get());
+            var res = q.ToList();
             res.Sort((x, y) =>
             {
                 var xIsAll = x.OnId == AuthGrant.onIdForAll ? 1 : 0;
@@ -34,17 +46,9 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Order)
                 .ToList();
         }
-        public List<AuthGrant> GetByOnGlobal(AuthGrantOn on)
-        {
-            return Existing
-                .Where(x => x.On == on)
-                .Where(x => x.OnId == AuthGrant.onIdForAll)
-                .OrderBy(x => x.Order)
-                .ToList();
-        }
         public override bool TryAdd(AuthGrant item, out string? errmsg)
         {
-            var sameOn = GetByOn(item.On, item.OnId);
+            var sameOn = GetByOnLocal(item.On, item.OnId);
             if (sameOn.Count >= AuthGrant.maxCountOnSameOn)
                 errmsg = "不允许设置数量过多";
             if (sameOn.Count != 0)
@@ -61,7 +65,7 @@ namespace FCloud3.Repos.Identities
         }
         public override bool TryRemove(AuthGrant item, out string? errmsg)
         {
-            var sameOn = GetByOn(item.On, item.OnId);
+            var sameOn = GetByOnLocal(item.On, item.OnId);
             if (!sameOn.Contains(item))
             {
                 errmsg = "找不到要删除的对象";
