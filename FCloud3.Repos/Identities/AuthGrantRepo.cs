@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Identities;
+using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos.Identities
 {

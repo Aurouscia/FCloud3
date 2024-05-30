@@ -1,10 +1,9 @@
 ﻿using FCloud3.Entities.Files;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
-using Microsoft.Extensions.Caching.Memory;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
@@ -16,7 +15,7 @@ namespace FCloud3.Services.Files
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly IStorage _storage;
-        private readonly MaterialMetadataService _materialMetadataService;
+        private readonly MaterialMetadataRepo _materialMetadataService;
         private readonly static object materialNamingLock = new();
 
         public MaterialService(
@@ -24,7 +23,7 @@ namespace FCloud3.Services.Files
             CacheExpTokenService cacheExpTokenService,
             IOperatingUserIdProvider userIdProvider,
             IStorage storage,
-            MaterialMetadataService materialMetadataService)
+            MaterialMetadataRepo materialMetadataService)
         {
             _materialRepo = materialRepo;
             _cacheExpTokenService = cacheExpTokenService;

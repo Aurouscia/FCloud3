@@ -3,14 +3,14 @@ using FCloud3.Entities;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Messages;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 
@@ -20,7 +20,7 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction;
         private readonly WikiItemRepo _wikiRepo;
-        private readonly WikiItemMetadataService _wikiMetadataService;
+        private readonly WikiItemMetadataRepo _wikiMetadataService;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo;
         private readonly TextSectionRepo _textSectionRepo;
@@ -35,7 +35,7 @@ namespace FCloud3.Services.Wiki
         public WikiItemService(
             DbTransactionService transaction,
             WikiItemRepo wikiRepo,
-            WikiItemMetadataService wikiMetadataService,
+            WikiItemMetadataRepo wikiMetadataService,
             WikiToDirRepo wikiToDirRepo,
             WikiParaRepo paraRepo,
             TextSectionRepo textSectionRepo,

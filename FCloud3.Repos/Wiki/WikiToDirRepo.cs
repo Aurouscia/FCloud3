@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Etc;
 using System;
 using System.Collections.Generic;
 using System.Linq;

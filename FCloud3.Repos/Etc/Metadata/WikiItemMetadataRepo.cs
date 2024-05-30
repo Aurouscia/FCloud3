@@ -1,17 +1,17 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata.Abstraction;
+using FCloud3.Repos.Etc.Metadata.Abstraction;
 using Microsoft.Extensions.Logging;
 
-namespace FCloud3.Services.Etc.Metadata
+namespace FCloud3.Repos.Etc.Metadata
 {
     /// <summary>
     /// 获取和缓存词条对象的元数据，有更改必须在存入数据库时向其汇报
     /// </summary>
-    public class WikiItemMetadataService(
+    public class WikiItemMetadataRepo(
         WikiItemRepo wikiItemRepo,
-        ILogger<MetadataServiceBase<WikiItemMetadata, WikiItem>> logger) 
-        : MetadataServiceBase<WikiItemMetadata, WikiItem>(wikiItemRepo, logger)
+        ILogger<MetadataRepoBase<WikiItemMetadata, WikiItem>> logger) 
+        : MetadataRepoBase<WikiItemMetadata, WikiItem>(wikiItemRepo, logger)
     {
         public WikiItemMetadata? Get(string urlPathName)
         {
@@ -21,20 +21,23 @@ namespace FCloud3.Services.Etc.Metadata
             var w = GetFromDbModel(_repo.Existing.Where(x => x.UrlPathName == urlPathName))
                 .FirstOrDefault();
             if (w is null) return null;
-            DataList.Add(w);
+            base.Insert(w);
             return w;
         }
 
         public void Create(int id, int ownerId, string title, string urlPathName)
         {
             WikiItemMetadata w = new(id, ownerId, title, urlPathName, DateTime.Now);
-            base.Create(w);
+            base.Insert(w);
         }
 
         protected override IQueryable<WikiItemMetadata> GetFromDbModel(IQueryable<WikiItem> dbModels)
         {
             return dbModels.Select(x => new WikiItemMetadata(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
         }
+
+        private static readonly object LockObj = new();
+        protected override object Locker => LockObj;
     }
 
     public class WikiItemMetadata : MetadataBase<WikiItem>

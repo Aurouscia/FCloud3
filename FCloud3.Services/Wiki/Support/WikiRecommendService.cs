@@ -1,6 +1,6 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Wiki.Support
 {
@@ -8,12 +8,12 @@ namespace FCloud3.Services.Wiki.Support
         WikiToDirRepo wikiToDirRepo,
         WikiItemRepo wikiItemRepo,
         FileDirRepo fileDirRepo,
-        WikiItemMetadataService wikiItemMetadataService)
+        WikiItemMetadataRepo wikiItemMetadataService)
     {
         private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly FileDirRepo _fileDirRepo = fileDirRepo;
-        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
         private readonly Random _random = new();
         public WikiRecommendModel Get(string pathName)
         {

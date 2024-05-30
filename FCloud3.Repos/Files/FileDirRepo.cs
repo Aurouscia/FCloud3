@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Repos.Etc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -137,7 +138,7 @@ namespace FCloud3.Repos.Files
         public bool UpdateDescendantsInfoFor(List<FileDir> masters, out string? errmsg)
         {
             errmsg = null;
-            List<FileDir>? targets = GetDescendantsFor(masters.ConvertAll(x=>x.Id),out errmsg);
+            List<FileDir>? targets = GetDescendantsFor(masters.ConvertAll(x => x.Id), out errmsg);
             if (targets is null)
                 return false;
 
@@ -147,12 +148,13 @@ namespace FCloud3.Repos.Files
                 if (safety == 50)
                     throw new Exception("未知错误：无穷递归");
                 var children = targets.FindAll(x => x.ParentDir == dir.Id);
-                children.ForEach(x => {
+                children.ForEach(x =>
+                {
                     x.Depth = dir.Depth + 1;
                     setChildrenDepth(x, safety + 1);
                 });
             }
-            masters.ForEach(m=> setChildrenDepth(m, 0));
+            masters.ForEach(m => setChildrenDepth(m, 0));
 
             //此时depth已经是正确值
             //可以再从子代到父代再算总字节数，内容数什么的

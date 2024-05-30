@@ -3,6 +3,7 @@ using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos.TextSec
 {

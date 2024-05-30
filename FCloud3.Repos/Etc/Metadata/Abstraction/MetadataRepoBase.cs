@@ -1,22 +1,31 @@
 ﻿using FCloud3.Entities;
-using FCloud3.Repos;
 using Microsoft.Extensions.Logging;
 
-namespace FCloud3.Services.Etc.Metadata.Abstraction
+namespace FCloud3.Repos.Etc.Metadata.Abstraction
 {
-    public abstract class MetadataServiceBase<TMeta, TModel>
+    /// <summary>
+    /// 用于减少数据库查询的托管内存缓存及其相关操作<br/>
+    /// 应该在确认数据库操作执行成功后再调用本类对象更新缓存
+    /// </summary>
+    /// <typeparam name="TMeta">内存缓存模型</typeparam>
+    /// <typeparam name="TModel">数据库模型</typeparam>
+    public abstract class MetadataRepoBase<TMeta, TModel>
         where TMeta: MetadataBase<TModel> where TModel: class, IDbModel
     {
         protected readonly RepoBase<TModel> _repo;
-        private readonly ILogger<MetadataServiceBase<TMeta, TModel>> _logger;
+        private readonly ILogger<MetadataRepoBase<TMeta, TModel>> _logger;
 
         /// <summary>
-        /// 踏马的，这个List里面会莫名其妙出现null元素，
-        /// 但是一断点调试就没了，可能是某种线程冲突引起的，加lock即可
+        /// 存储数据处（注意List线程不安全）
         /// </summary>
-        public static List<TMeta> DataList { get; } = [];
-        private readonly static object _locker = new object();
-        public MetadataServiceBase(RepoBase<TModel> repo, ILogger<MetadataServiceBase<TMeta, TModel>> logger) 
+        private static List<TMeta> DataList { get; } = [];
+        /// <summary>
+        /// 使用实现类提供的lock对象确保同一个list同时只能被一个线程操作
+        /// </summary>
+        protected abstract object Locker { get; }
+        private int AllCount { get; set; }
+        private const int allCountDefaultVal = -1;
+        public MetadataRepoBase(RepoBase<TModel> repo, ILogger<MetadataRepoBase<TMeta, TModel>> logger) 
         {
             _repo = repo;
             _logger = logger;
@@ -28,7 +37,7 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
 
         public TMeta? Get(int id)
         {
-            lock (_locker)
+            lock (Locker)
             {
                 var stored = DataListSearch(x => x.Id == id);
                 if (stored is not null)
@@ -43,7 +52,7 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
         }
         public List<TMeta> GetRange(IEnumerable<int> ids)
         {
-            lock (_locker)
+            lock (Locker)
             {
                 var found = new List<TMeta>();
                 var notFound = new List<int>();
@@ -64,33 +73,43 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
                 return found;
             }
         }
-        public void Create(TMeta meta)
+        public void Insert(TMeta meta)
         {
-            DataList.Add(meta);
+            lock (Locker)
+            {
+                DataList.Add(meta);
+                CountIncre();
+            }
         }
         public void Update(int id, Action<TMeta> action)
         {
-            var stored = DataListSearch(x => x.Id == id);
-            if (stored is not null)
-                action(stored);
+            lock (Locker)
+            {
+                var stored = DataListSearch(x => x.Id == id);
+                if (stored is not null)
+                    action(stored);
+            }
         }
         public void UpdateRange(IEnumerable<int> ids, Action<TMeta> action)
         {
-            var stored = DataListSearchRange(x => ids.Contains(x.Id));
-            stored.ForEach(x => action(x));
+            lock (Locker)
+            {
+                var stored = DataListSearchRange(x => ids.Contains(x.Id));
+                stored.ForEach(x => action(x));
+            }
         }
         public List<TMeta> GetAll()
         {
-            lock (_locker)
+            lock (Locker)
             {
-                int allCount = _repo.ExistingCount;
-                DataList.RemoveAll(x => x is null);
-                if (allCount == DataList.Count)
+                if (AllCount == DataList.Count)
                     return DataList;
                 else
                 {
-                    DataList.Clear();
-                    DataList.AddRange(GetFromDbModel(_repo.Existing).ToList());
+                    var loadedIds = DataList.Select(x => x.Id).ToList();
+                    var q = _repo.Existing.Where(x => !loadedIds.Contains(x.Id));
+                    DataList.AddRange(GetFromDbModel(q).ToList());
+                    AllCount = DataList.Count;
                     _logger.LogDebug("从数据库获取全部[{type}](元数据缓存)", typeof(TMeta).Name);
                 }
                 return DataList;
@@ -98,8 +117,28 @@ namespace FCloud3.Services.Etc.Metadata.Abstraction
         }
         public void Remove(int id)
         {
-            DataList.RemoveAll(x => x.Id == id);
+            lock (Locker)
+            {
+                DataList.RemoveAll(x => x.Id == id);
+                CountDecre();
+            }
         }
+
+        private void CountIncre()
+        {
+            if (AllCount == allCountDefaultVal)
+                AllCount = _repo.ExistingCount;
+            else
+                AllCount++;
+        }
+        private void CountDecre()
+        {
+            if (AllCount == allCountDefaultVal)
+                AllCount = _repo.ExistingCount;
+            else
+                AllCount--;
+        }
+
         protected abstract IQueryable<TMeta> GetFromDbModel(IQueryable<TModel> dbModels);
     }
 }

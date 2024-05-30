@@ -11,7 +11,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
@@ -22,7 +22,7 @@ namespace FCloud3.Services.WikiParsing
 {
     public class WikiParsingService(
         WikiItemRepo wikiItemRepo,
-        WikiItemMetadataService wikiItemMetadataService,
+        WikiItemMetadataRepo wikiItemMetadataService,
         WikiParaRepo wikiParaRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
@@ -34,7 +34,7 @@ namespace FCloud3.Services.WikiParsing
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;

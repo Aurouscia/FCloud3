@@ -8,7 +8,7 @@ using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Repos.Files;
 
 namespace FCloud3.Services.Table
@@ -18,7 +18,7 @@ namespace FCloud3.Services.Table
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiItemMetadataService _wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly FileDirRepo _fileDirRepo;
         private readonly DiffContentService _diffContentService;
@@ -30,7 +30,7 @@ namespace FCloud3.Services.Table
             FreeTableRepo freeTableRepo,
             WikiParaRepo wikiParaRepo,
             WikiItemRepo wikiItemRepo,
-            WikiItemMetadataService wikiItemMetadataService,
+            WikiItemMetadataRepo wikiItemMetadataService,
             WikiToDirRepo wikiToDirRepo,
             FileDirRepo fileDirRepo,
             DiffContentService diffContentService,

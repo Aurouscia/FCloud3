@@ -1,5 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.WikiParsing;
+using FCloud3.Repos.Etc;
 using NPOI.SS.Formula.PTG;
 
 namespace FCloud3.Repos.WikiParsing

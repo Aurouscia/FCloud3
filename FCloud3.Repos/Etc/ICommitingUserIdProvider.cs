@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos
+namespace FCloud3.Repos.Etc
 {
     public interface ICommitingUserIdProvider
     {

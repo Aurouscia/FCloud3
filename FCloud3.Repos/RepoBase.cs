@@ -1,5 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
+using FCloud3.Repos.Etc;
+using FCloud3.Repos.Etc.Index;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;

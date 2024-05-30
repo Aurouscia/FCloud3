@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos
+namespace FCloud3.Repos.Etc.Index
 {
     public class IndexResult
     {
@@ -23,7 +23,7 @@ namespace FCloud3.Repos
     {
         public string[] ColumnNames { get; set; }
         public IndexResult(List<T> data, int pageIdx, int pageCount, int totalCount) : base(data.Count)
-        { 
+        {
             PageIdx = pageIdx;
             PageCount = pageCount;
             TotalCount = totalCount;

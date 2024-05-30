@@ -1,24 +1,19 @@
 ﻿using FCloud3.Entities.Files;
 using FCloud3.Repos.Files;
-using FCloud3.Services.Etc.Metadata.Abstraction;
+using FCloud3.Repos.Etc.Metadata.Abstraction;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FCloud3.Services.Etc.Metadata
+namespace FCloud3.Repos.Etc.Metadata
 {
-    public class MaterialMetadataService(
+    public class MaterialMetadataRepo(
         MaterialRepo repo,
-        ILogger<MetadataServiceBase<MaterialMetaData, Material>> logger) 
-        : MetadataServiceBase<MaterialMetaData, Material>(repo, logger)
+        ILogger<MetadataRepoBase<MaterialMetaData, Material>> logger) 
+        : MetadataRepoBase<MaterialMetaData, Material>(repo, logger)
     {
         public void Create(int id, string name, string pathName)
         {
             MaterialMetaData m = new(id, name, pathName);
-            base.Create(m);
+            base.Insert(m);
         }
         protected override IQueryable<MaterialMetaData> GetFromDbModel(IQueryable<Material> dbModels)
         {
@@ -28,6 +23,9 @@ namespace FCloud3.Services.Etc.Metadata
         {
             return DataListSearch(x => x.Name == name)?.PathName ?? "??";
         }
+
+        private static readonly object LockObj = new();
+        protected override object Locker => LockObj;
     }
 
     public class MaterialMetaData: MetadataBase<Material>

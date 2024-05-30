@@ -1,22 +1,21 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Messages
 {
     public class NotificationService(
         NotificationRepo notificationRepo,
         IOperatingUserIdProvider operatingUserIdProvider,
-        WikiItemMetadataService wikiItemMetadataService,
-        UserMetadataService userMetadataService,
+        WikiItemMetadataRepo wikiItemMetadataService,
+        UserMetadataRepo userMetadataService,
         CommentRepo commentRepo
         )
     {
         private readonly NotificationRepo _notificationRepo = notificationRepo;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
-        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
         private readonly CommentRepo _commentRepo = commentRepo;
 
         public NotifViewResult View(int skip)

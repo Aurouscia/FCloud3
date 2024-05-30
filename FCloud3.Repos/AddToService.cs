@@ -9,6 +9,7 @@ using FCloud3.Repos.Table;
 using FCloud3.Repos.WikiParsing;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Messages;
+using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos
 {

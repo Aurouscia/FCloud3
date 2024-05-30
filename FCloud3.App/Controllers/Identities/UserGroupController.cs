@@ -1,7 +1,7 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +12,12 @@ namespace FCloud3.App.Controllers.Identities
     public class UserGroupController(
         UserGroupService userGroupService,
         UserService userService,
-        UserMetadataService userMetadataService) 
+        UserMetadataRepo userMetadataService) 
         : Controller, IAuthGrantTypeProvidedController
     {
         private readonly UserGroupService _userGroupService = userGroupService;
         private readonly UserService _userService = userService;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
 
         [UserTypeRestricted]

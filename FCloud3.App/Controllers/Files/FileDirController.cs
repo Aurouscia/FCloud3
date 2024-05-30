@@ -1,7 +1,7 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc.Index;
 using FCloud3.Services.Files;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;

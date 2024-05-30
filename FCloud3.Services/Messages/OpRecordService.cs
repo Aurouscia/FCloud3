@@ -1,15 +1,15 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Messages
 {
     public class OpRecordService(
         OpRecordRepo opRecordRepo,
-        UserMetadataService userMetadataService)
+        UserMetadataRepo userMetadataService)
     {
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
 
         public List<OpRecordViewModel> Get(int skip, int user = -1)
         {

@@ -2,7 +2,7 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,16 +14,16 @@ namespace FCloud3.Services.WikiParsing.Support
     public class WikiParserProviderService(
         IMemoryCache cache,
         CacheExpTokenService cacheExpTokenService,
-        WikiItemMetadataService wikiItemMetadataService,
+        WikiItemMetadataRepo wikiItemMetadataService,
         MaterialService materialService,
-        MaterialMetadataService materialMetadataService,
+        MaterialMetadataRepo materialMetadataService,
         ILogger<WikiParserProviderService> logger)
     {
         private readonly IMemoryCache _cache = cache;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
-        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
         private readonly MaterialService _materialService = materialService;
-        private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
         private readonly ILogger<WikiParserProviderService> _logger = logger;
 
         public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)

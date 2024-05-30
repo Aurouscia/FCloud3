@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.Repos
+namespace FCloud3.Repos.Etc
 {
     public class CreatorIdGetter
     {
@@ -20,7 +20,7 @@ namespace FCloud3.Repos
         }
         public int Get<T>(int modelId) where T : class, IDbModel
         {
-            if(typeof(T) == typeof(WikiItem))
+            if (typeof(T) == typeof(WikiItem))
             {
                 return _context.Set<WikiItem>()
                     .Where(x => x.Id == modelId)
@@ -35,8 +35,8 @@ namespace FCloud3.Repos
                     .FirstOrDefault();
             }
             return _context.Set<T>()
-                .Where(x=>x.Id==modelId)
-                .Select(x=>x.CreatorUserId)
+                .Where(x => x.Id == modelId)
+                .Select(x => x.CreatorUserId)
                 .FirstOrDefault();
         }
     }

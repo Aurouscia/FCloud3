@@ -1,6 +1,6 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.Services.Etc
@@ -8,12 +8,12 @@ namespace FCloud3.Services.Etc
     public class LatestWorkService(
         WikiItemRepo wikiItemRepo,
         FileItemRepo fileItemRepo,
-        UserMetadataService userMetadataService,
+        UserMetadataRepo userMetadataService,
         IStorage storage)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
         private readonly IStorage _storage = storage;
 
         public List<LatestWorkViewItem> Get(int uid = -1)

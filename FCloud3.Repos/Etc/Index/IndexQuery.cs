@@ -1,4 +1,4 @@
-﻿namespace FCloud3.Repos
+﻿namespace FCloud3.Repos.Etc.Index
 {
     public class IndexQuery
     {
@@ -9,7 +9,7 @@
         public List<string>? Search { get; set; }
         public SearchDict ParsedSearch()
         {
-            return SearchPair.ParseRange(this.Search);
+            return SearchPair.ParseRange(Search);
         }
         public void SelfCheck()
         {
@@ -45,7 +45,7 @@
                 pageCount += 1;
             if (pageIdx > pageCount)
             {
-                if(returnEmptyIfExceeded)
+                if (returnEmptyIfExceeded)
                     return new List<TModel>().AsQueryable();
                 pageIdx = pageCount;
             }
@@ -88,10 +88,10 @@
 
         public static SearchPair? Parse(string searchStr)
         {
-            if(string.IsNullOrWhiteSpace(searchStr))
+            if (string.IsNullOrWhiteSpace(searchStr))
                 return null;
             string[] splited = searchStr.Split('=');
-            if(splited.Length!=2 || splited.Any(string.IsNullOrEmpty))
+            if (splited.Length != 2 || splited.Any(string.IsNullOrEmpty))
             {
                 return null;
             }
@@ -102,20 +102,20 @@
             SearchDict res = new();
             if (search is null)
                 return res;
-            foreach(var s in search)
+            foreach (var s in search)
             {
-                var sp = SearchPair.Parse(s);
+                var sp = Parse(s);
                 if (sp is not null)
                     res.Add(sp);
             }
             return res;
         }
     }
-    public class SearchDict:List<SearchPair>
+    public class SearchDict : List<SearchPair>
     {
-        public bool TryGetValue(string key,out string value)
+        public bool TryGetValue(string key, out string value)
         {
-            var pair = this.Find(x => x.Key == key);
+            var pair = Find(x => x.Key == key);
             if (pair is null)
             {
                 value = string.Empty;

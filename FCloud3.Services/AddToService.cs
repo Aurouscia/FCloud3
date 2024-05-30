@@ -11,10 +11,8 @@ using FCloud3.Services.WikiParsing;
 using FCloud3.Services.WikiParsing.Support;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Diff;
-using SixLabors.ImageSharp.Memory;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
-using FCloud3.Services.Etc.Metadata;
 using FCloud3.Services.Messages;
 using FCloud3.Services.Wiki.Support;
 
@@ -52,10 +50,6 @@ namespace FCloud3.Services
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();
             services.AddScoped<LatestWorkService>();
-
-            services.AddScoped<WikiItemMetadataService>();
-            services.AddScoped<MaterialMetadataService>();
-            services.AddScoped<UserMetadataService>();
 
 
 

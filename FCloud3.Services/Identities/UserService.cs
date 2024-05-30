@@ -1,10 +1,10 @@
 ﻿using FCloud3.Entities.Identities;
 using FCloud3.Entities.Messages;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using System.Text.RegularExpressions;
 
@@ -12,18 +12,18 @@ namespace FCloud3.Services.Identities
 {
     public partial class UserService(
         UserRepo repo,
-        UserMetadataService userMetadataService,
+        UserMetadataRepo userMetadataService,
         MaterialRepo materialRepo,
-        MaterialMetadataService materialMetadataService,
+        MaterialMetadataRepo materialMetadataService,
         OpRecordRepo opRecordRepo,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
         IOperatingUserIdProvider operatingUserIdProvider)
     {
         private readonly UserRepo _repo = repo;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
         private readonly MaterialRepo _materialRepo = materialRepo;
-        private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;

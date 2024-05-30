@@ -1,9 +1,7 @@
 ﻿using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
-using Microsoft.EntityFrameworkCore;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Wiki
 {
@@ -12,13 +10,13 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiItemMetadataService _wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService;
 
         public WikiParaService(
             WikiParaRepo wikiParaRepo,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
-            WikiItemMetadataService wikiItemMetadataService) 
+            WikiItemMetadataRepo wikiItemMetadataService) 
         {
             _wikiParaRepo = wikiParaRepo;
             _fileItemRepo = fileItemRepo;

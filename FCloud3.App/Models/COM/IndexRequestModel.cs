@@ -1,4 +1,4 @@
-﻿using FCloud3.Repos;
+﻿using FCloud3.Repos.Etc.Index;
 
 namespace FCloud3.App.Models.COM
 {

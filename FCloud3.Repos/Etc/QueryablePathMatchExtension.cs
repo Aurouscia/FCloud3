@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace FCloud3.Repos
+namespace FCloud3.Repos.Etc
 {
-    public static class QueryablePathMatchExtension 
+    public static class QueryablePathMatchExtension
     {
         public static int GetIdByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
@@ -12,12 +12,12 @@ namespace FCloud3.Repos
                 return 0;
             var possible = q.PathMatch(path).Select(x => new { x.Id, x.UrlPathName, x.Depth, x.ParentDir }).ToList();
             var currentParent = possible.FirstOrDefault(x => x.Depth == 0);
-            if(currentParent is null) { return -1; }
+            if (currentParent is null) { return -1; }
             var k = 0;
             while (k++ < 15)
             {
                 var child = possible.FirstOrDefault(x => x.ParentDir == currentParent.Id);
-                if(child is null) 
+                if (child is null)
                 {
                     if (k == path.Length)
                         return currentParent.Id;
@@ -84,11 +84,12 @@ namespace FCloud3.Repos
             Type t = typeof(T);
             PropertyInfo? nameProp = t.GetProperty(nameof(IPathable.UrlPathName));
             PropertyInfo? depthProp = t.GetProperty(nameof(IPathable.Depth));
-            if(nameProp is null || depthProp is null) { throw new Exception("表达式构建出错(1)"); }
+            if (nameProp is null || depthProp is null) { throw new Exception("表达式构建出错(1)"); }
 
             ParameterExpression param = Expression.Parameter(t, "x");
             Expression? building = null;
-            for (int i = 0; i < path.Length; i++) {
+            for (int i = 0; i < path.Length; i++)
+            {
                 string pathPart = path[i];
 
                 MemberExpression nameMember = Expression.Property(param, nameProp);
@@ -104,13 +105,13 @@ namespace FCloud3.Repos
                 else
                     building = Expression.OrElse(building, cond);
             }
-            if(building is null)
+            if (building is null)
             {
                 MemberExpression depthMember = Expression.Property(param, depthProp);
                 ConstantExpression depthShouldBe = Expression.Constant(0);
                 building = Expression.Equal(depthMember, depthShouldBe);
             }
-            var lambda = Expression.Lambda(building, param) as Expression<Func<T,bool>>
+            var lambda = Expression.Lambda(building, param) as Expression<Func<T, bool>>
                 ?? throw new Exception("表达式构建出错(2)");
             return q.Where(lambda);
         }

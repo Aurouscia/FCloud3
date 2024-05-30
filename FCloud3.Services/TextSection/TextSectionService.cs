@@ -7,9 +7,7 @@ using Microsoft.Extensions.Logging;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
-using Microsoft.EntityFrameworkCore;
-using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Repos.Files;
 
 namespace FCloud3.Services.TextSec
@@ -25,7 +23,7 @@ namespace FCloud3.Services.TextSec
         private readonly DiffContentService _contentDiffService;
         private readonly DbTransactionService _dbTransactionService;
         private readonly ContentEditLockService _contentEditLockService;
-        private readonly WikiItemMetadataService _wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService;
         private readonly ILogger<TextSectionService> _logger;
 
         public TextSectionService(
@@ -38,7 +36,7 @@ namespace FCloud3.Services.TextSec
             DiffContentService contentDiffService,
             DbTransactionService dbTransactionService,
             ContentEditLockService contentEditLockService,
-            WikiItemMetadataService wikiItemMetadataService,
+            WikiItemMetadataRepo wikiItemMetadataService,
             ILogger<TextSectionService> logger)
         {
             _paraRepo = paraRepo;

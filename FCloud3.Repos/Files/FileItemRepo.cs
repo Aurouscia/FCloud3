@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Etc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Files

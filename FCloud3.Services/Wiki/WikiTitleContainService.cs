@@ -2,7 +2,7 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Wiki
 {
@@ -10,14 +10,14 @@ namespace FCloud3.Services.Wiki
         WikiTitleContainRepo wikiTitleContainRepo,
         WikiItemRepo wikiItemRepo,
         WikiParaRepo wikiParaRepo,
-        WikiItemMetadataService wikiItemMetadataService,
+        WikiItemMetadataRepo wikiItemMetadataService,
         DbTransactionService dbTransactionService,
         CacheExpTokenService cacheExpTokenService)
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
-        private readonly WikiItemMetadataService _wikiItemMetadataService = wikiItemMetadataService;
+        private readonly WikiItemMetadataRepo _wikiItemMetadataService = wikiItemMetadataService;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
 

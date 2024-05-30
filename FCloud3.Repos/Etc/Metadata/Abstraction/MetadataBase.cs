@@ -1,6 +1,6 @@
 ﻿using FCloud3.Entities;
 
-namespace FCloud3.Services.Etc.Metadata.Abstraction
+namespace FCloud3.Repos.Etc.Metadata.Abstraction
 {
     public abstract class MetadataBase<T> where T : IDbModel
     {

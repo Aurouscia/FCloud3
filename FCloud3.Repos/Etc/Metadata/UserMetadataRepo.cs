@@ -1,17 +1,14 @@
-﻿using FCloud3.Entities.Files;
-using FCloud3.Entities.Identities;
-using FCloud3.Repos.Files;
+﻿using FCloud3.Entities.Identities;
+using FCloud3.Repos.Etc.Metadata.Abstraction;
 using FCloud3.Repos.Identities;
-using FCloud3.Services.Etc.Metadata.Abstraction;
-using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace FCloud3.Services.Etc.Metadata
+namespace FCloud3.Repos.Etc.Metadata
 {
-    public class UserMetadataService(
+    public class UserMetadataRepo(
         UserRepo repo,
-        ILogger<MetadataServiceBase<UserMetadata, User>> logger) 
-        : MetadataServiceBase<UserMetadata, User>(repo, logger)
+        ILogger<MetadataRepoBase<UserMetadata, User>> logger) 
+        : MetadataRepoBase<UserMetadata, User>(repo, logger)
     {
         protected override IQueryable<UserMetadata> GetFromDbModel(IQueryable<User> dbModels)
         {
@@ -20,7 +17,7 @@ namespace FCloud3.Services.Etc.Metadata
         public void Create(int id, string name, UserType type)
         {
             var model = new UserMetadata(id, name, 0, type);
-            base.Create(model);
+            base.Insert(model);
         }
         public UserMetadata? GetByName(string name)
         {
@@ -30,9 +27,12 @@ namespace FCloud3.Services.Etc.Metadata
             var u = GetFromDbModel(_repo.Existing.Where(x=>x.Name == name)).FirstOrDefault();
             if (u is null)
                 return null;
-            DataList.Add(u);
+            base.Insert(u);
             return u;
         }
+
+        private static readonly object LockObj = new();
+        protected override object Locker => LockObj;
     }
     public class UserMetadata: MetadataBase<User>
     {

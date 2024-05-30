@@ -1,6 +1,6 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Identities;
 
 namespace FCloud3.Services.Messages
@@ -8,14 +8,14 @@ namespace FCloud3.Services.Messages
     public class CommentService(
         CommentRepo commentRepo,
         UserService userService,
-        UserMetadataService userMetadataService,
-        MaterialMetadataService materialMetadataService,
+        UserMetadataRepo userMetadataService,
+        MaterialMetadataRepo materialMetadataService,
         NotificationService notificationService)
     {
         private readonly CommentRepo _commentRepo = commentRepo;
         private readonly UserService _userService = userService;
-        private readonly UserMetadataService _userMetadataService = userMetadataService;
-        private readonly MaterialMetadataService _materialMetadataService = materialMetadataService;
+        private readonly UserMetadataRepo _userMetadataService = userMetadataService;
+        private readonly MaterialMetadataRepo _materialMetadataService = materialMetadataService;
         private readonly NotificationService _notificationService = notificationService;
 
         public bool Create(Comment comment, out string? errmsg)

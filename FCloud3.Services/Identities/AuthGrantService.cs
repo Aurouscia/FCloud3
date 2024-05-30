@@ -2,10 +2,10 @@
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 
 namespace FCloud3.Services.Identities
 {
@@ -14,7 +14,7 @@ namespace FCloud3.Services.Identities
         private readonly AuthGrantRepo _authGrantRepo;
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
-        private readonly UserMetadataService _userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
@@ -23,7 +23,7 @@ namespace FCloud3.Services.Identities
             AuthGrantRepo authGrantRepo,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
-            UserMetadataService userMetadataService,
+            UserMetadataRepo userMetadataService,
             WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
             CreatorIdGetter creatorIdGetter)

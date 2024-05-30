@@ -3,12 +3,12 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Messages;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos;
+using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc.Metadata;
+using FCloud3.Repos.Etc.Metadata;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +25,7 @@ namespace FCloud3.Services.Files
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
         private readonly AuthGrantService _authGrantService;
-        private readonly UserMetadataService _userMetadataService;
+        private readonly UserMetadataRepo _userMetadataService;
         private readonly IStorage _storage;
 
         public FileDirService(
@@ -37,7 +37,7 @@ namespace FCloud3.Services.Files
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
-            UserMetadataService userMetadataService,
+            UserMetadataRepo userMetadataService,
             IStorage storage)
         {
             _userRepo = userRepo;
@@ -342,18 +342,7 @@ namespace FCloud3.Services.Files
             
             return fileDirIds;
         }
-        public List<int>? MoveDirsIn(string[] dirPath, List<int> fileDirIds, out string? failMsg, out string? errmsg)
-        {
-            int distDirId = _fileDirRepo.GetIdByPath(dirPath);
-            if (distDirId < 0)
-            {
-                failMsg = "操作失败";
-                errmsg = "请刷新后重试(未找到指定路径的文件夹)";
-                return null;
-            }
-            return MoveDirsIn(distDirId, fileDirIds,out failMsg, out errmsg);
-        }
-        public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds,out string? failMsg, out string? errmsg)
+        public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds, out string? failMsg, out string? errmsg)
         {
             failMsg = null;
             if (wikiItemIds.Count > 5)
