@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities.Identities;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Identities;
 using Microsoft.Extensions.Logging;
@@ -6,9 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace FCloud3.Repos.Etc.Caching
 {
     public class UserCaching(
-        UserRepo repo,
+        FCloudContext ctx,
         ILogger<CachingBase<UserCachingModel, User>> logger)
-        : CachingBase<UserCachingModel, User>(repo, logger)
+        : CachingBase<UserCachingModel, User>(ctx, logger)
     {
         protected override IQueryable<UserCachingModel> GetFromDbModel(IQueryable<User> dbModels)
         {
@@ -24,15 +25,12 @@ namespace FCloud3.Repos.Etc.Caching
             var stored = DataListSearch(x => x.Name == name);
             if (stored is not null)
                 return stored;
-            var u = GetFromDbModel(_repo.Existing.Where(x => x.Name == name)).FirstOrDefault();
+            var u = GetFromDbModel(_dbExistingQ.Where(x => x.Name == name)).FirstOrDefault();
             if (u is null)
                 return null;
             Insert(u);
             return u;
         }
-
-        private static readonly object LockObj = new();
-        protected override object Locker => LockObj;
     }
     public class UserCachingModel : CachingModelBase<User>
     {

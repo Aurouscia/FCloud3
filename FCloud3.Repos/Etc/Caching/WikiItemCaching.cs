@@ -2,6 +2,7 @@
 using FCloud3.Repos.Wiki;
 using Microsoft.Extensions.Logging;
 using FCloud3.Repos.Etc.Caching.Abstraction;
+using FCloud3.DbContexts;
 
 namespace FCloud3.Repos.Etc.Caching
 {
@@ -9,16 +10,16 @@ namespace FCloud3.Repos.Etc.Caching
     /// 获取和缓存词条对象的元数据，有更改必须在存入数据库时向其汇报
     /// </summary>
     public class WikiItemCaching(
-        WikiItemRepo wikiItemRepo,
+        FCloudContext ctx,
         ILogger<CachingBase<WikiItemCachingModel, WikiItem>> logger)
-        : CachingBase<WikiItemCachingModel, WikiItem>(wikiItemRepo, logger)
+        : CachingBase<WikiItemCachingModel, WikiItem>(ctx, logger)
     {
         public WikiItemCachingModel? Get(string urlPathName)
         {
             var stored = DataListSearch(x => x.UrlPathName == urlPathName);
             if (stored is not null)
                 return stored;
-            var w = GetFromDbModel(_repo.Existing.Where(x => x.UrlPathName == urlPathName))
+            var w = GetFromDbModel(_dbExistingQ.Where(x => x.UrlPathName == urlPathName))
                 .FirstOrDefault();
             if (w is null) return null;
             Insert(w);
@@ -35,9 +36,6 @@ namespace FCloud3.Repos.Etc.Caching
         {
             return dbModels.Select(x => new WikiItemCachingModel(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
         }
-
-        private static readonly object LockObj = new();
-        protected override object Locker => LockObj;
     }
 
     public class WikiItemCachingModel : CachingModelBase<WikiItem>

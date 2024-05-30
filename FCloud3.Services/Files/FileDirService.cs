@@ -20,6 +20,7 @@ namespace FCloud3.Services.Files
         private readonly UserRepo _userRepo;
         private readonly int _userId;
         private readonly FileDirRepo _fileDirRepo;
+        private readonly FileDirCaching _fileDirCaching;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
@@ -27,22 +28,26 @@ namespace FCloud3.Services.Files
         private readonly AuthGrantService _authGrantService;
         private readonly UserCaching _userCaching;
         private readonly IStorage _storage;
+        private readonly DbTransactionService _dbTransactionService;
 
         public FileDirService(
             UserRepo userRepo,
             IOperatingUserIdProvider userIdProvider,
             FileDirRepo fileDirRepo,
+            FileDirCaching fileDirCaching,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
             UserCaching userCaching,
-            IStorage storage)
+            IStorage storage,
+            DbTransactionService dbTransactionService)
         {
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
             _fileDirRepo = fileDirRepo;
+            _fileDirCaching = fileDirCaching;
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
@@ -50,6 +55,7 @@ namespace FCloud3.Services.Files
             _authGrantService = authGrantService;
             _userCaching = userCaching;
             _storage = storage;
+            _dbTransactionService = dbTransactionService;
         }
 
         public FileDir? GetById(int id)
@@ -57,7 +63,7 @@ namespace FCloud3.Services.Files
             return _fileDirRepo.GetById(id);
         }
 
-        public string[]? GetPathById(int id)
+        public List<string> GetPathById(int id)
         {
             return _fileDirRepo.GetPathById(id);
         }
@@ -284,23 +290,6 @@ namespace FCloud3.Services.Files
             errmsg = null;
             return fileItemIds;
         }
-        public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
-        {
-            if(!_authGrantService.Test(AuthGrantOn.FileItem, fileItemId))
-            {
-                errmsg = "无权移动该文件";
-                return false;
-            }
-            var list = new List<int>() { fileItemId };
-            _ = MoveFilesIn(distDirId, list, out string? failMsg, out errmsg);
-            if (errmsg is null && failMsg is not null)
-                errmsg = failMsg;
-            if (errmsg is not null)
-                return false;
-            _fileDirRepo.SetUpdateTimeAncestrally(distDirId, out _);
-            return true;
-        }
-
         public List<int>? MoveDirsIn(int distDirId, List<int> fileDirIds, out string? failMsg, out string? errmsg)
         {
             failMsg = null;
@@ -332,14 +321,33 @@ namespace FCloud3.Services.Files
 
             var setDepth = dist is null ? 0 : dist.Depth+1;
 
-            ds.ForEach(x => {
-                x.Depth = setDepth;
-                x.ParentDir = distDirId;});
-            if (!_fileDirRepo.TryEditRange(ds, out errmsg))
-                return null;
-            if (!_fileDirRepo.UpdateDescendantsInfoFor(ds, out errmsg))
-                return null;
-            
+            using var transaction = _dbTransactionService.BeginTransaction();
+            try
+            {
+                ds.ForEach(x =>
+                {
+                    x.Depth = setDepth;
+                    x.ParentDir = distDirId;
+                    _fileDirCaching.Update(x.Id, cacheModel =>
+                    {
+                        cacheModel.Depth = setDepth;
+                        cacheModel.ParentDir = distDirId;
+                    });
+                });
+                if (!_fileDirRepo.TryEditRange(ds, out errmsg))
+                    throw new Exception(errmsg);
+                if (!_fileDirRepo.UpdateDescendantsInfoFor(fileDirIds, out errmsg))
+                    throw new Exception(errmsg);
+            }
+            catch
+            {
+                //发生任何错误，回滚数据库事务并清空缓存，避免数据不一致
+                transaction.Rollback();
+                _fileDirCaching.Clear();
+                return [];
+            }
+            //没有错误 提交事务
+            transaction.Commit();
             return fileDirIds;
         }
         public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds, out string? failMsg, out string? errmsg)
@@ -368,11 +376,6 @@ namespace FCloud3.Services.Files
         {
             List<int>? chain = _fileDirRepo.GetChainIdsById(dirId);
             return MoveThingsIn(chain, fileItemIds, fileDirIds, wikiItemIds, out errmsg);
-        }
-        public FileDirPutInResult? MoveThingsIn(string[] dirPath, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
-        {
-            List<int>? chain = _fileDirRepo.GetChainIdsByPath(dirPath);
-            return MoveThingsIn(chain, fileItemIds,fileDirIds, wikiItemIds,out errmsg);
         }
         private FileDirPutInResult? MoveThingsIn(List<int>? dirIdsChain, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
         {
@@ -430,9 +433,26 @@ namespace FCloud3.Services.Files
             };
             return resp;
         }
+        public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
+        {
+            var list = new List<int>() { fileItemId };
+            _ = MoveFilesIn(distDirId, list, out string? failMsg, out errmsg);
+            if (errmsg is null && failMsg is not null)
+                errmsg = failMsg;
+            if (errmsg is not null)
+                return false;
+            _fileDirRepo.SetUpdateTimeAncestrally(distDirId, out _);
+            return true;
+        }
         public bool Create(int parentDir, string? name, string? urlPathName, out string? errmsg)
         {
             FileDir? parent = _fileDirRepo.GetById(parentDir);
+            if(parent is null && parentDir != 0)
+            {
+                errmsg = "找不到指定父文件夹";
+                return false;
+            }
+
             int depth = 0;
             if (parent is not null)
                 depth = parent.Depth + 1;
@@ -443,12 +463,20 @@ namespace FCloud3.Services.Files
                 UrlPathName = urlPathName,
                 Depth = depth
             };
-            if(_fileDirRepo.TryAdd(newDir, out errmsg))
+            int created = _fileDirRepo.TryAddAndGetId(newDir, out errmsg);
+            if (created > 0)
             {
                 string parentName = parent?.Name ?? "根文件夹";
                 _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
                     $"在 {parentName} 中新建 {name} ({urlPathName})");
+
+                _fileDirCaching.Insert(new()
+                {
+                    Id = created,
+                    Depth = depth,
+                    ParentDir = parentDir,
+                });
                 return true;
             }
             return false;
@@ -480,6 +508,8 @@ namespace FCloud3.Services.Files
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
                 _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $" {item.Name} ");
+
+                _fileDirCaching.Remove(item.Id);
                 return true;
             }
             return false;

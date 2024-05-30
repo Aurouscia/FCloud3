@@ -1,13 +1,9 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Etc.Caching;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FCloud3.Repos.Files
 {
@@ -15,71 +11,34 @@ namespace FCloud3.Repos.Files
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";
-        public FileDirRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
+        private readonly FileDirCaching _fileDirCaching;
+        public FileDirRepo(
+            FCloudContext context,
+            ICommitingUserIdProvider userIdProvider,
+            FileDirCaching fileDirCaching
+            ) : base(context, userIdProvider)
         {
+            _fileDirCaching = fileDirCaching;
         }
-        public int GetIdByPath(string[] path)
+        public List<string> GetPathById(int id)
         {
-            return Existing.GetIdByPath(path);
-        }
-        public FileDir? GetByPath(string[] path)
-        {
-            int id = Existing.GetIdByPath(path);
-            if (id > 0)
-                return GetById(id);
-            return null;
-        }
-        public string[]? GetPathById(int id)
-        {
-            if (id == 0)
+            var chain = _fileDirCaching.GetChain(id);
+            return GetRangeByIdsOrdered<string>(chain, dirs =>
             {
-                return new[] { zeroIdxUrlPathName };
-            }
-            List<string> res = new();
-            var targetId = id;
-            while (true)
-            {
-                var target = Existing.Where(x => x.Id == targetId).Select(x => new { x.ParentDir, x.UrlPathName }).FirstOrDefault();
-                if (target is null)
-                    return null;
-                res.Insert(0, target.UrlPathName??"missing");
-                targetId = target.ParentDir;
-                if (targetId == 0)
-                    break;
-            }
-            return res.ToArray();
+                var list = dirs.Select(x => new { x.Id, x.UrlPathName }).ToList();
+                return list.ToDictionary(x => x.Id, x => x.UrlPathName ?? "???");
+            });
         }
-        public List<int>? GetChainIdsById(int id)
-        {
-            if (id == 0)
-            {
-                return [];
-            }
-            List<int> res = new();
-            var targetId = id;
-            while (true)
-            {
-                var target = Existing.Where(x => x.Id == targetId).Select(x => new { x.ParentDir, x.Id }).FirstOrDefault();
-                if (target is null)
-                    return null;
-                res.Insert(0, target.Id);
-                targetId = target.ParentDir;
-                if (targetId == 0)
-                    break;
-            }
-            return res;
-        }
+
+        public List<int> GetChainIdsById(int id)
+            => _fileDirCaching.GetChain(id);
         public List<int>? GetChainIdsByPath(string[] path)
-        {
-            return Existing.GetChainIdsByPath(path);
-        }
+            => Existing.GetChainIdsByPath(path);
         public List<FileDir>? GetChainByPath(string[] path)
-        {
-            return Existing.GetChainByPath(path);
-        }
+            => Existing.GetChainByPath(path);
         public bool SetUpdateTimeAncestrally(int id, out string? errmsg)
         {
-            List<int>? chain = GetChainIdsById(id);
+            List<int>? chain = _fileDirCaching.GetChain(id);
             if (chain is null)
             {
                 errmsg = "更新文件夹时间出错：树状结构溯源失败";
@@ -91,11 +50,9 @@ namespace FCloud3.Repos.Files
         }
         public bool SetUpdateTimeRangeAncestrally(IQueryable<int> ids, out string? errmsg)
         {
-            var dirs = GetRangeByIds(ids).Select(x => new {x.Id,x.Updated}).ToList();
-            dirs.RemoveAll(x => (DateTime.Now - x.Updated).TotalMinutes < 5);
-            foreach (var d in dirs)
+            foreach (var d in ids.AsEnumerable())
             {
-                if(!SetUpdateTimeAncestrally(d.Id, out errmsg))
+                if(!SetUpdateTimeAncestrally(d, out errmsg))
                     return false;
             }
             errmsg = null;
@@ -104,61 +61,27 @@ namespace FCloud3.Repos.Files
 
 
         public IQueryable<FileDir>? GetChildrenById(int id)
-        {
-            return Existing.Where(x => x.ParentDir == id);
-        }
+            => Existing.Where(x => x.ParentDir == id);
 
-        public List<FileDir>? GetDescendantsFor(List<int> dirIds, out string? errmsg)
+        public bool UpdateDescendantsInfoFor(List<int> masters, out string? errmsg)
         {
             errmsg = null;
-            List<FileDir> res = new();
-            List<int> searching = dirIds;
-            do
+            //更新所有子代的计算涉及到大量查询，移动到caching服务里计算，
+            //计算完成后的结果拿回来更新数据库
+            var changedData = _fileDirCaching.UpdateDescendantsInfoFor(masters);
+            var changedIds = changedData.ConvertAll(x => x.Id);
+            var dbModelsNeedMutate = GetRangeByIds(changedIds);
+            foreach(var m in dbModelsNeedMutate)
             {
-                var children = Existing.Where(x => searching.Contains(x.ParentDir)).ToList();
-                res.AddRange(children);
-                searching = children.Select(x => x.Id).ToList();
-            } while (searching.Count > 0);
-            res = res.DistinctBy(x => x.Id).ToList();
-            //var suspicious = res.FindAll(x => dirIds.Contains(x.Id));
-            //foreach(var s in suspicious)
-            //{
-            //    int lookingAt = s.ParentDir;
-            //    int safety = 0;
-            //    do
-            //    {
-            //        if (lookingAt == s.Id || safety>50) { errmsg = "检测到循环，请勿把文件夹放入其子代中"; return null; };
-            //        var parent = res.Find(x => x.Id == lookingAt);
-            //        lookingAt = (parent is not null) ? parent.Id : 0;
-            //        safety++;
-            //    } while (lookingAt != 0);
-            //}
-            return res;
-        }
-        public bool UpdateDescendantsInfoFor(List<FileDir> masters, out string? errmsg)
-        {
-            errmsg = null;
-            List<FileDir>? targets = GetDescendantsFor(masters.ConvertAll(x => x.Id), out errmsg);
-            if (targets is null)
-                return false;
-
-            //从父代到子代计算depth
-            void setChildrenDepth(FileDir dir, int safety)
-            {
-                if (safety == 50)
-                    throw new Exception("未知错误：无穷递归");
-                var children = targets.FindAll(x => x.ParentDir == dir.Id);
-                children.ForEach(x =>
-                {
-                    x.Depth = dir.Depth + 1;
-                    setChildrenDepth(x, safety + 1);
-                });
+                var data = changedData.Find(x => x.Id == m.Id);
+                if (data is null)
+                    continue;
+                m.Depth = data.Depth;
             }
-            masters.ForEach(m => setChildrenDepth(m, 0));
-
-            //此时depth已经是正确值
-            //可以再从子代到父代再算总字节数，内容数什么的
-            return TryEditRange(targets, out errmsg);
+            _context.UpdateRange(dbModelsNeedMutate);
+            _context.SaveChanges();
+            errmsg = null; 
+            return true;
         }
 
         public override bool TryAddCheck(FileDir item, out string? errmsg)

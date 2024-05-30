@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities.Files;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc.Caching.Abstraction;
 using Microsoft.Extensions.Logging;
 
@@ -6,7 +7,8 @@ namespace FCloud3.Repos.Etc.Caching
 {
     public class FileDirCaching : CachingBase<FileDirCachingModel, FileDir>
     {
-        public FileDirCaching(RepoBase<FileDir> repo, ILogger<CachingBase<FileDirCachingModel, FileDir>> logger) : base(repo, logger)
+        public FileDirCaching(FCloudContext ctx, ILogger<CachingBase<FileDirCachingModel, FileDir>> logger) 
+            : base(ctx, logger)
         {
         }
 
@@ -41,9 +43,8 @@ namespace FCloud3.Repos.Etc.Caching
             }
             return res;
         }
-        public List<FileDirCachingModel> UpdateDescendantsInfoFor(List<int> masters, out string? errmsg)
+        public List<FileDirCachingModel> UpdateDescendantsInfoFor(List<int> masters)
         {
-            errmsg = null;
             var all = GetAll();
             if (masters is null || masters.Count == 0)
                 return [];
@@ -59,9 +60,12 @@ namespace FCloud3.Repos.Etc.Caching
                 var children = all.FindAll(x => x.ParentDir == dir.Id);
                 children.ForEach(x =>
                 {
-                    x.Depth = dir.Depth + 1;
+                    int shouldBeDepth = dir.Depth + 1;
+                    bool c = x.Depth != shouldBeDepth;
+                    x.Depth = shouldBeDepth;
                     setChildrenDepth(x, safety + 1);
-                    changed.Add(x);
+                    if(c)
+                        changed.Add(x);
                 });
             }
             masterData.ForEach(m => setChildrenDepth(m, 0));
@@ -70,9 +74,6 @@ namespace FCloud3.Repos.Etc.Caching
             //可以再从子代到父代再算总字节数，内容数什么的
             return changed;
         }
-
-        private static readonly object LockObj = new();
-        protected override object Locker => LockObj;
     }
 
     public class FileDirCachingModel : CachingModelBase<FileDir>

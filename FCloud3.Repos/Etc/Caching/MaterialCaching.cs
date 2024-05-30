@@ -2,13 +2,14 @@
 using FCloud3.Repos.Files;
 using Microsoft.Extensions.Logging;
 using FCloud3.Repos.Etc.Caching.Abstraction;
+using FCloud3.DbContexts;
 
 namespace FCloud3.Repos.Etc.Caching
 {
     public class MaterialCaching(
-        MaterialRepo repo,
+        FCloudContext ctx,
         ILogger<CachingBase<MaterialCachingModel, Material>> logger)
-        : CachingBase<MaterialCachingModel, Material>(repo, logger)
+        : CachingBase<MaterialCachingModel, Material>(ctx, logger)
     {
         public void Create(int id, string name, string pathName)
         {
@@ -23,9 +24,6 @@ namespace FCloud3.Repos.Etc.Caching
         {
             return DataListSearch(x => x.Name == name)?.PathName ?? "??";
         }
-
-        private static readonly object LockObj = new();
-        protected override object Locker => LockObj;
     }
 
     public class MaterialCachingModel : CachingModelBase<Material>

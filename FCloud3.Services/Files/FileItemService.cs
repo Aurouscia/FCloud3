@@ -225,7 +225,7 @@ namespace FCloud3.Services.Files
         public class FileItemDetail
         {
             public FileItem? ItemInfo { get; set; }
-            public string[]? DirPath { get; set; }
+            public List<string>? DirPath { get; set; }
         }
     }
 }

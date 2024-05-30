@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Repos.Etc.Caching.Abstraction
@@ -12,7 +13,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
     public abstract class CachingBase<TMeta, TModel>
         where TMeta : CachingModelBase<TModel> where TModel : class, IDbModel
     {
-        protected readonly RepoBase<TModel> _repo;
+        protected readonly IQueryable<TModel> _dbExistingQ;
         private readonly ILogger<CachingBase<TMeta, TModel>> _logger;
 
         /// <summary>
@@ -20,14 +21,14 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         /// </summary>
         private static List<TMeta> DataList { get; } = [];
         /// <summary>
-        /// 使用实现类提供的lock对象确保同一个list同时只能被一个线程操作
+        /// 使用静态对象确保同一个list同时只能被一个线程操作
         /// </summary>
-        protected abstract object Locker { get; }
-        private int AllCount { get; set; }
+        protected static object Locker { get; } = new object();
+        private static int AllCount { get; set; } = allCountDefaultVal;
         private const int allCountDefaultVal = -1;
-        public CachingBase(RepoBase<TModel> repo, ILogger<CachingBase<TMeta, TModel>> logger)
+        public CachingBase(FCloudContext context, ILogger<CachingBase<TMeta, TModel>> logger)
         {
-            _repo = repo;
+            _dbExistingQ = context.Set<TModel>().Where(x=>!x.Deleted);
             _logger = logger;
         }
         protected TMeta? DataListSearch(Func<TMeta, bool> match)
@@ -42,7 +43,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 var stored = DataListSearch(x => x.Id == id);
                 if (stored is not null)
                     return stored;
-                var w = GetFromDbModel(_repo.GetqById(id)).FirstOrDefault();
+                var w = GetFromDbModel(_dbExistingQ.Where(x=>x.Id == id)).FirstOrDefault();
                 _logger.LogDebug("从数据库获取单个[{type}](元数据缓存)", typeof(TMeta).Name);
                 if (w is null)
                     return null;
@@ -66,7 +67,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 }
                 if (notFound.Count == 0)
                     return found;
-                var fill = GetFromDbModel(_repo.GetRangeByIds(notFound)).ToList();
+                var fill = GetFromDbModel(_dbExistingQ.Where(x => notFound.Contains(x.Id))).ToList();
                 _logger.LogDebug("从数据库获取多个[{type}](元数据缓存)", typeof(TMeta).Name);
                 DataList.AddRange(fill);
                 found.AddRange(fill);
@@ -107,7 +108,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 else
                 {
                     var loadedIds = DataList.Select(x => x.Id).ToList();
-                    var q = _repo.Existing.Where(x => !loadedIds.Contains(x.Id));
+                    var q = _dbExistingQ.Where(x => !loadedIds.Contains(x.Id));
                     DataList.AddRange(GetFromDbModel(q).ToList());
                     AllCount = DataList.Count;
                     _logger.LogDebug("从数据库获取全部[{type}](元数据缓存)", typeof(TMeta).Name);
@@ -123,18 +124,28 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 CountDecre();
             }
         }
+        /// <summary>
+        /// 丢弃所有缓存，仅在紧急情况使用
+        /// </summary>
+        public void Clear()
+        {
+            lock(Locker)
+            {
+                DataList.Clear();
+            }
+        }
 
         private void CountIncre()
         {
             if (AllCount == allCountDefaultVal)
-                AllCount = _repo.ExistingCount;
+                AllCount = _dbExistingQ.Count();
             else
                 AllCount++;
         }
         private void CountDecre()
         {
             if (AllCount == allCountDefaultVal)
-                AllCount = _repo.ExistingCount;
+                AllCount = _dbExistingQ.Count();
             else
                 AllCount--;
         }
