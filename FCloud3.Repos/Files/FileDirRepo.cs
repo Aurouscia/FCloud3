@@ -20,9 +20,11 @@ namespace FCloud3.Repos.Files
         {
             _fileDirCaching = fileDirCaching;
         }
-        public List<string> GetPathById(int id)
+        public List<string>? GetPathById(int id)
         {
             var chain = _fileDirCaching.GetChain(id);
+            if (chain is null)
+                return null;
             return GetRangeByIdsOrdered<string>(chain, dirs =>
             {
                 var list = dirs.Select(x => new { x.Id, x.UrlPathName }).ToList();
@@ -30,7 +32,7 @@ namespace FCloud3.Repos.Files
             });
         }
 
-        public List<int> GetChainIdsById(int id)
+        public List<int>? GetChainIdsById(int id)
             => _fileDirCaching.GetChain(id);
         public List<int>? GetChainIdsByPath(string[] path)
             => Existing.GetChainIdsByPath(path);

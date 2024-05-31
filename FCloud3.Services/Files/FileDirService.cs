@@ -63,7 +63,7 @@ namespace FCloud3.Services.Files
             return _fileDirRepo.GetById(id);
         }
 
-        public List<string> GetPathById(int id)
+        public List<string>? GetPathById(int id)
         {
             return _fileDirRepo.GetPathById(id);
         }

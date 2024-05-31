@@ -22,7 +22,7 @@ namespace FCloud3.Repos.Etc.Caching
             });
         }
 
-        public List<int> GetChain(int id)
+        public List<int>? GetChain(int id)
         {
             if (id == 0)
             {
@@ -35,7 +35,7 @@ namespace FCloud3.Repos.Etc.Caching
             {
                 var target = all.Find(x => x.Id == targetId);
                 if (target is null)
-                    break;
+                    return null;
                 res.Insert(0, target.Id);
                 targetId = target.ParentDir;
                 if (targetId == 0)
