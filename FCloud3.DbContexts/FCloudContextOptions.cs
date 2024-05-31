@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FCloud3.DbContexts.DbSpecific;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FCloud3.DbContexts
 {
-    public class DbContextOptions
+    public class FCloudContextOptions
     {
         public string? ConnStr { get; set; }
         public string? Type { get; set; }
@@ -21,9 +22,9 @@ namespace FCloud3.DbContexts
         public static IServiceCollection AddDb(this IServiceCollection services, IConfiguration config)
         {
             var section = config.GetSection("Db");
-            var options = new DbContextOptions();
+            var options = new FCloudContextOptions();
             section.Bind(options);
-            services.AddSingleton<DbContextOptions>(options);
+            services.AddSingleton<FCloudContextOptions>(options);
 
             string dbType = options.Type?.ToLower() ?? throw new Exception("数据库类型(配置项Db:Type)未填");
 

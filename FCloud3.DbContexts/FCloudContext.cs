@@ -12,6 +12,11 @@ namespace FCloud3.DbContexts
 {
     public class FCloudContext : DbContext
     {
+        public FCloudContext() { }
+        public FCloudContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
         public DbSet<UserToGroup> UserToGroups { get; set; }

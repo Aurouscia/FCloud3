@@ -5,15 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FCloud3.DbContexts
+namespace FCloud3.DbContexts.DbSpecific
 {
-    public class FCloudSqliteContext : FCloudContext
+    public class FCloudSqliteDevContext : FCloudContext
     {
-        private readonly DbContextOptions _options;
-        private const string acceptDbType = "sqlite";
-        public FCloudSqliteContext(DbContextOptions options)
+        private readonly FCloudContextOptions _options;
+        private const string acceptDbType = "sqlitedev";
+        public FCloudSqliteDevContext(FCloudContextOptions options)
         {
-            if (options.Type.ToLower() != acceptDbType)
+            if (options.Type?.ToLower() != acceptDbType)
                 throw new Exception($"数据库类型配置异常，应为:{acceptDbType}");
             _options = options;
         }
