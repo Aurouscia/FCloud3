@@ -20,5 +20,10 @@ namespace FCloud3.Entities.Files
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+
+        public override string ToString()
+        {
+            return $"Id:{Id} 父级:{ParentDir}";
+        }
     }
 }

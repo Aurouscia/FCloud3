@@ -115,7 +115,7 @@ namespace FCloud3.Services.Table
                     _wikiItemRepo.SetUpdateTime(affectedWikis);
                     _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
 
-                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis);
+                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis).ToList();
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
                 return true;

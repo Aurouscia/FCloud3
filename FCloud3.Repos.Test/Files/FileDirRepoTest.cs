@@ -11,36 +11,40 @@ namespace FCloud3.Repos.Test.Files
     [TestClass]
     public class FileDirRepoTest
     {
+        // dir1--dir2--dir4
+        //     \     \
+        //      dir3  aaa5
+        //          \
+        //           aaa6
+        #region 测试初始化
         private readonly FileDirRepo _repo;
+        private readonly FileDirCaching _caching;
+        private readonly FCloudContext _context;
         public FileDirRepoTest() 
         {
-            var context = FCloudMemoryContext.Create() as FCloudContext;
+            _context = FCloudMemoryContext.Create() as FCloudContext;
 
-            context.Users.AddRange(new List<User>()
+            _context.Users.AddRange(new List<User>()
             {
                 new() { Name = "user1", Type = UserType.SuperAdmin },
                 new() { Name = "user2", Type = UserType.Member }
             });
-            context.SaveChanges();
-
-            // dir1--dir2--dir4
-            //     \     \
-            //      dir3  aaa
-            //          \
-            //           aaa
+            _context.SaveChanges();
+            
             var dir1 = new FileDir() { Name = "DIR_1", UrlPathName = "dir-1", Depth = 0 };
             var dir2 = new FileDir() { Name = "DIR_2", UrlPathName = "dir-2", Depth = 1, ParentDir = 1 };
             var dir3 = new FileDir() { Name = "DIR_3", UrlPathName = "dir-3", Depth = 1, ParentDir = 1 };
             var dir4 = new FileDir() { Name = "DIR_4", UrlPathName = "dir-4", Depth = 2, ParentDir = 2 };
             var aaa5 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 2 };
             var aaa6 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 3 };
-            context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
-            context.SaveChanges();
+            _context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
+            _context.SaveChanges();
 
-            var caching = new FileDirCaching(context, new FakeLogger<FileDirCaching>());
-            _repo = new(context, new StubUserIdProvider(2), caching);
+            _caching = new FileDirCaching(_context, new FakeLogger<FileDirCaching>());
+            _caching.Clear();//每次数据初始化时应该将缓存（是静态内存）清空
+            _repo = new(_context, new StubUserIdProvider(2), _caching);
         }
-
+        #endregion
 
         #region 关于路径的查询
         [TestMethod]
@@ -102,12 +106,71 @@ namespace FCloud3.Repos.Test.Files
 
         #region 级联设置更新时间
         [TestMethod]
-        [DataRow(1, "1")]
-        [DataRow(2, "1,2")]
-        [DataRow(3, "1,2,3")]
-        public void SetUpdateTimeAncestrally(int id, string updatedIds)
+        [DataRow("1", "1")]
+        [DataRow("2", "1,2")]
+        [DataRow("4", "1,2,4")]
+        [DataRow("5,6", "1,2,3,5,6")]
+        public void SetUpdateTimeAncestrally(string targetIds, string updatedIds)
         {
-            
+            var items = _repo.All.ToList();
+            var initialTime = new DateTime(1970, 1, 1);
+            var shouldGreatThanAfterUpdate = DateTime.Now;
+            items.ForEach(i => i.Updated = initialTime);
+            _context.SaveChanges();
+
+            var targets = targetIds.Split(',').ToList().ConvertAll(int.Parse);
+            var expectUpdate = updatedIds.Split(',').ToList().ConvertAll(int.Parse);
+            _repo.SetUpdateTimeRangeAncestrally(targets, out string? errmsg);
+            Assert.IsNull(errmsg);
+
+            items = _repo.All.ToList();
+            var actualUpdated = items.FindAll(x => x.Updated > shouldGreatThanAfterUpdate).ConvertAll(x => x.Id);
+            CollectionAssert.AreEquivalent(expectUpdate, actualUpdated);
+        }
+        #endregion
+
+        #region 结构变化
+
+        [TestMethod]
+        [DataRow("6->5","1|2,3|4,5|6")]
+        [DataRow("2->3","1|3|2,6|4,5")]
+        [DataRow("6->5  2->3","1|2,3|4,5|6  1|3|2|4,5|6")]
+        public void MoveDir(string howMoveList, string expectedDepthsList)
+        {
+            string[] howMoveArr = howMoveList.Split("  ");
+            string[] expectedDepthArr = expectedDepthsList.Split("  ");
+            for (int i = 0; i < howMoveArr.Length; i++)
+            {
+                string howMove = howMoveArr[i];
+                string expectedDepths = expectedDepthArr[i];
+                string[] howMoveParts = howMove.Split("->");
+                int beMoved = int.Parse(howMoveParts[0]);
+                int to = int.Parse(howMoveParts[1]);
+
+                var moving = _repo.GetById(beMoved)!;
+                var destination = _repo.GetById(to)!;
+                moving.ParentDir = to;
+                moving.Depth = destination.Depth + 1;
+                _repo.TryEdit(moving, out _);
+                _caching.Update(moving.Id, m =>
+                {
+                    m.ParentDir = to;
+                    m.Depth = destination.Depth + 1;
+                });
+
+                _repo.UpdateDescendantsInfoFor([beMoved], out var errmsg);
+                Assert.IsNull(errmsg);
+
+                List<string> expectedDepthsHere = expectedDepths.Split('|').ToList();
+                for (int depth = 0; depth < expectedDepthsHere.Count; depth++)
+                {
+                    List<int> expectedIdsThisDepth =
+                        expectedDepthsHere[depth].Split(',').ToList().ConvertAll(int.Parse);
+                    List<int> actualIdsThisDepth =
+                        _repo.Existing.Where(x => x.Depth == depth).Select(x => x.Id).ToList();
+                    CollectionAssert.AreEquivalent(expectedIdsThisDepth, actualIdsThisDepth);
+                }
+            }
         }
         #endregion
     }

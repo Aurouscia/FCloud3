@@ -46,13 +46,17 @@ namespace FCloud3.Repos.Files
                 errmsg = "更新文件夹时间出错：树状结构溯源失败";
                 return false;
             }
-            Existing.Where(x => chain.Contains(x.Id)).ExecuteUpdate(x=>x.SetProperty(d=>d.Updated, DateTime.Now));
+            var needUpdate = GetRangeByIds(chain).ToList();
+            //仅设置更新时间为现在
+            //sqlite内存数据库貌似用不了ExecuteUpdate()
+            if (!TryEditRange(needUpdate, out errmsg))
+                return false;
             errmsg = null;
             return true;
         }
-        public bool SetUpdateTimeRangeAncestrally(IQueryable<int> ids, out string? errmsg)
+        public bool SetUpdateTimeRangeAncestrally(List<int> ids, out string? errmsg)
         {
-            foreach (var d in ids.AsEnumerable())
+            foreach (var d in ids)
             {
                 if(!SetUpdateTimeAncestrally(d, out errmsg))
                     return false;
