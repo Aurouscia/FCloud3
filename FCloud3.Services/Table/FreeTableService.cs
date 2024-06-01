@@ -68,12 +68,8 @@ namespace FCloud3.Services.Table
                 return false;
             if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
-                var affectedWikis = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id).ToList();
-                if (affectedWikis.Count > 0)
-                {
-                    _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
-                }
+                var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
+                _wikiItemRepo.UpdateTime(affectedWikiIds);
                 return true;
             }
             else
@@ -109,13 +105,11 @@ namespace FCloud3.Services.Table
                 _dbTransactionService.CommitTransaction(transaction);
                 _logger.LogInformation("更新[{id}]号表格成功", id);
 
-                var affectedWikis = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id).ToList();
-                if (affectedWikis.Count > 0)
+                var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
+                var affectedCount = _wikiItemRepo.UpdateTime(affectedWikiIds);
+                if (affectedCount > 0)
                 {
-                    _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
-
-                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis).ToList();
+                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
                 return true;

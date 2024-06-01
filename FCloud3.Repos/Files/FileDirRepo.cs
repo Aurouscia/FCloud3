@@ -2,12 +2,12 @@
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Etc.Caching;
-using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Files
 {
-    public class FileDirRepo : RepoBase<FileDir>
+    public class FileDirRepo : RepoBaseWithCaching<FileDir, FileDirCachingModel>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";
@@ -16,7 +16,7 @@ namespace FCloud3.Repos.Files
             FCloudContext context,
             ICommitingUserIdProvider userIdProvider,
             FileDirCaching fileDirCaching
-            ) : base(context, userIdProvider)
+            ) : base(context, userIdProvider, fileDirCaching)
         {
             _fileDirCaching = fileDirCaching;
         }
@@ -48,7 +48,7 @@ namespace FCloud3.Repos.Files
             }
             var needUpdate = GetRangeByIds(chain).ToList();
             //仅设置更新时间为现在
-            //sqlite内存数据库貌似用不了ExecuteUpdate()
+            //ExecuteUpdate()貌似更新更坏了，不起作用
             if (!TryEditRange(needUpdate, out errmsg))
                 return false;
             errmsg = null;
@@ -56,11 +56,20 @@ namespace FCloud3.Repos.Files
         }
         public bool SetUpdateTimeRangeAncestrally(List<int> ids, out string? errmsg)
         {
+            var needUpdateIds = new List<int>();
             foreach (var d in ids)
             {
-                if(!SetUpdateTimeAncestrally(d, out errmsg))
+                List<int>? chain = _fileDirCaching.GetChain(d);
+                if (chain is null)
+                {
+                    errmsg = "更新文件夹时间出错：树状结构溯源失败";
                     return false;
+                }
+                needUpdateIds.AddRange(chain);
             }
+            var needUpdate = GetRangeByIds(needUpdateIds).ToList();
+            if (!TryEditRange(needUpdate, out errmsg))
+                return false;
             errmsg = null;
             return true;
         }
@@ -76,7 +85,7 @@ namespace FCloud3.Repos.Files
             //计算完成后的结果拿回来更新数据库
             var changedData = _fileDirCaching.UpdateDescendantsInfoFor(masters);
             var changedIds = changedData.ConvertAll(x => x.Id);
-            var dbModelsNeedMutate = GetRangeByIds(changedIds);
+            var dbModelsNeedMutate = GetRangeByIds(changedIds).ToList();
             foreach(var m in dbModelsNeedMutate)
             {
                 var data = changedData.Find(x => x.Id == m.Id);
@@ -84,8 +93,8 @@ namespace FCloud3.Repos.Files
                     continue;
                 m.Depth = data.Depth;
             }
-            _context.UpdateRange(dbModelsNeedMutate);
-            _context.SaveChanges();
+            if (!TryEditRange(dbModelsNeedMutate, out errmsg, false))
+                return false;
             errmsg = null; 
             return true;
         }
@@ -98,6 +107,7 @@ namespace FCloud3.Repos.Files
         {
             return InfoCheck(item, out errmsg);
         }
+
         public bool InfoCheck(FileDir item, out string? errmsg)
         {
             errmsg = null;
@@ -134,7 +144,6 @@ namespace FCloud3.Repos.Files
             }
             return true;
         }
-
         public override int GetOwnerIdById(int id)
         {
             if (id == 0)

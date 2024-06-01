@@ -150,7 +150,6 @@ namespace FCloud3.Services.Identities
             var id = _repo.TryAddAndGetId(u, out errmsg);
             if (id > 0)
             {
-                _userCaching.Create(id, name!, UserType.Tourist);
                 return true;
             }
             return false;
@@ -170,7 +169,6 @@ namespace FCloud3.Services.Identities
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
-            _userCaching.Update(id, u => u.Name = name!);
             return true;
         }
 
@@ -180,7 +178,6 @@ namespace FCloud3.Services.Identities
             u.AvatarMaterialId = materialId;
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
-            _userCaching.Update(id, u => u.AvatarMaterialId = materialId);
             return true;
         }
 
@@ -215,7 +212,6 @@ namespace FCloud3.Services.Identities
             u.Type = targetType;
             if(_repo.TryEdit(u, out errmsg))
             {
-                _userCaching.Update(id, u => u.Type = targetType);
                 if (record is not null)
                     _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, record);
                 return true;

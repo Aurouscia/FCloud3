@@ -24,8 +24,6 @@ namespace FCloud3.Repos
         public IQueryable<T> Deleted => _context.Set<T>().Where(x => x.Deleted);
         public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
         public int ExistingCount => Existing.Count();
-        public void SetUpdateTime(int id) => Existing.Where(x => x.Id == id).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
-        public void SetUpdateTime(List<int> ids) => Existing.Where(x=>ids.Contains(x.Id)).ExecuteUpdate(x => x.SetProperty(w => w.Updated, DateTime.Now));
         public virtual IQueryable<T> OwnedByUser(int uid = -1)
         {
             if (uid == -1)
@@ -251,7 +249,7 @@ namespace FCloud3.Repos
             errmsg = null;
             return true;
         }
-        public virtual bool TryEdit(T item, out string? errmsg)
+        public virtual bool TryEdit(T item, out string? errmsg, bool updateTime = true)
         {
             if (item is null)
             {
@@ -260,12 +258,13 @@ namespace FCloud3.Repos
             }
             if (!TryEditCheck(item, out errmsg))
                 return false;
-            item.Updated = DateTime.Now;
+            if (updateTime)
+                item.Updated = DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
             return true;
         }
-        public virtual bool TryEditRange(List<T> items,out string? errmsg)
+        public virtual bool TryEditRange(List<T> items,out string? errmsg, bool updateTime = true)
         {
             errmsg = null;
             foreach(var item in items)
@@ -277,11 +276,29 @@ namespace FCloud3.Repos
                 }
                 if (!TryEditCheck(item, out errmsg))
                     return false;
-                item.Updated = DateTime.Now;
+                if (updateTime)
+                    item.Updated = DateTime.Now;
                 _context.Update(item);
             }
             _context.SaveChanges();
             return true;
+        }
+        
+        public void UpdateTime(int id)
+        {
+            var model = GetByIdEnsure(id);
+            TryEdit(model, out _);
+        }
+        public void UpdateTime(List<int> ids)
+        {
+            var models = GetRangeByIds(ids).ToList();
+            TryEditRange(models, out _);
+        }
+        public int UpdateTime(IQueryable<int> ids)
+        {
+            var models = GetRangeByIds(ids).ToList();
+            TryEditRange(models, out _);
+            return models.Count;
         }
 
         public virtual bool TryRemoveCheck(T item, out string? errmsg)
@@ -343,6 +360,7 @@ namespace FCloud3.Repos
 
         public virtual bool TryRecover(T item, out string? errmsg)
         {
+            throw new NotImplementedException();
             if (item is null)
             {
                 errmsg = $"试图向数据库恢复空{nameof(T)}对象";
@@ -358,6 +376,7 @@ namespace FCloud3.Repos
         }
         public virtual bool TryRecover(int id, out string? errmsg)
         {
+            throw new NotImplementedException();
             var deleted = Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x
                 .SetProperty(t => t.Deleted, false)
@@ -375,6 +394,7 @@ namespace FCloud3.Repos
         }
         public virtual bool TryRecoverRange(List<T> items, out string? errmsg)
         {
+            throw new NotImplementedException();
             errmsg = null;
             foreach (var item in items)
             {

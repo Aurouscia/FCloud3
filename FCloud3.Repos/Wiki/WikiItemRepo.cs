@@ -2,13 +2,18 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
+using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Repos.Wiki
 {
-    public class WikiItemRepo : RepoBase<WikiItem>
+    public class WikiItemRepo : RepoBaseWithCaching<WikiItem, WikiItemCachingModel>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
-        public WikiItemRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
+        public WikiItemRepo(
+            FCloudContext context,
+            ICommitingUserIdProvider userIdProvider,
+            WikiItemCaching wikiItemCaching) 
+            : base(context, userIdProvider, wikiItemCaching)
         {
         }
 

@@ -21,6 +21,21 @@ namespace FCloud3.Repos.Etc.Caching
                 Depth = x.Depth
             });
         }
+        protected override FileDirCachingModel GetFromDbModel(FileDir model)
+        {
+            return new()
+            {
+                Id = model.Id,
+                ParentDir = model.ParentDir,
+                Depth = model.Depth
+            };
+        }
+
+        protected override void MutateByDbModel(FileDirCachingModel target, FileDir from)
+        {
+            target.Depth = from.Depth;
+            target.ParentDir = from.ParentDir;
+        }
 
         public List<int>? GetChain(int id)
         {
@@ -43,7 +58,7 @@ namespace FCloud3.Repos.Etc.Caching
             }
             return res;
         }
-        public List<FileDirCachingModel> UpdateDescendantsInfoFor(List<int> masters)
+        internal List<FileDirCachingModel> UpdateDescendantsInfoFor(List<int> masters)
         {
             var all = GetAll();
             if (masters is null || masters.Count == 0)

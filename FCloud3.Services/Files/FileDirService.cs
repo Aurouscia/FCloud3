@@ -328,11 +328,6 @@ namespace FCloud3.Services.Files
                 {
                     x.Depth = setDepth;
                     x.ParentDir = distDirId;
-                    _fileDirCaching.Update(x.Id, cacheModel =>
-                    {
-                        cacheModel.Depth = setDepth;
-                        cacheModel.ParentDir = distDirId;
-                    });
                 });
                 if (!_fileDirRepo.TryEditRange(ds, out errmsg))
                     throw new Exception(errmsg);
@@ -421,8 +416,8 @@ namespace FCloud3.Services.Files
                 errmsg = "未选择任何要移入的对象";
                 return null;
             }
-            
-            _fileDirRepo.SetUpdateTime(dirIdsChain);
+
+            _fileDirRepo.UpdateTime(dirIdsChain);
             var resp = new FileDirPutInResult()
             {
                 FileItemSuccess = fileItemSuccess,
@@ -470,13 +465,6 @@ namespace FCloud3.Services.Files
                 _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
                     $"在 {parentName} 中新建 {name} ({urlPathName})");
-
-                _fileDirCaching.Insert(new()
-                {
-                    Id = created,
-                    Depth = depth,
-                    ParentDir = parentDir,
-                });
                 return true;
             }
             return false;
@@ -508,8 +496,6 @@ namespace FCloud3.Services.Files
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
                 _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $" {item.Name} ");
-
-                _fileDirCaching.Remove(item.Id);
                 return true;
             }
             return false;

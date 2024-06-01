@@ -152,11 +152,6 @@ namespace FCloud3.Repos.Test.Files
                 moving.ParentDir = to;
                 moving.Depth = destination.Depth + 1;
                 _repo.TryEdit(moving, out _);
-                _caching.Update(moving.Id, m =>
-                {
-                    m.ParentDir = to;
-                    m.Depth = destination.Depth + 1;
-                });
 
                 _repo.UpdateDescendantsInfoFor([beMoved], out var errmsg);
                 Assert.IsNull(errmsg);

@@ -1,13 +1,18 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Etc.Caching;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Identities
 {
-    public class UserRepo : RepoBase<User>
+    public class UserRepo : RepoBaseWithCaching<User, UserCachingModel>
     {
-        public UserRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
+        public UserRepo(
+            FCloudContext context,
+            ICommitingUserIdProvider userIdProvider,
+            UserCaching userCaching) 
+            : base(context, userIdProvider, userCaching)
         {
 
         }

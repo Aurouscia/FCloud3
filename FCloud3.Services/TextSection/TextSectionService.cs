@@ -168,13 +168,11 @@ namespace FCloud3.Services.TextSec
 
             if(title is not null || content is not null)
             {
-                var affectedWikis = _paraRepo.WikiContainingIt(WikiParaType.Text, id).ToList();
-                if (affectedWikis.Count > 0)
+                var affectedWikiIds = _paraRepo.WikiContainingIt(WikiParaType.Text, id);
+                var affectedCount = _wikiItemRepo.UpdateTime(affectedWikiIds);
+                if (affectedCount > 0)
                 {
-                    _wikiItemRepo.SetUpdateTime(affectedWikis);
-                    _wikiItemCaching.UpdateRange(affectedWikis, w => w.Update = DateTime.Now);
-
-                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikis).ToList();
+                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
             }

@@ -26,7 +26,7 @@ namespace FCloud3.Repos.Etc.Caching
             return w;
         }
 
-        public void Create(int id, int ownerId, string title, string urlPathName)
+        internal void Create(int id, int ownerId, string title, string urlPathName)
         {
             WikiItemCachingModel w = new(id, ownerId, title, urlPathName, DateTime.Now);
             Insert(w);
@@ -35,6 +35,17 @@ namespace FCloud3.Repos.Etc.Caching
         protected override IQueryable<WikiItemCachingModel> GetFromDbModel(IQueryable<WikiItem> dbModels)
         {
             return dbModels.Select(x => new WikiItemCachingModel(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
+        }
+        protected override WikiItemCachingModel GetFromDbModel(WikiItem model)
+        {
+            return new(model.Id, model.OwnerUserId, model.Title, model.UrlPathName, model.Updated);
+        }
+        protected override void MutateByDbModel(WikiItemCachingModel target, WikiItem from)
+        {
+            target.Title = from.Title;
+            target.UrlPathName = from.UrlPathName;
+            target.Update = from.Updated;
+            target.OwnerId = from.OwnerUserId;
         }
     }
 

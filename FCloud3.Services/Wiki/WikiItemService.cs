@@ -250,8 +250,6 @@ namespace FCloud3.Services.Wiki
             {
                 if(_wikiToDirRepo.AddWikisToDir([id], dirId, out errmsg))
                 {
-                    int uid = _operatingUserIdProvider.Get();
-                    _wikiCaching.Create(id, uid, title, urlPathName);
                     _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
                     return true;
                 }
@@ -304,12 +302,6 @@ namespace FCloud3.Services.Wiki
                 if (_wikiRepo.TryEdit(target, out errmsg))
                 {
                     _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
-                    _wikiCaching.Update(id, w =>
-                    {
-                        w.Title = title;
-                        w.UrlPathName = urlPathName;
-                        w.Update = DateTime.Now;
-                    });
                     if(record.Length>0)
                         _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, record);
                     return true;
@@ -323,11 +315,7 @@ namespace FCloud3.Services.Wiki
 
         private void SetWikiUpdated(int wikiId)
         {
-            _wikiRepo.SetUpdateTime(wikiId);
-            _wikiCaching.Update(wikiId, w =>
-            {
-                w.Update = DateTime.Now;
-            });
+            _wikiRepo.UpdateTime(wikiId);
         }
 
         public class WikiItemIndexItem

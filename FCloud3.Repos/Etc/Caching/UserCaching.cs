@@ -15,7 +15,18 @@ namespace FCloud3.Repos.Etc.Caching
         {
             return dbModels.Select(x => new UserCachingModel(x.Id, x.Name ?? "??", x.AvatarMaterialId, x.Type));
         }
-        public void Create(int id, string name, UserType type)
+        protected override UserCachingModel GetFromDbModel(User model)
+        {
+            return new(model.Id, model.Name??"??", model.AvatarMaterialId, model.Type);
+        }
+        protected override void MutateByDbModel(UserCachingModel target, User from)
+        {
+            target.Name = from.Name??"??";
+            target.AvatarMaterialId = from.AvatarMaterialId;
+            target.Type = from.Type;
+        }
+
+        internal void Create(int id, string name, UserType type)
         {
             var model = new UserCachingModel(id, name, 0, type);
             Insert(model);

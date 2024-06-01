@@ -21,7 +21,8 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         /// </summary>
         private static List<TMeta> DataList { get; } = [];
         /// <summary>
-        /// 使用静态对象确保同一个list同时只能被一个线程操作
+        /// 使用静态对象确保同一个list同时只能被一个线程操作<br/>
+        /// 注意：泛型类中的静态属性，对于不同的类型参数的实现，有多个静态属性
         /// </summary>
         protected static object Locker { get; } = new object();
         private static int AllCount { get; set; } = allCountDefaultVal;
@@ -36,6 +37,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         protected List<TMeta> DataListSearchRange(Func<TMeta, bool> match)
             => DataList.FindAll(x => match(x));
 
+        #region 查询
         public TMeta? Get(int id)
         {
             lock (Locker)
@@ -74,31 +76,6 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 return found;
             }
         }
-        public void Insert(TMeta meta)
-        {
-            lock (Locker)
-            {
-                DataList.Add(meta);
-                CountIncre();
-            }
-        }
-        public void Update(int id, Action<TMeta> action)
-        {
-            lock (Locker)
-            {
-                var stored = DataListSearch(x => x.Id == id);
-                if (stored is not null)
-                    action(stored);
-            }
-        }
-        public void UpdateRange(IEnumerable<int> ids, Action<TMeta> action)
-        {
-            lock (Locker)
-            {
-                var stored = DataListSearchRange(x => ids.Contains(x.Id));
-                stored.ForEach(x => action(x));
-            }
-        }
         public List<TMeta> GetAll()
         {
             lock (Locker)
@@ -116,7 +93,76 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 return DataList;
             }
         }
-        public void Remove(int id)
+        #endregion
+
+        #region 新增
+        internal void Insert(TMeta meta)
+        {
+            lock (Locker)
+            {
+                DataList.Add(meta);
+                CountIncre();
+            }
+        }
+        internal void Insert(TModel model) 
+            => Insert(GetFromDbModel(model));
+
+        internal void InsertRange(List<TMeta> metas)
+        {
+            lock (Locker)
+            {
+                DataList.AddRange(metas);
+                CountIncre(metas.Count);
+            }
+        }
+        internal void InsertRange(List<TModel> models)
+            => InsertRange(models.ConvertAll(GetFromDbModel));
+        #endregion
+
+        #region 更新
+        internal void Update(int id, Action<TMeta> action)
+        {
+            lock (Locker)
+            {
+                var stored = DataListSearch(x => x.Id == id);
+                if (stored is not null)
+                    action(stored);
+            }
+        }
+        internal void UpdateRange(IEnumerable<int> ids, Action<TMeta> action)
+        {
+            lock (Locker)
+            {
+                var stored = DataListSearchRange(x => ids.Contains(x.Id));
+                stored.ForEach(x => action(x));
+            }
+        }
+        internal void UpdateByDbModel(TModel model)
+        {
+            var meta = Get(model.Id);
+            lock (Locker)
+            {
+                if(meta is not null)
+                    MutateByDbModel(meta, model);   
+            }
+        }
+        internal void UpdateRangeByDbModel(List<TModel> models)
+        {
+            var metas = GetRange(models.ConvertAll(x=>x.Id));
+            lock (Locker)
+            {
+                foreach (var meta in metas)
+                {
+                    var corresponding = models.Find(x => x.Id == meta.Id);
+                    if (corresponding is not null)
+                        MutateByDbModel(meta, corresponding);
+                }
+            }
+        }
+        #endregion
+
+        #region 删除
+        internal void Remove(int id)
         {
             lock (Locker)
             {
@@ -124,6 +170,18 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 CountDecre();
             }
         }
+
+        internal void RemoveRange(List<int> ids)
+        {
+            lock (Locker)
+            {
+                DataList.RemoveAll(x => ids.Contains(x.Id));
+                CountDecre(ids.Count);
+            }
+        }
+        #endregion
+        
+        
         /// <summary>
         /// 丢弃所有缓存，仅在紧急情况使用
         /// </summary>
@@ -132,24 +190,26 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             lock(Locker)
             {
                 DataList.Clear();
+                _logger.LogWarning("[{type}]缓存已被清空(元数据缓存)", typeof(TMeta).Name);
             }
         }
-
-        private void CountIncre()
+        private void CountIncre(int by = 1)
         {
             if (AllCount == allCountDefaultVal)
                 AllCount = _dbExistingQ.Count();
             else
-                AllCount++;
+                AllCount += by;
         }
-        private void CountDecre()
+        private void CountDecre(int by = 1)
         {
             if (AllCount == allCountDefaultVal)
                 AllCount = _dbExistingQ.Count();
             else
-                AllCount--;
+                AllCount -= by;
         }
 
         protected abstract IQueryable<TMeta> GetFromDbModel(IQueryable<TModel> dbModels);
+        protected abstract TMeta GetFromDbModel(TModel model);
+        protected abstract void MutateByDbModel(TMeta target, TModel from);
     }
 }

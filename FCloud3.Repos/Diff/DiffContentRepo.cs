@@ -12,6 +12,7 @@ namespace FCloud3.Repos.Diff
 
         public bool AddRangeDiffSingle(List<DiffSingle> diffSingles, out string? errmsg)
         {
+            //DiffSingles实体并不实现IDbModel接口，情况特殊，需要直接操作_context
             _context.DiffSingles.AddRange(diffSingles);
             _context.SaveChanges();
             errmsg = null;  

@@ -15,21 +15,18 @@ namespace FCloud3.Services.Files
         private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly IStorage _storage;
-        private readonly MaterialCaching _materialCaching;
         private readonly static object materialNamingLock = new();
 
         public MaterialService(
             MaterialRepo materialRepo,
             CacheExpTokenService cacheExpTokenService,
             IOperatingUserIdProvider userIdProvider,
-            IStorage storage,
-            MaterialCaching materialCaching)
+            IStorage storage)
         {
             _materialRepo = materialRepo;
             _cacheExpTokenService = cacheExpTokenService;
             _userIdProvider = userIdProvider;
             _storage = storage;
-            _materialCaching = materialCaching;
         }
 
         public IndexResult<MaterialIndexItem> Index(IndexQuery q, bool onlyMine)
@@ -110,7 +107,6 @@ namespace FCloud3.Services.Files
                 if (errmsg is null)
                 {
                     _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                    _materialCaching.Create(createdId, name, storePathName);
                 }
                 return createdId;
             }
@@ -163,7 +159,6 @@ namespace FCloud3.Services.Files
             if (success)
             {
                 _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                _materialCaching.Update(id, md => md.PathName = storePathName);
             }
             return success;
         }
@@ -204,7 +199,6 @@ namespace FCloud3.Services.Files
                 if(success && nameChanged)
                 {
                     _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                    _materialCaching.Update(id, md => md.Name = name);
                 }
                 return success;
             }
@@ -225,7 +219,6 @@ namespace FCloud3.Services.Files
             if (success)
             {
                 _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                _materialCaching.Remove(id);
             }
             return success;
         }

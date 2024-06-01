@@ -36,10 +36,7 @@ namespace FCloud3.Services.Wiki
             {
                 int affectedWikiId = BelongToWikiId(paraId);
                 if(affectedWikiId > 0)
-                {
-                    _wikiItemRepo.SetUpdateTime(affectedWikiId);
-                    _wikiItemCaching.Update(affectedWikiId, w => w.Update = DateTime.Now);
-                }
+                    _wikiItemRepo.UpdateTime(affectedWikiId);
                 return true;
             }
             else
@@ -52,11 +49,8 @@ namespace FCloud3.Services.Wiki
             if(success)
             {
                 int affectedWikiId = BelongToWikiId(paraId);
-                if (affectedWikiId > 0)
-                {
-                    _wikiItemRepo.SetUpdateTime(affectedWikiId);
-                    _wikiItemCaching.Update(affectedWikiId, w => w.Update = DateTime.Now);
-                }
+                if(affectedWikiId > 0)
+                    _wikiItemRepo.UpdateTime(affectedWikiId);
                 return true;
             }
             return false;
