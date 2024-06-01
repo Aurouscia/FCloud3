@@ -8,18 +8,18 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
     /// 用于减少数据库查询的托管内存缓存及其相关操作<br/>
     /// 应该在确认数据库操作执行成功后再调用本类对象更新缓存
     /// </summary>
-    /// <typeparam name="TMeta">内存缓存模型</typeparam>
+    /// <typeparam name="TCache">内存缓存模型</typeparam>
     /// <typeparam name="TModel">数据库模型</typeparam>
-    public abstract class CachingBase<TMeta, TModel>
-        where TMeta : CachingModelBase<TModel> where TModel : class, IDbModel
+    public abstract class CachingBase<TCache, TModel>
+        where TCache : CachingModelBase<TModel> where TModel : class, IDbModel
     {
         protected readonly IQueryable<TModel> _dbExistingQ;
-        private readonly ILogger<CachingBase<TMeta, TModel>> _logger;
+        private readonly ILogger<CachingBase<TCache, TModel>> _logger;
 
         /// <summary>
         /// 存储数据处（注意List线程不安全）
         /// </summary>
-        private static List<TMeta> DataList { get; } = [];
+        private static List<TCache> DataList { get; } = [];
         /// <summary>
         /// 使用静态对象确保同一个list同时只能被一个线程操作<br/>
         /// 注意：泛型类中的静态属性，对于不同的类型参数的实现，有多个静态属性
@@ -27,18 +27,18 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         protected static object Locker { get; } = new object();
         private static int AllCount { get; set; } = allCountDefaultVal;
         private const int allCountDefaultVal = -1;
-        public CachingBase(FCloudContext context, ILogger<CachingBase<TMeta, TModel>> logger)
+        public CachingBase(FCloudContext context, ILogger<CachingBase<TCache, TModel>> logger)
         {
             _dbExistingQ = context.Set<TModel>().Where(x=>!x.Deleted);
             _logger = logger;
         }
-        protected TMeta? DataListSearch(Func<TMeta, bool> match)
+        protected TCache? DataListSearch(Func<TCache, bool> match)
             => DataList.Find(x => match(x));
-        protected List<TMeta> DataListSearchRange(Func<TMeta, bool> match)
+        protected List<TCache> DataListSearchRange(Func<TCache, bool> match)
             => DataList.FindAll(x => match(x));
 
         #region 查询
-        public TMeta? Get(int id)
+        public TCache? Get(int id)
         {
             lock (Locker)
             {
@@ -46,18 +46,18 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 if (stored is not null)
                     return stored;
                 var w = GetFromDbModel(_dbExistingQ.Where(x=>x.Id == id)).FirstOrDefault();
-                _logger.LogDebug("从数据库获取单个[{type}](元数据缓存)", typeof(TMeta).Name);
+                _logger.LogDebug("从数据库获取单个[{type}](元数据缓存)", typeof(TCache).Name);
                 if (w is null)
                     return null;
                 DataList.Add(w);
                 return w;
             }
         }
-        public List<TMeta> GetRange(IEnumerable<int> ids)
+        public List<TCache> GetRange(IEnumerable<int> ids)
         {
             lock (Locker)
             {
-                var found = new List<TMeta>();
+                var found = new List<TCache>();
                 var notFound = new List<int>();
                 foreach (var id in ids)
                 {
@@ -70,13 +70,13 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 if (notFound.Count == 0)
                     return found;
                 var fill = GetFromDbModel(_dbExistingQ.Where(x => notFound.Contains(x.Id))).ToList();
-                _logger.LogDebug("从数据库获取多个[{type}](元数据缓存)", typeof(TMeta).Name);
+                _logger.LogDebug("从数据库获取多个[{type}](元数据缓存)", typeof(TCache).Name);
                 DataList.AddRange(fill);
                 found.AddRange(fill);
                 return found;
             }
         }
-        public List<TMeta> GetAll()
+        public List<TCache> GetAll()
         {
             lock (Locker)
             {
@@ -88,7 +88,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                     var q = _dbExistingQ.Where(x => !loadedIds.Contains(x.Id));
                     DataList.AddRange(GetFromDbModel(q).ToList());
                     AllCount = DataList.Count;
-                    _logger.LogDebug("从数据库获取全部[{type}](元数据缓存)", typeof(TMeta).Name);
+                    _logger.LogDebug("从数据库获取全部[{type}](元数据缓存)", typeof(TCache).Name);
                 }
                 return DataList;
             }
@@ -96,23 +96,23 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         #endregion
 
         #region 新增
-        internal void Insert(TMeta meta)
+        internal void Insert(TCache cachingModel)
         {
             lock (Locker)
             {
-                DataList.Add(meta);
+                DataList.Add(cachingModel);
                 CountIncre();
             }
         }
         internal void Insert(TModel model) 
             => Insert(GetFromDbModel(model));
 
-        internal void InsertRange(List<TMeta> metas)
+        internal void InsertRange(List<TCache> cachingModels)
         {
             lock (Locker)
             {
-                DataList.AddRange(metas);
-                CountIncre(metas.Count);
+                DataList.AddRange(cachingModels);
+                CountIncre(cachingModels.Count);
             }
         }
         internal void InsertRange(List<TModel> models)
@@ -120,7 +120,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         #endregion
 
         #region 更新
-        internal void Update(int id, Action<TMeta> action)
+        internal void Update(int id, Action<TCache> action)
         {
             lock (Locker)
             {
@@ -129,7 +129,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                     action(stored);
             }
         }
-        internal void UpdateRange(IEnumerable<int> ids, Action<TMeta> action)
+        internal void UpdateRange(IEnumerable<int> ids, Action<TCache> action)
         {
             lock (Locker)
             {
@@ -139,23 +139,23 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         }
         internal void UpdateByDbModel(TModel model)
         {
-            var meta = Get(model.Id);
+            var cache = Get(model.Id);
             lock (Locker)
             {
-                if(meta is not null)
-                    MutateByDbModel(meta, model);   
+                if(cache is not null)
+                    MutateByDbModel(cache, model);   
             }
         }
         internal void UpdateRangeByDbModel(List<TModel> models)
         {
-            var metas = GetRange(models.ConvertAll(x=>x.Id));
+            var caches = GetRange(models.ConvertAll(x=>x.Id));
             lock (Locker)
             {
-                foreach (var meta in metas)
+                foreach (var c in caches)
                 {
-                    var corresponding = models.Find(x => x.Id == meta.Id);
+                    var corresponding = models.Find(x => x.Id == c.Id);
                     if (corresponding is not null)
-                        MutateByDbModel(meta, corresponding);
+                        MutateByDbModel(c, corresponding);
                 }
             }
         }
@@ -191,7 +191,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             {
                 DataList.Clear();
                 AllCount = allCountDefaultVal;
-                _logger.LogWarning("[{type}]缓存已被清空(元数据缓存)", typeof(TMeta).Name);
+                _logger.LogWarning("[{type}]缓存已被清空(元数据缓存)", typeof(TCache).Name);
             }
         }
         private void CountIncre(int by = 1)
@@ -209,8 +209,8 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 AllCount -= by;
         }
 
-        protected abstract IQueryable<TMeta> GetFromDbModel(IQueryable<TModel> dbModels);
-        protected abstract TMeta GetFromDbModel(TModel model);
-        protected abstract void MutateByDbModel(TMeta target, TModel from);
+        protected abstract IQueryable<TCache> GetFromDbModel(IQueryable<TModel> dbModels);
+        protected abstract TCache GetFromDbModel(TModel model);
+        protected abstract void MutateByDbModel(TCache target, TModel from);
     }
 }
