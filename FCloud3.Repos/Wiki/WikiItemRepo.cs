@@ -96,5 +96,23 @@ namespace FCloud3.Repos.Wiki
                 return Existing;
             return Existing.Where(x => x.OwnerUserId == uid);
         }
+
+        public override void UpdateTime(int id)
+        {
+            base.UpdateTime(id);
+            _caching.Update(id, x=>x.Update=DateTime.Now);
+        }
+        public override void UpdateTime(List<int> ids)
+        {
+            base.UpdateTime(ids);
+            _caching.UpdateRange(ids, x=>x.Update=DateTime.Now);
+        }
+        public override int UpdateTime(IQueryable<int> ids)
+        {
+            var idList = ids.ToList();
+            var count = base.UpdateTime(ids);
+            _caching.UpdateRange(idList, x=>x.Update=DateTime.Now);
+            return count;
+        }
     }
 }

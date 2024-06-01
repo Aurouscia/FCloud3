@@ -5,6 +5,8 @@ using FCloud3.Repos.Etc.Index;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace FCloud3.Repos
 {
@@ -24,6 +26,7 @@ namespace FCloud3.Repos
         public IQueryable<T> Deleted => _context.Set<T>().Where(x => x.Deleted);
         public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
         public int ExistingCount => Existing.Count();
+        public ChangeTracker ChangeTracker => _context.ChangeTracker;
         public virtual IQueryable<T> OwnedByUser(int uid = -1)
         {
             if (uid == -1)
@@ -284,21 +287,20 @@ namespace FCloud3.Repos
             return true;
         }
         
-        public void UpdateTime(int id)
+        public virtual void UpdateTime(int id)
         {
-            var model = GetByIdEnsure(id);
-            TryEdit(model, out _);
+            Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
         }
-        public void UpdateTime(List<int> ids)
+        public virtual void UpdateTime(List<int> ids)
         {
-            var models = GetRangeByIds(ids).ToList();
-            TryEditRange(models, out _);
+            Existing.Where(x => ids.Contains(x.Id))
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
         }
-        public int UpdateTime(IQueryable<int> ids)
+        public virtual int UpdateTime(IQueryable<int> ids)
         {
-            var models = GetRangeByIds(ids).ToList();
-            TryEditRange(models, out _);
-            return models.Count;
+            return Existing.Where(x => ids.Contains(x.Id))
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
         }
 
         public virtual bool TryRemoveCheck(T item, out string? errmsg)

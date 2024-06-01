@@ -114,7 +114,7 @@ namespace FCloud3.Repos.Test.Files
         {
             var items = _repo.All.ToList();
             var initialTime = new DateTime(1970, 1, 1);
-            var shouldGreatThanAfterUpdate = DateTime.Now;
+            var shouldGreatThanAfterUpdate = new DateTime(1980,1,1);
             items.ForEach(i => i.Updated = initialTime);
             _context.SaveChanges();
 
@@ -123,8 +123,11 @@ namespace FCloud3.Repos.Test.Files
             _repo.SetUpdateTimeRangeAncestrally(targets, out string? errmsg);
             Assert.IsNull(errmsg);
 
+            _repo.ChangeTracker.Clear();
+            //由于使用了ExecuteUpdate批量操作（本地实体不会被修改）
+            //要检查数据库中的状态必须先清空更改跟踪器，否则只会返回本地实体
             items = _repo.All.ToList();
-            var actualUpdated = items.FindAll(x => x.Updated > shouldGreatThanAfterUpdate).ConvertAll(x => x.Id);
+            var actualUpdated = items.FindAll(x => x.Updated >= shouldGreatThanAfterUpdate).ConvertAll(x => x.Id);
             CollectionAssert.AreEquivalent(expectUpdate, actualUpdated);
         }
         #endregion

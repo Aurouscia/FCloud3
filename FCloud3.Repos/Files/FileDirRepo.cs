@@ -46,11 +46,7 @@ namespace FCloud3.Repos.Files
                 errmsg = "更新文件夹时间出错：树状结构溯源失败";
                 return false;
             }
-            var needUpdate = GetRangeByIds(chain).ToList();
-            //仅设置更新时间为现在
-            //ExecuteUpdate()貌似更新更坏了，不起作用
-            if (!TryEditRange(needUpdate, out errmsg))
-                return false;
+            UpdateTime(chain);
             errmsg = null;
             return true;
         }
@@ -67,9 +63,7 @@ namespace FCloud3.Repos.Files
                 }
                 needUpdateIds.AddRange(chain);
             }
-            var needUpdate = GetRangeByIds(needUpdateIds).ToList();
-            if (!TryEditRange(needUpdate, out errmsg))
-                return false;
+            UpdateTime(needUpdateIds);
             errmsg = null;
             return true;
         }

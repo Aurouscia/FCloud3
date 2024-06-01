@@ -190,6 +190,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             lock(Locker)
             {
                 DataList.Clear();
+                AllCount = allCountDefaultVal;
                 _logger.LogWarning("[{type}]缓存已被清空(元数据缓存)", typeof(TMeta).Name);
             }
         }
