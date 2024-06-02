@@ -11,11 +11,6 @@ namespace FCloud3.Repos.Etc.Caching
         ILogger<CachingBase<MaterialCachingModel, Material>> logger)
         : CachingBase<MaterialCachingModel, Material>(ctx, logger)
     {
-        internal void Create(int id, string name, string pathName)
-        {
-            MaterialCachingModel m = new(id, name, pathName);
-            Insert(m);
-        }
         protected override IQueryable<MaterialCachingModel> GetFromDbModel(IQueryable<Material> dbModels)
         {
             return dbModels.Select(x => new MaterialCachingModel(x.Id, x.Name, x.StorePathName));
@@ -28,11 +23,6 @@ namespace FCloud3.Repos.Etc.Caching
         {
             target.Name = from.Name;
             target.PathName = from.StorePathName;
-        }
-
-        public string GetPathName(string name)
-        {
-            return DataListSearch(x => x.Name == name)?.PathName ?? "??";
         }
     }
 

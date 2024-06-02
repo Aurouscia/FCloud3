@@ -25,20 +25,17 @@ namespace FCloud3.Repos.Etc.Caching
             target.AvatarMaterialId = from.AvatarMaterialId;
             target.Type = from.Type;
         }
-
-        internal void Create(int id, string name, UserType type)
-        {
-            var model = new UserCachingModel(id, name, 0, type);
-            Insert(model);
-        }
         public UserCachingModel? GetByName(string name)
         {
+            //TODO 明显线程不安全
             var stored = DataListSearch(x => x.Name == name);
             if (stored is not null)
                 return stored;
             var u = GetFromDbModel(_dbExistingQ.Where(x => x.Name == name)).FirstOrDefault();
+            QueriedTimes++;
             if (u is null)
                 return null;
+            QueriedRows++;
             Insert(u);
             return u;
         }

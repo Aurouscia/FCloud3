@@ -4,7 +4,15 @@ namespace FCloud3.Repos.Test.TestSupport
     {
         public static List<int> IntList(string str, char sep=',')
         {
+            if (string.IsNullOrEmpty(str))
+                return [];
             return str.Split(sep).ToList().ConvertAll(int.Parse);
+        }
+        public static List<List<int>> IntListList(string str, string majorSep = "  ", char sep=',')
+        {
+            if (string.IsNullOrEmpty(str))
+                return [];
+            return str.Split(majorSep).ToList().ConvertAll(x=>x.Split(sep).ToList().ConvertAll(int.Parse));
         }
         public static Dictionary<int, List<int>> IntDictInt(string str)
         {
