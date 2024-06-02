@@ -62,7 +62,7 @@ namespace FCloud3.Services.Identities
                 gs.AddRange(baseAuths);//添加该类型的系统默认权限在队尾
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
-            var groupDict = _userToGroupRepo.GetUserIdDicByGroupIds(groupIds);
+            var groupDict = _userToGroupRepo.GetMembersDict(groupIds);
 
             foreach (var g in gs)
             {

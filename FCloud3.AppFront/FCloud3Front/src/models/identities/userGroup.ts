@@ -2,7 +2,7 @@ export interface UserGroup{
     Id:number,
     Name:string,
 }
-export type UserToGroupRelation = "Inviting"|"Member"|"Leader"
+export type UserToGroupRelation = "Inviting"|"Member"
 
 export interface UserGroupListResult{
     InvitingMe:UserGroupListResultItem[],

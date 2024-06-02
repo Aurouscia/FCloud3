@@ -26,14 +26,13 @@ namespace FCloud3.Entities.Identities
     public enum UserToGroupType
     {
         Inviting = 0,
-        Member = 1,
-        Leader = 2,
+        Member = 1
     }
     public static class UserToGroupTypeExtension
     {
         public static bool IsFormalMember(this UserToGroupType type)
         {
-            if(type == UserToGroupType.Member || type == UserToGroupType.Leader)
+            if(type == UserToGroupType.Member)
                 return true;
             return false;
         }
@@ -43,5 +42,7 @@ namespace FCloud3.Entities.Identities
                 return true;
             return false;
         }
+        public static IQueryable<UserToGroup> FilterFormalMember(this IQueryable<UserToGroup> q)
+            => q.Where(x => x.Type == UserToGroupType.Member);
     }
 }

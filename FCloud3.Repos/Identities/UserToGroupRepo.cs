@@ -14,35 +14,57 @@ namespace FCloud3.Repos.Identities
         public UserToGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
-        public List<int> GetUserIdsByGroupId(int groupId)
+        /// <summary>
+        /// 获取指定id组内所有成员（正在邀请的不算）
+        /// </summary>
+        /// <param name="groupId">用户组id</param>
+        /// <returns>成员id列表</returns>
+        public List<int> GetMembers(int groupId)
         {
-            return Existing.Where(x=>x.GroupId==groupId).Select(x=>x.UserId).ToList();
+            return Existing
+                .Where(x=>x.GroupId == groupId)
+                .FilterFormalMember().Select(x=>x.UserId).ToList();
         }
-        public Dictionary<int,List<int>> GetUserIdDicByGroupIds(List<int> groupIds)
+        /// <summary>
+        /// 获取指定id组内所有成员（正在邀请的不算）
+        /// </summary>
+        /// <param name="groupIds">用户组id列表</param>
+        /// <returns>成员id字典，key为组id，value为其成员id列表</returns>
+        public Dictionary<int,List<int>> GetMembersDict(List<int> groupIds)
         {
             if (groupIds.Count == 0)
                 return new();
 
-            var q = (from g in Existing
-                      where groupIds.Contains(g.GroupId)
-                      group g.UserId by g.GroupId).ToList();
+            var q = (
+                from g in Existing.FilterFormalMember()
+                where groupIds.Contains(g.GroupId)
+                group g.UserId by g.GroupId).ToList();
 
             return q.ToDictionary(x => x.Key, x => x.ToList());
         }
         public bool IsInSameGroup(int user1,int user2)
         {
-            //TODO可优化
-            var g1s = Existing.Where(x => x.UserId == user1).Select(x => x.GroupId).ToList();
-            if(g1s.Count==0)
-                return false;
-            var g2s = Existing.Where(x => x.UserId == user2).Select(x => x.GroupId).ToList();
-            if (g2s.Count == 0)
-                return false;
-            return g1s.Intersect(g2s).Any();
+            var q =
+                from rA in Existing.FilterFormalMember()
+                from rB in Existing.FilterFormalMember()
+                where rA.UserId == user1 && rB.UserId == user2
+                where rA.GroupId == rB.GroupId
+                select rA.GroupId;
+            return q.Any();
         }
+        public UserToGroup? GetRelation(int groupId, int userId)
+            => Existing.Where(x => x.GroupId == groupId && x.UserId == userId).FirstOrDefault();
+        /// <summary>
+        /// 将用户加入用户组
+        /// </summary>
+        /// <param name="userId">目标用户id</param>
+        /// <param name="groupId">目标组id</param>
+        /// <param name="needAudit">是否需要目标用户同意</param>
+        /// <param name="errmsg"></param>
+        /// <returns></returns>
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
-            var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
+            var existing = GetRelation(groupId, userId);
             if (existing is not null)
             {
                 if (existing.Type == UserToGroupType.Inviting)
@@ -62,7 +84,7 @@ namespace FCloud3.Repos.Identities
         }
         public bool AcceptInvitaion(int userId, int groupId, out string? errmsg)
         {
-            var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
+            var existing = GetRelation(groupId, userId);
             if(existing is null)
             {
                 errmsg = "未知错误：未找到该邀请";
@@ -78,7 +100,7 @@ namespace FCloud3.Repos.Identities
         }
         public bool RejectInvitaion(int userId, int groupId, out string? errmsg)
         {
-            var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
+            var existing = GetRelation(groupId, userId);
             if (existing is null)
             {
                 errmsg = "未知错误：未找到该邀请";
@@ -93,7 +115,7 @@ namespace FCloud3.Repos.Identities
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
-            var existing = Existing.Where(x => x.UserId == userId && x.GroupId == groupId).FirstOrDefault();
+            var existing = GetRelation(groupId, userId);
             if (existing is null)
             {
                 errmsg = "未知错误：未找到群组关系";
