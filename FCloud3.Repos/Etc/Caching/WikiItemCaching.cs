@@ -16,17 +16,9 @@ namespace FCloud3.Repos.Etc.Caching
     {
         public WikiItemCachingModel? Get(string urlPathName)
         {
-            //TODO 明显线程不安全
-            var stored = DataListSearch(x => x.UrlPathName == urlPathName);
-            if (stored is not null)
-                return stored;
-            var w = GetFromDbModel(_dbExistingQ.Where(x => x.UrlPathName == urlPathName))
-                .FirstOrDefault();
-            QueriedTimes++;
-            QueriedRows++;
-            if (w is null) return null;
-            Insert(w);
-            return w;
+            return GetCustom(
+                x => x.UrlPathName == urlPathName,
+                x => x.Where(w => w.UrlPathName == urlPathName));
         }
 
         protected override IQueryable<WikiItemCachingModel> GetFromDbModel(IQueryable<WikiItem> dbModels)

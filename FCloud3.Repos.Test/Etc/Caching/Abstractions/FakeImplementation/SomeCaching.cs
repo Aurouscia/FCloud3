@@ -41,5 +41,6 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions.FakeImplementation
             target.SomeProp = from.SomeProp;
         }
         public List<SomeCachingModel> GetDataList() => base.TestingOnlyGetDataList();
+        public bool HoldingAll => base.TestingOnlyHoldingAll;
     }
 }

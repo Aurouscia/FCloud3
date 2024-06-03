@@ -13,7 +13,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
     public abstract class CachingBase<TCache, TModel>
         where TCache : CachingModelBase<TModel> where TModel : class, IDbModel
     {
-        protected readonly IQueryable<TModel> _dbExistingQ;
+        private readonly IQueryable<TModel> _dbExistingQ;
         private readonly ILogger<CachingBase<TCache, TModel>> _logger;
 
         /// <summary>
@@ -25,8 +25,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         /// 注意：泛型类中的静态属性，对于不同的类型参数的实现，有多个静态属性
         /// </summary>
         protected static object Locker { get; } = new object();
-        private static int AllCount { get; set; } = allCountDefaultVal;
-        private const int allCountDefaultVal = -1;
+        protected static bool HoldingAll { get; private set; }
         
         public int QueriedTimes { get; protected set; }
         public int QueriedRows { get; protected set; }
@@ -40,9 +39,9 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             _dbExistingQ = source;
             _logger = logger;
         }
-        protected TCache? DataListSearch(Func<TCache, bool> match)
+        private TCache? DataListSearch(Func<TCache, bool> match)
             => DataList.Find(x => match(x));
-        protected List<TCache> DataListSearchRange(Func<TCache, bool> match)
+        private List<TCache> DataListSearchRange(Func<TCache, bool> match)
             => DataList.FindAll(x => match(x));
 
         #region 查询
@@ -104,7 +103,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         {
             var action = () =>
             {
-                if (AllCount == DataList.Count)
+                if (HoldingAll)
                     return DataList;
                 else
                 {
@@ -114,7 +113,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                     QueriedTimes++;
                     QueriedRows += qres.Count;
                     DataList.AddRange(qres);
-                    AllCount = DataList.Count;
+                    HoldingAll = true;
                     _logger.LogDebug("从数据库获取全部[{type}](元数据缓存)", typeof(TCache).Name);
                 }
                 return DataList;
@@ -126,26 +125,54 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                 return action();
             }
         }
-        #endregion
-
-        #region 新增
-        public void Insert(TCache cachingModel)
+        public TCache? GetCustom(Func<TCache, bool> matchCache, Func<IQueryable<TModel>, IQueryable<TModel>> matchDb)
         {
             lock (Locker)
             {
-                DataList.Add(cachingModel);
-                CountIncre();
+                var cached = DataListSearch(matchCache);
+                if (cached is not null)
+                    return cached;
+                var dbModel = matchDb(_dbExistingQ).FirstOrDefault();
+                QueriedRows++;
+                QueriedTimes++;
+                if (dbModel is not null)
+                {
+                    var cacheObj = GetFromDbModel(dbModel);
+                    Insert(cacheObj, false);
+                    return cacheObj;
+                }
+                return null;
             }
         }
-        public void Insert(TModel model) 
-            => Insert(GetFromDbModel(model));
+        #endregion
+
+        #region 新增
+        public void Insert(TCache cachingModel, bool useLock = true)
+        {
+            var action = () =>
+            {
+                DataList.Add(cachingModel);
+                HoldingAll = false;
+            };
+            if (!useLock)
+                action();
+            else
+            {
+                lock (Locker)
+                {
+                    action();
+                }
+            }
+        }
+        public void Insert(TModel model, bool useLock = true) 
+            => Insert(GetFromDbModel(model), useLock);
 
         public void InsertRange(List<TCache> cachingModels)
         {
             lock (Locker)
             {
                 DataList.AddRange(cachingModels);
-                CountIncre(cachingModels.Count);
+                HoldingAll = false;
             }
         }
         public void InsertRange(List<TModel> models)
@@ -200,7 +227,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             lock (Locker)
             {
                 int by = DataList.RemoveAll(x => x.Id == id);
-                CountDecre(by);
+                HoldingAll = false;
             }
         }
 
@@ -208,8 +235,8 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         {
             lock (Locker)
             {
-                int by = DataList.RemoveAll(x => ids.Contains(x.Id));
-                CountDecre(by);
+                DataList.RemoveAll(x => ids.Contains(x.Id));
+                HoldingAll = false;
             }
         }
         #endregion
@@ -223,34 +250,21 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
             lock(Locker)
             {
                 DataList.Clear();
-                AllCount = allCountDefaultVal;
+                HoldingAll = false;
                 _logger.LogWarning("[{type}]缓存已被清空(元数据缓存)", typeof(TCache).Name);
             }
         }
-        private void CountIncre(int by = 1)
+        private void NumberChanged()
         {
-            if (AllCount == allCountDefaultVal)
-            {
-                AllCount = _dbExistingQ.Count();
-                QueriedTimes++;
-            }
-            else
-                AllCount += by;
-        }
-        private void CountDecre(int by = 1)
-        {
-            if (AllCount == allCountDefaultVal)
-            {
-                AllCount = _dbExistingQ.Count();
-                QueriedTimes++;
-            }
-            else
-                AllCount -= by;
+            //原本实现：新增/删除对象时顺便改动总数量，以便“查询所有”判断目前是否拥有所有的缓存
+            //但发现改动数量是线程不安全的，只能重置会“不知道”的状态重新查询
+            HoldingAll = false;
         }
 
         protected abstract IQueryable<TCache> GetFromDbModel(IQueryable<TModel> dbModels);
         protected abstract TCache GetFromDbModel(TModel model);
         protected abstract void MutateByDbModel(TCache target, TModel from);
         protected List<TCache> TestingOnlyGetDataList() => DataList;
+        protected bool TestingOnlyHoldingAll => HoldingAll;
     }
 }

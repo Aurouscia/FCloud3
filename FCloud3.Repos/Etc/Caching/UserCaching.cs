@@ -27,17 +27,9 @@ namespace FCloud3.Repos.Etc.Caching
         }
         public UserCachingModel? GetByName(string name)
         {
-            //TODO 明显线程不安全
-            var stored = DataListSearch(x => x.Name == name);
-            if (stored is not null)
-                return stored;
-            var u = GetFromDbModel(_dbExistingQ.Where(x => x.Name == name)).FirstOrDefault();
-            QueriedTimes++;
-            if (u is null)
-                return null;
-            QueriedRows++;
-            Insert(u);
-            return u;
+            return GetCustom(
+                x => x.Name == name, 
+                x=>x.Where(u=>u.Name==name));
         }
     }
     public class UserCachingModel : CachingModelBase<User>

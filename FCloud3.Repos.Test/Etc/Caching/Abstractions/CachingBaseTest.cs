@@ -132,6 +132,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
             Assert.AreEqual(final.Count, data.Count);
             CollectionAssert.AllItemsAreNotNull(data);
             CollectionAssert.AreEquivalent(final, actualFinal);
+            Assert.IsFalse(_anotherCaching.HoldingAll);
         }
         
         [TestMethod]
@@ -155,48 +156,96 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
                 var res = _caching.GetRange(ids);
                 IsSameList(ids, res);   
             }
+            Assert.IsFalse(_anotherCaching.HoldingAll);
 
             var res2 = _anotherCaching.GetAll();
             Assert.AreEqual(q2Rows, _anotherCaching.QueriedRows);
             Assert.AreEqual(q2Times, _anotherCaching.QueriedTimes);
             IsSameList([1,2,3,4,5], res2);
+            Assert.IsTrue(_anotherCaching.HoldingAll);
 
             var data = _caching.GetDataList();
             var actualFinal = data.ConvertAll(x => x.Id);
             Assert.AreEqual(5, data.Count);
             CollectionAssert.AllItemsAreNotNull(data);
             CollectionAssert.AreEquivalent(new List<int>{1,2,3,4,5}, actualFinal);
+            
+            //没有增删的情况下，再次查询，查询次数不会变多
+            var res3 = _anotherCaching.GetAll();
+            Assert.AreEqual(q2Rows, _anotherCaching.QueriedRows);
+            Assert.AreEqual(q2Times, _anotherCaching.QueriedTimes);
+            IsSameList([1,2,3,4,5], res3);
+            Assert.IsTrue(_anotherCaching.HoldingAll);
         }
 
         [TestMethod]
-        public void Insert()
+        [DataRow("BBB", "CCC")]
+        [DataRow("DDD", "EEE")]
+        public void QueryOtherProp(string name1, string name2)
         {
-            var res1 = _caching.GetAll().ConvertAll(x=>x.Id);
-            CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5}, res1);
-            Assert.AreEqual(5, _caching.QueriedRows);
-            Assert.AreEqual(1, _caching.QueriedTimes);
-            
+            Func<SomeCachingModel, string, bool> match = (x,y) => x.Name == y;
+            Func<IQueryable<SomeDbModel>, string, IQueryable<SomeDbModel>> matchDb
+                = (x, y) => x.Where(m => m.Name == y);
+            var tsk1 = Task.Run(() =>
+            {
+                var res1 = _caching.GetCustom(
+                    x => match(x, name1),
+                    x=>matchDb(x, name1));
+                Assert.AreEqual(res1.Name, name1);
+                var res2 = _caching.GetCustom(
+                    x => match(x, name2),
+                    x=>matchDb(x, name2));
+                Assert.AreEqual(res2.Name, name2);
+            });
+            var tsk2 = Task.Run(() =>
+            {
+                var res = _anotherCaching.GetCustom(
+                    x => match(x, name2),
+                    x=>matchDb(x, name2));
+                Assert.AreEqual(res.Name, name2);
+            });
+            Task.WaitAll(tsk1, tsk2);
+            Assert.AreEqual(2, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+            Assert.AreEqual(2, _caching.QueriedRows + _anotherCaching.QueriedRows);
+        }
+
+        [TestMethod]
+        [DataRow(true, 0, 1)]
+        [DataRow(false, 5, 1)]
+        public void Insert(bool queryAllFirst, int expectRows, int expectTimes)
+        {
+            if (queryAllFirst)
+            {
+                var res1 = _caching.GetAll().ConvertAll(x => x.Id);
+                CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3, 4, 5 }, res1);
+                Assert.AreEqual(5, _caching.QueriedRows);
+                Assert.AreEqual(1, _caching.QueriedTimes);
+            }
             _fakeDb.Add(_item6);
             _caching.Insert(_item6);
             var res2 = _anotherCaching.GetAll().ConvertAll(x=>x.Id);
             CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5,6}, res2);
-            Assert.AreEqual(0, _anotherCaching.QueriedRows);
-            Assert.AreEqual(0, _anotherCaching.QueriedTimes);
+            Assert.AreEqual(expectRows, _anotherCaching.QueriedRows);
+            Assert.AreEqual(expectTimes, _anotherCaching.QueriedTimes);
         }
         [TestMethod]
-        public void InsertRange()
+        [DataRow(true, 0, 1)]
+        [DataRow(false, 5, 1)]
+        public void InsertRange(bool queryAllFirst, int expectRows, int expectTimes)
         {
-            var res1 = _caching.GetAll().ConvertAll(x=>x.Id);
-            CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5}, res1);
-            Assert.AreEqual(5, _caching.QueriedRows);
-            Assert.AreEqual(1, _caching.QueriedTimes);
-            
+            if (queryAllFirst)
+            {
+                var res1 = _caching.GetAll().ConvertAll(x => x.Id);
+                CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3, 4, 5 }, res1);
+                Assert.AreEqual(5, _caching.QueriedRows);
+                Assert.AreEqual(1, _caching.QueriedTimes);
+            }
             _fakeDb.AddRange([_item6, _item7]);
             _caching.InsertRange([_item6, _item7]);
             var res2 = _anotherCaching.GetAll().ConvertAll(x=>x.Id);
             CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5,6,7}, res2);
-            Assert.AreEqual(0, _anotherCaching.QueriedRows);
-            Assert.AreEqual(0, _anotherCaching.QueriedTimes);
+            Assert.AreEqual(expectRows, _anotherCaching.QueriedRows);
+            Assert.AreEqual(expectTimes, _anotherCaching.QueriedTimes);
         }
 
         [TestMethod]
@@ -237,12 +286,14 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         {
             _caching.GetAll();
             var removeIds = TestStrParse.IntList(remove);
+            int expectedQueryTimes = 0;
             foreach (var id in removeIds)
             {
+                expectedQueryTimes++;
                 _fakeDb.RemoveAll(x => id == x.Id);
                 _caching.Remove(id);   
                 _anotherCaching.GetAll();
-                Assert.AreEqual(0, _anotherCaching.QueriedTimes);
+                Assert.AreEqual(expectedQueryTimes, _anotherCaching.QueriedTimes);
             }
             Assert.AreEqual(1, _caching.QueriedTimes);
         }
@@ -259,6 +310,136 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
             _anotherCaching.GetAll();
             Assert.AreEqual(0, _anotherCaching.QueriedTimes);
             Assert.AreEqual(1, _caching.QueriedTimes);
+        }
+
+        [TestMethod]
+        public void ParallelOps1()
+        {
+            _fakeDb.Add(_item6);
+            _fakeDb.Add(_item7);
+            Task tsk1 = Task.Run(() =>
+            {
+                _caching.Insert(_item6);
+            });
+            Task tsk2 = Task.Run(() =>
+            {
+                _anotherCaching.Insert(_item7);
+            });
+            Task.WaitAll(tsk1, tsk2);
+            var list = _caching.GetDataList();
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<int>(){6,7}, list.ConvertAll(x=>x.Id));
+            _caching.Get(7);
+            _anotherCaching.Get(6);
+            Assert.IsFalse(_caching.HoldingAll);
+            Assert.AreEqual(0, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+
+            _fakeDb.Remove(_item6);
+            _fakeDb.Remove(_item7);
+            Task tsk3 = Task.Run(() =>
+            {
+                _caching.Remove(6);
+            });
+            Task tsk4 = Task.Run(() =>
+            {
+                _anotherCaching.Remove(7);
+            });
+            Task.WaitAll(tsk3, tsk4);
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<int>(), list.ConvertAll(x=>x.Id));
+            Assert.IsFalse(_caching.HoldingAll);
+            Assert.AreEqual(0, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+        }
+        [TestMethod]
+        public void ParallelOps2()
+        {
+            _caching.GetAll();
+            Assert.IsTrue(_caching.HoldingAll);
+            
+            _fakeDb.Add(_item6);
+            _fakeDb.Add(_item7);
+            Task tsk1 = Task.Run(() =>
+            {
+                _caching.Insert(_item6);
+            });
+            Task tsk2 = Task.Run(() =>
+            {
+                _anotherCaching.Insert(_item7);
+            });
+            Task.WaitAll(tsk1, tsk2);
+            var list = _caching.GetDataList();
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5,6,7}, list.ConvertAll(x=>x.Id));
+            _caching.Get(7);
+            _anotherCaching.Get(6);
+            Assert.IsFalse(_caching.HoldingAll);
+            Assert.AreEqual(1, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+
+            _caching.GetAll();
+            Assert.IsTrue(_caching.HoldingAll);
+            
+            _fakeDb.Remove(_item6);
+            _fakeDb.Remove(_item7);
+            Task tsk3 = Task.Run(() =>
+            {
+                _caching.Remove(6);
+            });
+            Task tsk4 = Task.Run(() =>
+            {
+                _anotherCaching.Remove(7);
+            });
+            Task.WaitAll(tsk3, tsk4);
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<int>(){1,2,3,4,5}, list.ConvertAll(x=>x.Id));
+            Assert.IsFalse(_caching.HoldingAll);
+            Assert.AreEqual(2, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+        }
+        
+        [TestMethod]
+        public void ParallelOps3()
+        {
+            var m1 = _fakeDb.Find(x => x.Id == 1);
+            m1.Name = "XXX";
+            var m2 = _fakeDb.Find(x => x.Id == 2);
+            m2.Name = "YYY";
+            Task tsk1 = Task.Run(() =>
+            {
+                _caching.UpdateByDbModel(m1);
+            });
+            Task tsk2 = Task.Run(() =>
+            {
+                _anotherCaching.UpdateByDbModel(m2);
+            });
+            Task.WaitAll(tsk1, tsk2);
+            var list = _caching.GetDataList();
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<string>(){"XXX","YYY"}, list.ConvertAll(x=>x.Name));
+            Assert.IsFalse(_caching.HoldingAll);
+            Assert.AreEqual(2, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
+        }
+        [TestMethod]
+        public void ParallelOps4()
+        {
+            _caching.GetAll();
+            
+            var m1 = _fakeDb.Find(x => x.Id == 1);
+            m1.Name = "XXX";
+            var m2 = _fakeDb.Find(x => x.Id == 2);
+            m2.Name = "YYY";
+            Task tsk1 = Task.Run(() =>
+            {
+                _caching.UpdateByDbModel(m1);
+            });
+            Task tsk2 = Task.Run(() =>
+            {
+                _anotherCaching.UpdateByDbModel(m2);
+            });
+            Task.WaitAll(tsk1, tsk2);
+            var list = _caching.GetDataList();
+            CollectionAssert.AllItemsAreNotNull(list);
+            CollectionAssert.AreEquivalent(new List<string>(){"XXX","YYY","CCC","DDD","EEE"}, list.ConvertAll(x=>x.Name));
+            Assert.IsTrue(_caching.HoldingAll);
+            Assert.AreEqual(1, _caching.QueriedTimes + _anotherCaching.QueriedTimes);
         }
     }
 }
