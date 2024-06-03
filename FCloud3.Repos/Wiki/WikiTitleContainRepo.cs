@@ -33,18 +33,23 @@ namespace FCloud3.Repos.Wiki
         {
             var from = noBlackList ? NotBlackListed : All;
             var res = from.WithTypeAndId(type, objId).ToList();
-            return res.DistinctBy(x => x.WikiId).ToList();
+            return CheckDuplicate(res);
         }
         public List<WikiTitleContain> GetByTypeAndObjIds(WikiTitleContainType type, List<int> objIds, bool noBlackList = true) 
         {
             var from = noBlackList ? NotBlackListed : All;
             var res = from.WithTypeAndIds(type, objIds).ToList();
-            return res.DistinctBy(x => x.WikiId).ToList();
+            return CheckDuplicate(res);
         }
-        public List<int> GetIdsByTypeAndObjIds(WikiTitleContainType type, List<int> objIds)
+        private List<WikiTitleContain> CheckDuplicate(List<WikiTitleContain> list)
         {
-            var res = NotBlackListed.WithTypeAndIds(type, objIds).Select(x=>x.WikiId).ToList();
-            return res.Distinct().ToList();
+            var distincted = list.DistinctBy(x => x.WikiId).ToList();
+            if (distincted.Count == list.Count)
+                return distincted;
+            var redundancy = list.Except(distincted).ToList();
+            _context.RemoveRange(redundancy);
+            _context.SaveChanges();
+            return distincted;
         }
     }
 
@@ -56,5 +61,8 @@ namespace FCloud3.Repos.Wiki
         public static IQueryable<WikiTitleContain> WithTypeAndIds
             (this IQueryable<WikiTitleContain> q, WikiTitleContainType type, List<int> objIds)
             => q.Where(x => x.Type == type && objIds.Contains(x.ObjectId));
+        public static IQueryable<WikiTitleContain> Siblings
+            (this IQueryable<WikiTitleContain> q, WikiTitleContain with)
+            => q.Where(x => x.Type == with.Type && x.ObjectId == with.ObjectId);
     }
 }
