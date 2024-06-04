@@ -51,6 +51,7 @@ namespace FCloud3.Repos
             services.AddScoped<MaterialCaching>();
             services.AddScoped<FileDirCaching>();
             services.AddScoped<WikiItemCaching>();
+            services.AddScoped<AuthGrantCaching>();
 
             return services;
         }

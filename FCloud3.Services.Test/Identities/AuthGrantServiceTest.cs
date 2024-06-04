@@ -21,12 +21,16 @@ namespace FCloud3.Services.Test.Identities
         private readonly StubUserIdProvider _userIdProvider;
         private readonly FCloudContext _ctx;
         private readonly UserGroupService _userGroupService;
+        private readonly AuthGrantCaching _authGrantCaching;
         public AuthGrantServiceTest()
         {
             int uid = 1;
             _userIdProvider = new(1);
             _ctx = FCloudMemoryContext.Create();
-            var authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider);
+            var authGrantCaching = new AuthGrantCaching(_ctx, new FakeLogger<CachingBase<AuthGrantCachingModel, AuthGrant>>());
+            authGrantCaching.Clear();
+            _authGrantCaching = authGrantCaching;
+            var authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider, authGrantCaching);
             var userToGroupRepo = new UserToGroupRepo(_ctx, _userIdProvider);
             var userGroupRepo = new UserGroupRepo(_ctx, _userIdProvider);
             var userCaching = new UserCaching(_ctx, new FakeLogger<CachingBase<UserCachingModel, User>>());
@@ -37,7 +41,7 @@ namespace FCloud3.Services.Test.Identities
             var creatorIdGetter = new CreatorIdGetter(_ctx);
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
             
-            _svc = new AuthGrantService(authGrantRepo, userToGroupRepo, userGroupRepo, userCaching, wikiParaRepo,
+            _svc = new AuthGrantService(authGrantRepo, authGrantCaching, userToGroupRepo, userGroupRepo, userCaching, wikiParaRepo,
                 _userIdProvider, creatorIdGetter, memoryCache, cacheExpTokenService);
             _svc.DisableBuiltIn();
 
@@ -76,6 +80,7 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(1, _svc.TestedCount);
             Assert.IsTrue(_svc.Test(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(1, _svc.TestedCount);
+            Assert.AreEqual(0, _authGrantCaching.QueriedTimes);//所有者等于访问者的情况，会避免数据库查询
         }
 
         [TestMethod]
@@ -111,6 +116,7 @@ namespace FCloud3.Services.Test.Identities
             _svc.Add(new() { On = AuthGrantOn.WikiItem, OnId = 1, To = AuthGrantTo.User, ToId = toUser, IsReject = !notReject}, out _);
             _userIdProvider.UserId = loginUser;
             Assert.AreEqual(expected && notReject, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(2, _authGrantCaching.QueriedTimes);//中间新增了一次，导致需要重新查询
         }
         
         [TestMethod]
@@ -124,6 +130,7 @@ namespace FCloud3.Services.Test.Identities
             _svc.Add(new() { On = AuthGrantOn.WikiItem, OnId = 1, To = AuthGrantTo.EveryOne, IsReject = isReject}, out _);
             _userIdProvider.UserId = 2;
             Assert.AreEqual(!isReject, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(2, _authGrantCaching.QueriedTimes);//中间新增了一次，导致需要重新查询
         }
         
         [TestMethod]
@@ -142,6 +149,8 @@ namespace FCloud3.Services.Test.Identities
             _userGroupService.RemoveUserFromGroup(3, 2, out _);
             Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(4, _svc.TestedCount);
+            Assert.AreEqual(2, _authGrantCaching.QueriedTimes);
+            //一二次中间新增了一次，导致需要查询两次，二三四次中间并未新增/删除，Test需要的AuthGrant列表使用缓存
         }
 
         [TestMethod]
@@ -180,6 +189,7 @@ namespace FCloud3.Services.Test.Identities
             
             _userIdProvider.UserId = loginUid;
             Assert.AreEqual(expected, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(1, _authGrantCaching.QueriedTimes);
         }
     }
 }

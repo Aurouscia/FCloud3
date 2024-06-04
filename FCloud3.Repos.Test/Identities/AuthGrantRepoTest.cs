@@ -1,6 +1,8 @@
 using FCloud3.DbContexts;
 using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Identities;
+using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Test.TestSupport;
 
@@ -11,6 +13,7 @@ namespace FCloud3.Repos.Test.Identities
     {
         private readonly FCloudContext _context;
         private readonly AuthGrantRepo _repo;
+        private readonly AuthGrantCaching _caching;
         public AuthGrantRepoTest()
         {
             _context = FCloudMemoryContext.Create() as FCloudContext;
@@ -40,7 +43,9 @@ namespace FCloud3.Repos.Test.Identities
             });
             _context.SaveChanges();
 
-            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1));
+            _caching = new AuthGrantCaching(_context, new FakeLogger<CachingBase<AuthGrantCachingModel, AuthGrant>>());
+            _caching.Clear();
+            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1), _caching);
         }
 
         /// <summary>

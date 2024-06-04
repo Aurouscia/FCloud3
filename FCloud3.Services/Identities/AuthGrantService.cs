@@ -14,6 +14,7 @@ namespace FCloud3.Services.Identities
     public class AuthGrantService
     {
         private readonly AuthGrantRepo _authGrantRepo;
+        private readonly AuthGrantCaching _authGrantCaching;
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
         private readonly UserCaching _userCaching;
@@ -22,9 +23,10 @@ namespace FCloud3.Services.Identities
         private readonly CreatorIdGetter _creatorIdGetter;
         private readonly IMemoryCache _memoryCache;
         private readonly CacheExpTokenService _cacheExpTokenService;
-
+        
         public AuthGrantService(
             AuthGrantRepo authGrantRepo,
+            AuthGrantCaching authGrantCaching,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
             UserCaching userCaching,
@@ -35,6 +37,7 @@ namespace FCloud3.Services.Identities
             CacheExpTokenService cacheExpTokenService)
         {
             _authGrantRepo = authGrantRepo;
+            _authGrantCaching = authGrantCaching;
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
             _userCaching = userCaching;
@@ -78,11 +81,12 @@ namespace FCloud3.Services.Identities
                     return false;//如果所有者不是访问者，但是该类型只允许所有者访问，直接拒绝
             }
 
-            var gs = _authGrantRepo.GetByOn(on, onId, ownerId);
+            var gs = _authGrantRepo.GetByOnCached(on, onId, ownerId);
             gs.Reverse();//下面覆盖上面，所以先检验
 
-            if(GetBuiltInOf(on) is List<AuthGrant> baseAuths)
-                gs.AddRange(baseAuths);//添加该类型的系统默认权限在队尾
+            if(GetBuiltInOf(on) is List<AuthGrant> baseAuths){
+                gs.AddRange(baseAuths.ConvertAll(_authGrantCaching.Convert));//添加该类型的系统默认权限在队尾
+            }
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
             var groupDict = _userToGroupRepo.GetMembersDict(groupIds);
