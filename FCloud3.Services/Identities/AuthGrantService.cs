@@ -6,6 +6,8 @@ using FCloud3.Repos.Etc;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Services.Etc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.Services.Identities
 {
@@ -18,6 +20,8 @@ namespace FCloud3.Services.Identities
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
+        private readonly IMemoryCache _memoryCache;
+        private readonly CacheExpTokenService _cacheExpTokenService;
 
         public AuthGrantService(
             AuthGrantRepo authGrantRepo,
@@ -26,7 +30,9 @@ namespace FCloud3.Services.Identities
             UserCaching userCaching,
             WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
-            CreatorIdGetter creatorIdGetter)
+            CreatorIdGetter creatorIdGetter,
+            IMemoryCache memoryCache,
+            CacheExpTokenService cacheExpTokenService)
         {
             _authGrantRepo = authGrantRepo;
             _userToGroupRepo = userToGroupRepo;
@@ -35,8 +41,22 @@ namespace FCloud3.Services.Identities
             _wikiParaRepo = wikiParaRepo;
             _userIdProvider = userIdProvider;
             _creatorIdGetter = creatorIdGetter;
+            _memoryCache = memoryCache;
+            _cacheExpTokenService = cacheExpTokenService;
         }
+
         public bool Test(AuthGrantOn on, int onId)
+        {
+            int userId = _userIdProvider.Get();
+            if (TryReadCache(on, onId, userId, out bool canAccess))
+            {
+                return canAccess;
+            }
+            var queried = TestNoCache(on, onId);
+            SetCache(on, onId, userId, queried);
+            return queried;
+        }
+        private bool TestNoCache(AuthGrantOn on, int onId)
         {
             int userId = _userIdProvider.Get();
             if (userId == 0)
@@ -321,6 +341,35 @@ namespace FCloud3.Services.Identities
             throw new Exception("获取所有者失败");
         }
 
+
+        private string CacheKey(AuthGrantOn on, int onId, int userId)
+            => $"{(int)on}_{onId}_{userId}";
+        private bool TryReadCache(AuthGrantOn on, int onId, int userId, out bool canAccess)
+        {
+            string cacheKey = CacheKey(on, onId, userId);
+            if (_memoryCache.TryGetValue(cacheKey, out var c))
+            {
+                if (c is bool b)
+                {
+                    canAccess = b;
+                    return true;
+                }
+            }
+            canAccess = false;
+            return false;
+        }
+        private void SetCache(AuthGrantOn on, int onId, int userId, bool canAccess)
+        {
+            string cacheKey = CacheKey(on, onId, userId);
+            _memoryCache.Set(cacheKey, canAccess, new MemoryCacheEntryOptions()
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(2),
+                ExpirationTokens =
+                {
+                    _cacheExpTokenService.AuthGrants.GetCancelChangeToken()
+                }
+            });
+        }
 
         public class AuthGrantViewModel
         {
