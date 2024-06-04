@@ -45,6 +45,8 @@ namespace FCloud3.Services.Identities
             _cacheExpTokenService = cacheExpTokenService;
         }
 
+        public int TestedCount { get; private set; }
+        
         public bool Test(AuthGrantOn on, int onId)
         {
             int userId = _userIdProvider.Get();
@@ -54,6 +56,7 @@ namespace FCloud3.Services.Identities
             }
             var queried = TestNoCache(on, onId);
             SetCache(on, onId, userId, queried);
+            TestedCount++;
             return queried;
         }
         private bool TestNoCache(AuthGrantOn on, int onId)
@@ -167,6 +170,8 @@ namespace FCloud3.Services.Identities
         private bool OwnerOnly(AuthGrantOn on) => OwnerOnlyOnTypes.Contains(on);
         public List<AuthGrant>? GetBuiltInOf(AuthGrantOn on)
         {
+            if (disableBuiltIn)
+                return null;
             if (on == AuthGrantOn.WikiItem)
                 return [new (){
                     On = AuthGrantOn.WikiItem,
@@ -249,8 +254,10 @@ namespace FCloud3.Services.Identities
                 errmsg = "无需为自己设置权限";
                 return false;
             }
-            _authGrantRepo.TryAdd(newGrant, out errmsg);
-            return true;
+            var s = _authGrantRepo.TryAdd(newGrant, out errmsg);
+            if (s)
+                _cacheExpTokenService.AuthGrants.CancelAll();
+            return s;
         }
         public bool Remove(int id, out string? errmsg)
         {
@@ -265,7 +272,10 @@ namespace FCloud3.Services.Identities
                 errmsg = "只有所有者能设置权限";
                 return false;
             }
-            return _authGrantRepo.TryRemove(target, out errmsg);
+            var s = _authGrantRepo.TryRemove(target, out errmsg);
+            if (s)
+                _cacheExpTokenService.AuthGrants.CancelAll();
+            return s;
         }
         public bool SetOrder(AuthGrantOn on, int onId, List<int> ids, out string? errmsg)
         {
@@ -300,7 +310,10 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             gs.ResetOrder(ids);
-            return _authGrantRepo.TryEditRange(gs, out errmsg);
+            var s = _authGrantRepo.TryEditRange(gs, out errmsg);
+            if (s)
+                _cacheExpTokenService.AuthGrants.CancelAll();
+            return s;
         }
 
         private bool CanEdit(AuthGrantOn on, int onId)
@@ -343,7 +356,7 @@ namespace FCloud3.Services.Identities
 
 
         private string CacheKey(AuthGrantOn on, int onId, int userId)
-            => $"{(int)on}_{onId}_{userId}";
+            => $"authres_{(int)on}_{onId}_{userId}";
         private bool TryReadCache(AuthGrantOn on, int onId, int userId, out bool canAccess)
         {
             string cacheKey = CacheKey(on, onId, userId);
@@ -363,7 +376,6 @@ namespace FCloud3.Services.Identities
             string cacheKey = CacheKey(on, onId, userId);
             _memoryCache.Set(cacheKey, canAccess, new MemoryCacheEntryOptions()
             {
-                SlidingExpiration = TimeSpan.FromMinutes(2),
                 ExpirationTokens =
                 {
                     _cacheExpTokenService.AuthGrants.GetCancelChangeToken()
@@ -371,6 +383,11 @@ namespace FCloud3.Services.Identities
             });
         }
 
+        private bool disableBuiltIn = false;
+        public void DisableBuiltIn()
+        {
+            disableBuiltIn = true;
+        }
         public class AuthGrantViewModel
         {
             public List<AuthGrantViewModelItem> BuiltIn { get; } = [];

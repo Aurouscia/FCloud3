@@ -1,6 +1,7 @@
 ﻿using FCloud3.Entities.Identities;
 using FCloud3.Repos.Identities;
 using System.Linq;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.Identities
 {
@@ -10,18 +11,20 @@ namespace FCloud3.Services.Identities
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserRepo _userRepo;
         private readonly int _userId;
+        private readonly CacheExpTokenService _cacheExpTokenService;
 
         public UserGroupService(
             IOperatingUserIdProvider userIdProvider,
             UserGroupRepo userGroupRepo,
             UserToGroupRepo userToGroupRepo,
-            UserRepo userRepo
-            ) 
+            UserRepo userRepo,
+            CacheExpTokenService cacheExpTokenService) 
         {
             _userGroupRepo = userGroupRepo;
             _userToGroupRepo = userToGroupRepo;
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
+            _cacheExpTokenService = cacheExpTokenService;
         }
         public bool Create(string name, out string? errmsg)
         {
@@ -142,10 +145,12 @@ namespace FCloud3.Services.Identities
         }
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
+            _cacheExpTokenService.AuthGrants.CancelAll();
             return _userToGroupRepo.AddUserToGroup(userId, groupId, needAudit, out errmsg);
         }
         public bool AnswerInvitaion(int groupId, bool accept, out string? errmsg)
         {
+            _cacheExpTokenService.AuthGrants.CancelAll();
             if (accept)
                 return _userToGroupRepo.AcceptInvitaion(_userId, groupId, out errmsg);
             else
@@ -153,14 +158,17 @@ namespace FCloud3.Services.Identities
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
+            _cacheExpTokenService.AuthGrants.CancelAll();
             return _userToGroupRepo.RemoveUserFromGroup(userId, groupId, out errmsg);
         }
         public bool Leave(int groupId, out string? errmsg)
         {
+            _cacheExpTokenService.AuthGrants.CancelAll();
             return RemoveUserFromGroup(_userId, groupId, out errmsg);
         }
         public bool Dissolve(int id,out string? errmsg)
         {
+            _cacheExpTokenService.AuthGrants.CancelAll();
             var g = _userGroupRepo.GetById(id);
             if (g is null)
             {

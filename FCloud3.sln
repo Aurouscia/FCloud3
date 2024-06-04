@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FCloud3.Diff.Test", "FCloud
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCloud3.Repos.Test", "FCloud3.Repos.Test\FCloud3.Repos.Test.csproj", "{2E665BED-E8BB-4CE6-B2A0-699CD72A78E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FCloud3.Services.Test", "FCloud3.Services.Test\FCloud3.Services.Test.csproj", "{24D24C16-0920-45BD-809A-7445A0E7B7B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{2E665BED-E8BB-4CE6-B2A0-699CD72A78E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E665BED-E8BB-4CE6-B2A0-699CD72A78E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E665BED-E8BB-4CE6-B2A0-699CD72A78E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24D24C16-0920-45BD-809A-7445A0E7B7B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24D24C16-0920-45BD-809A-7445A0E7B7B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24D24C16-0920-45BD-809A-7445A0E7B7B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24D24C16-0920-45BD-809A-7445A0E7B7B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +100,7 @@ Global
 		{C9D67425-10E5-4AA9-A16C-44A25241D95C} = {C5668509-3178-4C88-926B-011963AD6D5F}
 		{25B14150-9C59-4434-A244-0E2C45317CA4} = {C5668509-3178-4C88-926B-011963AD6D5F}
 		{2E665BED-E8BB-4CE6-B2A0-699CD72A78E4} = {C5B6AEA0-A45D-4D11-9D08-9CA5ED4E67AF}
+		{24D24C16-0920-45BD-809A-7445A0E7B7B7} = {693DB33E-A6E4-4E3F-86CA-6977FA2C8AEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7861C67-D850-476A-A2A5-64450D45439D}
