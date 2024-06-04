@@ -88,12 +88,12 @@ namespace FCloud3.Repos.Identities
                 return false;
             return base.TryRemovePermanent(item, out errmsg);
         }
-        public override bool TryRemove(int id, out string? errmsg)
+        public override bool TryRemoveNoCheck(int id, out string? errmsg)
             => TryRemove(GetById(id), out errmsg);
         public override bool TryRemovePermanent(AuthGrant item, out string? errmsg)
             => TryRemove(item, out errmsg);
-        public override bool TryRemovePermanent(int id, out string? errmsg)
-            => TryRemove(id, out errmsg);
+        public override bool TryRemovePermanentNoCheck(int id, out string? errmsg)
+            => TryRemoveNoCheck(id, out errmsg);
         public override bool TryRemoveRange(List<AuthGrant> items, out string? errmsg)
             => throw new InvalidOperationException();
         public override bool TryRemoveRangePermanent(List<AuthGrant> items, out string? errmsg)

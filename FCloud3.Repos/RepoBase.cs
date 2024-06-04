@@ -323,7 +323,7 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             return true;
         }
-        public virtual bool TryRemove(int id, out string? errmsg)
+        public virtual bool TryRemoveNoCheck(int id, out string? errmsg)
         {
             var deleted = Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x
@@ -428,7 +428,7 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             return true;
         }
-        public virtual bool TryRemovePermanent(int id, out string? errmsg)
+        public virtual bool TryRemovePermanentNoCheck(int id, out string? errmsg)
         {
             var deleted = Existing.Where(x => x.Id == id).ExecuteDelete();
             if (deleted > 0)

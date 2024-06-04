@@ -55,6 +55,13 @@ namespace FCloud3.Repos
                 _caching.Remove(item.Id);
             return s;
         }
+        public override bool TryRemoveNoCheck(int id, out string? errmsg)
+        {
+            var s = base.TryRemoveNoCheck(id, out errmsg);
+            if(s)
+                _caching.Remove(id);
+            return s;
+        }
         public override bool TryRemoveRange(List<T> items, out string? errmsg)
         {
             var s = base.TryRemoveRange(items, out errmsg);
@@ -69,9 +76,9 @@ namespace FCloud3.Repos
                 _caching.Remove(item.Id);
             return s;
         }
-        public override bool TryRemovePermanent(int id, out string? errmsg)
+        public override bool TryRemovePermanentNoCheck(int id, out string? errmsg)
         {
-            var s = base.TryRemovePermanent(id, out errmsg);
+            var s = base.TryRemovePermanentNoCheck(id, out errmsg);
             if(s)
                 _caching.Remove(id);
             return s;

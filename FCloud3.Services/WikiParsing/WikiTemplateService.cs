@@ -63,7 +63,7 @@ namespace FCloud3.Services.WikiParsing
 
         public bool Remove(int id, out string? errmsg)
         {
-            return _wikiTemplateRepo.TryRemove(id, out errmsg);
+            return _wikiTemplateRepo.TryRemoveNoCheck(id, out errmsg);
         }
 
         public class WikiTemplateListItem

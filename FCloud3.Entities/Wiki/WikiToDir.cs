@@ -21,5 +21,9 @@ namespace FCloud3.Entities.Wiki
 
         public int RelationMainId => DirId;
         public int RelationSubId=> WikiId;
+        public override string ToString()
+        {
+            return $"{DirId}-{WikiId}";
+        }
     }
 }
