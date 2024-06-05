@@ -18,7 +18,8 @@ namespace FCloud3.Repos.Etc.Caching
             {
                 Id = x.Id,
                 ParentDir = x.ParentDir,
-                Depth = x.Depth
+                Depth = x.Depth,
+                RootDir = x.RootDir
             });
         }
         protected override FileDirCachingModel GetFromDbModel(FileDir model)
@@ -27,7 +28,8 @@ namespace FCloud3.Repos.Etc.Caching
             {
                 Id = model.Id,
                 ParentDir = model.ParentDir,
-                Depth = model.Depth
+                Depth = model.Depth,
+                RootDir = model.RootDir
             };
         }
 
@@ -35,6 +37,7 @@ namespace FCloud3.Repos.Etc.Caching
         {
             target.Depth = from.Depth;
             target.ParentDir = from.ParentDir;
+            target.RootDir = from.RootDir;
         }
 
         public List<int>? GetChain(int id)
@@ -76,10 +79,12 @@ namespace FCloud3.Repos.Etc.Caching
                 children.ForEach(x =>
                 {
                     int shouldBeDepth = dir.Depth + 1;
-                    bool c = x.Depth != shouldBeDepth;
+                    bool depthChanged = x.Depth != shouldBeDepth;
                     x.Depth = shouldBeDepth;
+                    bool rootChanged = x.RootDir != dir.RootDir;
+                    x.RootDir = dir.RootDir;
                     setChildrenDepth(x, safety + 1);
-                    if(c)
+                    if(depthChanged || rootChanged)
                         changed.Add(x);
                 });
             }
@@ -94,6 +99,7 @@ namespace FCloud3.Repos.Etc.Caching
     public class FileDirCachingModel : CachingModelBase<FileDir>
     {
         public int ParentDir { get; set; }
+        public int RootDir { get; set; }
         public int Depth { get; set; }
     }
 }

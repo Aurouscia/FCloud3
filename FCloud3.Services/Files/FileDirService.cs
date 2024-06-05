@@ -294,7 +294,7 @@ namespace FCloud3.Services.Files
         {
             failMsg = null;
             var dist = _fileDirRepo.GetById(distDirId);
-            if (dist is null && distDirId!=0)
+            if (dist is null && distDirId != 0)
             {
                 errmsg = "未找到目的地文件夹";
                 return null; 
@@ -319,7 +319,8 @@ namespace FCloud3.Services.Files
             errmsg = null;
             var ds = _fileDirRepo.GetRangeByIds(fileDirIds).ToList();
 
-            var setDepth = dist is null ? 0 : dist.Depth+1;
+            var setDepth = dist is null ? 0 : dist.Depth+1; //如果父目录是0，那么深度设为0，否则设为父目录深度+1
+            int? setRoot = dist is null ? null : dist.RootDir; //如果父目录是0，那么root设为自己的id，否则设为父目录的root
 
             using var transaction = _dbTransactionService.BeginTransaction();
             try
@@ -328,6 +329,7 @@ namespace FCloud3.Services.Files
                 {
                     x.Depth = setDepth;
                     x.ParentDir = distDirId;
+                    x.RootDir = setRoot ?? x.Id;
                 });
                 if (!_fileDirRepo.TryEditRange(ds, out errmsg))
                     throw new Exception(errmsg);

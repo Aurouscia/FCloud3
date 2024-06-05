@@ -86,6 +86,7 @@ namespace FCloud3.Repos.Files
                 if (data is null)
                     continue;
                 m.Depth = data.Depth;
+                m.RootDir = data.RootDir;
             }
             if (!TryEditRange(dbModelsNeedMutate, out errmsg, false))
                 return false;

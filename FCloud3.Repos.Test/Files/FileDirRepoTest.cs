@@ -31,12 +31,12 @@ namespace FCloud3.Repos.Test.Files
             });
             _context.SaveChanges();
             
-            var dir1 = new FileDir() { Name = "DIR_1", UrlPathName = "dir-1", Depth = 0 };
-            var dir2 = new FileDir() { Name = "DIR_2", UrlPathName = "dir-2", Depth = 1, ParentDir = 1 };
-            var dir3 = new FileDir() { Name = "DIR_3", UrlPathName = "dir-3", Depth = 1, ParentDir = 1 };
-            var dir4 = new FileDir() { Name = "DIR_4", UrlPathName = "dir-4", Depth = 2, ParentDir = 2 };
-            var aaa5 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 2 };
-            var aaa6 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 3 };
+            var dir1 = new FileDir() { Name = "DIR_1", UrlPathName = "dir-1", Depth = 0, RootDir = 1};
+            var dir2 = new FileDir() { Name = "DIR_2", UrlPathName = "dir-2", Depth = 1, ParentDir = 1, RootDir = 1};
+            var dir3 = new FileDir() { Name = "DIR_3", UrlPathName = "dir-3", Depth = 1, ParentDir = 1, RootDir = 1 };
+            var dir4 = new FileDir() { Name = "DIR_4", UrlPathName = "dir-4", Depth = 2, ParentDir = 2, RootDir = 1 };
+            var aaa5 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 2, RootDir = 1 };
+            var aaa6 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 3, RootDir = 1 };
             _context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
             _context.SaveChanges();
 
@@ -135,38 +135,65 @@ namespace FCloud3.Repos.Test.Files
         #region 结构变化
 
         [TestMethod]
-        [DataRow("6->5","1|2,3|4,5|6")]
-        [DataRow("2->3","1|3|2,6|4,5")]
-        [DataRow("6->5  2->3","1|2,3|4,5|6  1|3|2|4,5|6")]
-        public void MoveDir(string howMoveList, string expectedDepthsList)
+        [DataRow("6->5", "1|2,3|4,5|6", "1,2,3,4,5,6")]
+        //表示6号目录移到5下后，1的depth应为0，23的depth应为1，45的depth应为2
+        [DataRow("2->3", "1|3|2,6|4,5", "1,2,3,4,5,6")]
+        [DataRow("6->5  2->3", "1|2,3|4,5|6  1|3|2|4,5|6", "1,2,3,4,5,6  1,2,3,4,5,6")]
+        [DataRow("2->0", "1,2|3,4,5|6", "1,3,6|2,4,5")]
+        [DataRow("2->0  6->4", "1,2|3,4,5|6  1,2|3,4,5|6", "1,3,6|2,4,5  1,3|2,4,5,6")]
+        [DataRow("4->3  3->0", "1|2,3|4,5,6  1,3|2,4,6|5", "1,2,3,4,5,6  1,2,5||3,4,6")]
+        //表示2号目录移到0下后，12的depth应为0，345的depth应为1，6的depth应为2，136的root应该为1，245的root应该为2
+        public void MoveDir(string howMoveList, string expectedDepthsList, string expectedRootList)
         {
             string[] howMoveArr = howMoveList.Split("  ");
             string[] expectedDepthArr = expectedDepthsList.Split("  ");
+            string[] expectedRootArr = expectedRootList.Split("  ");
             for (int i = 0; i < howMoveArr.Length; i++)
             {
                 string howMove = howMoveArr[i];
-                string expectedDepths = expectedDepthArr[i];
+                string expectedDepthsNow = expectedDepthArr[i];
+                string expectedRootNow = expectedRootArr[i];
                 string[] howMoveParts = howMove.Split("->");
                 int beMoved = int.Parse(howMoveParts[0]);
                 int to = int.Parse(howMoveParts[1]);
 
+                //首先改动要移动的目录本身
                 var moving = _repo.GetById(beMoved)!;
-                var destination = _repo.GetById(to)!;
-                moving.ParentDir = to;
-                moving.Depth = destination.Depth + 1;
+                moving.ParentDir = to;//设置父级目录id，0表示根目录
+                if (to == 0)//如果移动到根目录
+                {
+                    moving.Depth = 0;//深度设为0
+                    moving.RootDir = moving.Id;//root设为自己的id
+                }
+                else//如果移动到其他目录下
+                {
+                    var destination = _repo.GetById(to);
+                    moving.Depth = destination.Depth + 1;//深度设为目标深度+1
+                    moving.RootDir = destination.RootDir;//root设为父级的root
+                }
                 _repo.TryEdit(moving, out _);
 
+                //测试的方法：被移动的目录需要能将其子代作出相应的正确改动
                 _repo.UpdateDescendantsInfoFor([beMoved], out var errmsg);
                 Assert.IsNull(errmsg);
 
-                List<string> expectedDepthsHere = expectedDepths.Split('|').ToList();
-                for (int depth = 0; depth < expectedDepthsHere.Count; depth++)
+                //检查所有目录的深度是否正确
+                List<string> expectedDepthsNows = expectedDepthsNow.Split('|').ToList();
+                for (int depth = 0; depth < expectedDepthsNows.Count; depth++)
                 {
-                    List<int> expectedIdsThisDepth =
-                        expectedDepthsHere[depth].Split(',').ToList().ConvertAll(int.Parse);
+                    List<int> expectedIdsThisDepth = TestStrParse.IntList(expectedDepthsNows[depth]);
                     List<int> actualIdsThisDepth =
                         _repo.Existing.Where(x => x.Depth == depth).Select(x => x.Id).ToList();
                     CollectionAssert.AreEquivalent(expectedIdsThisDepth, actualIdsThisDepth);
+                }
+                //检查所有目录的root是否正确
+                List<string> expectedRootNows = expectedRootNow.Split('|').ToList();
+                for (int rootId = 1; rootId <= expectedRootNows.Count; rootId++)
+                {
+                    List<int> expectedIdsThisRoot = TestStrParse.IntList(expectedRootNows[rootId-1]);
+                    List<int> actualIdsThisRoot =
+                        _repo.Existing.Where(x => x.RootDir == rootId).Select(x => x.Id).ToList();
+                    CollectionAssert.AreEquivalent(expectedIdsThisRoot, actualIdsThisRoot);
                 }
             }
         }
