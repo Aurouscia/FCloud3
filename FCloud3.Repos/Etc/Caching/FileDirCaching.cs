@@ -69,6 +69,17 @@ namespace FCloud3.Repos.Etc.Caching
             var masterData = all.FindAll(x => masters.Contains(x.Id));
             //用changed记录哪些文件夹发生变化
             List<FileDirCachingModel> changed = [];
+            
+            //检查其中顶级目录的属性是否正确，如果不正确则修正并加入“已变化”列表
+            masterData.ForEach(x =>
+            {
+                if (x.ParentDir == 0 && (x.RootDir != x.Id || x.Depth != 0))
+                {
+                    x.RootDir = x.Id;
+                    x.Depth = 0;
+                    changed.Add(x);
+                }
+            });
 
             //从父代到子代计算depth
             void setChildrenDepth(FileDirCachingModel dir, int safety)

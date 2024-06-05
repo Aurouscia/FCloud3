@@ -38,6 +38,13 @@ namespace FCloud3.Repos.Files
             => Existing.GetChainIdsByPath(path);
         public List<FileDir>? GetChainByPath(string[] path)
             => Existing.GetChainByPath(path);
+        
+        /// <summary>
+        /// 将指定目录及其父目录，爷目录直到顶级目录全部更新时间设为现在
+        /// </summary>
+        /// <param name="id">目录id</param>
+        /// <param name="errmsg"></param>
+        /// <returns></returns>
         public bool SetUpdateTimeAncestrally(int id, out string? errmsg)
         {
             List<int>? chain = _fileDirCaching.GetChain(id);
@@ -50,6 +57,12 @@ namespace FCloud3.Repos.Files
             errmsg = null;
             return true;
         }
+        /// <summary>
+        /// 将指定目录及其父目录，爷目录直到顶级目录全部更新时间设为现在
+        /// </summary>
+        /// <param name="ids">目录id</param>
+        /// <param name="errmsg"></param>
+        /// <returns></returns>
         public bool SetUpdateTimeRangeAncestrally(List<int> ids, out string? errmsg)
         {
             var needUpdateIds = new List<int>();
@@ -72,9 +85,14 @@ namespace FCloud3.Repos.Files
         public IQueryable<FileDir>? GetChildrenById(int id)
             => Existing.Where(x => x.ParentDir == id);
 
+        /// <summary>
+        /// 对于刚刚被移动过的目录，更新其所有子孙目录的信息(深度，所属顶级目录等)，以确保匹配目录结构
+        /// </summary>
+        /// <param name="masters">刚刚被移动过的目录id</param>
+        /// <param name="errmsg"></param>
+        /// <returns></returns>
         public bool UpdateDescendantsInfoFor(List<int> masters, out string? errmsg)
         {
-            errmsg = null;
             //更新所有子代的计算涉及到大量查询，移动到caching服务里计算，
             //计算完成后的结果拿回来更新数据库
             var changedData = _fileDirCaching.UpdateDescendantsInfoFor(masters);
@@ -92,6 +110,17 @@ namespace FCloud3.Repos.Files
                 return false;
             errmsg = null; 
             return true;
+        }
+
+        /// <summary>
+        /// 针对所有顶级目录执行“更新其所有子孙目录的信息”，确保整个数据库中所有信息匹配目录结构
+        /// </summary>
+        /// <param name="errmsg"></param>
+        /// <returns></returns>
+        public bool ManualFixInfoForAll(out string? errmsg)
+        {
+            var roots = Existing.Where(x => x.ParentDir == 0).Select(x => x.Id).ToList();
+            return UpdateDescendantsInfoFor(roots, out errmsg);
         }
 
         public override bool TryAddCheck(FileDir item, out string? errmsg)

@@ -503,6 +503,8 @@ namespace FCloud3.Services.Files
             return false;
         }
 
+        public bool ManualFixInfoForAll(out string? errmsg) 
+            => _fileDirRepo.ManualFixInfoForAll(out errmsg);
 
         private const string homelessItems = "homeless-items";
         private static List<string> PreservedUrlPathNames()

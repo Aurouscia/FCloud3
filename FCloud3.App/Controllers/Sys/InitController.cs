@@ -5,6 +5,7 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Services.Etc.TempData.Context;
+using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,17 +18,20 @@ namespace FCloud3.App.Controllers.Sys
         private readonly FCloudContext _context;
         private readonly TempDataContext _tempDataContext;
         private readonly WikiTitleContainService _wikiTitleContainService;
+        private readonly FileDirService _fileDirService;
         private readonly static object migrateLockObj = new();
         public InitController(
             FCloudContext context,
             TempDataContext tempDataContext,
             WikiTitleContainService wikiTitleContainService,
+            FileDirService fileDirService,
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _tempDataContext = tempDataContext;
             _wikiTitleContainService = wikiTitleContainService;
+            _fileDirService = fileDirService;
 
             var code = httpContextAccessor.HttpContext?.Request.RouteValues["code"]?.ToString();
             if (string.IsNullOrWhiteSpace(code))
@@ -193,6 +197,14 @@ namespace FCloud3.App.Controllers.Sys
             _context.WikiTitleContains.AddRange(newContains);
             _context.SaveChanges();
             return this.ApiResp("已完成", true);
+        }
+
+        public IActionResult FileDirSystemFix()
+        {
+            _fileDirService.ManualFixInfoForAll(out var errmsg);
+            if (errmsg is null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp("已完成");
         }
     }
 }

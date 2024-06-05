@@ -5,6 +5,7 @@ using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Test.TestSupport;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Test.Files
 {
@@ -142,6 +143,7 @@ namespace FCloud3.Repos.Test.Files
         [DataRow("2->0", "1,2|3,4,5|6", "1,3,6|2,4,5")]
         [DataRow("2->0  6->4", "1,2|3,4,5|6  1,2|3,4,5|6", "1,3,6|2,4,5  1,3|2,4,5,6")]
         [DataRow("4->3  3->0", "1|2,3|4,5,6  1,3|2,4,6|5", "1,2,3,4,5,6  1,2,5||3,4,6")]
+        [DataRow("3->0  2->0", "1,3|2,6|4,5  1,2,3|4,5,6", "1,2,4,5||3,6  1|2,4,5|3,6")]
         //表示2号目录移到0下后，12的depth应为0，345的depth应为1，6的depth应为2，136的root应该为1，245的root应该为2
         public void MoveDir(string howMoveList, string expectedDepthsList, string expectedRootList)
         {
@@ -157,6 +159,7 @@ namespace FCloud3.Repos.Test.Files
                 int beMoved = int.Parse(howMoveParts[0]);
                 int to = int.Parse(howMoveParts[1]);
 
+                //此处模拟移动目录的操作
                 //首先改动要移动的目录本身
                 var moving = _repo.GetById(beMoved)!;
                 moving.ParentDir = to;//设置父级目录id，0表示根目录
@@ -195,6 +198,39 @@ namespace FCloud3.Repos.Test.Files
                         _repo.Existing.Where(x => x.RootDir == rootId).Select(x => x.Id).ToList();
                     CollectionAssert.AreEquivalent(expectedIdsThisRoot, actualIdsThisRoot);
                 }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(2, 0, "1,2|3,4,5|6", "1,3,6|2,4,5")]
+        [DataRow(5, 0, "1,5|2,3|4,6", "1,2,3,4,6||||5")]
+        public void ManualFix(int moveDir, int to, string expectedDepthsList, string expectedRootList)
+        {
+            //在depths和rootDir全错的情况下，只要ParentDir还在，就可以全部重新算对
+            _context.FileDirs.ExecuteUpdate(c 
+                => c.SetProperty(x => x.RootDir, 100));
+            _context.FileDirs.ExecuteUpdate(c 
+                => c.SetProperty(x => x.Depth, 100));
+            _context.FileDirs.Where(x => x.Id == moveDir).ExecuteUpdate(c
+                => c.SetProperty(x => x.ParentDir, to));
+            _context.ChangeTracker.Clear();
+            _repo.ManualFixInfoForAll(out _);
+
+            var depthsList = expectedDepthsList.Split('|');
+            for (int depth = 0; depth < depthsList.Length; depth++)
+            {
+                var expectedToBeThisDepth = TestStrParse.IntList(depthsList[depth]);
+                var actualThisDepths = 
+                    _context.FileDirs.Where(x => x.Depth == depth).Select(x => x.Id).ToList();
+                CollectionAssert.AreEquivalent(expectedToBeThisDepth, actualThisDepths);
+            }
+            List<string> expectedRootNows = expectedRootList.Split('|').ToList();
+            for (int rootId = 1; rootId <= expectedRootNows.Count; rootId++)
+            {
+                var expectedIdsThisRoot = TestStrParse.IntList(expectedRootNows[rootId-1]);
+                var actualIdsThisRoot =
+                    _repo.Existing.Where(x => x.RootDir == rootId).Select(x => x.Id).ToList();
+                CollectionAssert.AreEquivalent(expectedIdsThisRoot, actualIdsThisRoot);
             }
         }
         #endregion
