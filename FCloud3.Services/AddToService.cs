@@ -50,7 +50,7 @@ namespace FCloud3.Services
             services.AddScoped<QuickSearchService>();
             services.AddSingleton<CacheExpTokenService>();
             services.AddScoped<LatestWorkService>();
-
+            services.AddScoped<WikiCenteredHomePageService>();
 
 
             string storageType = config["FileStorage:Type"] ?? "Local";
