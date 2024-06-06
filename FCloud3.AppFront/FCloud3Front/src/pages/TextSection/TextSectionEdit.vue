@@ -20,6 +20,7 @@ import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '@/utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import { useRouter } from 'vue-router';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -27,9 +28,10 @@ const locatorHash:(str:string)=>string = (str)=>{
 
 const props = defineProps<{id:string}>()
 var textSecId:number = Number(props.id);
-const previewOn = ref<boolean>(true);
+const previewOn = ref<boolean>(false);
 var api:Api
 var pop:Ref<InstanceType<typeof Pop>>;
+const router = useRouter();
 
 const preScriptsDiv = ref<HTMLDivElement>();
 const postScriptsDiv = ref<HTMLDivElement>();
@@ -172,6 +174,9 @@ async function replaceContent() {
         releasePreventLeaving()
         initialContent = data.value.Content || "";
     }
+}
+function leave(){
+    router.back();
 }
 
 let initialContent:string = "";
@@ -340,8 +345,11 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
                 链接
             </button>
         </div>
-        <button @click="replaceContent">
+        <button v-if="preventingLeaving" @click="replaceContent">
             保存
+        </button>
+        <button v-else @click="leave">
+            退出
         </button>
     </div>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>

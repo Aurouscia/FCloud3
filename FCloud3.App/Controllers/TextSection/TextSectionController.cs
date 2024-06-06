@@ -75,7 +75,6 @@ namespace FCloud3.App.Controllers.TextSec
             var parser = _genParser.Get(cacheKey, builder =>
             {
                 builder.UseLocatorHash(_locatorHash);
-                builder.EnableDebugInfo();
                 builder.ClearUsageInfoOnCall();
             },
             contains,

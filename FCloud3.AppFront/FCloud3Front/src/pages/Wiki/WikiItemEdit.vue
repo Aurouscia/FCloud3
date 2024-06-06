@@ -471,3 +471,11 @@ h1 button{
     transition: 0.1s;
 }
 </style>
+
+<style>
+.paras .icon{
+    background-color: white;
+    padding: 2px;
+    border-radius: 4px;
+}
+</style>

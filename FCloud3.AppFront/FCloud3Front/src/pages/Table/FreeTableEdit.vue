@@ -14,10 +14,13 @@ import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import leaveImg from '@/assets/leave.svg';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
     id:string
 }>();
+const router = useRouter();
 
 const tableInfo = ref<FreeTable>(); 
 const tableData = ref<AuTableData>();
@@ -50,6 +53,9 @@ function getContent() {
     if(!tableData.value){return;}
     return join(tableData.value.cells.map(row=>join(row, ',')), ',')
 }
+function leave(){
+    router.back();
+}
 
 let api:Api;
 let setTopBar: SetTopbarFunc|undefined;
@@ -78,6 +84,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 <div v-if="tableInfo && loadComplete" class="freeTableEdit">
     <AuTableEditor v-if="tableData" :table-data="tableData" @save="editContent" @changed="preventLeaving">
     </AuTableEditor>
+    <img class="leaveBtn" v-if="!preventingLeaving" :src="leaveImg" @click="leave"/>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
     <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
     <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链接</button>
@@ -91,6 +98,21 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 </template>
 
 <style scoped>
+.leaveBtn{
+    width: 30px;
+    height: 30px;
+    background-color: cornflowerblue;
+    border-radius: 5px;
+    position: absolute;
+    top:4px;
+    right: 3px;
+    z-index: 19900;
+    cursor: pointer;
+    transition: 0.5s;
+}
+.leaveBtn:hover{
+    background-color: rgb(0, 49, 139);;
+}
 .preventingLeaving{
     width: 10px;
     height: 10px;
