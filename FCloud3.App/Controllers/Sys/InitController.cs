@@ -206,5 +206,28 @@ namespace FCloud3.App.Controllers.Sys
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp("已完成");
         }
+
+        public IActionResult NameLengthFix()
+        {
+            //蠢事：设置数据库内名称长度限制和新增列放在了同一个migration进行
+            //试图migrate时报错：会造成数据截断，拒绝执行
+            //试图更新名称过长的模型时：缺少列，无法ToList
+            //只能用ExecuteUpdate修复
+
+            //忘记设置数据库长度就算了，别管他了
+            var titleTooLongWikis = _context.WikiItems.Where(x => x.Title != null && x.Title.Length > WikiItem.titleMaxLength).ToList();
+            titleTooLongWikis.ForEach(w => w.Title = w.Title!.Substring(0, 32));
+            var nameTooLongDirs = _context.FileDirs
+                .Where(x => x.Name != null && x.Name.Length > FileDir.nameMaxLength)
+                .Select(x => new {x.Id, x.Name})
+                .ToList();
+            foreach(var dir in nameTooLongDirs)
+            {
+                _context.FileDirs.Where(x => x.Id == dir.Id)
+                    .ExecuteUpdate(c => c.SetProperty(d => d.Name, dir.Name!.Substring(0, FileDir.nameMaxLength)));
+            }
+            _context.SaveChanges();
+            return this.ApiResp("已完成");
+        }
     }
 }
