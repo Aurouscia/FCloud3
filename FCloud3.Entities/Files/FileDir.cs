@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,9 @@ namespace FCloud3.Entities.Files
     public class FileDir: IDbModel, IPathable
     {
         public int Id { get; set; }
+        [MaxLength(nameMaxLength)]
         public string? Name { get; set; }
+        [MaxLength(urlPathNameMaxLength)]
         public string? UrlPathName { get; set; }
         public int ParentDir {  get; set; }
         public int RootDir { get; set; }
@@ -26,5 +29,8 @@ namespace FCloud3.Entities.Files
         {
             return $"Id:{Id} 父级:{ParentDir}";
         }
+
+        public const int nameMaxLength = 32;
+        public const int urlPathNameMaxLength = 32;
     }
 }

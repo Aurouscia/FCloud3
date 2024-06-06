@@ -137,16 +137,26 @@ namespace FCloud3.Repos.Files
             errmsg = null;
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                errmsg = "文件夹名称不能为空";
+                errmsg = "目录名称不能为空";
                 return false;
             }
             if (string.IsNullOrWhiteSpace(item.UrlPathName)){
-                errmsg = "文件夹路径名不能为空";
+                errmsg = "目录路径名不能为空";
                 return false;
             }
             if (item.UrlPathName == zeroIdxUrlPathName)
             {
                 errmsg = "请勿使用该路径名";
+                return false;
+            }
+            if (item.Name.Length > FileDir.nameMaxLength)
+            {
+                errmsg = $"目录名不能超过{FileDir.nameMaxLength}个字符";
+                return false;
+            }
+            if (item.UrlPathName.Length > FileDir.urlPathNameMaxLength)
+            {
+                errmsg = $"路径名不能超过{FileDir.urlPathNameMaxLength}个字符";
                 return false;
             }
             if (!Regex.IsMatch(item.UrlPathName, validUrlPathNamePattern))
@@ -156,14 +166,14 @@ namespace FCloud3.Repos.Files
             }
             if (item.Depth > 10)
             {
-                errmsg = "文件夹层数过深";
+                errmsg = "目录层数过深";
                 return false;
             }
             var conflict = Existing.Where(x => x.Id!=item.Id && x.ParentDir == item.ParentDir && x.UrlPathName == item.UrlPathName)
                 .Select(x => x.Name).FirstOrDefault();
             if (conflict is not null)
             {
-                errmsg = $"冲突：此处已有同样路径名的其他文件夹【{conflict}】";
+                errmsg = $"冲突：此处已有同样路径名的其他目录【{conflict}】";
                 return false;
             }
             return true;

@@ -65,6 +65,16 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "词条路径名不能为空";
                 return false;
             }
+            if (item.Title.Length > WikiItem.titleMaxLength)
+            {
+                errmsg = $"词条标题不能超过{WikiItem.titleMaxLength}个字符";
+                return false;
+            }
+            if (item.UrlPathName.Length > WikiItem.urlPathNameMaxLength)
+            {
+                errmsg = $"词条路径名不能超过{WikiItem.urlPathNameMaxLength}个字符";
+                return false;
+            }
             if (!Regex.IsMatch(item.UrlPathName,validUrlPathNamePattern))
             {
                 errmsg = "路径名只能有英文字母，数字和\"-\"";
