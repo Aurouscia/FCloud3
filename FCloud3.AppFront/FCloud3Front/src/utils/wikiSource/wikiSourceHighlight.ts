@@ -8,7 +8,7 @@ export class WikiSourceHighlighter {
         this.ranges = []
         this.t = t;
         this.matchAndMake(/\*\*.+?\*\*/g, "bold");
-        this.matchAndMake(/\*.+?\*/g, "italic");
+        this.matchAndMake(/(?<!\*)\*[^\*]+?\*(?!\*)/g, "italic");
         this.matchAndMake(/~~.+?~~/g, "lineThrough")
         this.matchAndMake(/(?<=(^|\n))#+ .*(?=($|\n))/g, "subtitle");
         this.matchAndMake(/(?<=(^|\n))\[\^.+\].+/g, "footnoteBody");
