@@ -3,7 +3,7 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using MimeMapping;
 
-namespace FCloud3.App.Controllers.Etc
+namespace FCloud3.App.Controllers.Sys
 {
     public class StaticFilesController : Controller
     {
