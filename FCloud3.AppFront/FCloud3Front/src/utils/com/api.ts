@@ -27,6 +27,7 @@ import { NotifViewResult, NotificationGetRequest } from '@/models/messages/notif
 import { OpRecordGetRequest, OpRecordViewModel } from '@/models/messages/opRecord';
 import { LatestWorkViewItem } from '@/models/etc/latestWork';
 import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
+import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
 
 
 export class Api{
@@ -1014,6 +1015,19 @@ export class Api{
             )
             if(resp.success){
                 return resp.data as LatestWorkViewItem[]
+            }
+        }
+    }
+    etc = {
+        wikiCenteredHomePage:{
+            get:async()=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiCenteredHomePage/Get",
+                    "get"
+                );
+                if(resp.success){
+                    return resp.data as WikiCenteredHomePage
+                }
             }
         }
     }
