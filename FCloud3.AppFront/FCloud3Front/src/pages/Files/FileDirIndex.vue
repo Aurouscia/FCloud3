@@ -436,5 +436,6 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 }
 .fileDir{
     padding-top: 10px;
+    min-height: 400px;
 }
 </style>
