@@ -15,6 +15,7 @@ const doneBtnStatus = ref<boolean>(false);
 const isFreeInput = ref<boolean>(false);
 const searching = ref<string>("");
 const selectedId = ref<number>(0);
+const selectedDesc = ref<string>();
 const cands = ref<QuickSearchResult>();
 const isSearching = ref<boolean>(false);
 const inputing = ref<boolean>(false);
@@ -48,6 +49,7 @@ function refreshCand(){
 function clickCand(c:QuickSearchResultItem){
     searching.value = c.Name;
     selectedId.value = c.Id;
+    selectedDesc.value = c.Desc;
     doneBtnStatus.value = true;
     isFreeInput.value = false;
     if(cands.value){
@@ -56,7 +58,7 @@ function clickCand(c:QuickSearchResultItem){
 }
 function done(){
     if(doneBtnStatus.value){
-        emits('done',searching.value,selectedId.value);
+        emits('done',searching.value, selectedId.value, selectedDesc.value);
         if(!props.dontClearAfterDone){
             clear()
         }
@@ -68,10 +70,11 @@ function clear(){
     doneBtnStatus.value = false;
     cands.value = undefined;
     selectCand.value = -1;
+    selectedDesc.value = undefined;
 }
 
 const emits = defineEmits<{
-    (e:'done',value:string,id:number):void
+    (e:'done',value:string,id:number,desc?:string):void
     (e:'stopInput',value:string):void
 }>();
 defineExpose({clear});
@@ -238,5 +241,6 @@ onUnmounted(()=>{
 .searchOuter{
     display: flex;
     justify-content: center;
+    overflow: visible;
 }
 </style>

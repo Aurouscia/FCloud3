@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import Search from '@/components/Search.vue';
 import WikiCenteredHomePage from './WikiCenteredHomePage.vue';
+import { injectApi } from '@/provides';
+import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
+
+const api = injectApi();
+const { jumpToViewWiki } = useWikiParsingRoutesJump();
 </script>
 
 <template>
@@ -8,11 +14,17 @@ import WikiCenteredHomePage from './WikiCenteredHomePage.vue';
         这里是我们的架空世界地图库和WIKI<br/>
         请随意浏览或者上传自己的作品
     </div>
+    <div class="search">
+        <Search :source="api.utils.quickSearch.wikiItem" @done="(_v,_i,u)=>jumpToViewWiki(u)" :placeholder="'搜索站内词条'"></Search>
+    </div>
     <WikiCenteredHomePage>
     </WikiCenteredHomePage>
 </template>
 
 <style scoped>
+.search{
+    overflow: visible !important;
+}
 .welcome{
     text-align: center;
     margin: 10px;
