@@ -453,16 +453,25 @@ namespace FCloud3.Services.Files
             int depth = 0;
             if (parent is not null)
                 depth = parent.Depth + 1;
+            int rootDir = 0;
+            if (parent is not null)
+                rootDir = parent.RootDir;
             FileDir newDir = new()
             {
                 ParentDir = parentDir,
                 Name = name,
                 UrlPathName = urlPathName,
-                Depth = depth
+                Depth = depth,
+                RootDir = rootDir
             };
             int created = _fileDirRepo.TryAddAndGetId(newDir, out errmsg);
             if (created > 0)
             {
+                if (newDir.RootDir == 0)
+                {
+                    newDir.RootDir = created;
+                    _fileDirRepo.TryEdit(newDir, out _);
+                }
                 string parentName = parent?.Name ?? "根文件夹";
                 _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
