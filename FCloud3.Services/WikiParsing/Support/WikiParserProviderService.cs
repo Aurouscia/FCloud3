@@ -119,7 +119,7 @@ namespace FCloud3.Services.WikiParsing.Support
         {
             if (heightExp is null)
                 heightExp = "2rem";
-            else if (int.TryParse(heightExp, out int _))
+            else if (float.TryParse(heightExp, out float _))
                 heightExp += "rem";
             return $"<img class=\"wikiInlineImg\" src=\"{MaterialSrc(pathName)}\" style=\"height:{heightExp}\" />";
         }
