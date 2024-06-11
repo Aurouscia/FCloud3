@@ -192,6 +192,13 @@ a{
   vertical-align: middle;
   object-fit: contain;
 }
+.bigAvatar{
+  width: 150px;
+  height: 150px;
+  border:2px solid #eee;
+  border-radius: 1000px;
+  object-fit: contain;
+}
 
 .notifExists{
   background-color: red;

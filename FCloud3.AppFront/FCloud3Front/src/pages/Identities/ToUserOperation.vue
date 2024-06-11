@@ -5,6 +5,7 @@ import { UserIndexItem, UserType } from '@/models/identities/user';
 import { injectApi } from '@/provides';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { storeToRefs } from 'pinia';
+import { useIdentityRoutesJump } from './routes/routesJump';
 
 const props = defineProps<{
     user:UserIndexItem
@@ -21,6 +22,7 @@ async function setType(){
 let api:Api;
 const {iden} = storeToRefs(useIdentityInfoStore())
 const ready = ref<boolean>(false);
+const { jumpToUserCenter } = useIdentityRoutesJump();
 onMounted(async()=>{
     api = injectApi();
     ready.value = true;
@@ -32,7 +34,12 @@ const emits = defineEmits<{
 </script>
 
 <template>
-    <div v-if="ready">
+    <div v-if="ready" class="outer">
+        <div>
+            <img class="bigAvatar" :src="user?.Avatar"/>
+            <div class="username">{{ user.Name }}</div>
+            <button @click="jumpToUserCenter(user.Name)">查看个人页面</button>
+        </div>
         <div v-if="iden.Type>=UserType.Admin" style="text-align: center;">
             <select v-model="selectedType">
                 <option :value="UserType.Tourist">游客</option>
@@ -42,10 +49,25 @@ const emits = defineEmits<{
             </select>
             <button @click="setType">确定</button>
         </div>
+        <div>
+            私聊功能暂未开发，若有需要请在其任意作品评论区留下qq号等联系方式
+        </div>
     </div>
 </template>
 
 <style scoped>
+.username{
+    font-size: 20px;
+    margin: 8px;
+}
+.outer{
+    display: flex;
+    flex-direction: column;
+    gap:30px;
+}
+.outer div{
+    text-align: center;
+}
 select{
     width: 150px;
 }

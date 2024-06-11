@@ -84,7 +84,7 @@ onUnmounted(()=>{
 <template>
     <div v-if="ok && user" class="user">
         <div class="info">
-            <img :src="user?.AvatarSrc"/>
+            <img class="bigAvatar" :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
             <div class="motto">暂无简介</div>
             <div class="settings">
@@ -126,13 +126,6 @@ onUnmounted(()=>{
     flex-direction: column;
     align-items: center;
     margin: 20px;
-}
-.info img{
-    width: 150px;
-    height: 150px;
-    border:2px solid #eee;
-    border-radius: 1000px;
-    object-fit: contain;
 }
 
 .user{
