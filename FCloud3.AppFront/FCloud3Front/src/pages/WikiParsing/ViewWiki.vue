@@ -27,6 +27,7 @@ import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import Recommends from './Recommends.vue';
 import { IdentityInfo } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
+import LongPress from '@/components/LongPress.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -229,11 +230,11 @@ onUnmounted(()=>{
                 <span @click="jumpToUserCenter(authorName)">{{ authorName }}</span><br/>
                 更新于 {{ data.Update }}
             </div>
-            <div>
-                <button @click="jumpToWikiEdit(wikiPathName)">编辑词条</button><br/>
-                <button v-if="currentUser.Type >= UserType.Admin" @click="toggleSealed" class="minor">
+            <div class="btns">
+                <button @click="jumpToWikiEdit(wikiPathName)">编辑词条</button>
+                <LongPress v-if="currentUser.Type >= UserType.Admin" :reached="toggleSealed">
                     {{ sealed ? '解除隐藏': '隐藏词条'}}
-                </button>
+                </LongPress>
             </div>
         </div>
         <div v-if="sealed" class="sealed">该词条已被隐藏</div>
@@ -365,6 +366,11 @@ onUnmounted(()=>{
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+.btns{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 .sealed{
     color:red;

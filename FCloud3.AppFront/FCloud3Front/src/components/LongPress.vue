@@ -11,10 +11,10 @@ const resting = ref<boolean>(false);
 
 function press(){
     pressed.value = true;
+    resting.value = false;
 }
 function release(){
     pressed.value = false;
-    resting.value = false;
 }
 function refresh(){
     if(pressed.value && !resting.value){
@@ -64,24 +64,28 @@ onBeforeUnmount(()=>{
     display: inline-flex;
     flex-direction: column;
     padding: 0px;
-    border-left: 3px solid #ccc;
-    border-right: 3px solid #ccc;
     text-align: left;
+}
+.outer *{
+    transition: none !important;
 }
 .btn{
     margin: 0px;
+    padding: 0px 2px 0px 2px;
+    color: #666;
     border: none;
     user-select: none;
+    background-color: transparent;
 }
 .progress{
     margin: 0px;
-    height: 10px;
+    height: 5px;
     width:100%;
 }
 .progressInner{
     margin: auto;
     padding: 0px;
-    height: 10px;
+    height: 5px;
     background-color: orange;
 }
 .resting{
