@@ -114,6 +114,16 @@ namespace FCloud3.App.Controllers.Wiki
             return this.ApiResp(res);
         }
 
+        [Authorize]
+        [UserTypeRestricted(UserType.Admin)]
+        public IActionResult SetSealed(int id, bool @sealed)
+        {
+            var res = _wikiService.SetSealed(id, @sealed, out string? errmsg);
+            if (!res)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
         public class WikiItemComModel : IAuthGrantableRequestModel
         {
             public int Id { get; set; }

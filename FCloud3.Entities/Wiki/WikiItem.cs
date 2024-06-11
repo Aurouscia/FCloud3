@@ -12,6 +12,7 @@ namespace FCloud3.Entities.Wiki
         [MaxLength(urlPathNameMaxLength)]
         public string? UrlPathName { get; set; }
         public int OwnerUserId { get; set; }
+        public bool Sealed { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

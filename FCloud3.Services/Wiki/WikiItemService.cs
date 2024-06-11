@@ -312,6 +312,18 @@ namespace FCloud3.Services.Wiki
             errmsg = null;
             return true;
         }
+        public bool SetSealed(int wikiId, bool @sealed, out string? errmsg)
+        {
+            var w = _wikiRepo.GetById(wikiId);
+            if (w is null)
+            {
+                errmsg = "找不到指定的词条";
+                return false;
+            }
+            w.Sealed = @sealed;
+            //不应造成更新时间变化，否则会重新解析词条
+            return _wikiRepo.TryEdit(w, out errmsg, false);
+        }
 
         private void SetWikiUpdated(int wikiId)
         {
