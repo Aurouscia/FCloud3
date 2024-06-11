@@ -34,6 +34,7 @@ namespace FCloud3.Services.WikiParsing
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         IStorage storage,
+        IOperatingUserIdProvider userIdProvider,
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
@@ -48,6 +49,7 @@ namespace FCloud3.Services.WikiParsing
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
+        private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
         public WikiDisplayInfo GetWikiDisplayInfo(string pathName)
@@ -75,11 +77,13 @@ namespace FCloud3.Services.WikiParsing
             };
         }
         
-        public Stream? GetParsedWikiStream(string pathName)
+        public Stream? GetParsedWikiStream(string pathName, bool bypassSeal = false)
         {
             var w = _wikiItemCaching.Get(pathName);
             if (w is null)
                 return null;
+            if (w.Sealed && _userIdProvider.Get() != w.OwnerId && !bypassSeal)
+                return null;//对于隐藏的词条，又不是拥有者又不是管理，就当不存在的
             return GetParsedWikiStream(w.Id, w.Update);
         }
         public Stream GetParsedWikiStream(int id, DateTime update)

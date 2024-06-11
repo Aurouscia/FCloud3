@@ -21,7 +21,7 @@ namespace FCloud3.Services.Etc
             int randRange = 300;
             
             var tops = (
-                from w in _wikiItemRepo.Existing
+                from w in _wikiItemRepo.ExistingAndNotSealed
                 from dd in _fileDirRepo.Existing
                 from d in _fileDirRepo.Existing
                 from wd in _wikiToDirRepo.Existing
@@ -51,7 +51,7 @@ namespace FCloud3.Services.Etc
                 .Select(x => new WikiCenteredHomePage.Wiki(x.WPath, x.WTitle))
                 .DistinctBy(x => x.Path).Take(latestCount).ToList();
             
-            var randFromWikiIds = _wikiItemRepo.Existing
+            var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
                 .OrderByDescending(x => x.Updated)
                 .Select(x => x.Id)
                 .Take(randRange).ToList();
@@ -67,7 +67,7 @@ namespace FCloud3.Services.Etc
             {
                 //如果当前是登录用户，那么找出包含其拥有词条最多的顶级文件夹，并插入到第一个位置
                 var containingMine = (
-                    from w in _wikiItemRepo.Existing.Where(x => x.OwnerUserId == uid)
+                    from w in _wikiItemRepo.ExistingAndNotSealed.Where(x => x.OwnerUserId == uid)
                     from dd in _fileDirRepo.Existing
                     from d in _fileDirRepo.Existing
                     from wd in _wikiToDirRepo.Existing

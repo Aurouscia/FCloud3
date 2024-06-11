@@ -17,6 +17,7 @@ namespace FCloud3.Repos.Wiki
         {
         }
 
+        public IQueryable<WikiItem> ExistingAndNotSealed => Existing.Where(x => !x.Sealed);
         public IQueryable<WikiItem> QuickSearch(string str)
         {
             return Existing

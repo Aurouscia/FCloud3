@@ -14,6 +14,7 @@ namespace FCloud3.App.Services.Utils
         public UserType Type { get; } = UserType.Tourist;
         public int LeftHours { get; } = 0;
         public string? AvtSrc { get; }
+        public bool IsAdmin => Type > UserType.Admin;
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {
             AvtSrc = userService.DefaultAvatar();

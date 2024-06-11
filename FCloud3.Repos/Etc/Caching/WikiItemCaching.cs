@@ -23,15 +23,16 @@ namespace FCloud3.Repos.Etc.Caching
 
         protected override IQueryable<WikiItemCachingModel> GetFromDbModel(IQueryable<WikiItem> dbModels)
         {
-            return dbModels.Select(x => new WikiItemCachingModel(x.Id, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
+            return dbModels.Select(x => new WikiItemCachingModel(x.Id, x.Sealed, x.OwnerUserId, x.Title, x.UrlPathName, x.Updated));
         }
         protected override WikiItemCachingModel GetFromDbModel(WikiItem model)
         {
-            return new(model.Id, model.OwnerUserId, model.Title, model.UrlPathName, model.Updated);
+            return new(model.Id, model.Sealed, model.OwnerUserId, model.Title, model.UrlPathName, model.Updated);
         }
         protected override void MutateByDbModel(WikiItemCachingModel target, WikiItem from)
         {
             target.Title = from.Title;
+            target.Sealed = from.Sealed;
             target.UrlPathName = from.UrlPathName;
             target.Update = from.Updated;
             target.OwnerId = from.OwnerUserId;
@@ -41,12 +42,14 @@ namespace FCloud3.Repos.Etc.Caching
     public class WikiItemCachingModel : CachingModelBase<WikiItem>
     {
         public int OwnerId { get; set; }
+        public bool Sealed { get; set; }
         public string? Title { get; set; }
         public string? UrlPathName { get; set; }
         public DateTime Update { get; set; }
-        public WikiItemCachingModel(int id, int ownerId, string? title, string? urlPathName, DateTime update)
+        public WikiItemCachingModel(int id, bool @sealed, int ownerId, string? title, string? urlPathName, DateTime update)
         {
             Id = id;
+            Sealed = @sealed;
             OwnerId = ownerId;
             Title = title;
             UrlPathName = urlPathName;
