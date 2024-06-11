@@ -30,6 +30,12 @@ namespace FCloud3.App.Controllers.WikiParsing
             return this.ApiFailedResp("找不到该词条");
         }
 
+        public IActionResult GetWikiDisplayInfo(string pathName)
+        {
+            var res = _wikiParsingService.GetWikiDisplayInfo(pathName);
+            return this.ApiResp(res);
+        }
+
         public IActionResult GetRulesCommons([FromBody] List<string> ruleNames)
         {
             var res = _wikiParsingRulesProvider.GetCommonsOfRules(ruleNames);

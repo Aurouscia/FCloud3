@@ -322,7 +322,13 @@ namespace FCloud3.Services.Wiki
             }
             w.Sealed = @sealed;
             //不应造成更新时间变化，否则会重新解析词条
-            return _wikiRepo.TryEdit(w, out errmsg, false);
+            var s = _wikiRepo.TryEdit(w, out errmsg, false);
+            if (s)
+            {
+                string opStr = @sealed ? "隐藏" : "解除隐藏";
+                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, opStr);
+            }
+            return s;
         }
 
         private void SetWikiUpdated(int wikiId)

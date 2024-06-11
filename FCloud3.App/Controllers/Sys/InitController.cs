@@ -202,7 +202,7 @@ namespace FCloud3.App.Controllers.Sys
         public IActionResult FileDirSystemFix()
         {
             _fileDirService.ManualFixInfoForAll(out var errmsg);
-            if (errmsg is null)
+            if (errmsg is not null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp("已完成");
         }

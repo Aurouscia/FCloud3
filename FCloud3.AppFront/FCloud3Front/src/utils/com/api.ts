@@ -28,6 +28,7 @@ import { OpRecordGetRequest, OpRecordViewModel } from '@/models/messages/opRecor
 import { LatestWorkViewItem } from '@/models/etc/latestWork';
 import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
 import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
+import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
 
 
 export class Api{
@@ -382,6 +383,13 @@ export class Api{
             }
             return false;
         },
+        setSealed:async(wikiId:number,sealed:boolean)=>{
+            const resp = await this.httpClient.request(
+                "/api/WikiItem/SetSealed","postForm",
+                {id:wikiId, sealed:sealed}, "设置成功", true
+            )
+            return resp.success;
+        },
         para:{
             setFileParaFileId:async(paraId:number,fileId:number)=>{
                 const resp = await this.httpClient.request(
@@ -501,6 +509,14 @@ export class Api{
                     "getStream",{pathName})
                 if(res.success){
                     return res.data as WikiParsingResult
+                }
+            },
+            getWikiDisplayInfo: async(pathName:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiParsing/GetWikiDisplayInfo",
+                    "get",{pathName})
+                if(res.success){
+                    return res.data as WikiDisplayInfo
                 }
             },
             getRulesCommons: async(ruleNames:string[])=>{

@@ -17,6 +17,7 @@ using FCloud3.Services.WikiParsing.Support;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Identities;
 
 namespace FCloud3.Services.WikiParsing
 {
@@ -28,6 +29,8 @@ namespace FCloud3.Services.WikiParsing
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
         FileItemRepo fileItemRepo,
+        UserRepo userRepo,
+        MaterialRepo materialRepo,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         IStorage storage,
@@ -40,11 +43,38 @@ namespace FCloud3.Services.WikiParsing
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
+        private readonly UserRepo _userRepo = userRepo;
+        private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
+        public WikiDisplayInfo GetWikiDisplayInfo(string pathName)
+        {
+            var info = (
+                from w in _wikiItemRepo.Existing
+                from u in _userRepo.Existing
+                from m in _materialRepo.Existing
+                where w.UrlPathName == pathName
+                where w.OwnerUserId == u.Id
+                where u.AvatarMaterialId == m.Id
+                select new
+                {
+                    WikiId = w.Id,
+                    UserName = u.Name,
+                    UserAvtPath = m.StorePathName,
+                    WikiSealed = w.Sealed
+                }).FirstOrDefault();
+            return new WikiDisplayInfo()
+            {
+                WikiId = info.WikiId,
+                UserName = info?.UserName ?? "??",
+                UserAvtSrc = _storage.FullUrl(info?.UserAvtPath ?? "??"),
+                Sealed = info.WikiSealed
+            };
+        }
+        
         public Stream? GetParsedWikiStream(string pathName)
         {
             var w = _wikiItemCaching.Get(pathName);
@@ -77,8 +107,7 @@ namespace FCloud3.Services.WikiParsing
                 return _wikiParsedResult.Read(id, update) ?? throw new Exception("结果文件写入失败");
             }
         }
-
-
+        
         public WikiParsingResult GetParsedWiki(string pathName)
         {
             var w =  _wikiItemRepo.GetByUrlPathName(pathName).FirstOrDefault();
@@ -290,6 +319,13 @@ namespace FCloud3.Services.WikiParsing
                     };
                 }
             }
+        }
+        public class WikiDisplayInfo
+        {
+            public int WikiId { get; set; }
+            public string UserName { get; set; }
+            public string UserAvtSrc { get; set; }
+            public bool Sealed { get; set; }
         }
     }
 }

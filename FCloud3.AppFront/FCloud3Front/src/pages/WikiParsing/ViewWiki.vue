@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi } from '@/provides';
+import { injectApi, injectIdentityInfoProvider } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
@@ -25,6 +25,8 @@ import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 import { sleep } from '@/utils/sleep';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import Recommends from './Recommends.vue';
+import { IdentityInfo } from '@/utils/globalStores/identityInfo';
+import { UserType } from '@/models/identities/user';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -41,8 +43,11 @@ const stylesContent = ref<string>("");
 const preScripts = ref<HTMLDivElement>();
 const postScripts = ref<HTMLDivElement>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
-const userName = ref<string>("")
-const userAvtSrc = ref<string>("")
+const wikiId = ref<number>(0);
+const authorName = ref<string>("")
+const authorAvtSrc = ref<string>("")
+const sealed = ref(false)
+const currentUser = ref<IdentityInfo>();
 async function load(){
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
     stylesContent.value = data.value?.Styles || "";
@@ -54,13 +59,17 @@ async function load(){
     if(postScripts.value){
         updateScript(postScripts.value, data.value?.PostScripts || "", "module");
     }
-    userName.value = "";
-    userAvtSrc.value = "";
+    authorName.value = "";
+    authorAvtSrc.value = "";
+    sealed.value = false;
+    wikiId.value = 0;
     if(data.value){
-        const user = await api.identites.user.getInfo(data.value?.OwnerId)
-        if(user){
-            userName.value = user.Name;
-            userAvtSrc.value = user.AvatarSrc;
+        const info = await api.wikiParsing.wikiParsing.getWikiDisplayInfo(props.wikiPathName);
+        if(info){
+            authorName.value = info.UserName;
+            authorAvtSrc.value = info.UserAvtSrc;
+            sealed.value = info.Sealed;
+            wikiId.value = info.WikiId;
         }
     }
 }
@@ -118,7 +127,16 @@ function enterEdit(type:WikiParaTypes, underlyingId:number){
     }
 }
 
-let api:Api;
+async function toggleSealed(){
+    const setTo = !sealed.value;
+    const s = await api.wiki.setSealed(wikiId.value, setTo);
+    if(s){
+        sealed.value = setTo;
+    }
+}
+
+const api:Api = injectApi();
+const iden = injectIdentityInfoProvider();
 let clickFold:TitleClickFold;
 let wikiLinkClick:WikiLinkClick;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
@@ -131,7 +149,6 @@ const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter } = useIdentityRoutesJump();
 onMounted(async()=>{
-    api = injectApi();
     await init();
     if(data.value?.Title)
         setTitleTo(data.value?.Title)
@@ -164,6 +181,7 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
 }
 
 async function init(){
+    currentUser.value = await iden.getIdentityInfo();
     if(data.value){
         data.value.Paras = []
     }
@@ -199,7 +217,7 @@ onUnmounted(()=>{
 
 <template>
 <div class="wikiViewFrame">
-    <div v-if="data" class="wikiView" ref="wikiViewArea">
+    <div v-if="data && currentUser" class="wikiView" ref="wikiViewArea">
         <div class="invisible" v-html="styles"></div>
         <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
@@ -207,12 +225,18 @@ onUnmounted(()=>{
         </div>
         <div class="info">
             <div class="owner">
-                所有者<img :src="userAvtSrc" class="smallAvatar"/>
-                <span @click="jumpToUserCenter(userName)">{{ userName }}</span><br/>
+                所有者<img :src="authorAvtSrc" class="smallAvatar"/>
+                <span @click="jumpToUserCenter(authorName)">{{ authorName }}</span><br/>
                 更新于 {{ data.Update }}
             </div>
-            <button @click="jumpToWikiEdit(wikiPathName)">编辑本词条</button>
+            <div>
+                <button @click="jumpToWikiEdit(wikiPathName)">编辑词条</button><br/>
+                <button v-if="currentUser.Type >= UserType.Admin" @click="toggleSealed" class="minor">
+                    {{ sealed ? '解除隐藏': '隐藏词条'}}
+                </button>
+            </div>
         </div>
+        <div v-if="sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras">
             <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
                 <h1 :id="titleElementId(p.TitleId)">
@@ -337,7 +361,16 @@ onUnmounted(()=>{
                 text-decoration: underline;
             }
         }
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
+}
+.sealed{
+    color:red;
+    font-weight: bold;
+    margin-top: 5px;
+    text-align: center;
 }
 
 @media screen and (max-width: 700px){
