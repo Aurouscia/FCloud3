@@ -420,7 +420,7 @@ h1 button{
     background-color: #aaa;
     border: 2px solid #000;
     transition: 0.1s;
-    z-index: 100;
+    z-index: 110;
 }
 .paraContent{
     white-space: nowrap;
