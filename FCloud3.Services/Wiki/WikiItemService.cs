@@ -217,10 +217,10 @@ namespace FCloud3.Services.Wiki
             string? msg = null;
             using var t = _transaction.BeginTransaction();
 
-            var editParasSuccess = !_paraRepo.TryEditRange(paras, out msg);
+            var editParasSuccess = _paraRepo.TryEditRange(paras, out msg);
             var removeParaSuccess = false;
             if (editParasSuccess)
-                removeParaSuccess = !_paraRepo.TryRemove(target, out msg);
+                removeParaSuccess = _paraRepo.TryRemove(target, out msg);
 
             var success = removeParaSuccess && editParasSuccess;
             if (success)
