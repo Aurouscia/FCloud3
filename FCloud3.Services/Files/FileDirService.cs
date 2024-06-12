@@ -101,8 +101,9 @@ namespace FCloud3.Services.Files
 
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
             var ownerName = "";
+            Func<int, string> getUserName = x => _userCaching.Get(x)?.Name ?? "??";
             if (ownerId > 0)
-                ownerName = _userCaching.Get(ownerId)?.Name ?? "??";
+                ownerName = getUserName(ownerId);
 
 
             List<FileDirContentItem> contents = [];
@@ -151,7 +152,7 @@ namespace FCloud3.Services.Files
                 converter: FileDirIndexResult.FileDirWiki.Converter);
             var fileList = _fileItemRepo.GetRangeByIdsOrdered(
                 ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id),
-                converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl));
+                converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl, getUserName));
 
             var subDirData = new IndexResult<FileDirIndexResult.FileDirSubDir>(subDirList, 0, 0, 0);
             var wikiData = new IndexResult<FileDirIndexResult.FileDirWiki>(wikiList, 0, 0, 0);
@@ -183,14 +184,19 @@ namespace FCloud3.Services.Files
             if (path.Length == 2)
                 userName = path[1];
             var userId = 0;
-            if (!string.IsNullOrEmpty(userName)) 
+            if (!string.IsNullOrEmpty(userName))
             {
-                userId = _userRepo.GetByName(userName).Select(x => x.Id).FirstOrDefault();
+                userId = _userCaching.GetByName(userName)?.Id ?? 0;
             }
             if (userId == 0) 
             {
                 userId = _userId;
                 userName = _userRepo.Existing.Where(x => x.Id == userId).Select(x => x.Name).FirstOrDefault();
+            }
+            if (userId == 0 || userName is null)
+            {
+                errmsg = "找不到指定用户";
+                return null;
             }
 
             var homelessFiles =
@@ -207,7 +213,7 @@ namespace FCloud3.Services.Files
             var items = _fileItemRepo.IndexFilterOrder(homelessFiles, q, keyReplaceForFileItem);
             IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
             itemsData = items.TakePageAndConvertOneByOne(q, x => 
-                new FileDirIndexResult.FileDirItem(x.Id,x.DisplayName,x.Updated,x.ByteCount, _storage.FullUrl(x.StorePathName ?? "??"))
+                new FileDirIndexResult.FileDirItem(x.Id,x.DisplayName,x.Updated,userName,x.ByteCount, _storage.FullUrl(x.StorePathName ?? "??"))
             );
 
             FileDirIndexResult res = new()
@@ -548,18 +554,33 @@ namespace FCloud3.Services.Files
                 return data.ToDictionary(x => x.Id, x => x);
             }
         }
-        public class FileDirItem(int id, string? name, DateTime updated, int byteCount, string? url)
+        public class FileDirItem(int id, string? name, DateTime updated, string ownerName, int byteCount, string? url)
         {
             public int Id { get; set; } = id;
             public string? Name { get; set; } = name;
             public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
-            public string? OwnerName { get; set; } = "";
+            public string? OwnerName { get; set; } = ownerName;
             public int ByteCount { get; set; } = byteCount;
             public string? Url { get; set; } = url;
 
-            public static Dictionary<int, FileDirItem> Converter(IQueryable<FileItem> files, Func<string, string> url)
+            public static Dictionary<int, FileDirItem> Converter(IQueryable<FileItem> files, Func<string, string> url, Func<int, string> getUserName)
             {
-                var data = files.Select(x => new FileDirItem(x.Id, x.DisplayName, x.Updated, x.ByteCount, url(x.StorePathName ?? "??"))).ToList();
+                var data = files.Select(x 
+                    => new{
+                        x.Id,
+                        x.DisplayName,
+                        x.Updated,
+                        x.CreatorUserId,
+                        x.ByteCount,
+                        x.StorePathName}
+                ).ToList().ConvertAll(x=>new FileDirItem(
+                    x.Id, 
+                    x.DisplayName,
+                    x.Updated,
+                    getUserName(x.CreatorUserId), 
+                    x.ByteCount,
+                    url(x.StorePathName??"??")
+                    ));
                 return data.ToDictionary(x => x.Id, x => x);
             }
         }

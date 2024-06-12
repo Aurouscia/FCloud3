@@ -6,6 +6,7 @@ import SideBar from '@/components/SideBar.vue';
 import { fileNameWithoutExt, getFileExt, canDisplayAsImage } from '@/utils/fileUtils';
 import { FileDirItem } from '@/models/files/fileDir';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
+import LongPress from '@/components/LongPress.vue';
 
 const { jumpToUserCenter } = useIdentityRoutesJump();
 const editingFileId = ref<number>();
@@ -77,7 +78,7 @@ onMounted(()=>{
                 <input v-model="editingFileName" type="text" />{{ editingFileExt }}
             </div>
             <button class="ok" @click="editingFileOk">重命名</button>
-            <button class="danger" style="margin-top: 100px;" @click="deleteFile">删除该文件</button>
+            <LongPress :reached="deleteFile">长按删除该文件</LongPress>
         </div>
     </SideBar>
 </template>
