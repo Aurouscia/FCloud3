@@ -301,11 +301,9 @@ onUnmounted(()=>{
             <FileParaListItem v-else-if="p.Type==1" :w="p"></FileParaListItem>
             <TableParaListItem v-else :w="p"></TableParaListItem>
             <div class="menu paraButton">
-                <Functions x-align="right" :entry-size="28">
-                    <button @click="EnterEdit(p.ParaId)">编辑</button>
-                    <button @click="StartEditInfo(p.ParaId)" class="off">设置</button>
-                    <button @click="RemovePara(p.ParaId)" class="danger">移除</button>
-                </Functions>
+                <button @click="EnterEdit(p.ParaId)">编辑</button>
+                <button @click="StartEditInfo(p.ParaId)">设置</button>
+                <button @click="RemovePara(p.ParaId)">移除</button>
             </div>
         </div>
         <div v-if="paras" v-for="_,idx in spaces">
@@ -318,6 +316,9 @@ onUnmounted(()=>{
             </div>
         </div>
         <Loading v-else></Loading>
+        <div v-if="paras && paras.length==0" class="hint">
+            请点击<img :src="addIconSrc" class="smallAvatar"/>添加段落以开始创作
+        </div>
     </div>
     <div>
         <div class="wikiInfo" v-if="info">
@@ -444,10 +445,25 @@ h1 button{
 }
 .menu{
     position: absolute;
-    width: 30px;
+    width: 130px;
     height: 30px;
     right: 5px;
     bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0px 6px 0px 6px !important;
+    gap: 3px;
+    button{
+        background-color: transparent;
+        border: none;
+        color:#666;
+        padding: 0px;
+        margin: 0px;
+        &:hover{
+            color: black;
+            text-decoration: underline;
+        }
+    }
 }
 .dragY{
     width: 30px;
@@ -465,10 +481,16 @@ h1 button{
     padding: 2px;
     border-radius: 5px;
     transition: 0.5s;
+    border: 2px solid #eee;
 }
 .moving .paraButton{
     background-color: #999;
     transition: 0.1s;
+}
+
+.hint{
+    text-align: center;
+    color: #666
 }
 </style>
 
