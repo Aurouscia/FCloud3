@@ -46,10 +46,11 @@ namespace FCloud3.Services.Etc
                 x.Wiki.Title, 
                 x.FileDir.UrlPathName,
                 x.FileDir.Name));
-            
-            var latestWikis = topPairs
-                .Select(x => new WikiCenteredHomePage.Wiki(x.WPath, x.WTitle))
-                .DistinctBy(x => x.Path).Take(latestCount).ToList();
+
+            var latestWikis = _wikiItemRepo.ExistingAndNotSealed
+                .OrderByDescending(x => x.Updated)
+                .Take(latestCount).ToList()
+                .ConvertAll(x => new WikiCenteredHomePage.Wiki(x.UrlPathName, x.Title));
             
             var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
                 .OrderByDescending(x => x.Updated)
