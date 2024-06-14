@@ -9,11 +9,13 @@ import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { storeToRefs } from 'pinia';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
+import { useRouter } from 'vue-router';
 
 const topbarModel = ref<TopbarModel>();
 const { notifCount } = storeToRefs(useNotifCountStore())
 const { iden } = storeToRefs(useIdentityInfoStore())
 const { jumpToSelfUserCenter } = useIdentityRoutesJump();
+const router = useRouter();
 onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
 })
@@ -26,7 +28,7 @@ function toggleFold(){
 
 <template>
 <div class="topbarParent">
-    <div class="logo">
+    <div class="logo" @click="router.push('/')">
         <img src="/fcloud.svg" alt="fcloudLogo" />
         <div class="logoText">
             <div class="logoText1">
@@ -91,6 +93,7 @@ function toggleFold(){
             letter-spacing: 4px;
         }
     }
+    cursor: pointer;
 }
 
 .topbarParent{
