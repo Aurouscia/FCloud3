@@ -210,7 +210,7 @@ namespace FCloud3.Services.Identities
             if (u.Type != targetType)
                 record = $"将 {u.Name} 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
-            if(_repo.TryEdit(u, out errmsg))
+            if(_repo.TryEdit(u, out errmsg, false))
             {
                 if (record is not null)
                     _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, record);
@@ -222,7 +222,7 @@ namespace FCloud3.Services.Identities
         public UserType GetCurrentUserType()
         {
             var uid = _operatingUserIdProvider.Get();
-            if(_userCaching.Get(uid) is UserCachingModel data)
+            if(_userCaching.Get(uid) is { } data)
                 return data.Type;
             return UserType.Tourist;
         }
