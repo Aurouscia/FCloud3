@@ -390,6 +390,16 @@ export class Api{
             )
             return resp.success;
         },
+        getInfoById:async(wikiId:number)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/GetInfoById",
+                "get",
+                {id:wikiId}
+            )
+            if(res.success){
+                return res.data as WikiItem
+            }
+        },
         para:{
             setFileParaFileId:async(paraId:number,fileId:number)=>{
                 const resp = await this.httpClient.request(

@@ -7,6 +7,7 @@ import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])
@@ -14,6 +15,7 @@ const loaded = ref(false);
 const totalCount = ref(0);
 const notifCountStore = useNotifCountStore();
 const {notifCount} = storeToRefs(notifCountStore);
+const {jumpToViewWiki} = useWikiParsingRoutesJump();
 const idenStore = useIdentityInfoStore();
 
 async function load(){
@@ -40,6 +42,12 @@ async function markRead(id:number|"all") {
                 notifCountStore.readOne();
             }
         }
+    }
+}
+async function jumpToWiki(id:number){
+    const info = await api.wiki.getInfoById(id);
+    if(info){
+        jumpToViewWiki(info.UrlPathName);
     }
 }
 
@@ -73,13 +81,13 @@ watch(notifCount, (newVal, oldVal)=>{
             <div v-if="n.Type == NotifType.CommentWiki">
                 <span class="s">{{ n.SName }}</span>
                 评论了你的词条
-                <span class="wikiTitle">{{ n.P1T }}</span>
+                <span class="wikiTitle" @click="jumpToWiki(n.P1)">{{ n.P1T }}</span>
                 <span class="cmt">"{{ n.P2T }}"</span>
             </div>
             <div v-else-if="n.Type == NotifType.CommentWikiReply">
                 <span class="s">{{ n.SName }}</span>
                 回复了你在
-                <span class="wikiTitle">{{ n.P1T }}</span>
+                <span class="wikiTitle" @click="jumpToWiki(n.P1)">{{ n.P1T }}</span>
                 下的评论
                 <span class="cmt">"{{ n.P2T }}"</span>
             </div>
@@ -102,7 +110,11 @@ watch(notifCount, (newVal, oldVal)=>{
 }
 .wikiTitle{
     color: olivedrab;
-    font-weight: bold
+    font-weight: bold;
+    cursor: pointer;
+    &:hover{
+        text-decoration: underline;
+    }
 }
 .s{
     color: black;

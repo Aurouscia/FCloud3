@@ -21,6 +21,19 @@ namespace FCloud3.App.Controllers.Wiki
             _userInfo = userInfo;
         }
 
+        public IActionResult GetInfoById(int id)
+        {
+            var info = _wikiService.GetInfoById(id);
+            if (info is null)
+                return this.ApiFailedResp("找不到指定词条");
+            return this.ApiResp(new WikiItemComModel()
+            {
+                Id = info.Id,
+                UrlPathName = info.UrlPathName,
+                Title = info.Title
+            });
+        }
+
         [Authorize]
         [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
         [UserTypeRestricted]

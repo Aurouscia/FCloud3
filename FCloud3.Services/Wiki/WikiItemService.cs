@@ -65,6 +65,10 @@ namespace FCloud3.Services.Wiki
         {
             return _wikiRepo.GetById(id);
         }
+        public WikiItemCachingModel? GetInfoById(int id)
+        {
+            return _wikiCaching.Get(id);
+        }
         public IndexResult<WikiItemIndexItem> Index(IndexQuery query)
         {
             return _wikiRepo.IndexFilterOrder(query).TakePageAndConvertOneByOne(query,x=>new WikiItemIndexItem(x));
