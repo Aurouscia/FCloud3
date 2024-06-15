@@ -125,7 +125,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                         titleId = _ctx.TitleGathering.GenerateTitleId();
                     }
                     IHtmlable generated = Run(generating);
-                    IHtmlable titleParsed = _inlineParser.Value.Run(title.Text, false);
+                    IHtmlable titleParsed = _inlineParser.Value.Run(title.Text);
                     TitledBlockElement titledBlock = new(titleParsed, title.Text, title.RawLineHash, newTitleLevel, generated, titleId);
                     res.Add(titledBlock);
                 }
