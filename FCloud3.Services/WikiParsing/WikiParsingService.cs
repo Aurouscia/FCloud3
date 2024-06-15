@@ -151,11 +151,14 @@ namespace FCloud3.Services.WikiParsing
             parser.Context.Reset(true);
 
             WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
-            static string? getTitle(string? nameoverride, string? title)
+            string? getTitle(string? nameoverride, string? title)
             {
-                if (string.IsNullOrWhiteSpace(nameoverride))
-                    return title;
-                return nameoverride;
+                string? t = nameoverride;
+                if (string.IsNullOrWhiteSpace(t))
+                    t = title;
+                var resOft = parser.RunToParserResultRaw(t,false);
+                result.AddRules(resOft.UsedRules);
+                return resOft.Content;
             }
             paras.ForEach(p =>
             {

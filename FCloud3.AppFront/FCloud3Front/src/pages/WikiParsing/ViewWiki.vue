@@ -241,7 +241,7 @@ onUnmounted(()=>{
         <div v-for="p in data.Paras">
             <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
                 <h1 :id="titleElementId(p.TitleId)">
-                    {{ p.Title }}
+                    <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
                     <div class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
                     <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
