@@ -44,13 +44,8 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 return new EmptyElement();
 
             IHtmlable resElement;
-            if (lines.Count == 1)
-            {
-                if (enforceBlock)
-                    resElement = _inlineParser.Value.RunForLine(lines[0]);
-                else
-                    resElement = _inlineParser.Value.Run(lines[0].Text);
-            }
+            if (lines.Count == 1 && !enforceBlock)
+                resElement = _inlineParser.Value.Run(lines[0].Text);
             else
                 resElement = _titledBlockParser.Value.Run(lines);
 
