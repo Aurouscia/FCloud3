@@ -48,7 +48,7 @@ defineExpose({
         <div class="titleTreeNodeText" :class="{master:props.isMaster}" 
             @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
             <div class="currentMark"></div>
-            {{ removeDefaultFoldedMark(t.Text) }}
+            <span v-html="removeDefaultFoldedMark(t.Text)"></span>
         </div>
         <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)" ref="subs"></TitleTree>
     </div>
