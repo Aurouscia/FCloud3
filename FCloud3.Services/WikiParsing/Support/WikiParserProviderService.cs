@@ -61,7 +61,7 @@ namespace FCloud3.Services.WikiParsing.Support
         private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemCaching.GetAll();
+            var allWikis = _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
             var allMeterials = _materialCaching.GetAll();
             if (containInfos != null)
             {

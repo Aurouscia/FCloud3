@@ -3,6 +3,9 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Repos.Etc.Caching;
+using System.Security.Cryptography;
+using FCloud3.Repos.TextSec;
+using FCloud3.Repos.Table;
 
 namespace FCloud3.Services.Wiki
 {
@@ -10,6 +13,8 @@ namespace FCloud3.Services.Wiki
         WikiTitleContainRepo wikiTitleContainRepo,
         WikiItemRepo wikiItemRepo,
         WikiParaRepo wikiParaRepo,
+        TextSectionRepo textSectionRepo,
+        FreeTableRepo freeTableRepo,
         WikiItemCaching wikiItemCaching,
         DbTransactionService dbTransactionService,
         CacheExpTokenService cacheExpTokenService)
@@ -17,6 +22,8 @@ namespace FCloud3.Services.Wiki
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
+        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
+        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
@@ -41,13 +48,42 @@ namespace FCloud3.Services.Wiki
             //自身的词条不添加
             IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
 
-            var wikis = _wikiItemRepo.Existing
+            var wikis = _wikiItemRepo.ExistingAndNotSealed
                 .Where(x => x.Title != null && content.Contains(x.Title) && !someStrangeWord.Contains(x.Title))
                 .Where(x => !excludeWikiIds.Contains(x.Id))
                 .Where(x => !containingSelf.Contains(x.Id))
                 .Select(x => new { x.Id, x.Title }).ToList();
             WikiTitleContainAutoFillResult res = new();
             wikis.ForEach(x =>
+            {
+                res.Add(x.Id, x.Title!);
+            });
+            return res;
+        }
+        public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType)
+        {
+            //之前被删过的就不会再自动添加
+            IQueryable<int> excludeWikiIds = _wikiTitleContainRepo
+                .BlackListed
+                .WithTypeAndId(containType, objId)
+                .Select(x => x.WikiId);
+            //自身的词条不添加
+            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
+
+            IQueryable<string?> content;
+            if (containType == WikiTitleContainType.TextSection)
+                content = _textSectionRepo.GetqById(objId).Select(x => x.Content);
+            else
+                content = _freeTableRepo.GetqById(objId).Select(x => x.Data);
+
+            var ws =
+                from w in _wikiItemRepo.Existing
+                from c in content
+                where w.Title != null && c.Contains(w.Title) && !someStrangeWord.Contains(w.Title)
+                where !excludeWikiIds.Contains(w.Id) && !containingSelf.Contains(w.Id)
+                select new { w.Id, w.Title };
+            WikiTitleContainAutoFillResult res = new();
+            ws.ToList().ForEach(x =>
             {
                 res.Add(x.Id, x.Title!);
             });
