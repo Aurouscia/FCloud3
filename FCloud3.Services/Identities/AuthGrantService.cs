@@ -182,6 +182,12 @@ namespace FCloud3.Services.Identities
                     OnId = AuthGrant.onIdForAll,
                     To = AuthGrantTo.SameGroup
                 }];
+            if (on == AuthGrantOn.Dir)
+                return [new () {
+                    On = AuthGrantOn.Dir,
+                    OnId = AuthGrant.onIdForAll,
+                    To = AuthGrantTo.SameGroup
+                }];
             return null;
         }
 
