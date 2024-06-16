@@ -88,6 +88,13 @@ export class Api{
                     return true
                 }
             },
+            resetPwd: async(id:number, pwd:string)=>{
+                let res = await this.httpClient.request(
+                    "/api/User/ResetPwd",
+                    "postForm",
+                    {id,pwd},"重置成功",true)
+                return res.success;
+            },
             index: async(q:IndexQuery)=>{
                 var res = await this.httpClient.request(
                     "/api/User/Index",

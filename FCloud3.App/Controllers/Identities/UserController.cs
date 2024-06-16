@@ -56,6 +56,15 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp();
         }
 
+        [Authorize]
+        [UserTypeRestricted(UserType.SuperAdmin)]
+        public IActionResult ResetPwd(int id, string pwd)
+        {
+            if (!_userService.ResetPwd(id, pwd, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
         public IActionResult GetInfoByName(string name)
         {
             UserComModel? u = _userService.GetByName(name);

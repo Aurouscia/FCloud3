@@ -172,6 +172,22 @@ namespace FCloud3.Services.Identities
             return true;
         }
 
+        public bool ResetPwd(int id, string? pwd, out string? errmsg)
+        {
+            if (string.IsNullOrEmpty(pwd))
+            {
+                errmsg = "密码不能为空";
+                return false;
+            }
+            var encrypted = _userPwdEncryption.Run(pwd);
+            var u = _repo.GetByIdEnsure(id);
+            u.PwdEncrypted = encrypted;
+            var s = _repo.TryEdit(u, out errmsg);
+            if (s)
+                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, "重置密码");
+            return s;
+        }
+
         public bool ReplaceAvatar(int id, int materialId, out string? errmsg)
         {
             User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");

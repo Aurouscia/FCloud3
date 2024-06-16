@@ -19,6 +19,11 @@ async function setType(){
     }
 }
 
+const resetPwdTo = ref("")
+async function resetPwd() {
+    await api.identites.user.resetPwd(props.user.Id, resetPwdTo.value);
+}
+
 let api:Api;
 const {iden} = storeToRefs(useIdentityInfoStore())
 const ready = ref<boolean>(false);
@@ -48,6 +53,10 @@ const emits = defineEmits<{
                 <option :value="UserType.SuperAdmin">超管</option>
             </select>
             <button @click="setType">确定</button>
+        </div>
+        <div v-if="iden.Type==UserType.SuperAdmin">
+            <input v-model="resetPwdTo" placeholder="新密码"/>
+            <button @click="resetPwd">重置密码</button>
         </div>
         <div>
             私聊功能暂未开发，若有需要请在其任意作品评论区留下qq号等联系方式

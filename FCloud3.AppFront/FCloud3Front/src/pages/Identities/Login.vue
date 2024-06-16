@@ -17,6 +17,7 @@ const props = defineProps<{
 
 const userName = ref<string>("")
 const password = ref<string>("")
+const failedGuide = ref<string>();
 var identityInfoProvider:IdentityInfoProvider;
 const {iden} = storeToRefs(useIdentityInfoStore())
 var httpClient:HttpClient;
@@ -42,6 +43,9 @@ async function Login(){
         } else {
             router.push("/")
         }
+    }else{
+        const way = await api.utils.applyBeingMember() || "请联系管理员重置"
+        failedGuide.value = "如果忘记密码，" + way
     }
 };
 async function Logout() {
@@ -88,6 +92,7 @@ onUnmounted(()=>{
         <div class="register" @click="jumpToRegister">
             注册账号
         </div>
+        <div class="failedGuide" v-if="failedGuide">{{ failedGuide }}</div>
     </div>
     <div class="loginInfo" v-if="iden">
         当前登录：
@@ -98,6 +103,12 @@ onUnmounted(()=>{
 </template>
 
 <style scoped>
+.failedGuide{
+    color:red;
+    margin: 10px;
+    text-align: center;
+    border-radius: 5px;
+}
 table{
     margin:auto;
     background-color: transparent;
