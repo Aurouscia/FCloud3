@@ -107,8 +107,16 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
                     return DataList;
                 else
                 {
-                    var loadedIds = DataList.Select(x => x.Id).ToList();
-                    var q = _dbExistingQ.Where(x => !loadedIds.Contains(x.Id));
+                    var dbIds = _dbExistingQ.Select(x => x.Id).ToList();
+                    int count = dbIds.Count;
+                    List<int> dataIds = DataList.ConvertAll(x => x.Id);
+                    dbIds = dbIds.Except(dataIds).ToList();
+                    int needCount = dbIds.Count;
+                    IQueryable<TModel> q;
+                    if (needCount < count / 2)
+                        q = _dbExistingQ.Where(x => dbIds.Contains(x.Id));
+                    else
+                        q = _dbExistingQ.Where(x => !dataIds.Contains(x.Id));
                     var qres = GetFromDbModel(q).ToList();
                     QueriedTimes++;
                     QueriedRows += qres.Count;
@@ -226,7 +234,7 @@ namespace FCloud3.Repos.Etc.Caching.Abstraction
         {
             lock (Locker)
             {
-                int by = DataList.RemoveAll(x => x.Id == id);
+                DataList.RemoveAll(x => x.Id == id);
                 HoldingAll = false;
             }
         }

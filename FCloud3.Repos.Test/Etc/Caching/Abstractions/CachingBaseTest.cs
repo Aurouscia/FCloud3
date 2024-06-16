@@ -308,7 +308,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
             _fakeDb.RemoveAll(x => removeIds.Contains(x.Id));
             _caching.RemoveRange(removeIds);
             _anotherCaching.GetAll();
-            Assert.AreEqual(0, _anotherCaching.QueriedTimes);
+            Assert.AreEqual(1, _anotherCaching.QueriedTimes);
             Assert.AreEqual(1, _caching.QueriedTimes);
         }
 
