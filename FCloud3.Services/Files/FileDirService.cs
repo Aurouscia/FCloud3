@@ -73,10 +73,12 @@ namespace FCloud3.Services.Files
         {
             Dir, WikiItem, FileItem
         }
-        private struct FileDirContentItem(int id, FileDirContentItemType type)
+        private struct FileDirContentItem(int id, int owner, FileDirContentItemType type, DateTime updated)
         {
             public int Id { get; } = id;
+            public int Owner { get; } = owner;
             public FileDirContentItemType Type { get; } = type;
+            public DateTime Updated { get; } = updated;
         }
         public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
         {
@@ -125,7 +127,8 @@ namespace FCloud3.Services.Files
             if (subDirsQ is null)
                 return null;
             subDirsQ = _fileDirRepo.IndexFilterOrder(subDirsQ, q);
-            contents.AddRange(subDirsQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.Dir)).ToList());
+            contents.AddRange(subDirsQ.Select(x => 
+                new FileDirContentItem(x.Id, x.CreatorUserId, FileDirContentItemType.Dir, x.Updated)).ToList());
 
             if (thisDirId > 0)
             {
@@ -135,13 +138,28 @@ namespace FCloud3.Services.Files
                              where wiki.Id == relation.WikiId
                              select wiki;
                 wikisQ = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
-                contents.AddRange(wikisQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.WikiItem)).ToList());
+                contents.AddRange(wikisQ.Select(x =>
+                    new FileDirContentItem(x.Id, x.OwnerUserId, FileDirContentItemType.WikiItem, x.Updated)).ToList());
             
 
                 var filesQ = _fileItemRepo.GetByDirId(thisDirId);
                 filesQ = _fileItemRepo.IndexFilterOrder(filesQ, q, keyReplaceForFileItem);
-                contents.AddRange(filesQ.Select(x => new FileDirContentItem(x.Id, FileDirContentItemType.FileItem)).ToList());
+                contents.AddRange(filesQ.Select(x => 
+                    new FileDirContentItem(x.Id, x.CreatorUserId, FileDirContentItemType.FileItem, x.Updated)).ToList());
             }
+            if(q.OrderBy is null)
+                contents.Sort((x, y) =>
+                {
+                    int xOwned = x.Owner == _userId ? 1 : 0;
+                    int yOwned = y.Owner == _userId ? 1 : 0;
+                    int owningDiff = yOwned - xOwned;
+                    if (owningDiff != 0)
+                        return owningDiff;
+                    int typeDiff = x.Type - y.Type;
+                    if (typeDiff != 0)
+                        return typeDiff;
+                    return DateTime.Compare(y.Updated, x.Updated);
+                });
             var itemsPaged = contents.AsQueryable().TakePage(q, out int totalCount, out int pageIdx, out int pageCount).ToList();
 
             var subDirList = _fileDirRepo.GetRangeByIdsOrdered(
