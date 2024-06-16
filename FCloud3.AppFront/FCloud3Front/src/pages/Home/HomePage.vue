@@ -3,6 +3,7 @@ import Search from '@/components/Search.vue';
 import WikiCenteredHomePage from './WikiCenteredHomePage.vue';
 import { injectApi } from '@/provides';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
+import Footer from '@/components/Footer.vue'
 
 const api = injectApi();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
@@ -20,6 +21,7 @@ const { jumpToViewWiki } = useWikiParsingRoutesJump();
     </div>
     <WikiCenteredHomePage>
     </WikiCenteredHomePage>
+    <Footer></Footer>
 </template>
 
 <style scoped>

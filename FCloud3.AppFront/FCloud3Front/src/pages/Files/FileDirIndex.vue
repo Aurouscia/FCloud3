@@ -25,6 +25,7 @@ import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
+import Footer from '@/components/Footer.vue';
 
 
 const props = defineProps<{
@@ -151,7 +152,7 @@ function autoPageSize() {
     if (pos) {
         const posTop = pos.offsetTop
         const winH = window.innerHeight;
-        const itemCount = Math.floor((winH - posTop - 20) / 40) - 1;//如果样式调整，这里可能失效
+        const itemCount = Math.floor((winH - posTop - 30) / 40) - 1;//如果样式调整，这里可能失效
         index.value?.setPageSizeOverride(itemCount)
     }
     else
@@ -313,6 +314,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
             </tr>
         </IndexMini>
     </div>    
+    <Footer></Footer>
     <SideBar ref="sidebar">
         <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
     </SideBar>
@@ -436,6 +438,6 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 }
 .fileDir{
     padding-top: 10px;
-    min-height: 400px;
+    min-height: calc(100vh - 100px);
 }
 </style>

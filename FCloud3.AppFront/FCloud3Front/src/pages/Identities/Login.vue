@@ -10,6 +10,7 @@ import { useRouter } from 'vue-router';
 import { useIdentityRoutesJump } from './routes/routesJump';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
+import Footer from '@/components/Footer.vue';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -100,6 +101,9 @@ onUnmounted(()=>{
         登录有效期：{{ iden?.LeftHours }}小时<br/>
         <button @click="Logout" class="logout">退出登录</button>
     </div>
+    <div class="footer">
+        <Footer></Footer>
+    </div>
 </template>
 
 <style scoped>
@@ -130,6 +134,12 @@ button.logout{
     color:white;
     padding: 2px;
 }
+.footer{
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
 .loginInfo{
     color:gray;
     font-size:small;
@@ -137,7 +147,7 @@ button.logout{
     position: fixed;
     margin: 0px;
     left:20px;
-    bottom: 20px;
+    bottom: 35px;
 }
 .register{
     text-align: center;

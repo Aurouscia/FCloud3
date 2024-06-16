@@ -28,6 +28,7 @@ import Recommends from './Recommends.vue';
 import { IdentityInfo } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import LongPress from '@/components/LongPress.vue';
+import Footer from '@/components/Footer.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -274,7 +275,7 @@ onUnmounted(()=>{
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
             <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
         </div>
-        
+        <Footer></Footer>
     </div>
     <div class="wikiView" v-else>
         <Loading></Loading>
