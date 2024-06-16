@@ -58,8 +58,8 @@ onMounted(async ()=>{
     <div class="give">
         <div class="rate">
             <div class="rates">
-                <div @mouseenter="rate=0" style="width:38px;" :style="{backgroundColor: rateColor(rate)}">{{ rateText(rate) }}</div>
-                <div v-for="_,idx in Array(10)" @mouseenter="rate = idx+1" :style="{backgroundColor: rateColor(rate, idx)}">
+                <div @mouseenter="rate=0" @click="rate=0" style="width:38px;" :style="{backgroundColor: rateColor(rate)}">{{ rateText(rate) }}</div>
+                <div v-for="_,idx in Array(10)" @mouseenter="rate = idx+1" @click="rate = idx+1" :style="{backgroundColor: rateColor(rate, idx)}">
                     {{ idx + 1 }}
                 </div>
             </div>
