@@ -1,4 +1,5 @@
 ﻿using Aurouscia.TableEditor.Core;
+using Aurouscia.TableEditor.Core.Excel;
 using Aurouscia.TableEditor.Core.Html;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Table;
@@ -173,7 +174,9 @@ namespace FCloud3.Services.WikiParsing
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(realTitle, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
+                    result.Paras.Add(new(
+                        realTitle, titleId, resOfP.Content, p.Id, p.Type,
+                        p.ObjectId, 0, true, true));
                 }
                 else if (p.Type == WikiParaType.Table)
                 {
@@ -186,15 +189,49 @@ namespace FCloud3.Services.WikiParsing
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
                     result.FootNotes.AddRange(resOfP.FootNotes);
-                    result.Paras.Add(new(realTitle, titleId, resOfP.Content, p.Id, p.Type, p.ObjectId, 0));
+                    result.Paras.Add(new(
+                        realTitle, titleId, resOfP.Content, p.Id, p.Type,
+                        p.ObjectId, 0, true, true));
                 }
                 else if (p.Type == WikiParaType.File)
                 {
                     FileItem? model = fileParaObjs.FirstOrDefault(x => x.Id == p.ObjectId);
                     if (model is null)
                         return;
-                    var realTitle = getTitle(p.NameOverride, model.DisplayName);
-                    result.Paras.Add(new(realTitle, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type, p.ObjectId, model.ByteCount));
+                    if (model.StorePathName is not null &&
+                        model.StorePathName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var stream = _storage.Read(model.StorePathName);
+                        string? errmsg = "解析失败";
+                        if (stream is not null)
+                        {
+                            var tableData = AuTableExcelConverter.FromXlsx(stream, out errmsg);
+                            if (tableData is not null)
+                            {
+                                var resOfP = ParseTable(tableData, parser);
+                                var realTitle = getTitle(p.NameOverride, model.DisplayName);
+                                parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
+                                result.SubTitles.Add(title);
+                                result.AddRules(resOfP.UsedRulesWithCommons);
+                                result.FootNotes.AddRange(resOfP.FootNotes);
+                                result.Paras.Add(new(
+                                    realTitle, titleId, resOfP.Content, p.Id, WikiParaType.Table,
+                                    p.ObjectId, 0, false, false));
+                                return;
+                            }
+                        }
+                        errmsg ??= "xlsx文件可能格式异常";
+                        result.Paras.Add(new(
+                            "xlsx表格解析失败", 0, errmsg, p.Id, WikiParaType.Text, 
+                            p.ObjectId, 0, false, false));
+                    }
+                    else
+                    {
+                        var realTitle = getTitle(p.NameOverride, model.DisplayName);
+                        result.Paras.Add(new(
+                            realTitle, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type,
+                            p.ObjectId, model.ByteCount, false, false));
+                    }
                 }
             });
             result.ExtractRulesCommon();
@@ -204,9 +241,8 @@ namespace FCloud3.Services.WikiParsing
         {
             return parser.RunToParserResultRaw(model.Content);
         }
-        private static ParserResultRaw ParseTable(FreeTable model, Parser parser)
+        private static ParserResultRaw ParseTable(AuTable data, Parser parser)
         {
-            AuTable data = model.GetData();
             List<IRule> usedRules = new();
             Func<string?, string> cellConverter;
             if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 100)
@@ -225,6 +261,11 @@ namespace FCloud3.Services.WikiParsing
                 CellConverter = cellConverter
             });
             return new(html, usedRules);
+        }
+        private static ParserResultRaw ParseTable(FreeTable model, Parser parser)
+        {
+            AuTable data = model.GetData();
+            return ParseTable(data, parser);
         }
 
         private readonly static Dictionary<int, object> lockObjs = [];
@@ -303,7 +344,11 @@ namespace FCloud3.Services.WikiParsing
                 public WikiParaType ParaType { get; set; }
                 public int UnderlyingId { get; set; }
                 public int Bytes { get; set; }
-                public WikiParsingResultItem(string? title,int titleId, string content, int paraId, WikiParaType type, int underlyingId, int bytes)
+                public bool Editable { get; set; }
+                public bool HistoryViewable { get; set; }
+                public WikiParsingResultItem(
+                    string? title,int titleId, string content, int paraId, WikiParaType type,
+                    int underlyingId, int bytes, bool editable, bool historyViewable)
                 {
                     Title = title;
                     TitleId = titleId;
@@ -312,6 +357,8 @@ namespace FCloud3.Services.WikiParsing
                     ParaId = paraId;
                     UnderlyingId = underlyingId;
                     Bytes = bytes;
+                    Editable = editable;
+                    HistoryViewable = historyViewable;
                 }
             }
             public static WikiParsingResult FallToInstance
@@ -321,7 +368,7 @@ namespace FCloud3.Services.WikiParsing
                     {
                         Paras = new()
                         {
-                            new("找不到指定路径名的词条", 0, "可能是词条不存在或已被移走，请确认后重试", 0, WikiParaType.Text, 0, 0)
+                            new("找不到指定路径名的词条", 0, "可能是词条不存在或已被移走，请确认后重试", 0, WikiParaType.Text, 0, 0, false, false)
                         }
                     };
                 }

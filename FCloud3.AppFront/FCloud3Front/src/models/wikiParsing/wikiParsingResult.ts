@@ -22,6 +22,8 @@ export interface WikiParsingResultItem {
     ParaType: WikiParaTypes;
     UnderlyingId: number;
     Bytes:number;
+    Editable: boolean;
+    HistoryViewable: boolean;
 }
 
 export interface ParserTitleTreeNode {

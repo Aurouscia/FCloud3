@@ -243,8 +243,8 @@ onUnmounted(()=>{
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
-                    <div class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
-                    <div class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
+                    <div v-if="p.Editable" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
                 </div>
