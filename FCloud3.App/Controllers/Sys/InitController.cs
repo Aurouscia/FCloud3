@@ -162,37 +162,63 @@ namespace FCloud3.App.Controllers.Sys
 
             var allTexts = _context.TextSections
                 .Where(x => !x.Deleted)
+                .Where(x => x.Content != null && x.Content.Length < 20000)
                 .Where(x => !existingContainsForText.Contains(x.Id))
-                .Select(x => new { x.Id, x.Content }).ToList();
+                .Select(x => new { x.Id }).ToList();
             var allTables = _context.FreeTables
                 .Where(x => !x.Deleted)
+                .Where(x => x.Data != null && x.Data.Length < 20000)
                 .Where(x => !existingContainsForTable.Contains(x.Id))
-                .Select(x => new { x.Id, x.Data }).ToList();
+                .Select(x => new { x.Id }).ToList();
 
             List<WikiTitleContain> newContains = [];
             allTexts.ForEach(x =>
             {
-                var res = _wikiTitleContainService.AutoFill(x.Id, WikiTitleContainType.TextSection, x.Content ?? "");
-                res.Items.ForEach(r => {
-                    newContains.Add(new()
+                try
+                {
+                    var res = _wikiTitleContainService.AutoFill(x.Id, WikiTitleContainType.TextSection);
+                    res.Items.ForEach(r =>
                     {
-                        ObjectId = x.Id,
-                        Type = WikiTitleContainType.TextSection,
-                        WikiId = r.Id
+                        newContains.Add(new()
+                        {
+                            ObjectId = x.Id,
+                            Type = WikiTitleContainType.TextSection,
+                            WikiId = r.Id
+                        });
                     });
-                });
+
+                    if (newContains.Count > 100)
+                    {
+                        _context.WikiTitleContains.AddRange(newContains);
+                        _context.SaveChanges();
+                        newContains.Clear();
+                    }
+                }
+                catch { }
             });
             allTables.ForEach(x =>
             {
-                var res = _wikiTitleContainService.AutoFill(x.Id, WikiTitleContainType.FreeTable, x.Data ?? "");
-                res.Items.ForEach(r => {
-                    newContains.Add(new()
+                try
+                {
+                    var res = _wikiTitleContainService.AutoFill(x.Id, WikiTitleContainType.FreeTable);
+                    res.Items.ForEach(r =>
                     {
-                        ObjectId = x.Id,
-                        Type = WikiTitleContainType.FreeTable,
-                        WikiId = r.Id
+                        newContains.Add(new()
+                        {
+                            ObjectId = x.Id,
+                            Type = WikiTitleContainType.FreeTable,
+                            WikiId = r.Id
+                        });
                     });
-                });
+
+                    if (newContains.Count > 100)
+                    {
+                        _context.WikiTitleContains.AddRange(newContains);
+                        _context.SaveChanges();
+                        newContains.Clear();
+                    }
+                }
+                catch { }
             });
             _context.WikiTitleContains.AddRange(newContains);
             _context.SaveChanges();
