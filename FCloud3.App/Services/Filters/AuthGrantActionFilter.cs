@@ -1,6 +1,7 @@
 ﻿using FCloud3.App.Controllers.Files;
 using FCloud3.App.Controllers.Wiki;
 using FCloud3.App.Models.COM;
+using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Identities;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -42,15 +43,24 @@ namespace FCloud3.App.Services.Filters
         public class AuthGrantActionFilter : IAsyncActionFilter
         {
             private readonly AuthGrantService _authGrantService;
+            private readonly HttpUserInfoService _httpUserInfoService;
+
             public AuthGrantOn OnType { get; set; }
             public string? FormKey { get; set; }
             public bool IgnoreZero { get; set; }
-            public AuthGrantActionFilter(AuthGrantService authGrantService)
+            public AuthGrantActionFilter(AuthGrantService authGrantService, HttpUserInfoService httpUserInfoService)
             {
                 _authGrantService = authGrantService;
+                _httpUserInfoService = httpUserInfoService;
             }
             public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
             {
+                if (_httpUserInfoService.IsAdmin)
+                {
+                    await next();
+                    return;
+                }
+
                 int id = default;
                 var args = context.ActionArguments.Values;
                 var firstArg = args.FirstOrDefault();
