@@ -4,10 +4,13 @@ import { Api } from '@/utils/com/api';
 import { UserGroup, UserGroupDetailResult } from '@/models/identities/userGroup';
 import Loading from '@/components/Loading.vue';
 import Search from '@/components/Search.vue';
+import { useIdentityRoutesJump } from './routes/routesJump';
 
 const props = defineProps<{
     id:number
 }>()
+
+const {jumpToUserCenter} = useIdentityRoutesJump();
 
 const data = ref<UserGroupDetailResult>();
 const info = ref<UserGroup>();
@@ -90,14 +93,14 @@ watch(props,async ()=>{
                     <th :colspan="data.CanEdit?2:1">已邀请用户</th>
                 </tr>
                 <tr v-for="i in data.Inviting">
-                    <td class="memberName">{{ i.Name }}</td>
+                    <td class="memberName" @click="jumpToUserCenter(i.Name)">{{ i.Name }}</td>
                     <td v-if="data.CanEdit"></td>
                 </tr>
                 <tr>
                     <th :colspan="data.CanEdit?2:1">成员列表</th>
                 </tr>
                 <tr v-for="m in data.FormalMembers">
-                    <td class="memberName">{{ m.Name }}</td>
+                    <td class="memberName" @click="jumpToUserCenter(m.Name)">{{ m.Name }}</td>
                     <td v-if="data.CanEdit">
                         <button class="minor" @click="removeUser(m.Id)">移出</button>
                     </td> 
@@ -128,6 +131,11 @@ a{
 }
 .memberName{
     width: 200px;
+    cursor: pointer;
+}
+.memberName:hover{
+    background-color: #ccc;
+    text-decoration: underline;
 }
 .memberName a{
     color:black;

@@ -255,5 +255,22 @@ namespace FCloud3.App.Controllers.Sys
             _context.SaveChanges();
             return this.ApiResp("已完成");
         }
+
+        public IActionResult RmDupGroupRelations()
+        {
+            var relations = _context.UserToGroups.ToList();
+            var distincted =
+                relations.DistinctBy(x => $"{x.GroupId}-{x.UserId}").ToList();
+            var needRemove = relations.Except(distincted).ToList();
+            var existed = needRemove.All(x =>
+                distincted.Any(r => x.UserId == r.UserId && x.GroupId == r.GroupId));
+            if (existed)
+            {
+                _context.RemoveRange(needRemove);
+                _context.SaveChanges();
+                return this.ApiResp();
+            }
+            return this.ApiFailedResp("失败");
+        }
     }
 }

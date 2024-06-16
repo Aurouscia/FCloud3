@@ -98,7 +98,7 @@ namespace FCloud3.Services.Identities
                 from u in _userRepo.Existing
                 where r.GroupId == id
                 where r.UserId == u.Id
-                select new { u.Id, u.Name, r.Type };
+                select new { u.Id, u.Name, r.Type, u.Updated };
             var inviting = new List<UserGroupDetailResult.UserGroupDetailResultMemberItem>();
             var formalMembers = new List<UserGroupDetailResult.UserGroupDetailResultMemberItem>();
             relations.ToList().ForEach(x => {
@@ -106,7 +106,8 @@ namespace FCloud3.Services.Identities
                 {
                     Id = x.Id,
                     Name = x.Name,
-                    Type = x.Type
+                    Type = x.Type,
+                    UserUpdated = x.Updated
                 };
                 if (x.Type.IsInviting())
                     inviting.Add(model);
@@ -116,7 +117,11 @@ namespace FCloud3.Services.Identities
             var owner = formalMembers.Find(x => x.Id == group.OwnerUserId);
             formalMembers.Sort((x, y) =>
             {
-                return string.Compare(x.Name, y.Name);
+                int xIsOwner = x.Id == group.OwnerUserId ? 1 : 0;
+                int yIsOwner = y.Id == group.OwnerUserId ? 1 : 0;
+                if (xIsOwner != yIsOwner)
+                    return yIsOwner - xIsOwner;
+                return DateTime.Compare(y.UserUpdated, x.UserUpdated);
             });
             UserGroupDetailResult res = new()
             {
@@ -204,6 +209,7 @@ namespace FCloud3.Services.Identities
                 public int Id { get; set; }
                 public UserToGroupType Type { get; set; }
                 public string? Name { get; set; }
+                public DateTime UserUpdated { get; set; }
             }
         }
     }
