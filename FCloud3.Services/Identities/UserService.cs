@@ -184,7 +184,8 @@ namespace FCloud3.Services.Identities
             u.PwdEncrypted = encrypted;
             var s = _repo.TryEdit(u, out errmsg);
             if (s)
-                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, "重置密码");
+                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User,
+                    $"为 {u.Name}({u.Id}) 重置密码");
             return s;
         }
 
@@ -224,7 +225,7 @@ namespace FCloud3.Services.Identities
             }
             string? record = null;
             if (u.Type != targetType)
-                record = $"将 {u.Name} 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
+                record = $"将 {u.Name}({u.Id}) 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
             if(_repo.TryEdit(u, out errmsg, false))
             {
