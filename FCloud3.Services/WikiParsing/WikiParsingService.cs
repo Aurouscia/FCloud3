@@ -53,7 +53,7 @@ namespace FCloud3.Services.WikiParsing
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
-        public WikiDisplayInfo GetWikiDisplayInfo(string pathName)
+        public WikiDisplayInfo? GetWikiDisplayInfo(string pathName)
         {
             var info = (
                 from w in _wikiItemRepo.Existing
@@ -69,13 +69,10 @@ namespace FCloud3.Services.WikiParsing
                     UserAvtPath = m.StorePathName,
                     WikiSealed = w.Sealed
                 }).FirstOrDefault();
-            return new WikiDisplayInfo()
-            {
-                WikiId = info.WikiId,
-                UserName = info?.UserName ?? "??",
-                UserAvtSrc = _storage.FullUrl(info?.UserAvtPath ?? "??"),
-                Sealed = info.WikiSealed
-            };
+            if(info is null)
+                return null;
+            return new WikiDisplayInfo(
+                info.WikiId, info.UserName, _storage.FullUrl(info.UserAvtPath ?? "??"), info.WikiSealed);
         }
         
         public Stream? GetParsedWikiStream(string pathName, bool bypassSeal = false)
@@ -374,12 +371,12 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
         }
-        public class WikiDisplayInfo
+        public class WikiDisplayInfo(int wikiId, string userName, string userAvtSrc, bool @sealed)
         {
-            public int WikiId { get; set; }
-            public string UserName { get; set; }
-            public string UserAvtSrc { get; set; }
-            public bool Sealed { get; set; }
+            public int WikiId { get; set; } = wikiId;
+            public string UserName { get; set; } = userName;
+            public string UserAvtSrc { get; set; } = userAvtSrc;
+            public bool Sealed { get; set; } = @sealed;
         }
     }
 }

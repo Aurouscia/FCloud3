@@ -15,7 +15,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions.FakeImplementation
         }
 
         public void Insert(SomeDbModel model) => base.Insert(model);
-        public void InsertRange(List<SomeDbModel> models) => base.InsertRange(models);
+        public new void InsertRange(List<SomeDbModel> models) => base.InsertRange(models);
         protected override IQueryable<SomeCachingModel> GetFromDbModel(IQueryable<SomeDbModel> dbModels)
         {
             return dbModels.Select(x => new SomeCachingModel()
@@ -41,6 +41,6 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions.FakeImplementation
             target.SomeProp = from.SomeProp;
         }
         public List<SomeCachingModel> GetDataList() => base.TestingOnlyGetDataList();
-        public bool HoldingAll => base.TestingOnlyHoldingAll;
+        public new bool HoldingAll => base.TestingOnlyHoldingAll;
     }
 }

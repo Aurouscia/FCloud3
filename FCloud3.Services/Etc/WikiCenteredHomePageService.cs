@@ -50,7 +50,7 @@ namespace FCloud3.Services.Etc
             var latestWikis = _wikiItemRepo.ExistingAndNotSealed
                 .OrderByDescending(x => x.Updated)
                 .Take(latestCount).ToList()
-                .ConvertAll(x => new WikiCenteredHomePage.Wiki(x.UrlPathName, x.Title));
+                .ConvertAll(x => new WikiCenteredHomePage.Wiki(x.UrlPathName ?? "??", x.Title ?? "??"));
             
             var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
                 .OrderByDescending(x => x.Updated)
@@ -61,7 +61,7 @@ namespace FCloud3.Services.Etc
                 => x.Select(w => new { w.Id, w.UrlPathName, w.Title })
                     .ToDictionary(
                         w => w.Id,
-                        w => new WikiCenteredHomePage.Wiki(w.UrlPathName, w.Title)));
+                        w => new WikiCenteredHomePage.Wiki(w.UrlPathName ?? "??", w.Title ?? "??")));
 
             int uid = _userIdProvider.Get();
             if (uid > 0)

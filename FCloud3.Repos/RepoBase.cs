@@ -363,56 +363,14 @@ namespace FCloud3.Repos
         public virtual bool TryRecover(T item, out string? errmsg)
         {
             throw new NotImplementedException();
-            if (item is null)
-            {
-                errmsg = $"试图向数据库恢复空{nameof(T)}对象";
-                return false;
-            }
-            if (!TryAddCheck(item, out errmsg))
-                return false;
-            item.Deleted = false;
-            item.Updated = DateTime.Now;
-            _context.Update(item);
-            _context.SaveChanges();
-            return true;
         }
         public virtual bool TryRecover(int id, out string? errmsg)
         {
             throw new NotImplementedException();
-            var deleted = Existing.Where(x => x.Id == id)
-                .ExecuteUpdate(x => x
-                .SetProperty(t => t.Deleted, false)
-                .SetProperty(t => t.Updated, DateTime.Now));
-            if (deleted > 0)
-            {
-                errmsg = null;
-                return true;
-            }
-            else
-            {
-                errmsg = "恢复失败(可能未找到指定id)";
-                return false;
-            }
         }
         public virtual bool TryRecoverRange(List<T> items, out string? errmsg)
         {
             throw new NotImplementedException();
-            errmsg = null;
-            foreach (var item in items)
-            {
-                if (item is null)
-                {
-                    errmsg = $"试图向数据库恢复空{nameof(T)}对象";
-                    return false;
-                }
-                if (!TryAddCheck(item, out errmsg))
-                    return false;
-                item.Deleted = false;
-                item.Updated = DateTime.Now;
-                _context.Update(item);
-            }
-            _context.SaveChanges();
-            return true;
         }
 
         public virtual bool TryRemovePermanent(T item, out string? errmsg) 

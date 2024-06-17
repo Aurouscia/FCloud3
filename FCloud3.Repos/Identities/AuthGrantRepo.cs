@@ -125,7 +125,7 @@ namespace FCloud3.Repos.Identities
             return base.TryRemovePermanent(item, out errmsg);
         }
         public override bool TryRemoveNoCheck(int id, out string? errmsg)
-            => TryRemove(GetById(id), out errmsg);
+            => TryRemove(GetByIdEnsure(id), out errmsg);
         public override bool TryRemovePermanent(AuthGrant item, out string? errmsg)
             => TryRemove(item, out errmsg);
         public override bool TryRemovePermanentNoCheck(int id, out string? errmsg)

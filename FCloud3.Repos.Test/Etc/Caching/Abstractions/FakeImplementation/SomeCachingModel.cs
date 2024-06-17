@@ -7,7 +7,10 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions.FakeImplementation
     {
         public string Name { get; set; }
         public int SomeProp { get; set; }
-        public SomeCachingModel(){}
+        public SomeCachingModel()
+        {
+            Name = "";
+        }
         public SomeCachingModel(SomeDbModel model)
         {
             Id = model.Id;
@@ -18,7 +21,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions.FakeImplementation
 
     public class SomeCachingModelEqualityComparer : IEqualityComparer<SomeCachingModel>
     {
-        public bool Equals(SomeCachingModel x, SomeCachingModel y)
+        public bool Equals(SomeCachingModel? x, SomeCachingModel? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;

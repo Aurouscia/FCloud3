@@ -47,7 +47,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         [DataRow(1)][DataRow(2)][DataRow(3)]
         public void QuerySingle(int id)
         {
-            var expectedModel = new SomeCachingModel(_fakeDb.Find(x => x.Id == id));
+            var expectedModel = new SomeCachingModel(_fakeDb.Find(x => x.Id == id)!);
             var res1 = _caching.Get(id);
             Assert.AreEqual(1, _caching.QueriedRows);
             Assert.AreEqual(1, _caching.QueriedTimes);
@@ -190,18 +190,18 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
             {
                 var res1 = _caching.GetCustom(
                     x => match(x, name1),
-                    x=>matchDb(x, name1));
+                    x=>matchDb(x, name1))!;
                 Assert.AreEqual(res1.Name, name1);
                 var res2 = _caching.GetCustom(
                     x => match(x, name2),
-                    x=>matchDb(x, name2));
+                    x=>matchDb(x, name2))!;
                 Assert.AreEqual(res2.Name, name2);
             });
             var tsk2 = Task.Run(() =>
             {
                 var res = _anotherCaching.GetCustom(
                     x => match(x, name2),
-                    x=>matchDb(x, name2));
+                    x=>matchDb(x, name2))!;
                 Assert.AreEqual(res.Name, name2);
             });
             Task.WaitAll(tsk1, tsk2);
@@ -251,7 +251,7 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         [TestMethod]
         public void Update()
         {
-            var dModel = _fakeDb.Find(x => x.Id == 1);
+            var dModel = _fakeDb.Find(x => x.Id == 1)!;
             dModel.Name = "XXX";
             _caching.UpdateByDbModel(dModel);
             Assert.AreEqual(1, _caching.QueriedRows);
@@ -262,16 +262,16 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         [TestMethod]
         public void UpdateRange()
         {
-            var dModel1 = _fakeDb.Find(x => x.Id == 1);
-            var dModel2 = _fakeDb.Find(x => x.Id == 2);
+            var dModel1 = _fakeDb.Find(x => x.Id == 1)!;
+            var dModel2 = _fakeDb.Find(x => x.Id == 2)!;
             dModel1.Name = "XXX";
             dModel2.Name = "YYY";
             _caching.UpdateRangeByDbModel([dModel1, dModel2]);
             Assert.AreEqual(2, _caching.QueriedRows);
             Assert.AreEqual(1, _caching.QueriedTimes);
             Assert.AreEqual(2, _caching.GetDataList().Count);
-            var cModel1 = _anotherCaching.Get(1);
-            var cModel2 = _anotherCaching.Get(2);
+            var cModel1 = _anotherCaching.Get(1)!;
+            var cModel2 = _anotherCaching.Get(2)!;
             Assert.AreEqual(0, _anotherCaching.QueriedRows);
             Assert.AreEqual(0, _anotherCaching.QueriedRows);
             Assert.AreEqual("XXX", cModel1.Name);
@@ -398,9 +398,9 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         [TestMethod]
         public void ParallelOps3()
         {
-            var m1 = _fakeDb.Find(x => x.Id == 1);
+            var m1 = _fakeDb.Find(x => x.Id == 1)!;
             m1.Name = "XXX";
-            var m2 = _fakeDb.Find(x => x.Id == 2);
+            var m2 = _fakeDb.Find(x => x.Id == 2)!;
             m2.Name = "YYY";
             Task tsk1 = Task.Run(() =>
             {
@@ -422,9 +422,9 @@ namespace FCloud3.Repos.Test.Etc.Caching.Abstractions
         {
             _caching.GetAll();
             
-            var m1 = _fakeDb.Find(x => x.Id == 1);
+            var m1 = _fakeDb.Find(x => x.Id == 1)!;
             m1.Name = "XXX";
-            var m2 = _fakeDb.Find(x => x.Id == 2);
+            var m2 = _fakeDb.Find(x => x.Id == 2)!;
             m2.Name = "YYY";
             Task tsk1 = Task.Run(() =>
             {

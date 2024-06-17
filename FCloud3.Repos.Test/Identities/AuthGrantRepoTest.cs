@@ -82,7 +82,7 @@ namespace FCloud3.Repos.Test.Identities
             CollectionAssert.AreEqual(expectedIds, actualIds);
             
             _repo.ChangeTracker.Clear();
-            inserted = _repo.GetById(14);
+            inserted = _repo.GetById(14)!;
             Assert.AreEqual(expectedInsertedOrder, inserted.Order);
         }
 
@@ -98,7 +98,7 @@ namespace FCloud3.Repos.Test.Identities
         {
             var expectedIds = expectedIdsStr.Split(',').ToList().ConvertAll(int.Parse);
             var expectedOrders = expectedOrdersStr.Split(',').ToList().ConvertAll(int.Parse);
-            var target = _repo.GetById(deleteTargetId);
+            var target = _repo.GetById(deleteTargetId)!;
             var on = target.On;
             var onId = target.OnId;
             _repo.TryRemove(target, out _);

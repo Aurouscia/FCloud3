@@ -25,7 +25,7 @@ namespace FCloud3.Services.Test.Identities
         public AuthGrantServiceTest()
         {
             int uid = 1;
-            _userIdProvider = new(1);
+            _userIdProvider = new(uid);
             _ctx = FCloudMemoryContext.Create();
             var authGrantCaching = new AuthGrantCaching(_ctx, new FakeLogger<CachingBase<AuthGrantCachingModel, AuthGrant>>());
             authGrantCaching.Clear();

@@ -170,7 +170,7 @@ namespace FCloud3.Repos.Test.Files
                 }
                 else//如果移动到其他目录下
                 {
-                    var destination = _repo.GetById(to);
+                    var destination = _repo.GetById(to)!;
                     moving.Depth = destination.Depth + 1;//深度设为目标深度+1
                     moving.RootDir = destination.RootDir;//root设为父级的root
                 }
