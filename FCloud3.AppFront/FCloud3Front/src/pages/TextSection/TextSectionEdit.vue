@@ -77,9 +77,10 @@ async function contentInput(){
             removed = true;
         }
     }
+    const converted = needRemove.filter(x=>x.textContent && x.textContent.length>0).map(x=>x.textContent).join('\n');
     needRemove.forEach(n=>n.remove());
     if(removed){
-        textNode().textContent += "\n"
+        textNode().textContent += (converted+"\n")
     }
     
     if(!previewContent.value){
