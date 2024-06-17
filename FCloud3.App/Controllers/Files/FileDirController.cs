@@ -1,5 +1,6 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
+using FCloud3.App.Services.Utils;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc.Index;
 using FCloud3.Services.Files;
@@ -9,17 +10,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Files
 {
-    public class FileDirController: Controller, IAuthGrantTypeProvidedController
+    public class FileDirController(
+        FileDirService fileDirService,
+        AuthGrantService authGrantService,
+        HttpUserInfoService httpUserInfoService)
+        : Controller, IAuthGrantTypeProvidedController
     {
-        private readonly FileDirService _fileDirService;
-        private readonly AuthGrantService _authGrantService;
+        private readonly FileDirService _fileDirService = fileDirService;
+        private readonly AuthGrantService _authGrantService = authGrantService;
+        private readonly HttpUserInfoService _httpUserInfoService = httpUserInfoService;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.Dir;
-
-        public FileDirController(FileDirService fileDirService, AuthGrantService authGrantService)
-        {
-            _fileDirService = fileDirService;
-            _authGrantService = authGrantService;
-        }
 
         public IActionResult GetPathById(int id)
         {
@@ -33,11 +33,10 @@ namespace FCloud3.App.Controllers.Files
         {
             if (req is null || req.Query is null || req.Path is null)
                 return BadRequest();
-            var res = _fileDirService.GetContent(req.Query, req.Path,out string? errmsg);
+            var isAdmin = _httpUserInfoService.IsAdmin;
+            var res = _fileDirService.GetContent(req.Query, req.Path, isAdmin, out string? errmsg);
             if (res is not null)
-            {
                 return this.ApiResp(res);
-            }
             return this.ApiFailedResp(errmsg);
         }
         public IActionResult Edit(int id)

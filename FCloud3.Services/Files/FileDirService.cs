@@ -80,7 +80,7 @@ namespace FCloud3.Services.Files
             public FileDirContentItemType Type { get; } = type;
             public DateTime Updated { get; } = updated;
         }
-        public FileDirIndexResult? GetContent(IndexQuery q, string[] path, out string? errmsg)
+        public FileDirIndexResult? GetContent(IndexQuery q, string[] path, bool isAdmin, out string? errmsg)
         {
             q.SelfCheck();
             if (path.Length == 1 || path.Length == 2)
@@ -132,7 +132,8 @@ namespace FCloud3.Services.Files
 
             if (thisDirId > 0)
             {
-                var wikisQ = from wiki in _wikiItemRepo.Existing
+                var wikiFrom = isAdmin ? _wikiItemRepo.Existing : _wikiItemRepo.ExistingAndNotSealed;
+                var wikisQ = from wiki in wikiFrom
                              from relation in _wikiToDirRepo.Existing
                              where relation.DirId == thisDirId
                              where wiki.Id == relation.WikiId
@@ -147,6 +148,8 @@ namespace FCloud3.Services.Files
                 contents.AddRange(filesQ.Select(x => 
                     new FileDirContentItem(x.Id, x.CreatorUserId, FileDirContentItemType.FileItem, x.Updated)).ToList());
             }
+
+            //默认排序规则
             if(q.OrderBy is null)
                 contents.Sort((x, y) =>
                 {
