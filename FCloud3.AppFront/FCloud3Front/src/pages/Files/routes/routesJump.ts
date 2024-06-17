@@ -9,5 +9,9 @@ export function useFilesRoutesJump(){
     const jumpToRootDir = (urlPathName?:string)=>{
         router.push({name:'files',params:{path:urlPathName}})
     }
-    return { jumpToDirFromId, jumpToRootDir }
+    const jumpToDir = (path:string[])=>{
+        const joined = path.join('/');
+        router.push("/d/"+joined)
+    }
+    return { jumpToDirFromId, jumpToRootDir, jumpToDir }
 }

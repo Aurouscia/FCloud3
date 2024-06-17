@@ -131,6 +131,17 @@ namespace FCloud3.Repos.Files
         {
             return InfoCheck(item, out errmsg);
         }
+        public override bool TryRemoveCheck(FileDir item, out string? errmsg)
+        {
+            var userId = _userIdProvider.Get();
+            if (userId != item.CreatorUserId)
+            {
+                errmsg = "只有所有者能删除";
+                return false;
+            }
+            errmsg = null;
+            return true;
+        }
 
         public bool InfoCheck(FileDir item, out string? errmsg)
         {

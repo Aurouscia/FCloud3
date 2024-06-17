@@ -9,6 +9,8 @@ import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import Notice from '@/components/Notice.vue';
 import { useUrlPathNameConverter } from '@/utils/urlPathName';
 import AuthProblem from '@/components/AuthProblem.vue';
+import { useFilesRoutesJump } from './routes/routesJump';
+import LongPress from '@/components/LongPress.vue';
 
 const data = ref<FileDir>();
 const props = defineProps<{
@@ -16,6 +18,8 @@ const props = defineProps<{
     path:string[]
 }>()
 var api:Api;
+
+const { jumpToDir } = useFilesRoutesJump();
 
 async function saveEdit(){
     if(data.value){
@@ -51,6 +55,14 @@ async function moveInWiki(_title:string, wikiId:number) {
     if(resp){
         moveSearch.value?.clear();
         emit('addedNewFile');
+    }
+}
+
+async function del() {
+    const res = await api.fileDir.delete(props.id);
+    if(res){
+        const to = props.path.slice(0, props.path.length - 1)
+        jumpToDir(to);
     }
 }
 
@@ -110,14 +122,14 @@ onMounted(async()=>{
                     <div v-if="data.CanPutThings">
                         <Search ref="moveSearch" :source="api.utils.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
                             :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
-                        <Notice type="info">移入词条将不会影响词条在其他文件夹的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
+                        <Notice type="info">移入词条将不会影响词条在其他目录的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
                 <div>
                     <div v-if="data.CanPutThings">
                         <FileUpload @uploaded="newFile" dist="test"></FileUpload>
-                        <Notice type="info">文件不能同时放在多个文件夹内</Notice>
+                        <Notice type="info">文件不能同时放在多个目录内</Notice>
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
@@ -141,6 +153,9 @@ onMounted(async()=>{
                                 </td>
                             </tr>
                         </table>
+                        <div style="text-align: center;margin-top: 20px;">
+                            <LongPress :reached="del">长按删除本目录</LongPress>
+                        </div>
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
