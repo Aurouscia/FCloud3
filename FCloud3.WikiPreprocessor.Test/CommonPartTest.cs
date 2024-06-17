@@ -39,11 +39,11 @@ namespace FCloud3.WikiPreprocessor.Test
             "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>")]
         [DataRow(
             "{{打招呼}内容::兄弟 \\red 你好 \\red}很高兴认识你！",
-            "<style>.hello{font-size:large}.red{color:red}</style><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div>很高兴认识你！</p>")]
+            "<style>.hello{font-size:large}.red{color:red}</style><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div>很高兴认识你！</p>")]
         [DataRow(
             "他说：\r\n > {{打招呼}内容::兄弟 \\red 你好 \\red} \r\n >很高兴认识你！",
             "<style>.hello{font-size:large}.quote{font-size:small}.red{color:red}</style>" +
-            "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟<span class=\"red\">你好</span></div></p><p>很高兴认识你！</p></div>")]
+            "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div></p><p>很高兴认识你！</p></div>")]
         [DataRow(
             "{{哼唧}}",
             "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\"></div></p>")]

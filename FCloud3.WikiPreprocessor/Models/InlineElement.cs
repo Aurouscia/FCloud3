@@ -57,7 +57,7 @@ namespace FCloud3.WikiPreprocessor.Models
         public string Content { get; }
         public TextElement(string content)
         {
-            Content = Escape.HideEscapeMark(content.Trim());
+            Content = Escape.HideEscapeMark(content);
         }
         public override string ToHtml()
         {
