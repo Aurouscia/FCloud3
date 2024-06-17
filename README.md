@@ -3,11 +3,12 @@
 本项目是一套知识库系统，功能类似于mediawiki，遵循Apache-2.0开源协议，可以私有部署和商用。
 ## 架构
 1. 后端基于[asp.netCore](https://dotnet.microsoft.com/zh-cn/apps/aspnet)
-2. 数据库使用[EntityFramework](https://learn.microsoft.com/zh-cn/ef/)，将会支持sqlite，sqlserver，mysql，postgreSql
+2. ORM使用[EntityFramework](https://learn.microsoft.com/zh-cn/ef/)，支持sqlite和sqlserver
 3. 前端使用[vue3](https://vuejs.org)+[ts](https://typescriptlang.org)+[vite](https://vite.dev)
 4. 身份验证使用[JWT](https://jwt.io)
 5. 图像处理使用[ImageSharp](https://sixlabors.com/products/imagesharp/)
 6. excel和word文件导入导出使用[NPOI](https://www.nuget.org/packages/NPOI)
+7. 资源文件可选择存储在自己的服务器或[阿里云OSS](https://www.aliyun.com/product/oss)
 
 ## 安装
 ### 前提条件
@@ -22,7 +23,7 @@
     1-1.如果使用git，在命令行中输入`git clone 【本仓库链接】`
 2. 进入前端文件夹(/FCloud3.AppFront/FCloud3Front)，在命令行中输入`npm install`和`npm run build`
 3. 双击项目根目录的sln文件，进入vs
-4. 按appsettings.json中的注释调整配置文件，更改数据库连接字符串（如果需要）和OSS账号密码（如果需要）
+4. 按appsettings.json中的注释调整配置文件，更改数据库连接字符串（如果需要）和OSS账号密码（如果需要），不作配置默认使用sqlite和本地文件存储
 5. 点击顶部栏进入`工具-nuget包管理器-包管理器控制台`，输入`update-database`
 6. 点击顶部绿色启动按钮启动调试，检查是否正常
 7. 停止调试，点击顶部栏`生成-发布`即可选择位置导出
@@ -33,3 +34,15 @@
 ### 注意
 本项目暂未完成开发，不建议直接投入生产环境  
 遇到问题欢迎提出issue
+
+### 特别感谢
+- 我父母和网友璃夜：帮我渡过困难时期
+- 我父亲：给我提供了服务器和域名
+- 微软：免费给我使用vs，vsc和.net工具链
+- typeScript(也是微软家的)：使我脱离js弱类型苦海
+- 尤雨溪等：vue YYDS
+- 旋头，滨蜀：积极提供和传达了大量建议
+- 我的用户们：鼓励我持续精进技艺
+
+[https://dotnet.microsoft.com]  
+[https://vuejs.org]
