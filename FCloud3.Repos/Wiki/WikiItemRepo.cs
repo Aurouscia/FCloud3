@@ -18,9 +18,10 @@ namespace FCloud3.Repos.Wiki
         }
 
         public IQueryable<WikiItem> ExistingAndNotSealed => Existing.Where(x => !x.Sealed);
-        public IQueryable<WikiItem> QuickSearch(string str)
+        public IQueryable<WikiItem> QuickSearch(string str, bool includeSealed = false)
         {
-            return Existing
+            var q = includeSealed ? Existing : ExistingAndNotSealed;
+            return q
                 .Where(x => x.Title != null && x.Title.Contains(str))
                 .OrderBy(x => x.Title!.Length)
                 .ThenByDescending(x => x.Updated);

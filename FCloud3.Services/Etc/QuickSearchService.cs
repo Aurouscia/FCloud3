@@ -5,35 +5,25 @@ using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.Services.Etc
 {
-    public class QuickSearchService
+    public class QuickSearchService(
+        WikiItemRepo wikiItemRepo,
+        UserRepo userRepo,
+        UserGroupRepo userGroupRepo,
+        FileItemRepo fileItemRepo,
+        MaterialRepo materialRepo,
+        IStorage storage)
     {
         private const int maxCount = 8;
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly UserRepo _userRepo;
-        private readonly UserGroupRepo _userGroupRepo;
-        private readonly FileItemRepo _fileItemRepo;
-        private readonly MaterialRepo _materialRepo;
-        private readonly IStorage _storage;
+        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
+        private readonly UserRepo _userRepo = userRepo;
+        private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
+        private readonly FileItemRepo _fileItemRepo = fileItemRepo;
+        private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly IStorage _storage = storage;
 
-        public QuickSearchService(
-            WikiItemRepo wikiItemRepo,
-            UserRepo userRepo,
-            UserGroupRepo userGroupRepo,
-            FileItemRepo fileItemRepo,
-            MaterialRepo materialRepo,
-            IStorage storage)
+        public QuickSearchResult SearchWikiItem(string str, bool isAdmin)
         {
-            _wikiItemRepo = wikiItemRepo;
-            _userRepo = userRepo;
-            _userGroupRepo = userGroupRepo;
-            _fileItemRepo = fileItemRepo;
-            _materialRepo = materialRepo;
-            _storage = storage;
-        }
-
-        public QuickSearchResult SearchWikiItem(string str)
-        {
-            var q = _wikiItemRepo.QuickSearch(str);
+            var q = _wikiItemRepo.QuickSearch(str, isAdmin);
             var items = q.Select(x => new { x.Title, x.UrlPathName, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>

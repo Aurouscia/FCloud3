@@ -1,19 +1,23 @@
-﻿using FCloud3.Services.Etc;
+﻿using FCloud3.App.Services.Utils;
+using FCloud3.Services.Etc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Etc
 {
-    public class QuickSearchController : Controller
+    public class QuickSearchController(
+        QuickSearchService quickSearchService,
+        HttpUserInfoService httpUserInfoService)
+        : Controller
     {
-        private readonly QuickSearchService _quickSearchService;
-
-        public QuickSearchController(QuickSearchService quickSearchService)
-        {
+        private readonly QuickSearchService 
             _quickSearchService = quickSearchService;
-        }
+        private readonly HttpUserInfoService
+            _httpUserInfoService = httpUserInfoService;
+
         public IActionResult WikiItem(string s)
         {
-            var res = _quickSearchService.SearchWikiItem(s);
+            var isAdmin = _httpUserInfoService.IsAdmin;
+            var res = _quickSearchService.SearchWikiItem(s, isAdmin);
             return this.ApiResp(res);
         }
         public IActionResult UserName(string s)
