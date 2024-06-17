@@ -56,6 +56,15 @@ namespace FCloud3.App.Controllers.Wiki
             }
             return this.ApiResp();
         }
+        [Authorize]
+        [AuthGranted]
+        [UserTypeRestricted]
+        public IActionResult Delete(int id)
+        { 
+            if(!_wikiService.Delete(id, out string? errmsg))
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
         public IActionResult Edit(string urlPathName)
         {
             WikiItem? w = _wikiService.GetInfo(urlPathName, out string? errmsg);

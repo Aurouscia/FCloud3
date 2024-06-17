@@ -386,10 +386,16 @@ export class Api{
                 {wikiId,dirId},
                 "移出成功",
                 true)
-            if(res.success){
-                return true;
-            }
-            return false;
+            return res.success
+        },
+        deleteWiki:async(id:number)=>{
+            const res = await this.httpClient.request(
+                "/api/WikiItem/Delete",
+                "postForm",
+                {id},
+                "删除成功",
+                true)
+            return res.success
         },
         setSealed:async(wikiId:number,sealed:boolean)=>{
             const resp = await this.httpClient.request(

@@ -27,6 +27,8 @@ import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
+import LongPress from '@/components/LongPress.vue';
+import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -36,6 +38,7 @@ const router = useRouter();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
+const { jumpToSelfUserCenter } = useIdentityRoutesJump();
 
 const props = defineProps<{
     urlPathName:string
@@ -235,6 +238,15 @@ async function saveInfoEdit(){
     }
 }
 
+async function del() {
+    if(info.value){
+        const res = await api.wiki.deleteWiki(info.value.Id);
+        if(res){
+            jumpToSelfUserCenter();
+        }
+    }
+}
+
 var offsetY = 0;
 var moving:boolean = false;
 var wide = ref<boolean>(false);
@@ -346,6 +358,9 @@ onUnmounted(()=>{
                 <Notice :type="'warn'" >
                     修改链接名称将导致已分享的词条查看链接失效，请谨慎操作。<br/>
                 </Notice>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <LongPress :reached="del">长按删除词条</LongPress>
             </div>
         </div>
         <Loading v-else></Loading>

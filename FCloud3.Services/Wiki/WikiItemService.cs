@@ -272,6 +272,19 @@ namespace FCloud3.Services.Wiki
             }
             return false;
         }
+        public bool Delete(int id, out string? errmsg)
+        {
+            var w = _wikiRepo.GetById(id);
+            if(w is null)
+            {
+                errmsg = "找不到指定词条";
+                return false;
+            }
+            var s = _wikiRepo.TryRemove(w, out errmsg);
+            if (s)
+                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.WikiItem, $"{w.Title} ({w.UrlPathName})");
+            return s;
+        }
         public WikiItem? GetInfo(string urlPathName, out string? errmsg)
         {
             var res = _wikiRepo.GetByUrlPathName(urlPathName).FirstOrDefault();
@@ -316,9 +329,9 @@ namespace FCloud3.Services.Wiki
             errmsg = null;
             return true;
         }
-        public bool SetSealed(int wikiId, bool @sealed, out string? errmsg)
+        public bool SetSealed(int id, bool @sealed, out string? errmsg)
         {
-            var w = _wikiRepo.GetById(wikiId);
+            var w = _wikiRepo.GetById(id);
             if (w is null)
             {
                 errmsg = "找不到指定的词条";

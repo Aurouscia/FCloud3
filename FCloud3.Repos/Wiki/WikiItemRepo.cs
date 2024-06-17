@@ -53,6 +53,17 @@ namespace FCloud3.Repos.Wiki
         {
             return InfoCheck(item,true, out errmsg);
         }
+        public override bool TryRemoveCheck(WikiItem item, out string? errmsg)
+        {
+            var uid = _userIdProvider.Get();
+            if(item.OwnerUserId != uid)
+            {
+                errmsg = "只有所有者能删除词条";
+                return false;
+            }
+            errmsg = null;
+            return true;
+        }
         public bool InfoCheck(WikiItem item,bool existing , out string? errmsg)
         {
             errmsg = null;
