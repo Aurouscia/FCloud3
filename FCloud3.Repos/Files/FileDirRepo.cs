@@ -3,7 +3,6 @@ using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Etc.Caching;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Files
 {
@@ -20,6 +19,12 @@ namespace FCloud3.Repos.Files
         {
             _fileDirCaching = fileDirCaching;
         }
+
+        public IQueryable<FileDir> QuickSearch(string str)
+            => Existing
+            .Where(x => x.Name != null && x.Name.Contains(str))
+            .OrderByDescending(x => x.Updated);
+
         public List<string>? GetPathById(int id)
         {
             var chain = _fileDirCaching.GetChain(id);
@@ -30,6 +35,35 @@ namespace FCloud3.Repos.Files
                 var list = dirs.Select(x => new { x.Id, x.UrlPathName }).ToList();
                 return list.ToDictionary(x => x.Id, x => x.UrlPathName ?? "???");
             });
+        }
+        public List<(int id, List<string> nameChain)> GetNameChainsByIds(List<int> ids)
+        {
+            List<(int id, List<string>)> res = [];
+            if (ids.Count == 0)
+                return res;
+            HashSet<int> relatedIds = [];
+            List<(int id, List<int> chain)> chains = [];
+            foreach (var id in ids)
+            {
+                var chain = GetChainIdsById(id);
+                if(chain is null) 
+                    continue;
+                chain.ForEach(i => relatedIds.Add(i));
+                chains.Add((id,chain));
+            }
+            var names = GetRangeByIds(relatedIds)
+                .Select(x => new {x.Id, x.Name}).ToList();
+            foreach(var item in chains)
+            {
+                List<string> nameChain = [];
+                foreach(var dirId in item.chain)
+                {
+                    var name = names.Find(x => x.Id == dirId)?.Name ?? "??";
+                    nameChain.Add(name);
+                }
+                res.Add((item.id, nameChain));
+            }
+            return res;
         }
 
         public List<int>? GetChainIdsById(int id)

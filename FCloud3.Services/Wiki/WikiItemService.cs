@@ -13,6 +13,7 @@ using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 using FCloud3.Repos.Etc.Caching;
+using System.Text;
 
 namespace FCloud3.Services.Wiki
 {
@@ -242,6 +243,39 @@ namespace FCloud3.Services.Wiki
             return success;
         }
 
+        public WikiInDirLocationView ViewDirLocations(string urlPathName)
+        {
+            var dirIds = (
+                from w in _wikiRepo.Existing
+                from r in _wikiToDirRepo.Existing
+                where w.UrlPathName == urlPathName
+                where r.WikiId == w.Id
+                select r.DirId).ToList();
+
+            var chains = _fileDirRepo.GetNameChainsByIds(dirIds);
+            chains.Sort((x, y) =>
+            {
+                for(int i = 0; i < x.nameChain.Count && i < y.nameChain.Count; i++)
+                {
+                    var xn = x.nameChain[i];
+                    var yn = y.nameChain[i];
+                    if (xn != yn)
+                        return string.Compare(xn, yn);
+                }
+                return x.nameChain.Count - y.nameChain.Count;
+            });
+            WikiInDirLocationView model = new();
+            StringBuilder sb = new();
+            chains.ForEach(x => model.Locations.Add(new(x.id, x.nameChain, sb)));
+
+            var wiki = _wikiCaching.Get(urlPathName);
+            if (wiki is not null)
+            {
+                model.WikiId = wiki.Id;
+                model.Title = wiki.Title ?? "??";
+            }
+            return model;
+        }
         public bool CreateInDir(string title,string urlPathName,int dirId, out string? errmsg)
         {
             var newWiki = new WikiItem()
@@ -365,5 +399,27 @@ namespace FCloud3.Services.Wiki
                 Update = w.Updated.ToString("yy/MM/dd HH:mm");
             }
         }
+
+        public class WikiInDirLocationView
+        {
+            public int WikiId { get; set; }
+            public string Title { get; set; }
+            public List<WikiInDirLocationItem> Locations { get; set; } = [];
+            public class WikiInDirLocationItem
+            {
+                public WikiInDirLocationItem(int id, List<string> nameChain, StringBuilder sb)
+                {
+                    Id = id;
+                    sb.Clear();
+                    nameChain.ForEach(x => {
+                        sb.Append("/ ");
+                        sb.Append(x);
+                    });
+                    NameChain = sb.ToString();
+                }
+                public int Id { get; set; }
+                public string NameChain { get; set; }
+            }
+        } 
     }
 }

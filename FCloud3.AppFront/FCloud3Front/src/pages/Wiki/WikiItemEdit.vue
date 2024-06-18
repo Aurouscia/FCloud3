@@ -29,6 +29,7 @@ import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import LongPress from '@/components/LongPress.vue';
 import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
+import { useWikiRoutesJump } from './routes/routesJump';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -36,6 +37,7 @@ const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
+const { jumpToWikiLocations } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToSelfUserCenter } = useIdentityRoutesJump();
@@ -301,7 +303,10 @@ onUnmounted(()=>{
 <template>
     <h1>
         {{ info?.Title }}
-        <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)">查看页面</button>
+        <div class="h1Btns">
+            <button v-if="info" @click="jumpToWikiLocations(info?.UrlPathName)">位置管理</button>
+            <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)" class="ok">完成</button>
+        </div>
     </h1>
     <SwitchingTabs v-if="loadComplete" :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
@@ -386,8 +391,9 @@ h1{
     justify-content: space-between;
     align-items: center;
 }
-h1 button{
-    font-size: medium
+.h1Btns{
+    flex-shrink: 0;
+    font-size: medium;
 }
 
 .wikiInfo>*{

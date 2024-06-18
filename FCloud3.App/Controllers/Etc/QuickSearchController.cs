@@ -40,5 +40,10 @@ namespace FCloud3.App.Controllers.Etc
             var res = _quickSearchService.SearchMaterial(s);
             return this.ApiResp(res);
         }
+        public IActionResult FileDir(string s)
+        {
+            var res = _quickSearchService.SearchFileDir(s);
+            return this.ApiResp(res);
+        }
     }
 }

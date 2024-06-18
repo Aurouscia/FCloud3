@@ -5,5 +5,11 @@ export function useWikiRoutesJump(){
     const jumpToWikiEdit = (urlPathName:string)=>{
         router.push({name:"wikiEdit", params:{urlPathName}})
     }
-    return {jumpToWikiEdit}
+    const jumpToWikiLocations = (urlPathName?:string)=>{
+        if(!urlPathName){
+            return;
+        }
+        router.push({name:"wikiLocations", params:{urlPathName}})
+    }
+    return {jumpToWikiEdit, jumpToWikiLocations}
 }

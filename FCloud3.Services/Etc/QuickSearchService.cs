@@ -11,6 +11,7 @@ namespace FCloud3.Services.Etc
         UserGroupRepo userGroupRepo,
         FileItemRepo fileItemRepo,
         MaterialRepo materialRepo,
+        FileDirRepo fileDirRepo,
         IStorage storage)
     {
         private const int maxCount = 8;
@@ -19,6 +20,7 @@ namespace FCloud3.Services.Etc
         private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly FileDirRepo _fileDirRepo = fileDirRepo;
         private readonly IStorage _storage = storage;
 
         public QuickSearchResult SearchWikiItem(string str, bool isAdmin)
@@ -73,6 +75,22 @@ namespace FCloud3.Services.Etc
             items.ForEach(x =>
             {
                 res.Items.Add(new(x.Name ?? "N/A", _storage.FullUrl(x.StorePathName ?? "??"), x.Id));
+            });
+            return res;
+        }
+        public QuickSearchResult SearchFileDir(string str)
+        {
+            var dirs = _fileDirRepo.QuickSearch(str).Select(x => new { x.Id, x.Name }).Take(maxCount).ToList();
+            var nameChains = _fileDirRepo.GetNameChainsByIds(dirs.ConvertAll(x => x.Id));
+            QuickSearchResult res = new();
+            nameChains.ForEach(x =>
+            {
+                var last = x.nameChain.LastOrDefault();
+                if (last is null)
+                    return;
+                var exceptLast = x.nameChain[..^1];
+                var path = string.Join('/', exceptLast);
+                res.Items.Add(new(last, path, x.id));
             });
             return res;
         }

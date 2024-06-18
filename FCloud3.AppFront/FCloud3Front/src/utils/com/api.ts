@@ -11,7 +11,7 @@ import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInR
 import { FileDir } from "@/models/files/fileDir";
 import { QuickSearchResult } from '@/models/etc/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '@/models/identities/userGroup';
-import { WikiItem } from '@/models/wiki/wikiItem';
+import { WikiInDirLocationView, WikiItem } from '@/models/wiki/wikiItem';
 import { FreeTable } from '@/models/table/freeTable';
 import { AuthGrant, AuthGrantOn, AuthGrantViewModel } from '@/models/identities/authGrant';
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '@/models/wikiParsing/wikiTemplate';
@@ -414,6 +414,15 @@ export class Api{
                 if(res.success){
                     return res.data as WikiItem
                 }
+            },
+            viewDirLocations:async(urlPathName:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiItem/ViewDirLocations",
+                    "get",
+                    {urlPathName}
+                )
+                if(resp.success)
+                    return resp.data as WikiInDirLocationView
             }
         },
         wikiPara:{
@@ -1022,6 +1031,16 @@ export class Api{
             material:async(s:string)=>{
                 const res = await this.httpClient.request(
                     "/api/QuickSearch/Material",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
+            fileDir:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/FileDir",
                     "get",
                     {s}
                 )

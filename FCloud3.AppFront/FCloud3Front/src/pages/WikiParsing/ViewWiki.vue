@@ -351,7 +351,7 @@ onUnmounted(()=>{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    .owner{
+    .owner,.owner>span{
         font-size: 16px;
         color: #666;
         img{
@@ -372,6 +372,7 @@ onUnmounted(()=>{
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex-shrink: 0;
 }
 .sealed{
     color:red;
@@ -380,7 +381,7 @@ onUnmounted(()=>{
     text-align: center;
 }
 
-@media screen and (max-width: 700px){
+@media screen and (max-width: 900px){
     .wikiView{
         margin-right: 0px;
         padding-right: 0px;

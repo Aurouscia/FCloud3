@@ -34,6 +34,12 @@ namespace FCloud3.App.Controllers.Wiki
             });
         }
 
+        public IActionResult ViewDirLocations(string urlPathName)
+        {
+            var model = _wikiService.ViewDirLocations(urlPathName);
+            return this.ApiResp(model);
+        }
+
         [Authorize]
         [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
         [UserTypeRestricted]
