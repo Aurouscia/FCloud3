@@ -21,7 +21,7 @@ namespace FCloud3.Services.Etc
             int randRange = 300;
             
             var tops = (
-                from w in _wikiItemRepo.ExistingAndNotSealed
+                from w in _wikiItemRepo.ExistingAndNotSealedAndEdited
                 from dd in _fileDirRepo.Existing
                 from d in _fileDirRepo.Existing
                 from wd in _wikiToDirRepo.Existing
@@ -47,7 +47,7 @@ namespace FCloud3.Services.Etc
                 x.FileDir.UrlPathName,
                 x.FileDir.Name));
 
-            var latestWikis = _wikiItemRepo.ExistingAndNotSealed
+            var latestWikis = _wikiItemRepo.ExistingAndNotSealedAndEdited
                 .OrderByDescending(x => x.Updated)
                 .Take(latestCount).ToList()
                 .ConvertAll(x => new WikiCenteredHomePage.Wiki(x.UrlPathName ?? "??", x.Title ?? "??"));
