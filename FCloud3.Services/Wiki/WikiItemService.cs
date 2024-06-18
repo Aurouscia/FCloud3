@@ -294,6 +294,21 @@ namespace FCloud3.Services.Wiki
             }
             return false;
         }
+        public bool Create(string title, string urlPathName, out string? errmsg)
+        {
+            var newWiki = new WikiItem()
+            {
+                Title = title,
+                UrlPathName = urlPathName,
+            };
+            var s = _wikiRepo.TryAdd(newWiki, out errmsg);
+            if (s)
+            {
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
+                return true;
+            }
+            return false;
+        }
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
         {
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))

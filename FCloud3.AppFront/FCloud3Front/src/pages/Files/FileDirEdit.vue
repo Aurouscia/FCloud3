@@ -11,6 +11,7 @@ import { useUrlPathNameConverter } from '@/utils/urlPathName';
 import AuthProblem from '@/components/AuthProblem.vue';
 import { useFilesRoutesJump } from './routes/routesJump';
 import LongPress from '@/components/LongPress.vue';
+import CreateWiki from '@/components/Wiki/CreateWiki.vue';
 
 const data = ref<FileDir>();
 const props = defineProps<{
@@ -39,17 +40,6 @@ async function newFile(newFileItemId:number) {
 }
 
 const moveSearch = ref<InstanceType<typeof Search>>();
-async function createWiki() {
-    if(!data.value?.Id){
-        return;
-    }
-    const resp = await api.wiki.wikiItem.createInDir(creatingWikiTitle.value||"",creatingWikiUrlPathName.value||"",data.value.Id)
-    if(resp){
-        creatingWikiTitle.value = "";
-        creatingWikiUrlPathName.value = "";
-        emit('addedNewFile');
-    }
-}
 async function moveInWiki(_title:string, wikiId:number) {
     const resp = await api.files.fileDir.putInThings(props.id,[],[],[wikiId]);
     if(resp){
@@ -67,7 +57,6 @@ async function del() {
 }
 
 const {name:editingDirName, converted:editingDirUrlPathName, run:runForDir} = useUrlPathNameConverter();
-const {name:creatingWikiTitle, converted:creatingWikiUrlPathName, run:runForWiki} = useUrlPathNameConverter();
 
 const emit = defineEmits<{
     (e: 'infoUpdated', newInfo:FileDir): void
@@ -92,29 +81,7 @@ onMounted(async()=>{
             <SwitchingTabs :texts="['新词条','放词条','传文件','设置']">
                 <div>
                     <div v-if="data.CanPutThings">
-                        <table>
-                            <tr>
-                                <td>词条<br/>标题</td>
-                                <td><input v-model="creatingWikiTitle" placeholder="必填"/></td>
-                            </tr>
-                            <tr>
-                                <td>链接<br/>名称</td>
-                                <td>
-                                    <div>
-                                        <button class="minor" @click="runForWiki">由标题自动生成</button>
-                                    </div>
-                                    <input v-model="creatingWikiUrlPathName" placeholder="必填" spellcheck="false"/>
-                                </td>
-                            </tr>
-                            <tr class="noneBackground">
-                                <td colspan="2">
-                                    <button class="confirm" @click="createWiki">确认</button>
-                                </td>
-                            </tr>
-                        </table>
-                        <Notice type="warn">
-                            请谨慎设置链接名称，每次修改将导致旧链接失效
-                        </Notice>
+                        <CreateWiki :in-dir-id="data.Id" :no-h1="true"></CreateWiki>
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
@@ -137,13 +104,13 @@ onMounted(async()=>{
                     <div v-if="data.CanEditInfo">
                         <table>
                             <tr>
-                                <td>词条<br/>标题</td>
+                                <td>目录<br/>名称</td>
                                 <td><input v-model="editingDirName"/></td>
                             </tr>
                             <tr>
                                 <td>链接<br/>名称</td>
                                 <td>
-                                    <button @click="runForDir" class="minor">由词条标题生成</button><br/>
+                                    <button @click="runForDir" class="minor">由目录名称生成</button><br/>
                                     <input v-model="editingDirUrlPathName" spellcheck="false"/>
                                 </td>
                             </tr>

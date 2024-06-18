@@ -56,11 +56,18 @@ onMounted(async()=>{
             </div>
             <button class="lite" @click="removeFrom(loc.Id)">移出</button>
         </div>
+        <div v-if="data.Locations.length==0" class="emptyNotice">
+            本词条没有被收录于任何目录
+        </div>
     </div>
     <Loading v-else></Loading>
 </template>
 
 <style scoped lang="scss">
+.emptyNotice{
+    text-align: center;
+    color: #999
+}
 h1{
     button{
         font-size: medium;

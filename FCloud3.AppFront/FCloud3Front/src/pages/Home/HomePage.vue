@@ -4,9 +4,21 @@ import WikiCenteredHomePage from './WikiCenteredHomePage.vue';
 import { injectApi } from '@/provides';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import Footer from '@/components/Footer.vue'
+import SideBar from '@/components/SideBar.vue';
+import CreateWiki from '@/components/Wiki/CreateWiki.vue';
+import { ref } from 'vue';
 
 const api = injectApi();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
+const creatingWiki = ref(false);
+const createWikiSidebar = ref<InstanceType<typeof SideBar>>();
+function toggleSidebar(){
+    if(creatingWiki.value){
+        createWikiSidebar.value?.fold();
+    }else{
+        createWikiSidebar.value?.extend();
+    }
+}
 </script>
 
 <template>
@@ -18,7 +30,11 @@ const { jumpToViewWiki } = useWikiParsingRoutesJump();
     </div>
     <div class="search">
         <Search :source="api.etc.quickSearch.wikiItem" @done="(_v,_i,u)=>jumpToViewWiki(u)" :placeholder="'搜索站内词条'"></Search>
+        <button @click="toggleSidebar">创建新词条</button>
     </div>
+    <SideBar ref="createWikiSidebar">
+        <CreateWiki></CreateWiki>
+    </SideBar>
     <WikiCenteredHomePage>
     </WikiCenteredHomePage>
     <Footer></Footer>
@@ -29,7 +45,12 @@ const { jumpToViewWiki } = useWikiParsingRoutesJump();
     color: cornflowerblue;
 }
 .search{
-    overflow: visible !important;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 .welcome{
     text-align: center;

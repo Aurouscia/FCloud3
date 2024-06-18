@@ -375,10 +375,16 @@ export class Api{
                     {title,urlPathName,dirId},
                     "创建成功",
                     true)
-                if(res.success){
-                    return true;
-                }
-                return false;
+                return res.success;
+            },
+            create:async(title:string,urlPathName:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/Create",
+                    "postForm",
+                    {title,urlPathName},
+                    "创建成功",
+                    true)
+                return res.success;
             },
             removeFromDir:async(wikiId:number,dirId:number)=>{
                 const res = await this.httpClient.request(

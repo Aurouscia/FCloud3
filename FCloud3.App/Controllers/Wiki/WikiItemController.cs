@@ -52,6 +52,16 @@ namespace FCloud3.App.Controllers.Wiki
             return this.ApiResp();
         }
         [Authorize]
+        [UserTypeRestricted]
+        public IActionResult Create(string title,string urlPathName)
+        {
+            if (!_wikiService.Create(title, urlPathName, out string? errmsg))
+            {
+                return this.ApiFailedResp(errmsg);
+            }
+            return this.ApiResp();
+        }
+        [Authorize]
         [AuthGranted(AuthGrantOn.Dir, nameof(dirId))]
         [UserTypeRestricted]
         public IActionResult RemoveFromDir(int wikiId, int dirId)
