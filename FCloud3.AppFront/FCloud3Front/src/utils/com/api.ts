@@ -9,7 +9,7 @@ import { IdentityInfo } from "../globalStores/identityInfo";
 import { FileItemDetail, FileUploadRequest, StagingFile } from "@/models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '@/models/files/fileDir';
 import { FileDir } from "@/models/files/fileDir";
-import { QuickSearchResult } from '@/models/sys/quickSearch';
+import { QuickSearchResult } from '@/models/etc/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '@/models/identities/userGroup';
 import { WikiItem } from '@/models/wiki/wikiItem';
 import { FreeTable } from '@/models/table/freeTable';
@@ -18,10 +18,10 @@ import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from 
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '@/models/wikiParsing/wikiRulesCommonsResult';
 import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
-import { DiffContentType } from '@/models/diff/DiffContentType';
-import { DiffContentHistoryResult } from '@/models/diff/DiffContentHistory';
-import { DiffContentDetailResult } from '@/models/diff/DiffContentDetail';
-import { HeartbeatRequest } from '@/models/sys/heartbeat';
+import { DiffContentType } from '@/models/diff/diffContentType';
+import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
+import { DiffContentDetailResult } from '@/models/diff/diffContentDetail';
+import { HeartbeatRequest } from '@/models/etc/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '@/models/messages/comment';
 import { NotifViewResult, NotificationGetRequest } from '@/models/messages/notification';
 import { OpRecordGetRequest, OpRecordViewModel } from '@/models/messages/opRecord';
@@ -38,7 +38,7 @@ export class Api{
         this.httpClient = httpClient;
     }
     identites = {
-        authen:{
+        auth:{
             login: async(reqObj:{userName:string,password:string})=>{
                 var res = await this.httpClient.request(
                     "/api/Auth/Login",
@@ -295,126 +295,128 @@ export class Api{
         }
     }
     wiki = {
-        edit: async(urlPathName:string)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/Edit",
-                "get",
-                {urlPathName}
-            )
-            if(res.success){
-                return res.data as WikiItem
+        wikiItem:{
+            edit: async(urlPathName:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/Edit",
+                    "get",
+                    {urlPathName}
+                )
+                if(res.success){
+                    return res.data as WikiItem
+                }
+            },
+            editExe: async(data:WikiItem)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/EditExe",
+                    "postRaw",
+                    data,
+                    "保存成功",
+                    true
+                )
+                return res.success
+            },
+            loadSimple: async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/LoadSimple",
+                    "get",
+                    {id:id});
+                if(res.success){
+                    return res.data as Array<WikiParaDisplay>
+                }
+            },
+            insertPara:async(req:{id:number,afterOrder:number,type:WikiParaTypes}) => {
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/InsertPara",
+                    "postForm",
+                    req,
+                    "成功插入新段落",
+                    true)
+                if(res.success){
+                    return res.data as Array<WikiParaDisplay>
+                }
+            },
+            setParaOrders:async(req:{id:number,orderedParaIds:number[]})=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/SetParaOrders",
+                    "postRaw",
+                    req,
+                    "成功修改顺序",
+                    true)
+                if(res.success){
+                    return res.data as Array<WikiParaDisplay>
+                }
+            },
+            removePara:async(req:{id:number,paraId:number})=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/RemovePara",
+                    "postForm",
+                    req,
+                    "成功删除",
+                    true)
+                if(res.success){
+                    return res.data as Array<WikiParaDisplay>
+                }
+            },
+            index:async(req:IndexQuery)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/Index",
+                    "postRaw",
+                    req,
+                )
+                if(res.success){
+                    return res.data as IndexResult;
+                }
+            },
+            createInDir:async(title:string,urlPathName:string,dirId:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/CreateInDir",
+                    "postForm",
+                    {title,urlPathName,dirId},
+                    "创建成功",
+                    true)
+                if(res.success){
+                    return true;
+                }
+                return false;
+            },
+            removeFromDir:async(wikiId:number,dirId:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/RemoveFromDir",
+                    "postForm",
+                    {wikiId,dirId},
+                    "移出成功",
+                    true)
+                return res.success
+            },
+            delete:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/Delete",
+                    "postForm",
+                    {id},
+                    "删除成功",
+                    true)
+                return res.success
+            },
+            setSealed:async(wikiId:number,sealed:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiItem/SetSealed","postForm",
+                    {id:wikiId, sealed:sealed}, "设置成功", true
+                )
+                return resp.success;
+            },
+            getInfoById:async(wikiId:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/GetInfoById",
+                    "get",
+                    {id:wikiId}
+                )
+                if(res.success){
+                    return res.data as WikiItem
+                }
             }
         },
-        editExe: async(data:WikiItem)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/EditExe",
-                "postRaw",
-                data,
-                "保存成功",
-                true
-            )
-            return res.success
-        },
-        loadSimple: async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/LoadSimple",
-                "get",
-                {id:id});
-            if(res.success){
-                return res.data as Array<WikiParaDisplay>
-            }
-        },
-        insertPara:async(req:{id:number,afterOrder:number,type:WikiParaTypes}) => {
-            const res = await this.httpClient.request(
-                "/api/WikiItem/InsertPara",
-                "postForm",
-                req,
-                "成功插入新段落",
-                true)
-            if(res.success){
-                return res.data as Array<WikiParaDisplay>
-            }
-        },
-        setParaOrders:async(req:{id:number,orderedParaIds:number[]})=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/SetParaOrders",
-                "postRaw",
-                req,
-                "成功修改顺序",
-                true)
-            if(res.success){
-                return res.data as Array<WikiParaDisplay>
-            }
-        },
-        removePara:async(req:{id:number,paraId:number})=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/RemovePara",
-                "postForm",
-                req,
-                "成功删除",
-                true)
-            if(res.success){
-                return res.data as Array<WikiParaDisplay>
-            }
-        },
-        index:async(req:IndexQuery)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/Index",
-                "postRaw",
-                req,
-            )
-            if(res.success){
-                return res.data as IndexResult;
-            }
-        },
-        createInDir:async(title:string,urlPathName:string,dirId:number)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/CreateInDir",
-                "postForm",
-                {title,urlPathName,dirId},
-                "创建成功",
-                true)
-            if(res.success){
-                return true;
-            }
-            return false;
-        },
-        removeFromDir:async(wikiId:number,dirId:number)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/RemoveFromDir",
-                "postForm",
-                {wikiId,dirId},
-                "移出成功",
-                true)
-            return res.success
-        },
-        deleteWiki:async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/Delete",
-                "postForm",
-                {id},
-                "删除成功",
-                true)
-            return res.success
-        },
-        setSealed:async(wikiId:number,sealed:boolean)=>{
-            const resp = await this.httpClient.request(
-                "/api/WikiItem/SetSealed","postForm",
-                {id:wikiId, sealed:sealed}, "设置成功", true
-            )
-            return resp.success;
-        },
-        getInfoById:async(wikiId:number)=>{
-            const res = await this.httpClient.request(
-                "/api/WikiItem/GetInfoById",
-                "get",
-                {id:wikiId}
-            )
-            if(res.success){
-                return res.data as WikiItem
-            }
-        },
-        para:{
+        wikiPara:{
             setFileParaFileId:async(paraId:number,fileId:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/WikiPara/SetFileParaFileId",
@@ -563,40 +565,42 @@ export class Api{
         }
     }
     textSection = {
-        createForPara:async (req:{paraId:number}) => {
-            const res = await this.httpClient.request(
-                "/api/TextSection/CreateForPara",
-                "postForm",
-                req,undefined,true)
-            if(res.success){
-                return res.data as {CreatedId:number}
-            }
-        },
-        edit:async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/TextSection/Edit",
-                "get"
-                ,{id:id})
-            if(res.success){
-                return res.data as TextSection
-            }
-        },
-        editExe:async(textSection:TextSection)=>{
-            const res = await this.httpClient.request(
-                "/api/TextSection/EditExe",
-                "postRaw",
-                textSection,
-                "已保存修改",
-                true)
-            return res.success;
-        },
-        preview:async(textSecId:number,content:string)=>{
-            const res = await this.httpClient.request(
-                "/api/TextSection/Preview",
-                "postForm",
-                {id:textSecId,content:content});
-            if(res.success){
-                return res.data as TextSectionPreviewResponse;
+        textSection:{
+            createForPara:async (req:{paraId:number}) => {
+                const res = await this.httpClient.request(
+                    "/api/TextSection/CreateForPara",
+                    "postForm",
+                    req,undefined,true)
+                if(res.success){
+                    return res.data as {CreatedId:number}
+                }
+            },
+            edit:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/TextSection/Edit",
+                    "get"
+                    ,{id:id})
+                if(res.success){
+                    return res.data as TextSection
+                }
+            },
+            editExe:async(textSection:TextSection)=>{
+                const res = await this.httpClient.request(
+                    "/api/TextSection/EditExe",
+                    "postRaw",
+                    textSection,
+                    "已保存修改",
+                    true)
+                return res.success;
+            },
+            preview:async(textSecId:number,content:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/TextSection/Preview",
+                    "postForm",
+                    {id:textSecId,content:content});
+                if(res.success){
+                    return res.data as TextSectionPreviewResponse;
+                }
             }
         }
     }
@@ -645,266 +649,270 @@ export class Api{
             }
         }
     }
-    fileItem = {
-        getDetail:async(id:number)=>{
-            const resp = await this.httpClient.request(
-                "/api/FileItem/GetDetail",
-                "get",
-                {id}
-            );
-            if(resp.success){
-                return resp.data as FileItemDetail
-            }
-        },
-        save:async(file: StagingFile, dist:string)=>{
-            const req:FileUploadRequest = {
-                ToSave:file.file,
-                DisplayName:file.displayName,
-                StorePath:dist,
-                StoreName:file.storeName||"",
-                Hash:file.md5||""
-            } 
-            const res = await this.httpClient.request(
-                "/api/FileItem/Save",
-                "postForm",
-                req,
-                `成功上传：${_.truncate(req.DisplayName,{length:8})}`,
-                true);
-            if(res.success){
-                return res.data as {CreatedId:number};
-            }
-        },
-        editInfo:async(id:number, name:string)=>{
-            const res = await this.httpClient.request(
-                "/api/FileItem/EditInfo",
-                "postForm",
-                {id,name},
-                "修改成功",
-                true
-            )
-            return res.success
-        },
-        deleteFile:async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/FileItem/Delete",
-                "postForm",
-                {id},
-                "删除成功",
-                true
-            )
-            return res.success
-        }
-    }
-    fileDir = {
-        getPathById:async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/FileDir/GetPathById",
-                "get",
-                {id}
-            );
-            if(res.success){
-                return res.data as string[]
-            }
-        },
-        index:async(q: IndexQuery,path: string[])=>{
-            const res = await this.httpClient.request(
-                "/api/FileDir/Index",
-                "postRaw",
-                {
-                    Query:q,
-                    Path:path
-                },
-            )
-            if(res.success){
-                return res.data as FileDirIndexResult;
-            }
-        },
-        editDir:async(id:number)=>{
-            const res = await this.httpClient.request(
-                "/api/FileDir/Edit",
-                "get",
-                {
-                    id:id
-                },
-            )
-            if(res.success){
-                return res.data as FileDir;
-            }
-        },
-        editDirExe:async(req:FileDir)=>{
-            const res = await this.httpClient.request(
-                "/api/FileDir/EditExe",
-                "postRaw",
-                req,
-                "编辑成功",
-                true
-            )
-            if(res.success){
-                return true;
-            }
-        },
-        putInFile:async(dirId:number, fileItemId:number)=>{
-            const reqData:PutInFileRequest={
-                DirId:dirId,
-                FileItemId:fileItemId
-            }
-            const res = await this.httpClient.request(
-                "/api/FileDir/PutInFile",
-                "postRaw",
-                reqData,
-                "成功将文件放入本文件夹",
-                true
-            )
-            if(res.success){
-                return true;
-            }
-        },
-        putInThings:async(dirId:number, fileItemIds:number[], fileDirIds:number[], wikiItemIds:number[])=>{
-            const reqNum = (fileItemIds.length||0) + (fileDirIds.length||0) + (wikiItemIds.length||0)
-            if(!reqNum){return;}
-            const reqData:PutInThingsRequest={
-                DirId:dirId,
-                FileItemIds:fileItemIds,
-                FileDirIds:fileDirIds,
-                WikiItemIds:wikiItemIds
-            }
-            const res = await this.httpClient.request(
-                "/api/FileDir/PutInThings",
-                "postRaw",
-                reqData,
-                undefined,
-                true
-            )
-            if(res.success){
-                const data = res.data as FileDirPutInResult;
-                const num = (data.FileDirSuccess?.length||0) + (data.FileItemSuccess?.length||0) + (data.WikiItemSuccess?.length||0)
-                if(num==reqNum){
-                    this.httpClient.httpCallBack("ok",`操作成功`);
+    files = {
+        fileItem: {
+            getDetail:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FileItem/GetDetail",
+                    "get",
+                    {id}
+                );
+                if(resp.success){
+                    return resp.data as FileItemDetail
                 }
-                if(num<reqNum){
-                    if(num>0){
-                        this.httpClient.httpCallBack("ok",`${num}个操作成功`);
+            },
+            save:async(file: StagingFile, dist:string)=>{
+                const req:FileUploadRequest = {
+                    ToSave:file.file,
+                    DisplayName:file.displayName,
+                    StorePath:dist,
+                    StoreName:file.storeName||"",
+                    Hash:file.md5||""
+                } 
+                const res = await this.httpClient.request(
+                    "/api/FileItem/Save",
+                    "postForm",
+                    req,
+                    `成功上传：${_.truncate(req.DisplayName,{length:8})}`,
+                    true);
+                if(res.success){
+                    return res.data as {CreatedId:number};
+                }
+            },
+            editInfo:async(id:number, name:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileItem/EditInfo",
+                    "postForm",
+                    {id,name},
+                    "修改成功",
+                    true
+                )
+                return res.success
+            },
+            deleteFile:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileItem/Delete",
+                    "postForm",
+                    {id},
+                    "删除成功",
+                    true
+                )
+                return res.success
+            }
+        },
+        fileDir: {
+            getPathById:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileDir/GetPathById",
+                    "get",
+                    {id}
+                );
+                if(res.success){
+                    return res.data as string[]
+                }
+            },
+            index:async(q: IndexQuery,path: string[])=>{
+                const res = await this.httpClient.request(
+                    "/api/FileDir/Index",
+                    "postRaw",
+                    {
+                        Query:q,
+                        Path:path
+                    },
+                )
+                if(res.success){
+                    return res.data as FileDirIndexResult;
+                }
+            },
+            edit:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileDir/Edit",
+                    "get",
+                    {
+                        id:id
+                    },
+                )
+                if(res.success){
+                    return res.data as FileDir;
+                }
+            },
+            editExe:async(req:FileDir)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileDir/EditExe",
+                    "postRaw",
+                    req,
+                    "编辑成功",
+                    true
+                )
+                if(res.success){
+                    return true;
+                }
+            },
+            putInFile:async(dirId:number, fileItemId:number)=>{
+                const reqData:PutInFileRequest={
+                    DirId:dirId,
+                    FileItemId:fileItemId
+                }
+                const res = await this.httpClient.request(
+                    "/api/FileDir/PutInFile",
+                    "postRaw",
+                    reqData,
+                    "成功将文件放入本文件夹",
+                    true
+                )
+                if(res.success){
+                    return true;
+                }
+            },
+            putInThings:async(dirId:number, fileItemIds:number[], fileDirIds:number[], wikiItemIds:number[])=>{
+                const reqNum = (fileItemIds.length||0) + (fileDirIds.length||0) + (wikiItemIds.length||0)
+                if(!reqNum){return;}
+                const reqData:PutInThingsRequest={
+                    DirId:dirId,
+                    FileItemIds:fileItemIds,
+                    FileDirIds:fileDirIds,
+                    WikiItemIds:wikiItemIds
+                }
+                const res = await this.httpClient.request(
+                    "/api/FileDir/PutInThings",
+                    "postRaw",
+                    reqData,
+                    undefined,
+                    true
+                )
+                if(res.success){
+                    const data = res.data as FileDirPutInResult;
+                    const num = (data.FileDirSuccess?.length||0) + (data.FileItemSuccess?.length||0) + (data.WikiItemSuccess?.length||0)
+                    if(num==reqNum){
+                        this.httpClient.httpCallBack("ok",`操作成功`);
                     }
-                    const failNum = reqNum - num;
-                    if(failNum > 1)
-                        this.httpClient.httpCallBack("warn",`${failNum}个操作失败`);
-                    else if(failNum == 1)
-                        this.httpClient.httpCallBack("err", data.FailMsg || "操作失败")
+                    if(num<reqNum){
+                        if(num>0){
+                            this.httpClient.httpCallBack("ok",`${num}个操作成功`);
+                        }
+                        const failNum = reqNum - num;
+                        if(failNum > 1)
+                            this.httpClient.httpCallBack("warn",`${failNum}个操作失败`);
+                        else if(failNum == 1)
+                            this.httpClient.httpCallBack("err", data.FailMsg || "操作失败")
+                    }
+                    return data
                 }
-                return data
+            },
+            create:async(parentDir:number,name:string,urlPathName:string)=>{
+                const reqData:FileDirCreateRequest = {
+                    ParentDir:parentDir,
+                    Name:name,
+                    UrlPathName:urlPathName
+                };
+                const res = await this.httpClient.request(
+                    "/api/FileDir/Create",
+                    "postRaw",
+                    reqData,
+                    "创建成功",
+                    true
+                )
+                if(res.success){
+                    return true;
+                }
+            },
+            delete:async(dirId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FileDir/Delete",
+                    "get",
+                    {dirId},
+                    "成功删除",
+                    true
+                );
+                if(resp.success){
+                    return true;
+                }
             }
         },
-        create:async(parentDir:number,name:string,urlPathName:string)=>{
-            const reqData:FileDirCreateRequest = {
-                ParentDir:parentDir,
-                Name:name,
-                UrlPathName:urlPathName
-            };
-            const res = await this.httpClient.request(
-                "/api/FileDir/Create",
-                "postRaw",
-                reqData,
-                "创建成功",
-                true
-            )
-            if(res.success){
-                return true;
-            }
-        },
-        delete:async(dirId:number)=>{
-            const resp = await this.httpClient.request(
-                "/api/FileDir/Delete",
-                "get",
-                {dirId},
-                "成功删除",
-                true
-            );
-            if(resp.success){
-                return true;
+        material: {
+            index: async(q:IndexQuery, onlyMine:boolean)=>{
+                const resp = await this.httpClient.request(
+                    `/api/Material/Index?onlyMine=${onlyMine}`,
+                    "postRaw",
+                    q);
+                if(resp.success){
+                    return resp.data as IndexResult
+                }
+            },
+            add: async(name:string, desc:string|undefined, content:File)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Material/Add",
+                    "postForm",
+                    {
+                        name, desc,
+                        content
+                    },
+                    "上传成功",
+                    true
+                )
+                return resp.data as number
+            },
+            editContent: async(id:number, content:File)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Material/EditContent",
+                    "postForm",
+                    {
+                        id, content
+                    },
+                    "更改成功",
+                    true
+                )
+                return resp.success
+            },
+            editInfo: async(id:number, name:string, desc:string|undefined)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Material/EditInfo",
+                    "postForm",
+                    {
+                        id,name,desc
+                    },
+                    "更改成功",
+                    true
+                )
+                return resp.success
+            },
+            delete: async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Material/Delete",
+                    "postForm",
+                    {id},
+                    "删除成功",
+                    true
+                )
+                return resp.success
             }
         }
     }
-    material = {
-        Index: async(q:IndexQuery, onlyMine:boolean)=>{
-            const resp = await this.httpClient.request(
-                `/api/Material/Index?onlyMine=${onlyMine}`,
-                "postRaw",
-                q);
-            if(resp.success){
-                return resp.data as IndexResult
-            }
-        },
-        Add: async(name:string, desc:string|undefined, content:File)=>{
-            const resp = await this.httpClient.request(
-                "/api/Material/Add",
-                "postForm",
-                {
-                    name, desc,
-                    content
-                },
-                "上传成功",
-                true
-            )
-            return resp.data as number
-        },
-        EditContent: async(id:number, content:File)=>{
-            const resp = await this.httpClient.request(
-                "/api/Material/EditContent",
-                "postForm",
-                {
-                    id, content
-                },
-                "更改成功",
-                true
-            )
-            return resp.success
-        },
-        EditInfo: async(id:number, name:string, desc:string|undefined)=>{
-            const resp = await this.httpClient.request(
-                "/api/Material/EditInfo",
-                "postForm",
-                {
-                    id,name,desc
-                },
-                "更改成功",
-                true
-            )
-            return resp.success
-        },
-        Delete: async(id:number)=>{
-            const resp = await this.httpClient.request(
-                "/api/Material/Delete",
-                "postForm",
-                {id},
-                "删除成功",
-                true
-            )
-            return resp.success
-        }
-    }
-    diffContent = {
-        history: async(type:DiffContentType, objId:number)=>{
-            const resp = await this.httpClient.request(
-                "/api/DiffContent/History",
-                "postForm",
-                {
-                    type, objId
+    diff = {
+        diffContent: {
+            history: async(type:DiffContentType, objId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/DiffContent/History",
+                    "postForm",
+                    {
+                        type, objId
+                    }
+                )
+                if(resp.success){
+                    return resp.data as DiffContentHistoryResult
                 }
-            )
-            if(resp.success){
-                return resp.data as DiffContentHistoryResult
-            }
-        },
-        detail: async(type:DiffContentType, objId:number, diffId:number)=>{
-            const resp = await this.httpClient.request(
-                "/api/DiffContent/Detail",
-                "postForm",
-                {
-                    type, objId, diffId
+            },
+            detail: async(type:DiffContentType, objId:number, diffId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/DiffContent/Detail",
+                    "postForm",
+                    {
+                        type, objId, diffId
+                    }
+                )
+                if(resp.success){
+                    return resp.data as DiffContentDetailResult
                 }
-            )
-            if(resp.success){
-                return resp.data as DiffContentDetailResult
             }
         }
     }
@@ -969,7 +977,7 @@ export class Api{
             }
         }
     }
-    utils = {
+    etc = {
         quickSearch:{
             wikiItem:async(s:string)=>{
                 const res = await this.httpClient.request(
@@ -1022,52 +1030,6 @@ export class Api{
                 }
             }
         },
-        urlPathName:async(input:string)=>{
-            const resp = await this.httpClient.request(
-                "/api/Utils/UrlPathName",
-                "get",
-                {input}
-            )
-            if(resp.success){
-                return resp.data.res as string;
-            }
-        },
-        applyBeingMember:async()=>{
-            const resp = await this.httpClient.request(
-                "/api/Utils/ApplyBeingMember",
-                "get"
-            )
-            if(resp.success){
-                return resp.data.res as string
-            }
-        },
-        heartbeat:async(req:HeartbeatRequest)=>{
-            const resp = await this.httpClient.request(
-                "/api/Heartbeat/Do",
-                "get",
-                req
-            )
-            return resp.success
-        },
-        latestWork:async(uid=-1)=>{
-            const resp = await this.httpClient.request(
-                "/api/LatestWork/Get", "get", {uid}
-            )
-            if(resp.success){
-                return resp.data as LatestWorkViewItem[]
-            }
-        },
-        getFooterLinks:async()=>{
-            const resp = await this.httpClient.request(
-                "/api/Utils/GetFooterLinks",
-                "get"
-            )
-            if(resp.success){
-                return resp.data as FooterLinks
-            }
-        }
-    }
-    etc = {
         wikiCenteredHomePage:{
             get:async()=>{
                 const resp = await this.httpClient.request(
@@ -1078,6 +1040,56 @@ export class Api{
                     return resp.data as WikiCenteredHomePage
                 }
             }
+        },
+        utils:{
+            urlPathName:async(input:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Utils/UrlPathName",
+                    "get",
+                    {input}
+                )
+                if(resp.success){
+                    return resp.data.res as string;
+                }
+            },
+            applyBeingMember:async()=>{
+                const resp = await this.httpClient.request(
+                    "/api/Utils/ApplyBeingMember",
+                    "get"
+                )
+                if(resp.success){
+                    return resp.data.res as string
+                }
+            },
+            getFooterLinks:async()=>{
+                const resp = await this.httpClient.request(
+                    "/api/Utils/GetFooterLinks",
+                    "get"
+                )
+                if(resp.success){
+                    return resp.data as FooterLinks
+                }
+            }
+        },
+        heartbeat:{
+            do:async(req:HeartbeatRequest)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Heartbeat/Do",
+                    "get",
+                    req
+                )
+                return resp.success
+            },
+        },
+        latestWork:{
+            get:async(uid=-1)=>{
+                const resp = await this.httpClient.request(
+                    "/api/LatestWork/Get", "get", {uid}
+                )
+                if(resp.success){
+                    return resp.data as LatestWorkViewItem[]
+                }
+            },
         }
     }
 }

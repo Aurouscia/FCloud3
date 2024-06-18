@@ -12,7 +12,7 @@ const {name:creatingDirName, converted:creatingDirUrlPathName, run:runAutoUrl} =
 
 async function create() {
     if(!creatingDirName.value||!creatingDirUrlPathName.value){return;}
-    const res = await api.fileDir.create(props.dirId,creatingDirName.value,creatingDirUrlPathName.value);
+    const res = await api.files.fileDir.create(props.dirId,creatingDirName.value,creatingDirUrlPathName.value);
     if(res){
         emit('created',creatingDirUrlPathName.value);
         creatingDirName.value = "";

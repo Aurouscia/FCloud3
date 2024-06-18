@@ -85,7 +85,7 @@ watch(props,async ()=>{
                 <div>人数: {{ data.FormalMembers.length }}</div>
             </div>
             <div v-if="data.CanInvite" class="search">
-                <Search ref="inviteUserSearch" :source="api.utils.quickSearch.userName" :allow-free-input="false" 
+                <Search ref="inviteUserSearch" :source="api.etc.quickSearch.userName" :allow-free-input="false" 
                     :no-result-notice="'未找到该用户'" :placeholder="'邀请用户加入'" @done="inviteUser"></Search>
             </div>
             <table>

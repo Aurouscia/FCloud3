@@ -39,7 +39,7 @@ onMounted(()=>{
 </script>
 
 <template>
-    <Index v-if="ok" :columns="columns" :fetch-index="api.wiki.index" :q-init="q" 
+    <Index v-if="ok" :columns="columns" :fetch-index="api.wiki.wikiItem.index" :q-init="q" 
         @reload-data="render" :hide-head="true" :hide-page="true">
         <tr v-for="item in data">
             <td>

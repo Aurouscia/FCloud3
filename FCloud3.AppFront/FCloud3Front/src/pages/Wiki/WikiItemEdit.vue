@@ -102,7 +102,7 @@ async function endMoving(){
         const newOrder = JSON.stringify(ids);
         if(!originalOrder || newOrder!=originalOrder){
             originalOrder = newOrder;
-            const resp = await api.wiki.setParaOrders({
+            const resp = await api.wiki.wikiItem.setParaOrders({
                 id:info.value.Id,
                 orderedParaIds:ids
             })
@@ -114,7 +114,7 @@ async function endMoving(){
 }
 async function InsertPara(type:WikiParaTypes,afterOrder:number){
     if(!info.value){return;}
-    const resp = await api.wiki.insertPara({
+    const resp = await api.wiki.wikiItem.insertPara({
         id:info.value.Id,
         afterOrder,
         type
@@ -132,7 +132,7 @@ async function EnterEdit(paraId:number)
             jumpToTextSectionEdit(target.UnderlyingId);
             return;
         }
-        const resp = await api.textSection.createForPara({paraId:paraId});
+        const resp = await api.textSection.textSection.createForPara({paraId:paraId});
         if(resp){
             const newlyCreatedId = resp.CreatedId;
             jumpToTextSectionEdit(newlyCreatedId);
@@ -160,7 +160,7 @@ async function RemovePara(paraId:number){
     const target = paras.value.find(x=>x.ParaId == paraId);
     if(!target || !info.value){return;}
     if(window.confirm(`确定要将[${target.Title}]从本词条移除`)){
-        const resp = await api.wiki.removePara({
+        const resp = await api.wiki.wikiItem.removePara({
             id:info.value.Id,
             paraId:paraId,
         });
@@ -192,7 +192,7 @@ async function fileEditFold(){
 const loadComplete = ref<boolean>(false)
 async function Load(loadInfo:boolean=true, loadParas:boolean=true){
     if(loadInfo){
-        const infoResp = await api.wiki.edit(props.urlPathName)
+        const infoResp = await api.wiki.wikiItem.edit(props.urlPathName)
         if(!infoResp){
             return;
         }
@@ -203,7 +203,7 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
     }
     if(loadParas){
         if(!info.value){return;}
-        const parasResp = await api.wiki.loadSimple(info.value.Id);
+        const parasResp = await api.wiki.wikiItem.loadSimple(info.value.Id);
         if(parasResp){
             loadComplete.value = true;
         }
@@ -230,7 +230,7 @@ async function saveInfoEdit(){
     }
     info.value.Title = editingWikiTitle.value;
     info.value.UrlPathName = editingUrlPathName.value;
-    const resp = await api.wiki.editExe(info.value);
+    const resp = await api.wiki.wikiItem.editExe(info.value);
     if(resp){
         if(props.urlPathName != info.value.UrlPathName){
             router.replace({name:'wikiEdit',params:{urlPathName:info.value.UrlPathName}})
@@ -240,7 +240,7 @@ async function saveInfoEdit(){
 
 async function del() {
     if(info.value){
-        const res = await api.wiki.deleteWiki(info.value.Id);
+        const res = await api.wiki.wikiItem.delete(info.value.Id);
         if(res){
             jumpToSelfUserCenter();
         }

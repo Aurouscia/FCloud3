@@ -7,7 +7,7 @@ export function useUrlPathNameConverter(){
     const api = inject('api') as Api;
     const run = async()=>{
         if(!name.value){return;}
-        const res = await api.utils.urlPathName(name.value);
+        const res = await api.etc.utils.urlPathName(name.value);
         if(res){
             converted.value = res;
         }

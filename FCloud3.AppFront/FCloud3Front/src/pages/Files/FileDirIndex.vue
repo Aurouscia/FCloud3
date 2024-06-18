@@ -58,7 +58,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         if(p==''){p=[]}
         else{p = [p];}
     }
-    const res = await api.fileDir.index(q,p)
+    const res = await api.files.fileDir.index(q,p)
     if(res){
         thisDirId.value = res.ThisDirId || 0;
         thisOwnerId.value = res.OwnerId || 0;
@@ -137,7 +137,7 @@ function dirCreated(pathUrlName:string){
     jumpToSubDir(pathUrlName);
 }
 async function deleteDir(dirId:number){
-    const resp = await api.fileDir.delete(dirId);
+    const resp = await api.files.fileDir.delete(dirId);
     if(resp){
         await index.value?.reloadData();
     }
@@ -234,7 +234,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     const fileItemIds = move.filter(x=>x.type=='fileItem').map(x=>x.id);
     const fileDirIds = move.filter(x=>x.type=='fileDir').map(x=>x.id);
     const wikiItemIds = move.filter(x=>x.type=='wikiItem').map(x=>x.id);
-    const res = await api.fileDir.putInThings(thisDirId.value,fileItemIds,fileDirIds,wikiItemIds);
+    const res = await api.files.fileDir.putInThings(thisDirId.value,fileItemIds,fileDirIds,wikiItemIds);
     if(res){
         const fileItemSuccess:ClipBoardItem[] = res.FileItemSuccess?.map(x=>{return{id:x,type:'fileItem',name:''}})||[]
         const fileDirSuccess:ClipBoardItem[] = res.FileDirSuccess?.map(x=>{return{id:x,type:'fileDir',name:''}})||[]
@@ -298,7 +298,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.UrlPathName)" :fetch-from="api.fileDir.index"></FileDirChild>
+                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.UrlPathName)" :fetch-from="api.files.fileDir.index"></FileDirChild>
                     </div>
                 </td>
             </tr>

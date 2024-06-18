@@ -11,7 +11,7 @@ const id = parseInt(props.id);
 const api = injectApi();
 const failed = ref(false);
 if(!isNaN(id) && id>0)
-api.fileDir.getPathById(id).then(p=>{
+api.files.fileDir.getPathById(id).then(p=>{
         if(p){
             router.replace(`/d/${p.join('/')}`)
         }else{

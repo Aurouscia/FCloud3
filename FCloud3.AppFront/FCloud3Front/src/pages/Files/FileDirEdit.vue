@@ -25,14 +25,14 @@ async function saveEdit(){
     if(data.value){
         data.value.Name = editingDirName.value||"";
         data.value.UrlPathName = editingDirUrlPathName.value||""
-        const resp = await api.fileDir.editDirExe(data.value)
+        const resp = await api.files.fileDir.editExe(data.value)
         if(resp){
             emit('infoUpdated',data.value);
         }
     }
 } 
 async function newFile(newFileItemId:number) {
-    const resp = await api.fileDir.putInFile(props.id, newFileItemId);
+    const resp = await api.files.fileDir.putInFile(props.id, newFileItemId);
     if(resp){
         emit('addedNewFile');
     }
@@ -43,7 +43,7 @@ async function createWiki() {
     if(!data.value?.Id){
         return;
     }
-    const resp = await api.wiki.createInDir(creatingWikiTitle.value||"",creatingWikiUrlPathName.value||"",data.value.Id)
+    const resp = await api.wiki.wikiItem.createInDir(creatingWikiTitle.value||"",creatingWikiUrlPathName.value||"",data.value.Id)
     if(resp){
         creatingWikiTitle.value = "";
         creatingWikiUrlPathName.value = "";
@@ -51,7 +51,7 @@ async function createWiki() {
     }
 }
 async function moveInWiki(_title:string, wikiId:number) {
-    const resp = await api.fileDir.putInThings(props.id,[],[],[wikiId]);
+    const resp = await api.files.fileDir.putInThings(props.id,[],[],[wikiId]);
     if(resp){
         moveSearch.value?.clear();
         emit('addedNewFile');
@@ -59,7 +59,7 @@ async function moveInWiki(_title:string, wikiId:number) {
 }
 
 async function del() {
-    const res = await api.fileDir.delete(props.id);
+    const res = await api.files.fileDir.delete(props.id);
     if(res){
         const to = props.path.slice(0, props.path.length - 1)
         jumpToDir(to);
@@ -77,7 +77,7 @@ const emit = defineEmits<{
 
 onMounted(async()=>{
     api = inject('api') as Api;
-    data.value = await api.fileDir.editDir(props.id);
+    data.value = await api.files.fileDir.edit(props.id);
     editingDirName.value = data.value?.Name;
     editingDirUrlPathName.value = data.value?.UrlPathName;
 })
@@ -120,7 +120,7 @@ onMounted(async()=>{
                 </div>
                 <div>
                     <div v-if="data.CanPutThings">
-                        <Search ref="moveSearch" :source="api.utils.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
+                        <Search ref="moveSearch" :source="api.etc.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
                             :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
                         <Notice type="info">移入词条将不会影响词条在其他目录的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
                     </div>

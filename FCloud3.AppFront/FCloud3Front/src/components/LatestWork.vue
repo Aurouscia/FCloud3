@@ -17,7 +17,7 @@ const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToUserCenter } = useIdentityRoutesJump();
 
 async function load(){
-    const resp = await api.utils.latestWork(props.uid || -1)
+    const resp = await api.etc.latestWork.get(props.uid || -1)
     if(resp){
         loaded.value = true;
         list.value = resp;

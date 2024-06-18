@@ -7,7 +7,7 @@ export function useFooterLinksProvider(){
     const api = injectApi();
     return async()=>{
         if(store.links === undefined){
-            store.links = await api.utils.getFooterLinks();
+            store.links = await api.etc.utils.getFooterLinks();
         }
         return store.links;
     }

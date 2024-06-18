@@ -18,7 +18,7 @@ import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
 import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import { diffContentTypeFromParaType } from '@/models/diff/DiffContentType';
+import { diffContentTypeFromParaType } from '@/models/diff/diffContentType';
 import { canDisplayAsImage } from '@/utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
@@ -131,7 +131,7 @@ function enterEdit(type:WikiParaTypes, underlyingId:number){
 
 async function toggleSealed(){
     const setTo = !sealed.value;
-    const s = await api.wiki.setSealed(wikiId.value, setTo);
+    const s = await api.wiki.wikiItem.setSealed(wikiId.value, setTo);
     if(s){
         sealed.value = setTo;
     }

@@ -50,7 +50,7 @@ async function create(){
         pop.value?.show("请选择上传文件", "failed");
         return;
     }
-    const resp = await api.material.Add(
+    const resp = await api.files.material.add(
         creatingName.value,
         creatingDesc.value,
         creatingFile.value
@@ -77,7 +77,7 @@ function showDetail(m:MaterialIndexItem){
     detailDesc.value = m.Desc;
 }
 async function editInfo() {
-    const resp = await api.material.EditInfo(
+    const resp = await api.files.material.editInfo(
         detailId.value,
         detailName.value,
         detailDesc.value
@@ -101,7 +101,7 @@ async function editContent(){
         pop.value?.show("请选择上传文件", "failed");
         return;
     }
-    const resp = await api.material.EditContent(
+    const resp = await api.files.material.editContent(
         detailId.value,
         editingFile.value
     );
@@ -116,7 +116,7 @@ async function editContent(){
 
 async function deleteMaterial(id:number){
     if(window.confirm("确定删除吗？")){
-        const resp = await api.material.Delete(id);
+        const resp = await api.files.material.delete(id);
         if(resp){
             detailSidebar.value?.fold();
             await index.value?.reloadData();
@@ -155,7 +155,7 @@ watch(onlyMine, async()=>{
         </div>
     </div>
     <div class="matTable">
-    <Index v-if="injected" :fetch-index="q => api.material.Index(q, onlyMine)" :columns="columns" @reload-data="setItems" ref="index" :q-init="qInit">
+    <Index v-if="injected" :fetch-index="q => api.files.material.index(q, onlyMine)" :columns="columns" @reload-data="setItems" ref="index" :q-init="qInit">
         <tr v-for="m in items" @click="showDetail(m)">
             <td>
                 <div class="materialContent">

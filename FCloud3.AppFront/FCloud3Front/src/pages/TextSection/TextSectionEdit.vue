@@ -18,7 +18,7 @@ import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingU
 import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '@/utils/sleep';
-import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
+import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useRouter } from 'vue-router';
 
@@ -116,7 +116,7 @@ async function refreshPreview() {
     if(!previewOn.value){
         return;
     }
-    const res = await api.textSection.preview(textSecId,data.value.Content||"");
+    const res = await api.textSection.textSection.preview(textSecId,data.value.Content||"");
     if(res && preScriptsDiv.value){
         stylesContent.value = res.Styles;
         updateScript(preScriptsDiv.value, res.PreScripts);
@@ -164,13 +164,13 @@ async function replaceTitle() {
     }
     const send = clone(data.value);
     send.Content = null;//不更新正文，只更新标题
-    api.textSection.editExe(send)
+    api.textSection.textSection.editExe(send)
 }
 async function replaceContent() {
     if(!loadComplete.value){
         return;
     }
-    const resp = await api.textSection.editExe(data.value);
+    const resp = await api.textSection.textSection.editExe(data.value);
     if(resp){
         releasePreventLeaving()
         initialContent = data.value.Content || "";
@@ -182,7 +182,7 @@ function leave(){
 
 let initialContent:string = "";
 async function init(){
-    const resp = await api.textSection.edit(textSecId);
+    const resp = await api.textSection.textSection.edit(textSecId);
     if(resp){
         data.value = resp;
         initialContent = data.value.Content || "";

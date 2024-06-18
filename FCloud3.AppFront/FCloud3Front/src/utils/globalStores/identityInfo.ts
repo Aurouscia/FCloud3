@@ -32,7 +32,7 @@ export class IdentityInfoProvider{
     public async getIdentityInfo(enforceNew?:boolean):Promise<IdentityInfo> {
         let res:IdentityInfo|undefined = this.readCache()?.info;
         if(res === undefined || enforceNew){
-            res = await this.api.identites.authen.identityTest()
+            res = await this.api.identites.auth.identityTest()
             if (res) {
                 console.log("获取服务器响应的身份信息:", res)
             }

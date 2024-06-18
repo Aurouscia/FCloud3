@@ -108,8 +108,8 @@ onMounted(()=>{
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <Search v-show="addingTo == AuthGrantTo.UserGroup" :source="api.utils.quickSearch.userGroupName" @done="toSearchDone" :compact="true"></Search>
-                        <Search v-show="addingTo == AuthGrantTo.User" :source="api.utils.quickSearch.userName" @done="toSearchDone" :compact="true"></Search>
+                        <Search v-show="addingTo == AuthGrantTo.UserGroup" :source="api.etc.quickSearch.userGroupName" @done="toSearchDone" :compact="true"></Search>
+                        <Search v-show="addingTo == AuthGrantTo.User" :source="api.etc.quickSearch.userName" @done="toSearchDone" :compact="true"></Search>
                         <button v-show="addingTo == AuthGrantTo.EveryOne" @click="toSearchDone('',0)">确认</button>
                     </td>
                 </tr>

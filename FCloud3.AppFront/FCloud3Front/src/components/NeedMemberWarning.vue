@@ -15,7 +15,7 @@ function setShow(s:boolean){
 defineExpose({setShow})
 
 async function getWay(){
-    way.value = await api.utils.applyBeingMember();
+    way.value = await api.etc.utils.applyBeingMember();
 }
 onMounted(()=>{
     api = injectApi();

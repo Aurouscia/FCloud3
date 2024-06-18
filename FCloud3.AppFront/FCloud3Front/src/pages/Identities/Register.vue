@@ -36,7 +36,7 @@ let applyWay = ref<string>("");
 onMounted(async()=>{
     api = injectApi();
     pop = injectPop();
-    applyWay.value = await api.utils.applyBeingMember() || "暂不开放申请"
+    applyWay.value = await api.etc.utils.applyBeingMember() || "暂不开放申请"
 })
 </script>
 

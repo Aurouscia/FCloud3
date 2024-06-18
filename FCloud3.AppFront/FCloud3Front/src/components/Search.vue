@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { QuickSearchResult, QuickSearchResultItem } from '../models/sys/quickSearch';
+import { QuickSearchResult, QuickSearchResultItem } from '../models/etc/quickSearch';
 
 const props = defineProps<{
     placeholder?:string,

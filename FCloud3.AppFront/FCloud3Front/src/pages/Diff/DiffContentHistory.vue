@@ -2,10 +2,10 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '@/provides';
 import { Api } from '@/utils/com/api';
-import { diffContentTypeFromStr } from '@/models/diff/DiffContentType';
-import { DiffContentHistoryResult } from '@/models/diff/DiffContentHistory';
+import { diffContentTypeFromStr } from '@/models/diff/diffContentType';
+import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
 import DiffContentDetail from './DiffContentDetail.vue';
-import { DiffContentStepDisplay } from '@/models/diff/DiffContentDetail';
+import { DiffContentStepDisplay } from '@/models/diff/diffContentDetail';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 import SideBar from '@/components/SideBar.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
@@ -26,7 +26,7 @@ const detailSidebar = ref<InstanceType<typeof SideBar>>()
 async function switchDetail(id:number){
     selectedHistoryIdx.value = id;
     if(!displays.some(d=>d.Id == id)){
-        displays = (await api.diffContent.detail(type, objId, id))?.Items || [];
+        displays = (await api.diff.diffContent.detail(type, objId, id))?.Items || [];
     }
     displaying.value = displays.find(x=>x.Id == id);
     detailSidebar.value?.extend()
@@ -42,7 +42,7 @@ let disposeWidthWatch:undefined|(()=>void)
 onMounted(async()=>{
     setTitleTo('编辑历史')
     api = injectApi();
-    history.value = await api.diffContent.history(type, objId)
+    history.value = await api.diff.diffContent.history(type, objId)
     disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
     tooNarrowOrNot(window.innerWidth)
 })

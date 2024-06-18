@@ -40,7 +40,7 @@ function jumpToWiki(urlPathName:string){
 }
 async function removeWiki(id:number){
     if(!props.dirId){return}
-    await api.wiki.removeFromDir(id,props.dirId)
+    await api.wiki.wikiItem.removeFromDir(id,props.dirId)
     emit('needRefresh');
 }
 function jumpToWikiEdit(urlPathName:string){

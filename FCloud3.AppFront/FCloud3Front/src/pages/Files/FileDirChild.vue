@@ -31,7 +31,7 @@ function isEmptyDir(){
     return items.value.length==0 && subDirs.value.length==0 && wikis.value.length==0;
 }
 async function deleteDir(dirId:number){
-    const resp = await api.fileDir.delete(dirId);
+    const resp = await api.files.fileDir.delete(dirId);
     if(resp){
         await loadData();
     }

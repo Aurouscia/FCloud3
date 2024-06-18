@@ -12,7 +12,7 @@ import { join } from 'lodash';
 import SideBar from '@/components/SideBar.vue';
 import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
-import { HeartbeatObjType, HeartbeatSender } from '@/models/sys/heartbeat';
+import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import leaveImg from '@/assets/leave.svg';
 import { useRouter } from 'vue-router';

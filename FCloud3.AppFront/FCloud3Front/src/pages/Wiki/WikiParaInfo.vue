@@ -23,7 +23,7 @@ async function save(){
     if(defaultFold.value && newName){
         newName = wikiParaDefaultFoldMark+newName;
     }
-    const resp = await api.wiki.para.setInfo(props.paraId, newName || null)
+    const resp = await api.wiki.wikiPara.setInfo(props.paraId, newName || null)
     if(resp){
         emits('needReload')
         hide();

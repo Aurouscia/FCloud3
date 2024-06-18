@@ -54,7 +54,7 @@ async function uploadAvatar() {
     }
     const name = avatarMaterialName();
     if(!name){return;}
-    const matId = await api.material.Add(name, "", uploadingAvatar);
+    const matId = await api.files.material.add(name, "", uploadingAvatar);
     if(matId){
         const replaceAvtResp = await api.identites.user.replaceAvatar(user.value.Id, matId);
         if(replaceAvtResp){
@@ -129,7 +129,7 @@ onMounted(async()=>{
                     <button @click="uploadAvatar">确定</button>
                 </div>
                 <div>
-                    <Search :source="api.utils.quickSearch.material" @done="setAvatarToSearchRes"></Search>
+                    <Search :source="api.etc.quickSearch.material" @done="setAvatarToSearchRes"></Search>
                 </div>
             </SwitchingTabs>
         </div>

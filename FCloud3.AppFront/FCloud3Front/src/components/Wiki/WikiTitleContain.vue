@@ -103,7 +103,7 @@ onMounted(async() => {
         </div>
     </div>
     <div>
-        <Search v-if="api" :source="api.utils.quickSearch.wikiItem" @done="searchDone" :placeholder="'手动添加'"></Search>
+        <Search v-if="api" :source="api.etc.quickSearch.wikiItem" @done="searchDone" :placeholder="'手动添加'"></Search>
         <button @click="autoFill" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
     </div>
     <div v-if="data" class="list">

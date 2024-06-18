@@ -17,7 +17,7 @@ const props = defineProps<{
 const search = ref<InstanceType<typeof Search>>();
 async function setFileId(id:number){
     if(!props.paraId){return;}
-    const res = await api.wiki.para.setFileParaFileId(props.paraId, id);
+    const res = await api.wiki.wikiPara.setFileParaFileId(props.paraId, id);
     if(res){
         emit('fileIdSet');
         search.value?.clear();
@@ -31,7 +31,7 @@ async function loadDetail(fileId?:number){
         fileId = props.fileId;
     }
     if(!fileId){return;}
-    api.fileItem.getDetail(fileId).then(res=>{
+    api.files.fileItem.getDetail(fileId).then(res=>{
         if(res){
             detail.value = res;
         }
@@ -63,7 +63,7 @@ const emit = defineEmits<{
         </div>
         <SwitchingTabs :texts="['选择已有','新上传']">
             <div>
-                <Search ref="search" :source="api.utils.quickSearch.fileItem" @done="(_val,id)=>setFileId(id)"></Search>
+                <Search ref="search" :source="api.etc.quickSearch.fileItem" @done="(_val,id)=>setFileId(id)"></Search>
             </div>
             <FileUpload :dist="'wikiFile'" :single="true" @uploaded="setFileId">
             </FileUpload>

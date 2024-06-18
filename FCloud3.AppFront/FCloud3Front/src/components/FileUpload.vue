@@ -63,7 +63,7 @@ async function commit(idx:number){
         pop.value.show("文件过大，请压缩或改为放网盘链接","failed")
         return;
     }
-    const resp = await api.fileItem.save(target,props.dist);
+    const resp = await api.files.fileItem.save(target,props.dist);
     if(resp){
         delFile(idx);
         emit('uploaded',resp.CreatedId)

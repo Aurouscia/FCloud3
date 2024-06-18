@@ -29,7 +29,7 @@ const router = useRouter();
 const { jumpToRegister } = useIdentityRoutesJump();
 
 async function Login(){
-    const token = await api.identites.authen.login({
+    const token = await api.identites.auth.login({
         userName:userName.value,
         password:password.value
     })
@@ -45,7 +45,7 @@ async function Login(){
             router.push("/")
         }
     }else{
-        const way = await api.utils.applyBeingMember() || "请联系管理员重置"
+        const way = await api.etc.utils.applyBeingMember() || "请联系管理员重置"
         failedGuide.value = "如果忘记密码，" + way
     }
 };

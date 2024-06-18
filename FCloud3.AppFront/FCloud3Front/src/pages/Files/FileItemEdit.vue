@@ -32,7 +32,7 @@ async function editingFileOk(){
         return false;
     }
     const fullName = `${editingFileName.value}${editingFileExt.value}`;
-    const res = await api.fileItem.editInfo(editingFileId.value, fullName);
+    const res = await api.files.fileItem.editInfo(editingFileId.value, fullName);
     if(res){
         editingFileName.value = undefined;
         editingFileExt.value = undefined;
@@ -46,7 +46,7 @@ async function deleteFile() {
     if(!editingFileId.value){
         return false;
     }
-    const res = await api.fileItem.deleteFile(editingFileId.value);
+    const res = await api.files.fileItem.deleteFile(editingFileId.value);
     if(res){
         editingFileName.value = undefined;
         editingFileExt.value = undefined;
