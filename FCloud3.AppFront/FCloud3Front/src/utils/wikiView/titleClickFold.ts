@@ -34,7 +34,7 @@ export class TitleClickFold{
     }
     clickHandler(e:MouseEvent){
         let ele = e.target as HTMLElement;
-        if(ele.tagName == "IMG"){
+        if(ele.tagName == "IMG" || ele.tagName == "SPAN" || ele.tagName == "DIV"){
             ele = ele.parentElement as HTMLElement;
         }
         if(isClickableTitle(ele)){
