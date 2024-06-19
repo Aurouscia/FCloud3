@@ -1,19 +1,34 @@
 # docker部署仍在开发中，没有做存储持久化，**请勿使用**
 
-# 构建vue前端（可优化，先取出package.json install，避免其他改动造成重下npm包）
-FROM node:18-alpine AS febuild
-WORKDIR "/app"
-COPY . .
+# 构建vue前端
+FROM atomhub.openatom.cn/amd64/node:18-buster-slim AS febuild
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
+COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 RUN npm install
-RUN npm run build
+COPY "./FCloud3.AppFront/FCloud3Front" "."
+RUN npm run build-here
 
-# 构建.net后端（可优化）
+# 构建.net后端
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS bebuild
 WORKDIR "/src"
-COPY . .
+COPY "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj" "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj"
+COPY "./FCloud3.Diff/FCloud3.Diff.csproj" "./FCloud3.Diff/FCloud3.Diff.csproj"
+COPY "./FCloud3.Entities/FCloud3.Entities.csproj" "./FCloud3.Entities/FCloud3.Entities.csproj"
+COPY "./FCloud3.DbContexts/FCloud3.DbContexts.csproj" "./FCloud3.DbContexts/FCloud3.DbContexts.csproj"
+COPY "./FCloud3.Repos/FCloud3.Repos.csproj" "./FCloud3.Repos/FCloud3.Repos.csproj"
+COPY "./FCloud3.Services/FCloud3.Services.csproj" "./FCloud3.Services/FCloud3.Services.csproj"
+COPY "./FCloud3.App/FCloud3.App.csproj" "./FCloud3.App/FCloud3.App.csproj"
 WORKDIR "/src/FCloud3.App"
-RUN dotnet publish "./FCloud3.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet restore
+WORKDIR "/src"
+COPY "./FCloud3.WikiPreprocessor" "./FCloud3.WikiPreprocessor"
+COPY "./FCloud3.Diff" "./FCloud3.Diff"
+COPY "./FCloud3.Entities" "./FCloud3.Entities"
+COPY "./FCloud3.DbContexts" "./FCloud3.DbContexts"
+COPY "./FCloud3.Repos" "./FCloud3.Repos"
+COPY "./FCloud3.Services" "./FCloud3.Services"
+COPY "./FCloud3.App" "./FCloud3.App"
+RUN dotnet publish "./FCloud3.App/FCloud3.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # 组合进.net8.0运行环境
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
@@ -21,7 +36,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 RUN sed -i 's|\[openssl_init\]|&\nssl_conf = ssl_configuration\n[ssl_configuration]\nsystem_default = tls_system_default\n[tls_system_default]\nMinProtocol = TLSv1\nCipherString = DEFAULT@SECLEVEL=0|' /etc/ssl/openssl.cnf
 WORKDIR "/app"
 COPY --from=bebuild /app/publish .
-COPY --from=febuild /app/FCloud3.App/wwwroot ./wwwroot
+COPY --from=febuild /app/FCloud3.AppFront/FCloud3Front/dist ./wwwroot
 EXPOSE 8080
 EXPOSE 8081
 ENTRYPOINT ["dotnet", "FCloud3.App.dll"]
