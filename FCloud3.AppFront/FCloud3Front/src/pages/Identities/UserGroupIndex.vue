@@ -77,14 +77,14 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <h1>用户组一览</h1>
+    <h1>
+        用户组一览
+        <button @click="createSideber?.extend">新建组</button>
+    </h1>
     <div class="userGroupIndex">
         <div class="list">
             <div class="search">
-                <input v-model="searching" placeholder="搜索用户组名称"/>
-                <button class="minor" @click="loadData">搜索</button>
-                <button v-show="searching" class="cancel" @click="searching=undefined;loadData()">清空搜索</button>
-                <button @click="createSideber?.extend">创建</button>
+                <input v-model="searching" placeholder="搜索用户组名称" @blur="loadData"/>
             </div>
             <table v-if="data">
                 <tbody>
@@ -159,6 +159,15 @@ onUnmounted(()=>{
 @import '@/styles/globalValues';
 $user-group-items-height: calc($body-height - 80px);
 
+h1{
+    button{
+        font-size: medium;
+    }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 5px;
+}
 .acceptBtns button{
     margin-top: 5px;
     border: 2px solid white
@@ -184,12 +193,12 @@ $user-group-items-height: calc($body-height - 80px);
 }
 .search{
     height: 40px;
+    text-align: center;
 }
 .userGroupIndex{
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    gap:10px;
     flex-wrap: wrap;
 }
 .userGroupIndex .list{
@@ -205,6 +214,7 @@ $user-group-items-height: calc($body-height - 80px);
     max-height: $user-group-items-height;
 }
 .userGroupIndex .detail{
+    margin-left: 10px;
     flex-grow: 1;
     flex-basis: 250px;
     max-height: $user-group-items-height;
