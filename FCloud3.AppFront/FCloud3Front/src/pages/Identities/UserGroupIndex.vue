@@ -68,6 +68,9 @@ onMounted(async()=>{
     api = inject('api') as Api;
     await loadData();
     lookingDetail.value = parseInt(props.id||"")||undefined
+    if(lookingDetail.value !== undefined){
+        sidebar.value?.extend();
+    }
 });
 onUnmounted(()=>{
     recoverTitle()

@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
+import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
@@ -45,10 +46,7 @@ const stylesContent = ref<string>("");
 const preScripts = ref<HTMLDivElement>();
 const postScripts = ref<HTMLDivElement>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
-const wikiId = ref<number>(0);
-const authorName = ref<string>("")
-const authorAvtSrc = ref<string>("")
-const sealed = ref(false)
+const displayInfo = ref<WikiDisplayInfo>(wikiDisplayInfoDefault)
 const currentUser = ref<IdentityInfo>();
 async function load(){
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
@@ -61,17 +59,11 @@ async function load(){
     if(postScripts.value){
         updateScript(postScripts.value, data.value?.PostScripts || "", "module");
     }
-    authorName.value = "";
-    authorAvtSrc.value = "";
-    sealed.value = false;
-    wikiId.value = 0;
+    displayInfo.value = wikiDisplayInfoDefault;
     if(data.value){
         const info = await api.wikiParsing.wikiParsing.getWikiDisplayInfo(props.wikiPathName);
         if(info){
-            authorName.value = info.UserName;
-            authorAvtSrc.value = info.UserAvtSrc;
-            sealed.value = info.Sealed;
-            wikiId.value = info.WikiId;
+            displayInfo.value = info;
         }
     }
 }
@@ -130,10 +122,10 @@ function enterEdit(type:WikiParaTypes, underlyingId:number){
 }
 
 async function toggleSealed(){
-    const setTo = !sealed.value;
-    const s = await api.wiki.wikiItem.setSealed(wikiId.value, setTo);
+    const setTo = !displayInfo.value.Sealed;
+    const s = await api.wiki.wikiItem.setSealed(displayInfo.value.WikiId, setTo);
     if(s){
-        sealed.value = setTo;
+        displayInfo.value.Sealed = setTo;
     }
 }
 
@@ -149,7 +141,7 @@ const { jumpToDiffContentHistory } = useDiffRoutesJump();
 const { jumpToWikiEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
-const { jumpToUserCenter } = useIdentityRoutesJump();
+const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
 onMounted(async()=>{
     await init();
     if(data.value?.Title)
@@ -227,18 +219,23 @@ onUnmounted(()=>{
         </div>
         <div class="info">
             <div class="owner">
-                所有者<img :src="authorAvtSrc" class="smallAvatar"/>
-                <span @click="jumpToUserCenter(authorName)">{{ authorName }}</span><br/>
-                更新于 {{ data.Update }}
+                所有者<img :src="displayInfo.UserAvtSrc" class="smallAvatar"/>
+                <span @click="jumpToUserCenter(displayInfo.UserName)">{{ displayInfo.UserName }}</span>
+                <div class="updateTime">更新于 {{ data.Update }}</div>
+                <div class="groupLabels">
+                    <div v-for="label in displayInfo.UserGroupLabels" @click="jumpToUserGroup(label.Id)">
+                        {{ label.Name }}
+                    </div>
+                </div>
             </div>
             <div class="btns">
                 <button @click="jumpToWikiEdit(wikiPathName)">编辑词条</button>
                 <LongPress v-if="currentUser.Type >= UserType.Admin" :reached="toggleSealed">
-                    {{ sealed ? '解除隐藏': '隐藏词条'}}
+                    {{ displayInfo.Sealed ? '解除隐藏': '隐藏词条'}}
                 </LongPress>
             </div>
         </div>
-        <div v-if="sealed" class="sealed">该词条已被隐藏</div>
+        <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras">
             <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
                 <h1 :id="titleElementId(p.TitleId)">
@@ -297,7 +294,22 @@ onUnmounted(()=>{
 
 <style scoped lang="scss">
 @import '@/styles/globalValues';
-
+.groupLabels{
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+    div{
+        padding: 2px 4px 2px 4px;
+        border-radius: 1000px;
+        font-size: 14px;
+        background-color: rgb(72, 180, 26);
+        color: white;
+        cursor: pointer;
+        &:hover{
+            background-color: green;
+        }
+    }
+}
 .wikiViewFrame{
     height: $body-height;
     display: flex;
@@ -355,7 +367,8 @@ onUnmounted(()=>{
         font-size: 16px;
         color: #666;
         img{
-            margin: 0px 5px 10px 5px
+            margin: 0px 5px 0px 5px;
+            vertical-align: bottom;
         }
         span{
             cursor: pointer;
@@ -366,6 +379,9 @@ onUnmounted(()=>{
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+    .updateTime{
+        margin-top: 6px;
     }
 }
 .btns{

@@ -133,6 +133,7 @@ watch(props,async ()=>{
                 </tr>
             </table>
             <LongPress v-if="data.IsMember" :reached="leaveGroup" class="cancel">长按退出本组</LongPress>
+            <div v-else class="joinHint">要加入用户组，请联系组长邀请你</div>
         </div>
         <Loading v-else></Loading>
     </div>
@@ -142,6 +143,11 @@ watch(props,async ()=>{
 </template>
 
 <style scoped>
+.joinHint{
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
 .toMemberOpTd{
     width: 50px;
 }

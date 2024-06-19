@@ -14,6 +14,10 @@ namespace FCloud3.Repos.Identities
         public UserToGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
         }
+
+        public IQueryable<UserToGroup> ExistingAndShowLabel
+            => Existing.Where(x => x.ShowLabel);
+
         /// <summary>
         /// 获取指定id组内所有成员（正在邀请的不算）
         /// </summary>

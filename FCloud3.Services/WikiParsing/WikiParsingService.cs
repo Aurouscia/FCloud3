@@ -31,6 +31,8 @@ namespace FCloud3.Services.WikiParsing
         FreeTableRepo freeTableRepo,
         FileItemRepo fileItemRepo,
         UserRepo userRepo,
+        UserGroupRepo userGroupRepo,
+        UserToGroupRepo userToGroupRepo,
         MaterialRepo materialRepo,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
@@ -46,6 +48,8 @@ namespace FCloud3.Services.WikiParsing
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly UserRepo _userRepo = userRepo;
+        private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
+        private readonly UserToGroupRepo _userToGroupRepo = userToGroupRepo;
         private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
@@ -65,14 +69,36 @@ namespace FCloud3.Services.WikiParsing
                 select new
                 {
                     WikiId = w.Id,
+                    UserId = u.Id,
                     UserName = u.Name,
                     UserAvtPath = m.StorePathName,
                     WikiSealed = w.Sealed
                 }).FirstOrDefault();
             if(info is null)
                 return null;
-            return new WikiDisplayInfo(
+            var groupLabels = (
+                from ug in _userGroupRepo.Existing
+                from utg in _userToGroupRepo.ExistingAndShowLabel
+                where utg.UserId == info.UserId
+                where utg.GroupId == ug.Id
+                select new { ug.Id, ug.Name, ug.OwnerUserId }
+                ).ToList();
+            var uid = _userIdProvider.Get();
+            groupLabels.Sort((x, y) =>
+            {
+                int xOwned = x.OwnerUserId == uid ? 1 : 0;
+                int yOwned = y.OwnerUserId == uid ? 1 : 0;
+                if (xOwned != yOwned)
+                    return yOwned - xOwned;
+                return string.Compare(x.Name, y.Name);
+            });
+            var resp = new WikiDisplayInfo(
                 info.WikiId, info.UserName, _storage.FullUrl(info.UserAvtPath ?? "??"), info.WikiSealed);
+            groupLabels.ForEach(l =>
+            {
+                resp.UserGroupLabels.Add(new(l.Id, l.Name));
+            });
+            return resp;
         }
         
         public Stream? GetParsedWikiStream(string pathName, bool bypassSeal = false)
@@ -377,6 +403,12 @@ namespace FCloud3.Services.WikiParsing
             public string UserName { get; set; } = userName;
             public string UserAvtSrc { get; set; } = userAvtSrc;
             public bool Sealed { get; set; } = @sealed;
+            public List<UserGroupLabel> UserGroupLabels { get; set; } = [];
+            public struct UserGroupLabel(int id, string name)
+            {
+                public int Id { get; set; } = id;
+                public string Name { get; set; } = name;
+            }
         }
     }
 }
