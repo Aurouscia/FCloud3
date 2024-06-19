@@ -5,6 +5,7 @@ import { UserGroup, UserGroupDetailResult } from '@/models/identities/userGroup'
 import Loading from '@/components/Loading.vue';
 import Search from '@/components/Search.vue';
 import { useIdentityRoutesJump } from './routes/routesJump';
+import LongPress from '@/components/LongPress.vue';
 
 const props = defineProps<{
     id:number
@@ -13,6 +14,7 @@ const props = defineProps<{
 const {jumpToUserCenter} = useIdentityRoutesJump();
 
 const data = ref<UserGroupDetailResult>();
+const meShowItsLabel = ref(false);
 const info = ref<UserGroup>();
 async function loadData(){
     if(props.id==0){return;}
@@ -26,6 +28,7 @@ async function loadData(){
             Name:res.Name
         }
         data.value = res;
+        meShowItsLabel.value = res.MeShowItsLabel;
         clearTimeout(timer);
     }
 }
@@ -60,6 +63,16 @@ async function removeUser(userId:number) {
         emit('needRefresh');
     }
 }
+async function setShowLabel(e:MouseEvent) {
+    e.preventDefault();
+    const to = !meShowItsLabel.value;
+    const res = await api.identites.userGroup.setShowLabel(props.id, to)
+    if(!data.value)return;
+    if(res){
+        meShowItsLabel.value = to;
+        data.value.MeShowItsLabel = to;
+    }
+}
 
 const emit = defineEmits<{
     (e:'needRefresh'):void
@@ -83,6 +96,9 @@ watch(props,async ()=>{
                 <div class="name">{{ data.Name }}</div>
                 <div>组长: <RouterLink :to="`/u/${data.Owner}`">{{ data.Owner }}</RouterLink></div>
                 <div>人数: {{ data.FormalMembers.length }}</div>
+                <div v-if="data.IsMember" class="showLabel">
+                    <input type="checkbox" v-model="meShowItsLabel" @click="setShowLabel"> 显示本组名称为头衔
+                </div>
             </div>
             <div v-if="data.CanInvite" class="search">
                 <Search ref="inviteUserSearch" :source="api.etc.quickSearch.userName" :allow-free-input="false" 
@@ -101,8 +117,8 @@ watch(props,async ()=>{
                 </tr>
                 <tr v-for="m in data.FormalMembers">
                     <td class="memberName" @click="jumpToUserCenter(m.Name)">{{ m.Name }}</td>
-                    <td v-if="data.CanEdit">
-                        <button class="minor" @click="removeUser(m.Id)">移出</button>
+                    <td v-if="data.CanEdit" class="toMemberOpTd">
+                        <button class="lite" @click="removeUser(m.Id)">移出</button>
                     </td> 
                 </tr>
             </table>
@@ -116,22 +132,32 @@ watch(props,async ()=>{
                     <td colspan="2"><button @click="editInfo">保存</button></td>
                 </tr>
             </table>
-            <button v-if="data.IsMember" @click="leaveGroup" class="cancel">退出群组</button>
+            <LongPress v-if="data.IsMember" :reached="leaveGroup" class="cancel">长按退出本组</LongPress>
         </div>
         <Loading v-else></Loading>
     </div>
-    <div v-else class="userGroupDetail" style="color:#999">
+    <div v-else class="userGroupDetail" style="color:#999;text-align: center;">
         请点击用户组名称查看详情
     </div>
 </template>
 
 <style scoped>
+.toMemberOpTd{
+    width: 50px;
+}
+.showLabel{
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 a{
-    color:white
+    color:black
 }
 .memberName{
     width: 200px;
     cursor: pointer;
+    word-break: break-all;
 }
 .memberName:hover{
     background-color: #ccc;
@@ -160,8 +186,8 @@ th{
     align-items: center;
 }
 .info{
-    background-color: cornflowerblue;
-    color:white;
+    background-color: #eee;
+    color:black;
     padding: 5px;
     border-radius: 5px;
 }

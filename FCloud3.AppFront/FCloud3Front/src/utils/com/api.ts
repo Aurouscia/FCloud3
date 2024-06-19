@@ -200,6 +200,15 @@ export class Api{
                 )
                 return resp.success;
             },
+            setShowLabel:async(id:number, showLabel:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/userGroup/setShowLabel",
+                    "postForm",
+                    {id, showLabel},
+                    "设置成功", true
+                )
+                return resp.success
+            },
             addUserToGroup:async(userId:number,groupId:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/UserGroup/AddUserToGroup",

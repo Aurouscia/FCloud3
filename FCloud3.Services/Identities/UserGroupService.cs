@@ -98,10 +98,13 @@ namespace FCloud3.Services.Identities
                 from u in _userRepo.Existing
                 where r.GroupId == id
                 where r.UserId == u.Id
-                select new { u.Id, u.Name, r.Type, u.Updated };
+                select new { u.Id, u.Name, r.Type, u.Updated, r.ShowLabel };
             var inviting = new List<UserGroupDetailResult.UserGroupDetailResultMemberItem>();
             var formalMembers = new List<UserGroupDetailResult.UserGroupDetailResultMemberItem>();
+            var meShowItsLabel = false;
             relations.ToList().ForEach(x => {
+                if(x.Id == _userId)
+                    meShowItsLabel = meShowItsLabel || x.ShowLabel;
                 var model = new UserGroupDetailResult.UserGroupDetailResultMemberItem()
                 {
                     Id = x.Id,
@@ -131,6 +134,7 @@ namespace FCloud3.Services.Identities
                 CanEdit = group.OwnerUserId == _userId, //TODO：其他获得权限的方式
                 CanInvite = group.OwnerUserId == _userId, //TODO：其他获得权限的方式
                 IsMember = formalMembers.Any(x => x.Id == _userId),
+                MeShowItsLabel = meShowItsLabel,
                 FormalMembers = formalMembers,
                 Inviting = inviting
             };
@@ -147,6 +151,18 @@ namespace FCloud3.Services.Identities
             }
             g.Name = name;
             return _userGroupRepo.TryEdit(g, out errmsg);
+        }
+        public bool SetShowLabel(int id, bool showLabel, out string? errmsg) 
+        {
+            var r = _userToGroupRepo.GetRelation(id, _userId);
+            if(r is null)
+            {
+                errmsg = "不在该组中";
+                return false;
+            }
+            r.ShowLabel = showLabel;
+            return _userToGroupRepo.TryEdit(r, out errmsg);
+
         }
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
@@ -202,6 +218,7 @@ namespace FCloud3.Services.Identities
             public bool CanEdit { get; set; }
             public bool CanInvite { get; set; }
             public bool IsMember { get; set; }
+            public bool MeShowItsLabel { get; set; }
             public List<UserGroupDetailResultMemberItem>? Inviting { get; set; }
             public List<UserGroupDetailResultMemberItem>? FormalMembers { get; set; } 
             public class UserGroupDetailResultMemberItem

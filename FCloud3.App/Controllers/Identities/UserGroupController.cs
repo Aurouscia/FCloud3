@@ -57,6 +57,15 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
+        [AuthGranted]
+        [UserTypeRestricted]
+        public IActionResult SetShowLabel(int id, bool showLabel)
+        {
+            var res = _userGroupService.SetShowLabel(id, showLabel, out string? errmsg);
+            if (!res)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
         [AuthGranted(formKey:nameof(groupId))]
         [UserTypeRestricted]
         public IActionResult AddUserToGroup(int groupId, int userId)

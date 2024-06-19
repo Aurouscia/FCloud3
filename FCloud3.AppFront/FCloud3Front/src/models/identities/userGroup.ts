@@ -21,7 +21,8 @@ export interface UserGroupDetailResult{
     Owner?:string,
     CanEdit:boolean,
     CanInvite:boolean,
-    IsMember:boolean
+    IsMember:boolean,
+    MeShowItsLabel:boolean,
     Inviting:UserGroupDetailResultMemberItem[],
     FormalMembers:UserGroupDetailResultMemberItem[]
 }
