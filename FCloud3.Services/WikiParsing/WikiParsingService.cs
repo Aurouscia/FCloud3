@@ -175,11 +175,13 @@ namespace FCloud3.Services.WikiParsing
             parser.Context.Reset(true);
 
             WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
-            string? getTitle(string? nameoverride, string? title)
+            string? getTitle(string? nameoverride, string? title, bool parse = true)
             {
                 string? t = nameoverride;
                 if (string.IsNullOrWhiteSpace(t))
                     t = title;
+                if (!parse)
+                    return t;
                 var resOft = parser.RunToParserResultRaw(t,false);
                 result.AddRules(resOft.UsedRules);
                 return resOft.Content;
@@ -250,7 +252,7 @@ namespace FCloud3.Services.WikiParsing
                     }
                     else
                     {
-                        var realTitle = getTitle(p.NameOverride, model.DisplayName);
+                        var realTitle = getTitle(p.NameOverride, model.DisplayName, false);
                         result.Paras.Add(new(
                             realTitle, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type,
                             p.ObjectId, model.ByteCount, false, false));
