@@ -14,7 +14,7 @@ defineExpose({display})
 
 <template>
 <div class="footer" v-show="display">
-    <div v-if="model && model.Links.length>=1">
+    <div class="vital" v-if="model && model.Links.length>=1">
         <a :href="model.Links[0].Url||'/'" target="_blank">{{ model.Links[0].Text }}</a>
     </div>
     <div class="others">
@@ -36,10 +36,20 @@ defineExpose({display})
 .footer div{
     line-height: 30px;
 }
+.vital{
+    flex-shrink: 0;
+}
 .others{
     display: flex;
     justify-content: right;
-    gap:5px;
+    flex-wrap: wrap;
+    overflow-y: hidden;
+    div{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-left: 5px;
+    }
 }
 a{
     color: #999;
