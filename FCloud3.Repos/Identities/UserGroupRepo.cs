@@ -24,6 +24,8 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Name!.Length)
                 .ThenByDescending(x => x.Updated);
         }
+        public override int GetOwnerIdById(int id)
+            => Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         public override bool TryAddCheck(UserGroup item, out string? errmsg)
         {
             return InfoCheck(item, true, out errmsg);

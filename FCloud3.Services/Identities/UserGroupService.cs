@@ -184,6 +184,12 @@ namespace FCloud3.Services.Identities
         }
         public bool Leave(int groupId, out string? errmsg)
         {
+            var owner = _userGroupRepo.GetOwnerIdById(groupId);
+            if(owner == _userId)
+            {
+                errmsg = "暂不支持群主退出";
+                return false;
+            }
             _cacheExpTokenService.AuthGrants.CancelAll();
             return RemoveUserFromGroup(_userId, groupId, out errmsg);
         }
