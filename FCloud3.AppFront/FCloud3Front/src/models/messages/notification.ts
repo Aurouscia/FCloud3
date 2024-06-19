@@ -21,6 +21,7 @@ export enum NotifType
     None = 0,
     CommentWiki = 10,
     CommentWikiReply = 11,
+    UserGroupInvite = 20
 }
 
 export interface NotificationGetRequest

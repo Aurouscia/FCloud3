@@ -8,6 +8,7 @@ import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
+import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
 
 const api = injectApi();
 const notifs = ref<NotifViewItem[]>([])
@@ -16,6 +17,7 @@ const totalCount = ref(0);
 const notifCountStore = useNotifCountStore();
 const {notifCount} = storeToRefs(notifCountStore);
 const {jumpToViewWiki} = useWikiParsingRoutesJump();
+const {jumpToUserGroup} = useIdentityRoutesJump();
 const idenStore = useIdentityInfoStore();
 
 async function load(){
@@ -90,6 +92,11 @@ watch(notifCount, (newVal, oldVal)=>{
                 <span class="wikiTitle" @click="jumpToWiki(n.P1)">{{ n.P1T }}</span>
                 下的评论
                 <span class="cmt">"{{ n.P2T }}"</span>
+            </div>
+            <div v-else-if="n.Type == NotifType.UserGroupInvite">
+                <span class="s">{{ n.SName }}</span>
+                邀请你加入用户组
+                <span class="wikiTitle" @click="jumpToUserGroup(n.P1)">{{ n.P1T }}</span>
             </div>
             <div class="right">
                 {{ n.Time }}

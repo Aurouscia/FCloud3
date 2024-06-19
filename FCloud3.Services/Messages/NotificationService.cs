@@ -1,6 +1,7 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Identities;
 
 namespace FCloud3.Services.Messages
 {
@@ -9,13 +10,15 @@ namespace FCloud3.Services.Messages
         IOperatingUserIdProvider operatingUserIdProvider,
         WikiItemCaching wikiItemCaching,
         UserCaching userCaching,
-        CommentRepo commentRepo
+        CommentRepo commentRepo,
+        UserGroupRepo userGroupRepo
         )
     {
         private readonly NotificationRepo _notificationRepo = notificationRepo;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
         private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly UserCaching _userCaching = userCaching;
+        private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
         private readonly CommentRepo _commentRepo = commentRepo;
 
         public NotifViewResult View(int skip)
@@ -45,6 +48,12 @@ namespace FCloud3.Services.Messages
                     if(cmtBrief.Length>20)
                         cmtBrief = cmtBrief[..20] + "...";
                     return new NotifViewItem(x.Id, x.Read, x.Created, x.Type, senderId, senderName, wikiId, wikiTitle, cmtId, cmtBrief);
+                }
+                if(x.Type == NotifType.UserGroupInvite)
+                {
+                    var groupId = x.Param1;
+                    var groupName = _userGroupRepo.GetById(groupId)?.Name ?? "";
+                    return new NotifViewItem(x.Id, x.Read, x.Created, x.Type, senderId, senderName, groupId, groupName);
                 }
                 throw new NotImplementedException();
             });
@@ -86,6 +95,20 @@ namespace FCloud3.Services.Messages
                 Receiver = targetCmtOwner,
                 Param1 = wikiId,
                 Param2 = commentId,
+                Read = false
+            };
+            _ = _notificationRepo.TryAdd(notif, out _);
+        }
+        public void UserGroupInvite(int groupId, int invitedUser)
+        {
+            var sender = _operatingUserIdProvider.Get();
+            Notification notif = new()
+            {
+                Sender = sender,
+                Type = NotifType.UserGroupInvite,
+                Receiver = invitedUser,
+                Param1 = groupId,
+                Param2 = 0,
                 Read = false
             };
             _ = _notificationRepo.TryAdd(notif, out _);

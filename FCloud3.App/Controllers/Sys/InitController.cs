@@ -272,5 +272,13 @@ namespace FCloud3.App.Controllers.Sys
             }
             return this.ApiFailedResp("失败");
         }
+
+        public IActionResult SetGroupLabelShown()
+        {
+            List<int> ids = [411, 418, 440, 449];
+            _context.UserToGroups.Where(x => ids.Contains(x.GroupId))
+                .ExecuteUpdate(c => c.SetProperty(x=>x.ShowLabel, true));
+            return this.ApiResp();
+        }
     }
 }

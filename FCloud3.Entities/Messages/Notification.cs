@@ -27,5 +27,6 @@ namespace FCloud3.Entities.Messages
         None = 0,
         CommentWiki = 10,
         CommentWikiReply = 11,
+        UserGroupInvite = 20
     }
 }

@@ -2,6 +2,7 @@
 using FCloud3.Repos.Identities;
 using System.Linq;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Messages;
 
 namespace FCloud3.Services.Identities
 {
@@ -12,19 +13,22 @@ namespace FCloud3.Services.Identities
         private readonly UserRepo _userRepo;
         private readonly int _userId;
         private readonly CacheExpTokenService _cacheExpTokenService;
+        private readonly NotificationService _notificationService;
 
         public UserGroupService(
             IOperatingUserIdProvider userIdProvider,
             UserGroupRepo userGroupRepo,
             UserToGroupRepo userToGroupRepo,
             UserRepo userRepo,
-            CacheExpTokenService cacheExpTokenService) 
+            CacheExpTokenService cacheExpTokenService,
+            NotificationService notificationService) 
         {
             _userGroupRepo = userGroupRepo;
             _userToGroupRepo = userToGroupRepo;
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
             _cacheExpTokenService = cacheExpTokenService;
+            _notificationService = notificationService;
         }
         public bool Create(string name, out string? errmsg)
         {
@@ -76,6 +80,9 @@ namespace FCloud3.Services.Identities
                 else
                     others.Add(model);
             }
+            invitingMe.Sort((x, y) => y.MemberCount - x.MemberCount);
+            meIn.Sort((x, y) => y.MemberCount - x.MemberCount);
+            others.Sort((x, y) => y.MemberCount - x.MemberCount);
             UserGroupListResult result = new()
             {
                 InvitingMe = invitingMe,
@@ -167,7 +174,12 @@ namespace FCloud3.Services.Identities
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
             _cacheExpTokenService.AuthGrants.CancelAll();
-            return _userToGroupRepo.AddUserToGroup(userId, groupId, needAudit, out errmsg);
+            var s = _userToGroupRepo.AddUserToGroup(userId, groupId, needAudit, out errmsg);
+            if (s && needAudit)
+            {
+                _notificationService.UserGroupInvite(groupId, userId);
+            }
+            return s;
         }
         public bool AnswerInvitaion(int groupId, bool accept, out string? errmsg)
         {
