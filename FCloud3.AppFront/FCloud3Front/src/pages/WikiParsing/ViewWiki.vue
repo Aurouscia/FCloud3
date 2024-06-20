@@ -249,9 +249,7 @@ onUnmounted(()=>{
             </div>
             <div v-if="p.ParaType==WikiParaTypes.File && p.Content">
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
-                    <a :href="p.Content" target="_blank">
-                        <img :src="p.Content"/>
-                    </a>
+                    <img :src="p.Content"/>
                     <div>{{ p.Title }}</div>
                 </div>
                 <div v-else class="filePara">
