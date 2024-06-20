@@ -57,7 +57,6 @@ namespace FCloud3.App.Controllers.Identities
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
-        [AuthGranted]
         [UserTypeRestricted]
         public IActionResult SetShowLabel(int id, bool showLabel)
         {
