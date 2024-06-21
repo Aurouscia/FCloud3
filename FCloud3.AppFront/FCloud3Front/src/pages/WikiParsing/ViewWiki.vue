@@ -30,6 +30,8 @@ import { IdentityInfo } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import LongPress from '@/components/LongPress.vue';
 import Footer from '@/components/Footer.vue';
+import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
+import ImageFocusView from '@/components/ImageFocusView.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -135,6 +137,7 @@ const api:Api = injectApi();
 const iden = injectIdentityInfoProvider();
 let clickFold:TitleClickFold;
 let wikiLinkClick:WikiLinkClick;
+let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
@@ -174,6 +177,9 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
     }
 }
 
+const focusImg = ref<string>();
+const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
+
 async function init(){
     currentUser.value = await iden.getIdentityInfo();
     if(data.value){
@@ -189,6 +195,11 @@ async function init(){
     await nextTick();
     clickFold = new TitleClickFold();
     titlesInContent = clickFold.listen(wikiViewArea.value);
+    imgClickJump = new ImageClickJump(src=>{
+        focusImg.value = src;
+    });
+    imgClickJump.listen(wikiViewArea.value);
+
     const commentTitle = document.getElementById("t_666666666");
     if(commentTitle)
         titlesInContent.push(commentTitle)
@@ -203,6 +214,7 @@ async function init(){
 }
 onUnmounted(()=>{
     clickFold.dispose();
+    imgClickJump.dispose();
     disposeFootNoteJump();
     swl?.stopListen();
     recoverTitle();
@@ -287,6 +299,9 @@ onUnmounted(()=>{
     <div class="subTitlesFoldBtn" @click="()=>toggleSubtitlesSidebarFolded()">
         <img :src="menuImg" alt="目录">
     </div>
+
+    <ImageFocusView v-if="focusImg" :img-src="focusImg" :close="()=>{focusImg=undefined}" ref="imgFocusViewElement">
+    </ImageFocusView>
 </div>
 </template>
 
