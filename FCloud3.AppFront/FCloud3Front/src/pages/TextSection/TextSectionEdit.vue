@@ -21,6 +21,7 @@ import { sleep } from '@/utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useRouter } from 'vue-router';
+import { TextSectionLocalConfig, readLocalConfig, saveLocalConfig, textSectionConfigDefault } from '@/utils/localConfig';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -233,7 +234,9 @@ let setTopbar:SetTopbarFunc|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 let saveShortcut: ShortcutListener|undefined;
 let heartbeatSender:HeartbeatSender|undefined;
+const localConfig = ref<TextSectionLocalConfig>(textSectionConfigDefault);
 onMounted(async()=>{
+    localConfig.value = (readLocalConfig("textSection") || textSectionConfigDefault) as TextSectionLocalConfig;
     setTitleTo('文本段编辑器')
     pop = injectPop();
     api = injectApi();
@@ -257,6 +260,10 @@ onUnmounted(()=>{
     saveShortcut?.dispose();
     heartbeatSender?.stop();
 })
+function saveLocalConfigClick(){
+    saveLocalConfig(localConfig.value);
+    pop.value.show("保存成功","success")
+}
 
 async function leftToRight(e:MouseEvent){
     if(!writeArea.value){return;}
@@ -330,6 +337,7 @@ let lastRightToLeftHashFadeTimer = 0;
 
 const { preventLeaving, releasePreventLeaving, preventingLeaving, showUnsavedWarning } = usePreventLeavingUnsaved();
 const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
+const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
 </script>
 
 <template>
@@ -341,7 +349,10 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle" class="paraTitle"/>
     </div>
     <div>
-        <div>
+        <div class="ops">
+            <button class="minor" @click="localConfigSidebar?.extend">
+                设置
+            </button>
             <button class="minor" @click="wikiTitleContainSidebar?.extend">
                 链接
             </button>
@@ -359,6 +370,23 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content" @changed="refreshPreview">
     </WikiTitleContain>
 </SideBar>
+<SideBar ref="localConfigSidebar">
+    <h1>编辑器设置</h1>
+    <table>
+        <tr>
+            <td>黑色背景</td>
+            <td><input type="checkbox" v-model="localConfig.blackBg"/></td>
+        </tr>
+        <tr>
+            <td>字体大小</td>
+            <td><input type="range" min="14" max="20" step="1" v-model="localConfig.fontSize"/></td>
+        </tr>
+        <tr>
+            <td class="noBg" colspan="2"><button @click="saveLocalConfigClick">保存</button><br/></td>
+        </tr>
+    </table>
+    <div style="font-size: 14px; color: #aaa">仅会保存在本浏览器内<br/>后续更新可能需重新设置</div>
+</SideBar>
 <div v-if="loadComplete" class="background">
     <div class="invisible" v-html="styles"></div>
     <div ref="preScriptsDiv" class="invisible"></div>
@@ -370,8 +398,15 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     <div contenteditable="plaintext-only"
         ref="writeArea" placeholder="请输入内容"
         @input="contentInput" @click="rightToLeft"
-        class="write" :class="{writeNoPreview:!previewOn}"
-        :style="{lineHeight:writeAreaLineHeight+'px'}" spellcheck="false">&nbsp;</div>
+        class="write" 
+        :class="{
+            writeNoPreview:!previewOn,
+            writeWhiteBg:!localConfig.blackBg}"
+        :style="{
+            lineHeight:writeAreaLineHeight+'px',
+            fontSize:localConfig.fontSize+'px',
+            'line-height':localConfig.fontSize/16*25+'px'}" 
+        spellcheck="false">&nbsp;</div>
 </div>
 <Loading v-else></Loading>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
@@ -381,7 +416,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     @import "@/utils/wikiSource/wikiSourceHighlight";
     .preventingLeaving{
         position: fixed;
-        right: 10px;
+        right: 5px;
         top: 7px;
         width: 10px;
         height: 10px;
@@ -427,6 +462,10 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     .writeNoPreview{
         width: calc(100vw - 20px);
     }
+    .writeWhiteBg{
+        background-color: white;
+        color: #222;
+    }
     @media screen and (max-width:800px) {
         .preview{
             width: calc(100vw - 20px);
@@ -450,14 +489,19 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
         right: 0px;
         height: 50px;
         background-color: #ccc;
-        padding: 0px 10px 0px 10px;
+        padding: 0px 5px 0px 5px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
+        .ops{
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
     }
     .paraTitle{
-        width: 160px;
+        width: 130px;
     }
     .topbar > div{
         display: flex;
@@ -465,6 +509,7 @@ const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
     }
     .topbar button{
         white-space: nowrap;
+        margin: 1px;
     }
 </style>
 
