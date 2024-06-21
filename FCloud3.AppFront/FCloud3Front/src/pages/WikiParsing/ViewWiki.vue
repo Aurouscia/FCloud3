@@ -309,9 +309,11 @@ onUnmounted(()=>{
 @import '@/styles/globalValues';
 .groupLabels{
     display: flex;
+    flex-wrap: wrap;
     gap: 3px;
     margin-top: 6px;
     div{
+        white-space: nowrap;
         padding: 2px 4px 2px 4px;
         border-radius: 1000px;
         font-size: 14px;
