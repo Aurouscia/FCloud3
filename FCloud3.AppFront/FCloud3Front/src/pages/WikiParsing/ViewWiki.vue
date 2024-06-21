@@ -49,6 +49,7 @@ const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 const displayInfo = ref<WikiDisplayInfo>(wikiDisplayInfoDefault)
 const currentUser = ref<IdentityInfo>();
 async function load(){
+    setTitleTo("正在跳转")
     data.value = await api.wikiParsing.wikiParsing.getParsedWiki(props.wikiPathName);
     stylesContent.value = data.value?.Styles || "";
     await sleep(10)
@@ -65,6 +66,7 @@ async function load(){
         if(info){
             displayInfo.value = info;
         }
+        setTitleTo(data.value.Title)
     }
 }
 
@@ -144,8 +146,6 @@ const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
 onMounted(async()=>{
     await init();
-    if(data.value?.Title)
-        setTitleTo(data.value?.Title)
 })
 
 const subtitlesFolded = ref<boolean>(true);
