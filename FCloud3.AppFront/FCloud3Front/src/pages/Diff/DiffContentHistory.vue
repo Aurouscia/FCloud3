@@ -57,15 +57,15 @@ onUnmounted(async()=>{
     <div class="historyList" :class="{grow:tooNarrow}">
         <table v-if="history">
             <tr>
-                <th>时间</th>
+                <th class="t">时间</th>
                 <th>操作者</th>
-                <th>变动</th>
+                <th class="c">变动</th>
             </tr>
             <tr v-for="i in history.Items" @click="switchDetail(i.Id)" :class="{selected:selectedHistoryIdx==i.Id}">
                 <td class="t">
                     {{ i.T }}
                 </td>
-                <td>
+                <td class="u">
                     {{ i.UName }}
                 </td>
                 <td>
@@ -99,7 +99,9 @@ onUnmounted(async()=>{
 }
 .historyList{
     overflow-y: auto;
-    min-width: 300px;
+    width: 360px;
+    flex-shrink: 0;
+    flex-grow: 0;
     td{
         cursor: pointer;
     }
@@ -118,11 +120,21 @@ onUnmounted(async()=>{
     .r{
         color:red
     }
-    .t{
+    td.t{
         font-size: 14px;
+    }
+    th.t{
+        width: 80px;
+    }
+    th.c{
+        width: 100px;
+    }
+    .u{
+        word-break: break-all;
     }
     table{
         width: 100%;
+        table-layout: fixed;
     }
     &.grow{
         flex-grow: 1;
