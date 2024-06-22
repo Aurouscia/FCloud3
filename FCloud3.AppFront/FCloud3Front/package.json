@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aurouscia/au-table-editor": "^0.2.11",
+    "@aurouscia/au-table-editor": "^0.2.15",
     "@aurouscia/keyboard-shortcut": "^0.0.2",
     "axios": "^1.7.2",
     "lodash": "^4.17.21",
