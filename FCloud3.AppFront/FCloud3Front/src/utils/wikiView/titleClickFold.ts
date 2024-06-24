@@ -1,4 +1,5 @@
 import foldImg from '@/assets/fold.svg';
+import { imgClickJumpExcludeClassName } from './imgClickJump';
 const clickables = ['H1','H2','H3','H4','H5','H6']
 const clickableFoldedClass = 'hFolded'
 const nextIdentifyClass = 'indent'
@@ -16,7 +17,8 @@ export class TitleClickFold{
                 titles.push(h as HTMLElement);
                 const img = document.createElement('img');
                 img.src = foldImg;
-                img.className = 'foldImg';
+                img.classList.add('foldImg');
+                img.classList.add(imgClickJumpExcludeClassName);
                 const textNode = h.childNodes[0];
                 if(textNode && isDefaultFolded(textNode.textContent || "")){
                     h.classList.add(clickableFoldedClass);

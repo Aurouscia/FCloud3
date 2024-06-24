@@ -1,3 +1,5 @@
+export const imgClickJumpExcludeClassName = "noClickJumpImg"
+
 export class ImageClickJump{
     private srcOperation:(src:string)=>void
     constructor(cb?:(e:string)=>void){
@@ -14,6 +16,9 @@ export class ImageClickJump{
         this.imgs = [];
         const imgsFound = area.getElementsByTagName("img")
         for(const img of imgsFound){
+            if(img.classList.contains(imgClickJumpExcludeClassName)){
+                continue;
+            }
             this.imgs.push(img);
             img.addEventListener("click", this.handlerBinded)
         }
