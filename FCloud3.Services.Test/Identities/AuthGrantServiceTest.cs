@@ -6,9 +6,11 @@ using FCloud3.Repos.Etc;
 using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Identities;
+using FCloud3.Services.Messages;
 using FCloud3.Services.Test.TestSupport;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -33,10 +35,18 @@ namespace FCloud3.Services.Test.Identities
             var authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider, authGrantCaching);
             var userToGroupRepo = new UserToGroupRepo(_ctx, _userIdProvider);
             var userGroupRepo = new UserGroupRepo(_ctx, _userIdProvider);
-            var userCaching = new UserCaching(_ctx, new FakeLogger<CachingBase<UserCachingModel, User>>());
+            var userCaching = 
+                new UserCaching(_ctx, new FakeLogger<CachingBase<UserCachingModel, User>>());
+            var wikiItemCaching =
+                new WikiItemCaching(_ctx, new FakeLogger<CachingBase<WikiItemCachingModel, WikiItem>>());
             var userRepo = new UserRepo(_ctx, _userIdProvider, userCaching);
+            var commentRepo = new CommentRepo(_ctx, _userIdProvider);
             var cacheExpTokenService = new CacheExpTokenService(new FakeLogger<CacheExpTokenService>());
-            _userGroupService = new(_userIdProvider, userGroupRepo, userToGroupRepo, userRepo, cacheExpTokenService);
+            var notificationService = new NotificationService(new(_ctx, _userIdProvider), _userIdProvider,
+                wikiItemCaching, userCaching, commentRepo, userGroupRepo);
+            _userGroupService = 
+                new(_userIdProvider, userGroupRepo, userToGroupRepo,
+                    userRepo, cacheExpTokenService, notificationService);
             var wikiParaRepo = new WikiParaRepo(_ctx, _userIdProvider);
             var creatorIdGetter = new CreatorIdGetter(_ctx);
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
