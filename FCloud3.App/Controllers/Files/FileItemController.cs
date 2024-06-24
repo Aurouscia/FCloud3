@@ -19,6 +19,13 @@ namespace FCloud3.App.Controllers.Files
             _fileService = fileService;
         }
 
+        public IActionResult GetInfo(int id)
+        {
+            var info = _fileService.GetInfo(id);
+            if (info is null)
+                return this.ApiFailedResp("找不到指定文件");
+            return this.ApiResp(info);
+        }
         public IActionResult GetDetail(int id)
         {
             var detail = _fileService.GetDetail(id, out string? errmsg);

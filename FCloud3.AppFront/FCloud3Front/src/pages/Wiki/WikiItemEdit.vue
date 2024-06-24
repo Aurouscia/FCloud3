@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref} from 'vue'
 import { WikiParaDisplay, WikiParaRendered} from '@/models/wiki/wikiPara'
-import { WikiParaTypes} from '@/models/wiki/wikiParaTypes'
+import { WikiParaType} from '@/models/wiki/wikiParaType'
 import { MouseDragListener } from '@/utils/eventListeners/mouseDrag';
 import Functions from '@/components/Functions.vue';
 import { useRouter } from 'vue-router';
@@ -114,7 +114,7 @@ async function endMoving(){
         }
     }
 }
-async function InsertPara(type:WikiParaTypes,afterOrder:number){
+async function InsertPara(type:WikiParaType,afterOrder:number){
     if(!info.value){return;}
     const resp = await api.wiki.wikiItem.insertPara({
         id:info.value.Id,
@@ -172,6 +172,8 @@ async function RemovePara(paraId:number){
 
 const editingInfoId = ref<number>(0);
 const editingInfoNameOverride = ref<string|null>(null)
+const editingUnderlyingId = ref<number>(0);
+const editingType = ref<WikiParaType>(WikiParaType.Text);
 const wikiParaInfo = ref<InstanceType<typeof WikiParaInfo>>()
 async function StartEditInfo(paraId:number) {
     const target = paras.value.find(x=>x.ParaId == paraId);
@@ -179,6 +181,8 @@ async function StartEditInfo(paraId:number) {
     disposeListeners()
     editingInfoId.value = paraId;
     editingInfoNameOverride.value = target.NameOverride;
+    editingUnderlyingId.value = target.UnderlyingId;
+    editingType.value = target.Type;
     await nextTick()
     wikiParaInfo.value?.comeout()
 }
@@ -326,9 +330,9 @@ onUnmounted(()=>{
         <div v-if="paras" v-for="_,idx in spaces">
             <div class="btnsBetweenPara">
                 <Functions :img-src="addIconSrc" :entry-size="30">
-                    <button @click="InsertPara(WikiParaTypes.Text, idx - 1)">文本</button>
-                    <button @click="InsertPara(WikiParaTypes.File, idx - 1)">文件</button>
-                    <button @click="InsertPara(WikiParaTypes.Table, idx - 1)">表格</button>
+                    <button @click="InsertPara(WikiParaType.Text, idx - 1)">文本</button>
+                    <button @click="InsertPara(WikiParaType.File, idx - 1)">文件</button>
+                    <button @click="InsertPara(WikiParaType.Table, idx - 1)">表格</button>
                 </Functions>
             </div>
         </div>
@@ -379,7 +383,8 @@ onUnmounted(()=>{
         <WikiFileParaEdit v-if="fileParaEditing" :para-id="fileParaEditing.ParaId"
             :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true;fileEditFold()"></WikiFileParaEdit>
     </SideBar>
-    <WikiParaInfo :para-id="editingInfoId" :current-name-override="editingInfoNameOverride"
+    <WikiParaInfo :para-id="editingInfoId" :current-name-override="editingInfoNameOverride" 
+        :object-id="editingUnderlyingId" :para-type="editingType"
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
 </template>
 

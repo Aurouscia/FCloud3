@@ -13,7 +13,7 @@ import Comment from '@/components/Messages/Comment.vue';
 import { CommentTargetType } from '@/models/messages/comment';
 import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
 import menuImg from '@/assets/menu.svg';
-import { WikiParaTypes } from '@/models/wiki/wikiParaTypes';
+import { WikiParaType } from '@/models/wiki/wikiParaType';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
 import { useDiffRoutesJump } from '../Diff/routes/routesJump';
@@ -117,10 +117,10 @@ function viewAreaScrollHandler(){
     }
 }
 
-function enterEdit(type:WikiParaTypes, underlyingId:number){
-    if(type == WikiParaTypes.Text && underlyingId){
+function enterEdit(type:WikiParaType, underlyingId:number){
+    if(type == WikiParaType.Text && underlyingId){
         jumpToTextSectionEdit(underlyingId)
-    }else if(type == WikiParaTypes.Table && underlyingId){
+    }else if(type == WikiParaType.Table && underlyingId){
         jumpToFreeTableEdit(underlyingId)
     }
 }
@@ -249,7 +249,7 @@ onUnmounted(()=>{
         </div>
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras">
-            <div v-if="p.ParaType==WikiParaTypes.Text || p.ParaType==WikiParaTypes.Table">
+            <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
@@ -259,7 +259,7 @@ onUnmounted(()=>{
                 <div class="indent" v-html="p.Content">
                 </div>
             </div>
-            <div v-if="p.ParaType==WikiParaTypes.File && p.Content">
+            <div v-if="p.ParaType==WikiParaType.File && p.Content">
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
                     <img :src="p.Content"/>
                     <div>{{ p.Title }}</div>

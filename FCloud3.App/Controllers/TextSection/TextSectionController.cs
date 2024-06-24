@@ -56,6 +56,12 @@ namespace FCloud3.App.Controllers.TextSec
             TextSectionComModel model = new(res);
             return this.ApiResp(model);
         }
+        
+        /// <summary>
+        /// 更新文本段，可只更新标题或只更新内容，另一者设为null即可
+        /// </summary>
+        /// <param name="model">模型</param>
+        /// <returns></returns>
         [AuthGranted]
         [UserTypeRestricted]
         [UserActiveOperation]
@@ -64,6 +70,14 @@ namespace FCloud3.App.Controllers.TextSec
             if (!_textSectionService.TryUpdate(model.Id, model.Title, model.Content, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+        public IActionResult GetMeta(int id)
+        {
+            var res = _textSectionService.GetMeta(id);
+            if (res is not null)
+                return this.ApiResp(res);
+            return this.ApiFailedResp("找不到指定文本段");
         }
 
         [AuthGranted(nameof(id))]

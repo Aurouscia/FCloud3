@@ -1,4 +1,4 @@
-import { WikiParaTypes } from "./wikiParaTypes";
+import { WikiParaType } from "./wikiParaType";
 
 export interface WikiParaDisplay{
     ParaId:number,
@@ -7,7 +7,7 @@ export interface WikiParaDisplay{
     NameOverride:string|null,
     Content:string,
     Order:number,
-    Type:WikiParaTypes,
+    Type:WikiParaType,
     Bytes:number
 }
 

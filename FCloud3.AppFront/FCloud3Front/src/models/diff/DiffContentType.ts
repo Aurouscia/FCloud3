@@ -1,4 +1,4 @@
-import { WikiParaTypes } from "../wiki/wikiParaTypes";
+import { WikiParaType } from "../wiki/wikiParaType";
 
 export enum DiffContentType
 {
@@ -29,11 +29,11 @@ export function diffContentTypeToStr(t:DiffContentType){
     }
 }
 
-export function diffContentTypeFromParaType(t:WikiParaTypes){
+export function diffContentTypeFromParaType(t:WikiParaType){
     switch(t){
-        case WikiParaTypes.Text:
+        case WikiParaType.Text:
             return DiffContentType.TextSection;
-        case WikiParaTypes.Table:
+        case WikiParaType.Table:
             return DiffContentType.FreeTable;
         default:
             return DiffContentType.None;

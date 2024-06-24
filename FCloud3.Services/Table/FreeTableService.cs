@@ -62,6 +62,12 @@ namespace FCloud3.Services.Table
             }
             return freeTable;
         }
+
+        public FreeTableMeta? GetMeta(int id)
+        {
+            return _freeTableRepo.GetqById(id).GetMeta().FirstOrDefault();
+        }
+        
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
             if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, out errmsg))

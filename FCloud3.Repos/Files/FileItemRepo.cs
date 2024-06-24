@@ -67,12 +67,12 @@ namespace FCloud3.Repos.Files
         {
             if (string.IsNullOrWhiteSpace(item.DisplayName))
             {
-                errmsg = "显示名不能为空";
+                errmsg = "文件显示名不能为空";
                 return false;
             }
             if (item.DisplayName.Length > FileItem.displayNameMaxLength)
             {
-                errmsg = $"显示名过长，请缩短";
+                errmsg = $"文件显示名过长，请缩短";
                 return false;
             }
             errmsg = null;

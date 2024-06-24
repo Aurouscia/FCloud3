@@ -1,18 +1,18 @@
 import _ from 'lodash';
 import { IndexQuery, IndexResult } from "@/components/Index/index";
 import { User, UserType } from "@/models/identities/user";
-import { TextSection, TextSectionPreviewResponse } from "@/models/textSection/textSection";
+import { TextSection, TextSectionMeta, TextSectionPreviewResponse } from "@/models/textSection/textSection";
 import { WikiParaDisplay } from "@/models/wiki/wikiPara";
-import { WikiParaTypes } from "@/models/wiki/wikiParaTypes";
+import { WikiParaType } from "@/models/wiki/wikiParaType";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "../globalStores/identityInfo";
-import { FileItemDetail, FileUploadRequest, StagingFile } from "@/models/files/fileItem";
+import { FileItem, FileItemDetail, FileUploadRequest, StagingFile } from "@/models/files/fileItem";
 import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '@/models/files/fileDir';
 import { FileDir } from "@/models/files/fileDir";
 import { QuickSearchResult } from '@/models/etc/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '@/models/identities/userGroup';
 import { WikiInDirLocationView, WikiItem } from '@/models/wiki/wikiItem';
-import { FreeTable } from '@/models/table/freeTable';
+import { FreeTable, FreeTableMeta } from '@/models/table/freeTable';
 import { AuthGrant, AuthGrantOn, AuthGrantViewModel } from '@/models/identities/authGrant';
 import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from '@/models/wikiParsing/wikiTemplate';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
@@ -334,7 +334,16 @@ export class Api{
                     return res.data as Array<WikiParaDisplay>
                 }
             },
-            insertPara:async(req:{id:number,afterOrder:number,type:WikiParaTypes}) => {
+            loadFull: async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/LoadFull",
+                    "get",
+                    {id:id});
+                if(res.success){
+                    return res.data as Array<WikiParaDisplay>
+                }
+            },
+            insertPara:async(req:{id:number,afterOrder:number,type:WikiParaType}) => {
                 const res = await this.httpClient.request(
                     "/api/WikiItem/InsertPara",
                     "postForm",
@@ -617,6 +626,15 @@ export class Api{
                     true)
                 return res.success;
             },
+            getMeta:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/TextSection/GetMeta",
+                    "get",
+                    {id});
+                if(res.success){
+                    return res.data as TextSectionMeta
+                }
+            },
             preview:async(textSecId:number,content:string)=>{
                 const res = await this.httpClient.request(
                     "/api/TextSection/Preview",
@@ -638,6 +656,15 @@ export class Api{
                 )
                 if(resp.success){
                     return resp.data as FreeTable
+                }
+            },
+            getMeta:async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/FreeTable/GetMeta",
+                    "get",
+                    {id});
+                if(res.success){
+                    return res.data as FreeTableMeta
                 }
             },
             createForPara:async (paraId:number) => {
@@ -675,6 +702,16 @@ export class Api{
     }
     files = {
         fileItem: {
+            getInfo:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/FileItem/GetInfo",
+                    "get",
+                    {id}
+                );
+                if(resp.success){
+                    return resp.data as FileItem
+                }
+            },
             getDetail:async(id:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/FileItem/GetDetail",

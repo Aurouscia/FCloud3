@@ -23,6 +23,10 @@ namespace FCloud3.Services.Files
             _opRecordRepo = opRecordRepo;
         }
 
+        public FileItem? GetInfo(int id)
+        {
+            return _fileItemRepo.GetById(id);
+        }
         public FileItemDetail? GetDetail(int id, out string? errmsg)
         {
             var item = _fileItemRepo.GetById(id);

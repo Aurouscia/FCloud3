@@ -1,4 +1,4 @@
-import { WikiParaTypes } from "../wiki/wikiParaTypes";
+import { WikiParaType } from "../wiki/wikiParaType";
 
 export interface WikiParsingResult {
     Id:number
@@ -19,7 +19,7 @@ export interface WikiParsingResultItem {
     TitleId: number
     Content?: string;
     ParaId: number;
-    ParaType: WikiParaTypes;
+    ParaType: WikiParaType;
     UnderlyingId: number;
     Bytes:number;
     Editable: boolean;

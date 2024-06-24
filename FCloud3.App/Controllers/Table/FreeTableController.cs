@@ -37,6 +37,14 @@ namespace FCloud3.App.Controllers.Table
             return this.ApiResp(res);
         }
 
+        public IActionResult GetMeta(int id)
+        {
+            var res = _freeTableService.GetMeta(id);
+            if (res is not null)
+                return this.ApiResp(res);
+            return this.ApiFailedResp("找不到指定表格");
+        }
+
         [AuthGranted(nameof(id))]
         [UserActiveOperation]
         [UserTypeRestricted]

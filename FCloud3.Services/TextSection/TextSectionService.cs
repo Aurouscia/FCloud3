@@ -65,6 +65,11 @@ namespace FCloud3.Services.TextSec
             return textSection;
         }
 
+        public TextSectionMeta? GetMeta(int id)
+        {
+            return _textSectionRepo.GetqById(id).GetMeta().FirstOrDefault();
+        }
+
         public static bool ModelCheck(TextSection section, out string? errmsg)
         {
             errmsg = null;
@@ -115,7 +120,7 @@ namespace FCloud3.Services.TextSec
             return createdTextId;
         }
         /// <summary>
-        /// 更新一个文本段
+        /// 更新一个文本段，可只更新标题或只更新内容，另一者设为null即可
         /// </summary>
         /// <param name="id"></param>
         /// <param name="title"></param>

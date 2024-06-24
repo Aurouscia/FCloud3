@@ -9,3 +9,8 @@ export interface TextSectionPreviewResponse{
     PostScripts:string,
     Styles:string
 }
+export interface TextSectionMeta{
+    Id:number
+    Title:string|null
+    ContentBrief:string
+}

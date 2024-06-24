@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { injectApi } from '@/provides';
+import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import SideBar from '@/components/SideBar.vue';
 import { wikiParaDefaultFoldMark } from '@/models/wiki/wikiPara';
+import { WikiParaType } from '@/models/wiki/wikiParaType';
 
 const props = defineProps<{
     paraId:number,
-    currentNameOverride:string|null
+    currentNameOverride:string|null,
+    objectId:number,
+    paraType:WikiParaType
 }>()
 const emits = defineEmits<{
     (e:'close'):void,
@@ -15,18 +18,59 @@ const emits = defineEmits<{
 }>()
 defineExpose({comeout})
 
+const name = ref<string>()
 const nameOverride = ref<string|null>("");
 const defaultFold = ref<boolean>(false);
+const nameChanged = ref(false);
+const nameOverrideChanged = ref(false);
 
-async function save(){
+async function save() {
+    let success = true;
+    if(nameChanged.value){
+        const res = await saveName();
+        success = res && success;
+    }
+    if(nameOverrideChanged.value){
+        const res = await saveNameOverride();
+        success = res && success;
+    }
+    if(success){
+        nameChanged.value = false;
+        nameOverrideChanged.value = false;
+        emits('needReload')
+        hide();
+    }
+}
+async function saveNameOverride():Promise<boolean> {
     let newName = nameOverride.value?.trim();
     if(defaultFold.value && newName){
         newName = wikiParaDefaultFoldMark+newName;
     }
-    const resp = await api.wiki.wikiPara.setInfo(props.paraId, newName || null)
-    if(resp){
-        emits('needReload')
-        hide();
+    return api.wiki.wikiPara.setInfo(props.paraId, newName || null)
+}
+async function saveName():Promise<boolean> {
+    if(props.paraType == WikiParaType.Text){
+        return await api.textSection.textSection.editExe({
+            Title: name.value || null,
+            Content: null,
+            Id: props.objectId
+        })
+    }
+    else if(props.paraType == WikiParaType.Table){
+        return await api.table.freeTable.saveInfo(
+            props.objectId,
+            name.value || ""
+        )
+    }
+    else if(props.paraType == WikiParaType.File){
+        return await api.files.fileItem.editInfo(
+            props.objectId,
+            name.value || ""
+        )
+    }
+    else{
+        pop.value.show("页面参数异常","failed");
+        return false;
     }
 }
 function comeout(){
@@ -38,11 +82,29 @@ function comeout(){
     else{
         defaultFold.value = false;
     }
+    initName();
     sidebar.value?.extend()
 }
 function hide(){
     sidebar.value?.fold();
 }
+
+async function initName(){
+    if(!props.objectId)
+        return;
+    let n:string|undefined;
+    if(props.paraType == WikiParaType.Text){
+        n = (await api.textSection.textSection.getMeta(props.objectId))?.Title || undefined
+    }else if(props.paraType == WikiParaType.Table){
+        n = (await api.table.freeTable.getMeta(props.objectId))?.Name || undefined
+    }else if(props.paraType == WikiParaType.File){
+        n = (await api.files.fileItem.getInfo(props.objectId))?.DisplayName
+    }else{
+        pop.value.show("页面参数异常", "failed")
+    }
+    name.value = n;
+}
+
 watch(nameOverride,(newVal)=>{
     if(!newVal?.trim()){
         defaultFold.value = false;
@@ -50,9 +112,10 @@ watch(nameOverride,(newVal)=>{
 })
 
 const sidebar = ref<InstanceType<typeof SideBar>>()
-let api:Api;
-onMounted(()=>{
-    api = injectApi();
+let api:Api = injectApi();
+let pop = injectPop();
+onMounted(async()=>{
+    await initName();
 })
 </script>
 
@@ -62,10 +125,18 @@ onMounted(()=>{
     <table>
         <tr>
             <td>
-                名称
+                内容名称
             </td>
             <td>
-                <input v-model="nameOverride" placeholder="选填"/>
+                <input v-model="name" placeholder="必填" @input="nameChanged = true"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                词条内<br/>显示名称
+            </td>
+            <td>
+                <input v-model="nameOverride" placeholder="选填" @input="nameOverrideChanged = true"/>
             </td>
         </tr>
         <tr>
@@ -73,12 +144,14 @@ onMounted(()=>{
                 默认<br/>折起
             </td>
             <td>
-                <input type="checkbox" v-model="defaultFold" :disabled="!nameOverride"/>
+                <input type="checkbox" v-model="defaultFold" :disabled="!nameOverride" @change="nameOverrideChanged = true"/>
             </td>
         </tr>
         <tr>
             <td class="note" colspan="2">
-                段落名称将覆盖段落内容本身(文本段/表格/文件名)的名称作为词条中的次级标题显示
+                太长不看：只填第一个即可。<br/><br/>
+                <b>词条内显示名称</b>将覆盖段落内容本身(文本段/表格/文件名)的名称作为词条中的次级标题显示。
+                例如“内容名称”可能为<i>上海市轨道交通线路</i>，其“词条内显示名称”可为<i>本市轨道交通线路</i>
             </td>
         </tr>
         <tr>
@@ -95,15 +168,18 @@ onMounted(()=>{
 </SideBar>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 input{
     width: 160px;
 }
 td{
-    min-width: 30px;
+    min-width: 60px;
 }
 .note{
     color:#666;
     font-size: 12px;
+    i{
+        margin: 0px 2px 0px 2px;
+    }
 }
 </style>
