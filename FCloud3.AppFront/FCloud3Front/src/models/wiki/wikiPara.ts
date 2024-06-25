@@ -17,4 +17,15 @@ export interface WikiParaRendered extends WikiParaDisplay{
     displayOrder?:number
 }
 
+export const wikiParaDisplayPlaceholder:WikiParaDisplay = {
+    ParaId:0,
+    UnderlyingId:0,
+    Title:"",
+    NameOverride:null,
+    Content:"",
+    Order:0,
+    Type:WikiParaType.Text,
+    Bytes:0
+}
+
 export const wikiParaDefaultFoldMark = "^"

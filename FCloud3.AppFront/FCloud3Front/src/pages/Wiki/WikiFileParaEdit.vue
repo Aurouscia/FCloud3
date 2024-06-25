@@ -80,6 +80,8 @@ const emit = defineEmits<{
     color:gray;
 }
 .detail{
+    white-space: nowrap;
+    overflow-x: auto;
     padding: 10px;
     margin-bottom: 10px;
     background-color: #eee;

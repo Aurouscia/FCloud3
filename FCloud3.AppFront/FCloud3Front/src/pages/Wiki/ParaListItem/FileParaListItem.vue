@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import icon from '@/assets/paraTypes/filePara.svg'
-import { canDisplayAsImage } from '@/utils/fileUtils';
+import { canDisplayAsImage, isImageFile } from '@/utils/fileUtils';
 import { WikiParaDisplay } from '@/models/wiki/wikiPara'
 import { useParaListItem } from './paraListItemTitle';
 
 const props = defineProps<{
-    w:WikiParaDisplay
+    w:WikiParaDisplay,
+    noTitle?:boolean
 }>();
 const {mainname, subname} = useParaListItem(props);
 </script>
 
 <template>
     <div class="paraListItem">
-        <div class="title">
+        <div v-if="!noTitle" class="title">
             <img class="icon" :src="icon">
             {{ mainname }}
             <span>{{ subname }}</span>
@@ -20,7 +21,8 @@ const {mainname, subname} = useParaListItem(props);
         <img class="fileImage" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />
         <div v-else class="fileLink">
             <a :href="props.w.Content">
-                {{ props.w.Title }}<br /><span>{{ props.w.Content }}</span>
+                {{ props.w.Title }}<br /><span>{{ props.w.Content }}</span><br/>
+                <span v-if="isImageFile(w.Content)" class="noDisplayImage">(图片过大，不显示仅提供下载)</span>
             </a>
         </div>
     </div>
@@ -45,5 +47,8 @@ const {mainname, subname} = useParaListItem(props);
 }
 a{
     font-size: 16px;
+}
+.noDisplayImage{
+    font-size: 14px;
 }
 </style>

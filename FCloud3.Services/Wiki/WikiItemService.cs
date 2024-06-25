@@ -144,6 +144,51 @@ namespace FCloud3.Services.Wiki
             });
             return paraObjs;
         }
+        public List<WikiParaDisplay> GetWikiParaContents(int wikiId, int start = 0, int count = int.MaxValue)
+        {
+            if (!_wikiRepo.Existing.Any(x => x.Id == wikiId))
+            {
+                throw new Exception("找不到指定id的wiki");
+            }
+            var paras = GetWikiParas(wikiId, start, count);
+            paras.EnsureOrderDense();
+
+            List<int> textIds = paras.Where(x => x.Type == WikiParaType.Text).Select(x => x.ObjectId).ToList();
+            var textParaObjs = _textSectionRepo.GetRangeByIds(textIds).ToList();
+
+            List<int> fileIds = paras.Where(x => x.Type == WikiParaType.File).Select(x => x.ObjectId).ToList();
+            var fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds).ToList();
+
+            List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
+            var tableParaObjs = _freeTableRepo.GetRangeByIds(tableIds).ToList();
+
+            List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
+            {
+                WikiParaType type = x.Type;
+                WikiParaDisplay? paraDisplay = null;
+                if (type == WikiParaType.Text)
+                {
+                    var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
+                    if (obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title, obj.Content, x.NameOverride, WikiParaType.Text, 0);
+                }
+                else if (type == WikiParaType.File)
+                {
+                    var obj = fileParaObjs.Find(p => p.Id == x.ObjectId);
+                    if (obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName ?? "missing"), x.NameOverride, WikiParaType.File, obj.ByteCount);
+                }
+                else if (type == WikiParaType.Table)
+                {
+                    var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
+                    if (obj is not null)
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name, obj.Data, x.NameOverride, WikiParaType.Table, 0);
+                }
+                paraDisplay ??= new WikiParaPlaceholder(type).ToDisplay(x);
+                return paraDisplay;
+            });
+            return paraObjs;
+        }
         public bool InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
         {
             string? msg = null;

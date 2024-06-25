@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref} from 'vue'
-import { WikiParaDisplay, WikiParaRendered} from '@/models/wiki/wikiPara'
+import { WikiParaDisplay, WikiParaRendered, wikiParaDisplayPlaceholder} from '@/models/wiki/wikiPara'
 import { WikiParaType} from '@/models/wiki/wikiParaType'
 import { MouseDragListener } from '@/utils/eventListeners/mouseDrag';
 import Functions from '@/components/Functions.vue';
@@ -170,19 +170,11 @@ async function RemovePara(paraId:number){
     }
 }
 
-const editingInfoId = ref<number>(0);
-const editingInfoNameOverride = ref<string|null>(null)
-const editingUnderlyingId = ref<number>(0);
-const editingType = ref<WikiParaType>(WikiParaType.Text);
+const editingPara = ref<WikiParaDisplay>(wikiParaDisplayPlaceholder);
 const wikiParaInfo = ref<InstanceType<typeof WikiParaInfo>>()
-async function StartEditInfo(paraId:number) {
-    const target = paras.value.find(x=>x.ParaId == paraId);
-    if(!target){return;}
+async function StartEditInfo(p:WikiParaDisplay) {
     disposeListeners()
-    editingInfoId.value = paraId;
-    editingInfoNameOverride.value = target.NameOverride;
-    editingUnderlyingId.value = target.UnderlyingId;
-    editingType.value = target.Type;
+    editingPara.value = p;
     await nextTick()
     wikiParaInfo.value?.comeout()
 }
@@ -323,7 +315,7 @@ onUnmounted(()=>{
             <TableParaListItem v-else :w="p"></TableParaListItem>
             <div class="menu paraButton">
                 <button @click="EnterEdit(p.ParaId)">编辑</button>
-                <button @click="StartEditInfo(p.ParaId)">设置</button>
+                <button @click="StartEditInfo(p)">设置</button>
                 <button @click="RemovePara(p.ParaId)">移除</button>
             </div>
         </div>
@@ -383,8 +375,7 @@ onUnmounted(()=>{
         <WikiFileParaEdit v-if="fileParaEditing" :para-id="fileParaEditing.ParaId"
             :file-id="fileParaEditing.UnderlyingId" @file-id-set="editingFileParaChanged=true;fileEditFold()"></WikiFileParaEdit>
     </SideBar>
-    <WikiParaInfo :para-id="editingInfoId" :current-name-override="editingInfoNameOverride" 
-        :object-id="editingUnderlyingId" :para-type="editingType"
+    <WikiParaInfo :para="editingPara"
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
 </template>
 

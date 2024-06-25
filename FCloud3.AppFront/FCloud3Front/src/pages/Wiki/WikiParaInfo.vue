@@ -3,14 +3,11 @@ import { onMounted, ref, watch } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import SideBar from '@/components/SideBar.vue';
-import { wikiParaDefaultFoldMark } from '@/models/wiki/wikiPara';
+import { WikiParaDisplay, wikiParaDefaultFoldMark } from '@/models/wiki/wikiPara';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
 
 const props = defineProps<{
-    paraId:number,
-    currentNameOverride:string|null,
-    objectId:number,
-    paraType:WikiParaType
+    para:WikiParaDisplay
 }>()
 const emits = defineEmits<{
     (e:'close'):void,
@@ -37,7 +34,6 @@ async function save() {
     if(success){
         nameChanged.value = false;
         nameOverrideChanged.value = false;
-        emits('needReload')
         hide();
     }
 }
@@ -46,25 +42,30 @@ async function saveNameOverride():Promise<boolean> {
     if(defaultFold.value && newName){
         newName = wikiParaDefaultFoldMark+newName;
     }
-    return api.wiki.wikiPara.setInfo(props.paraId, newName || null)
+    const s = await api.wiki.wikiPara.setInfo(props.para.ParaId, newName || null)
+    if(s){
+        props.para.NameOverride = newName || null;
+    }
+    return s;
 }
 async function saveName():Promise<boolean> {
-    if(props.paraType == WikiParaType.Text){
-        return await api.textSection.textSection.editExe({
+    let s = false;
+    if(props.para.Type == WikiParaType.Text){
+        s = await api.textSection.textSection.editExe({
             Title: name.value || null,
             Content: null,
-            Id: props.objectId
+            Id: props.para.UnderlyingId
         })
     }
-    else if(props.paraType == WikiParaType.Table){
-        return await api.table.freeTable.saveInfo(
-            props.objectId,
+    else if(props.para.Type == WikiParaType.Table){
+        s = await api.table.freeTable.saveInfo(
+            props.para.UnderlyingId,
             name.value || ""
         )
     }
-    else if(props.paraType == WikiParaType.File){
-        return await api.files.fileItem.editInfo(
-            props.objectId,
+    else if(props.para.Type == WikiParaType.File){
+        s = await api.files.fileItem.editInfo(
+            props.para.UnderlyingId,
             name.value || ""
         )
     }
@@ -72,9 +73,13 @@ async function saveName():Promise<boolean> {
         pop.value.show("页面参数异常","failed");
         return false;
     }
+    if(s){
+        props.para.Title = name.value||"";
+    }
+    return s
 }
 function comeout(){
-    nameOverride.value = props.currentNameOverride;
+    nameOverride.value = props.para.NameOverride;
     if(nameOverride.value?.startsWith(wikiParaDefaultFoldMark)){
         defaultFold.value = true;
         nameOverride.value = nameOverride.value.substring(1);
@@ -90,15 +95,15 @@ function hide(){
 }
 
 async function initName(){
-    if(!props.objectId)
+    if(!props.para.UnderlyingId)
         return;
     let n:string|undefined;
-    if(props.paraType == WikiParaType.Text){
-        n = (await api.textSection.textSection.getMeta(props.objectId))?.Title || undefined
-    }else if(props.paraType == WikiParaType.Table){
-        n = (await api.table.freeTable.getMeta(props.objectId))?.Name || undefined
-    }else if(props.paraType == WikiParaType.File){
-        n = (await api.files.fileItem.getInfo(props.objectId))?.DisplayName
+    if(props.para.Type == WikiParaType.Text){
+        n = (await api.textSection.textSection.getMeta(props.para.UnderlyingId))?.Title || undefined
+    }else if(props.para.Type == WikiParaType.Table){
+        n = (await api.table.freeTable.getMeta(props.para.UnderlyingId))?.Name || undefined
+    }else if(props.para.Type == WikiParaType.File){
+        n = (await api.files.fileItem.getInfo(props.para.UnderlyingId))?.DisplayName
     }else{
         pop.value.show("页面参数异常", "failed")
     }
