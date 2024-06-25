@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Context;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace FCloud3.WikiPreprocessor.Rules
@@ -27,7 +28,8 @@ namespace FCloud3.WikiPreprocessor.Rules
         /// <param name="span">截取出的区域</param>
         /// <returns>是否适用于本规则</returns>
         public bool FulFill(string span);
-        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser);
+        public IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context);
     }
 
     public abstract class InlineRule : IInlineRule
@@ -54,7 +56,8 @@ namespace FCloud3.WikiPreprocessor.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts()=>string.Empty;
         public virtual string GetPostScripts()=>string.Empty;
-        public virtual IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public virtual IHtmlable MakeElementFromSpan(string span, 
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             var parsed = inlineParser.SplitByMarks(span, marks);
             return new RuledInlineElement(parsed, this);
@@ -110,8 +113,9 @@ namespace FCloud3.WikiPreprocessor.Rules
         public string GetPostScripts() => RelyOn.GetPostScripts();
         public string GetPreScripts() => RelyOn.GetPreScripts();
         public string GetStyles() => RelyOn.GetStyles();
-        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
-            => RelyOn.MakeElementFromSpan(span, marks, inlineParser);
+        public IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
+            => RelyOn.MakeElementFromSpan(span, marks, inlineParser, context);
         public bool FulFill(string span) => RelyOn.FulFill(span);
         public string UniqueName => RelyOn.Name;
     }
@@ -125,7 +129,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             GetReplacement = getReplacement;
             IsSingleUse = isSingle;
         }
-        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             var t = new TextElement(GetReplacement());
             return new RuledInlineElement(t, this);
@@ -140,7 +145,8 @@ namespace FCloud3.WikiPreprocessor.Rules
         {
             return span.Length > 0 && span.Length <= 20;
         }
-        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             return new FootNoteEntryElement(span.Trim(), this);
         }
@@ -152,13 +158,34 @@ namespace FCloud3.WikiPreprocessor.Rules
 
         public override bool FulFill(string span)
         {
-            return !InlineObjectRule.FulFillInlineObj(span) && UrlUtil.IsUrl(span);
+            return !InlineObjectRule.FulFillInlineObj(span);
         }
-
-        //TODO: 有图片后缀名的话变成行内图片
-        public override InlineElement MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
-            return new AnchorElement(span.Trim(), span.Trim(), this);
+            var trimmedSpan = span.Trim();
+            if (!UrlUtil.IsUrl(trimmedSpan))
+            {
+                var link = context.Options.Link.LinkItems.Find(x => x.Text == trimmedSpan || x.Url == trimmedSpan);
+                if (link is not null)
+                {
+                    // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
+                    // [武汉市] 或 [/w/wuhan]
+                    // ↓ (转换规则可自定义)
+                    // <a href="/w/wuhan">武汉市</a>
+                    string replacement = context.Options.Link.ConvertFn(link, null);
+                    return new TextElement(replacement);
+                }
+                else
+                {
+                    return new TextElement($"[{span}]");
+                }
+            }
+            // [https://baidu.com]
+            // ↓
+            // <a href="https://baidu.com">https://baidu.com</a>
+            return new AnchorElement(trimmedSpan, trimmedSpan, this);
         }
     }
     public class ManualTextedAnchorRule : InlineRule
@@ -168,19 +195,42 @@ namespace FCloud3.WikiPreprocessor.Rules
             : base("[", ")", "", "", "", "带文字的手动链接") { }
         public override bool FulFill(string span)
         {
-            string trimmed = span.Trim();
-            string[] parts = trimmed.Split(partsSep);
+            string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
                 return false;
-            return UrlUtil.IsUrl(parts[1]);
+            return true;
         }
 
-        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
                 throw new Exception($"{Name}解析异常");
-            return new AnchorElement(parts[0].Trim(), parts[1].Trim(), this);
+            var trimmedPart1 = parts[0].Trim();
+            var trimmedPart2 = parts[1].Trim();
+            if (!UrlUtil.IsUrl(trimmedPart2))
+            {
+                var link = context.Options.Link.LinkItems.Find(x => x.Url == trimmedPart2);
+                if (link is not null)
+                {
+                    // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
+                    // [武汉介绍](/w/wuhan)
+                    // ↓ (转换规则可自定义)
+                    // <a href="/w/wuhan">武汉介绍</a>
+                    string replacement = context.Options.Link.ConvertFn(link, trimmedPart1);
+                    return new TextElement(replacement);
+                }
+                else
+                {
+                    //TODO：找不到的变为红链
+                    return new TextElement($"[{span})");
+                }
+            }
+            // [百度](https://baidu.com)
+            // ↓
+            // <a href="https://baidu.com">百度</a>
+            return new AnchorElement(trimmedPart1, trimmedPart2, this);
         }
     }
     public class InlineObjectRule : InlineRule
@@ -205,7 +255,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             return UrlUtil.IsUrl(first) && UrlUtil.IsObject(first);
         }
 
-        public override IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             string[] parts = span.Split(partsSep);
             string url = "";
@@ -251,7 +302,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public string GetPreScripts() => string.Empty;
         public string GetStyles() => $".{ColorTextElement.classNameWhenEmpty}{{border-radius:3px}}";
         public const string sep = "\\@";
-        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser)
+        public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
             int sepIndex = span.IndexOf(sep);
             if (sepIndex != -1)
@@ -346,8 +397,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             {
                 new FootNoteAnchorRule(),
                 new InlineObjectRule(),
-                new ManualAnchorRule(),
                 new ManualTextedAnchorRule(),
+                new ManualAnchorRule(),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("***","***","<u>","</u>","下划线"),

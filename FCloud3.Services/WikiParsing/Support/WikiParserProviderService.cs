@@ -97,6 +97,15 @@ namespace FCloud3.Services.WikiParsing.Support
                     return MaterialReplacement(m.PathName, secondPart);
                 return x;
             });
+            allWikis.ForEach(w =>
+            {
+                pb.Link.AddLinkItem(w.Title, w.UrlPathName);
+            });
+            pb.Link.ReplaceConvertFn((link, name) =>
+            {
+                name ??= link.Text;
+                return WikiReplacement(link.Url, name);
+            });
             if (configure is not null)
                 configure(pb);
             Parser parser = pb.BuildParser();

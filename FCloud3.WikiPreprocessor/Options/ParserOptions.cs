@@ -25,6 +25,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public BlockParsingOptions BlockParsingOptions { get;}
         public CacheOptions CacheOptions { get; }
         public TitleGatheringOptions TitleGatheringOptions { get; }
+        public LinkOptions Link { get; }
         public bool Debug { get; }
         public bool ClearRuleUsageOnCall { get; }
         public ILocatorHash? LocatorHash { get; }
@@ -36,6 +37,7 @@ namespace FCloud3.WikiPreprocessor.Options
             BlockParsingOptions block,
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
+            LinkOptions link,
             bool debug, bool clearRuleUsageOnCall, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
@@ -45,6 +47,7 @@ namespace FCloud3.WikiPreprocessor.Options
             BlockParsingOptions = block;
             CacheOptions = cacheOptions;
             TitleGatheringOptions = titleGathering;
+            Link = link;
             Debug = debug;
             ClearRuleUsageOnCall = clearRuleUsageOnCall;
             LocatorHash = locatorHash;
@@ -60,6 +63,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public BlockParsingOptions Block { get; }
         public CacheOptions Cache { get; }
         public TitleGatheringOptions TitleGathering { get; }
+        public LinkOptions Link { get; }
         public bool Debug { get; private set; }
         public bool ClearRuleUsageOnCall { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
@@ -72,6 +76,7 @@ namespace FCloud3.WikiPreprocessor.Options
             Block = new(this);
             Cache = new(this);
             TitleGathering = new(this);
+            Link = new(this);
 
             Block.AddMoreRules(InternalBlockRules.GetInstances());
             Inline.AddMoreRules(InternalInlineRules.GetInstances());
@@ -94,7 +99,9 @@ namespace FCloud3.WikiPreprocessor.Options
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
-            ParserOptions options = new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Debug, ClearRuleUsageOnCall, LocatorHash);
+            ParserOptions options = 
+                new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
+                Debug, ClearRuleUsageOnCall, LocatorHash);
             return options;
         }
 

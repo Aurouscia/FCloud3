@@ -195,7 +195,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
             if (!string.IsNullOrEmpty(left))
                 res.Add(new TextElement(left));
-            var middleSplitted = first.Rule.MakeElementFromSpan(middle, new(marks,middleStartIndex), this);
+            var middleSplitted = first.Rule.MakeElementFromSpan(middle, new(marks,middleStartIndex), this, _ctx);
             res.AddFlat(middleSplitted);
 
             var rightSplitted = SplitByMarks(right,new(marks,rightStartIndex));

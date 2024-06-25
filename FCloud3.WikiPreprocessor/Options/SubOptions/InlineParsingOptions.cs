@@ -15,14 +15,12 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
         {
             _master = master;
             InlineRules = inlineRules ?? new();
-            SortRules();
         }
 
         public ParserBuilder AddMoreRules(List<IInlineRule> inlineRules)
         {
             InlineRules.RemoveAll(inlineRules.Contains);
             InlineRules.AddRange(inlineRules);
-            SortRules();
             return _master;
         }
 
@@ -30,13 +28,7 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
         {
             InlineRules.Remove(inlineRule);
             InlineRules.Add(inlineRule);
-            SortRules();
             return _master;
-        }
-
-        private void SortRules()
-        {
-            InlineRules.Sort((x, y) => y.MarkLeft.Length - x.MarkLeft.Length);
         }
     }
 }
