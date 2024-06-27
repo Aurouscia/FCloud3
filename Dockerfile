@@ -1,10 +1,11 @@
-# docker部署仍在开发中，没有做存储持久化，**请勿使用**
+# docker部署仍在开发中，不确定是否有问题，**请勿使用**
 
 # 构建vue前端
 FROM atomhub.openatom.cn/amd64/node:18-buster-slim AS febuild
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
-RUN npm install
+COPY "./FCloud3.AppFront/FCloud3Front/package-lock.json" "./package-lock.json"
+RUN npm ci
 COPY "./FCloud3.AppFront/FCloud3Front" "."
 RUN npm run build-here
 
@@ -37,6 +38,7 @@ RUN sed -i 's|\[openssl_init\]|&\nssl_conf = ssl_configuration\n[ssl_configurati
 WORKDIR "/app"
 COPY --from=bebuild /app/publish .
 COPY --from=febuild /app/FCloud3.AppFront/FCloud3Front/dist ./wwwroot
+VOLUME '/app/Data'
 EXPOSE 8080
 EXPOSE 8081
 ENTRYPOINT ["dotnet", "FCloud3.App.dll"]
