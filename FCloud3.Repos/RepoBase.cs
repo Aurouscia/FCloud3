@@ -239,8 +239,10 @@ namespace FCloud3.Repos
         }
         public virtual int TryAddAndGetId(T item, out string? errmsg)
         {
-            _ = TryAdd(item, out errmsg);
-            return item.Id;
+            var success = TryAdd(item, out errmsg);
+            if(success)
+                return item.Id;
+            return 0;
         }
         public virtual int TryCreateDefaultAndGetId(out string? errmsg)
         {

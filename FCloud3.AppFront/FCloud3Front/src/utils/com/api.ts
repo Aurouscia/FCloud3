@@ -354,6 +354,17 @@ export class Api{
                     return res.data as Array<WikiParaDisplay>
                 }
             },
+            insertParaAndGetId:async(req:{id:number,afterOrder:number,type:WikiParaType}) => {
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/InsertParaAndGetId",
+                    "postForm",
+                    req,
+                    "成功插入新段落",
+                    true)
+                if(res.success){
+                    return res.data as {newlyCreatedParaId:number}
+                }
+            },
             setParaOrders:async(req:{id:number,orderedParaIds:number[]})=>{
                 const res = await this.httpClient.request(
                     "/api/WikiItem/SetParaOrders",

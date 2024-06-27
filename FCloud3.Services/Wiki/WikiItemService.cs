@@ -189,9 +189,10 @@ namespace FCloud3.Services.Wiki
             });
             return paraObjs;
         }
-        public bool InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
+        public int InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
         {
             string? msg = null;
+            int newlyCreatedParaId = 0;
             bool success = _transaction.DoTransaction(() =>
             {
                 var itsParas = GetWikiParas(wikiId);
@@ -205,12 +206,12 @@ namespace FCloud3.Services.Wiki
                     Order = afterOrder+1,
                     Type = type
                 };
-                if(!_paraRepo.TryAdd(p, out msg))
+                newlyCreatedParaId = _paraRepo.TryAddAndGetId(p, out msg);
+                if(newlyCreatedParaId <= 0)
                     return false;
 
                 if (!_paraRepo.TryEditRange(itsParas, out msg))
                     return false;
-                success = true;
                 return true;
             });
             errmsg = msg;
@@ -220,8 +221,10 @@ namespace FCloud3.Services.Wiki
                 var name = _wikiCaching.Get(wikiId)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, 
                     $"为 {name} 插入了新 {WikiParaTypes.Readable(type)} 段落");
+                return newlyCreatedParaId;
             }
-            return success;
+            else
+                return 0;
         }
         public bool SetParaOrders(int wikiId, List<int> orderedParaIds, out string? errmsg)
         {

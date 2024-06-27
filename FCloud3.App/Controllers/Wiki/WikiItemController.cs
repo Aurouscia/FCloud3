@@ -120,12 +120,23 @@ namespace FCloud3.App.Controllers.Wiki
         [UserTypeRestricted]
         public IActionResult InsertPara(int id, int afterOrder, WikiParaType type)
         {
-            var res = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
-            if (!res)
+            var newlyCreatedParaId = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
+            if (newlyCreatedParaId <= 0)
                 return this.ApiFailedResp(errmsg);
             var newList = _wikiService.GetWikiParaDisplays(id);
             return this.ApiResp(newList);
         }
+        [Authorize]
+        [AuthGranted(nameof(id))]
+        [UserTypeRestricted]
+        public IActionResult InsertParaAndGetId(int id, int afterOrder, WikiParaType type)
+        {
+            var newlyCreatedParaId = _wikiService.InsertPara(id, afterOrder, type, out string? errmsg);
+            if (newlyCreatedParaId <= 0)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(new { newlyCreatedParaId });
+        }
+        
         [Authorize]
         [AuthGranted]
         [UserTypeRestricted]

@@ -3,6 +3,7 @@ import icon from '@/assets/paraTypes/filePara.svg'
 import { canDisplayAsImage, isImageFile } from '@/utils/fileUtils';
 import { WikiParaDisplay } from '@/models/wiki/wikiPara'
 import { useParaListItem } from './paraListItemTitle';
+import { imgClickJumpRequireClassName } from '@/utils/wikiView/imgClickJump';
 
 const props = defineProps<{
     w:WikiParaDisplay,
@@ -18,7 +19,7 @@ const {mainname, subname} = useParaListItem(props);
             {{ mainname }}
             <span>{{ subname }}</span>
         </div>
-        <img class="fileImage" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />
+        <img class="fileImage" :class="[imgClickJumpRequireClassName]" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />
         <div v-else class="fileLink">
             <a :href="props.w.Content">
                 {{ props.w.Title }}<br /><span>{{ props.w.Content }}</span><br/>
@@ -39,6 +40,10 @@ const {mainname, subname} = useParaListItem(props);
 }
 .paraListItem{
     text-align: center;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 18px;
 }
 .fileLink{
