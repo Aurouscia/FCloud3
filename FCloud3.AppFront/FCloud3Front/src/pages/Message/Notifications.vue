@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { NotifViewItem, NotifType } from '@/models/messages/notification';
-import { injectApi } from '@/provides';
+import { injectApi, injectNotifCountProvider } from '@/provides';
 import Loading from '@/components/Loading.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
-import { storeToRefs } from 'pinia';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
@@ -15,7 +14,7 @@ const notifs = ref<NotifViewItem[]>([])
 const loaded = ref(false);
 const totalCount = ref(0);
 const notifCountStore = useNotifCountStore();
-const {notifCount} = storeToRefs(notifCountStore);
+const notifCountProvider = injectNotifCountProvider();
 const {jumpToViewWiki} = useWikiParsingRoutesJump();
 const {jumpToUserGroup} = useIdentityRoutesJump();
 const idenStore = useIdentityInfoStore();
@@ -27,6 +26,8 @@ async function load(){
     if(res){
         totalCount.value = res.TotalCount;
         notifs.value.push(...res.Items);
+        const unreadCount = res.Items.filter(x=>!x.Read).length;
+        notifCountProvider.activeOverride(unreadCount);
     }
 }
 async function markRead(id:number|"all") {
@@ -60,16 +61,6 @@ onMounted(async()=>{
 })
 onUnmounted(()=>{
     recoverTitle()
-})
-
-watch(notifCount, (newVal, oldVal)=>{
-    if(newVal>oldVal){
-        console.log("未读消息数增加")
-        if(notifs.value.length<20){
-            notifs.value = []
-            load()
-        }
-    }
 })
 </script>
 

@@ -56,6 +56,15 @@ export class NotifCountProvider{
             return obj.count;
         }
     }
+    activeOverride(count:number){
+        const notifStore = useNotifCountStore();
+        notifStore.notifCount = count;//赋值pinia数据
+        const update = getTimeStamp();
+        const newObj:NotifInfo = {
+            count, update
+        }
+        localStorage.setItem(key, JSON.stringify(newObj))
+    }
     clear(){
         const notifStore = useNotifCountStore();
         notifStore.notifCount = 0;
