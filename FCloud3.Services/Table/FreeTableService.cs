@@ -52,7 +52,7 @@ namespace FCloud3.Services.Table
 
         public FreeTable? GetForEditing(int id, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, out errmsg))
+            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, true, out errmsg))
                 return null;
             var freeTable = _freeTableRepo.GetById(id);
             if (freeTable is null)
@@ -70,7 +70,7 @@ namespace FCloud3.Services.Table
         
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, out errmsg))
+            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, false, out errmsg))
                 return false;
             if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
@@ -83,7 +83,7 @@ namespace FCloud3.Services.Table
         }
         public bool TryEditContent(int id, string data, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, out errmsg))
+            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, false, out errmsg))
                 return false;
             var model = _freeTableRepo.GetById(id);
             if (model is null)

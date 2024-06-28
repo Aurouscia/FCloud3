@@ -14,7 +14,7 @@ namespace FCloud3.App.Controllers.Etc
 
         public IActionResult Do(HeartbeatObjType objType, int objId)
         {
-            if (!_contentEditLockService.Heartbeat(objType, objId, out string? errmsg))
+            if (!_contentEditLockService.Heartbeat(objType, objId, false, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }

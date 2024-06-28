@@ -54,7 +54,7 @@ namespace FCloud3.Services.TextSec
 
         public TextSection? GetForEditing(int id, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, out errmsg))
+            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, true, out errmsg))
                 return null;
             var textSection = _textSectionRepo.GetById(id);
             if (textSection is null)
@@ -134,7 +134,7 @@ namespace FCloud3.Services.TextSec
                 errmsg = "未得到更新文本段Id";
                 return false;
             }
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, out errmsg))
+            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
                 return false;
             if (title is not null)
             {
