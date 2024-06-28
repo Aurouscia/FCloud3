@@ -48,7 +48,7 @@ const stylesContent = ref<string>("");
 const preScripts = ref<HTMLDivElement>();
 const postScripts = ref<HTMLDivElement>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
-const displayInfo = ref<WikiDisplayInfo>(wikiDisplayInfoDefault)
+const displayInfo = ref<WikiDisplayInfo>()
 const currentUser = ref<IdentityInfo>();
 async function load(){
     setTitleTo("正在跳转")
@@ -99,6 +99,9 @@ function viewAreaScrollHandler(){
     if(sh - st < 2000){
         recommendsLoaded.value = true
     }
+    if(sh - st < 1500){
+        commentsLoaded.value = true
+    }
 
     if(Date.now() - lastScrollTime < 50){return;}
     lastScrollTime = Date.now();
@@ -106,9 +109,6 @@ function viewAreaScrollHandler(){
         t.offsetTop > st - 20);
     if(currentTitleIdx == -1){
         return
-    }
-    if(currentTitleIdx == titlesInContent.length-1){
-        commentsLoaded.value = true
     }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
@@ -126,6 +126,9 @@ function enterEdit(type:WikiParaType, underlyingId:number){
 }
 
 async function toggleSealed(){
+    if(!displayInfo.value){
+        return;
+    }
     const setTo = !displayInfo.value.Sealed;
     const s = await api.wiki.wikiItem.setSealed(displayInfo.value.WikiId, setTo);
     if(s){
@@ -229,10 +232,10 @@ onUnmounted(()=>{
         <div class="masterTitle">
             {{data.Title}}
         </div>
-        <div class="info">
+        <div class="info" v-if="displayInfo">
             <div class="owner">
                 所有者<img :src="displayInfo.UserAvtSrc" class="smallAvatar"/>
-                <span @click="jumpToUserCenter(displayInfo.UserName)">{{ displayInfo.UserName }}</span>
+                <span @click="jumpToUserCenter(displayInfo?.UserName||'??')">{{ displayInfo.UserName }}</span>
                 <div class="updateTime">更新于 {{ data.Update }}</div>
                 <div class="groupLabels">
                     <div v-for="label in displayInfo.UserGroupLabels" @click="jumpToUserGroup(label.Id)">
@@ -247,7 +250,7 @@ onUnmounted(()=>{
                 </LongPress>
             </div>
         </div>
-        <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
+        <div v-if="displayInfo?.Sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)">
@@ -449,8 +452,5 @@ onUnmounted(()=>{
 .comments{
     margin-top: 30px;
     margin-bottom: 40px;
-}
-.commentsNotLoaded{
-    margin-bottom: 100vh;
 }
 </style>
