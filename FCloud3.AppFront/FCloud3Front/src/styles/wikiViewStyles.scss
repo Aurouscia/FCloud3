@@ -117,8 +117,8 @@
     }
 
     ul {
-        list-style-type: none !important;
-        margin: 10px 0px 10px 10px;
+        list-style-type: disc;
+        margin: 10px 0px 10px 22px;
         display: flex;
         flex-direction: column;
         align-items: baseline;
@@ -126,10 +126,8 @@
 
     li {
         margin-bottom: 5px;
-        background-color: #aaa;
-        color: white;
-        border-radius: 5px;
-        padding: 3px;
+        padding-bottom: 5px;
+        border-bottom: 1px #ddd solid;
     }
 
     img.wikiInlineImg {
