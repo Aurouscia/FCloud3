@@ -26,3 +26,5 @@ export interface CommentViewResult
     Replying:number
     Replies:Array<CommentViewResult>
 }
+
+export const cmtTitleId = 666666666;

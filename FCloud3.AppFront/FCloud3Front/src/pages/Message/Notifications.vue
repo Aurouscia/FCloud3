@@ -15,7 +15,7 @@ const loaded = ref(false);
 const totalCount = ref(0);
 const notifCountStore = useNotifCountStore();
 const notifCountProvider = injectNotifCountProvider();
-const {jumpToViewWiki} = useWikiParsingRoutesJump();
+const {jumpToViewWikiCmt} = useWikiParsingRoutesJump();
 const {jumpToUserGroup} = useIdentityRoutesJump();
 const idenStore = useIdentityInfoStore();
 
@@ -50,7 +50,7 @@ async function markRead(id:number|"all") {
 async function jumpToWiki(id:number){
     const info = await api.wiki.wikiItem.getInfoById(id);
     if(info){
-        jumpToViewWiki(info.UrlPathName);
+        jumpToViewWikiCmt(info.UrlPathName);
     }
 }
 

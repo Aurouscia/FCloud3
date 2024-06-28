@@ -96,7 +96,7 @@ async function inputKeyDown(e:KeyboardEvent){
             <img :src="c.UserAvtSrc" class="smallAvatar"/>
             <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
             <div class="time">{{ c.Time }}</div>
-            <div v-if="c.Rate>0 && c.Rate<11" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
+            <div v-if="!c.Hidden && c.Rate>0 && c.Rate<11" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
         </div>
         <div class="replyInfo" v-if="replyInfo">回复: {{ replyInfo.userName }} "{{ replyInfo.cmtBrief }}"</div>
         <div class="content" :class="{hidden:c.Hidden}">

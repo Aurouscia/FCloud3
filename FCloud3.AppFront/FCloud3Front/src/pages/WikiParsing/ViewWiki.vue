@@ -10,7 +10,7 @@ import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
-import { CommentTargetType } from '@/models/messages/comment';
+import { CommentTargetType, cmtTitleId } from '@/models/messages/comment';
 import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
 import menuImg from '@/assets/menu.svg';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
@@ -35,6 +35,7 @@ import ImageFocusView from '@/components/ImageFocusView.vue';
 
 const props = defineProps<{
     wikiPathName: string;
+    viewCmt?: boolean;
 }>()
 watch(()=>props.wikiPathName,async()=>{
     data.value = undefined;
@@ -83,7 +84,7 @@ function getIdFromElementId(ele:HTMLElement):number{
 }
 function moveToTitle(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
-    console.log(title)
+    //console.log(title)
     if(title){
         wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
     }
@@ -183,6 +184,7 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
 const focusImg = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
 
+
 async function init(){
     currentUser.value = await iden.getIdentityInfo();
     if(data.value){
@@ -203,7 +205,7 @@ async function init(){
     });
     imgClickJump.listen(wikiViewArea.value);
 
-    const commentTitle = document.getElementById("t_666666666");
+    const commentTitle = document.getElementById(titleElementId(cmtTitleId) || "??");
     if(commentTitle)
         titlesInContent.push(commentTitle)
 
@@ -214,6 +216,10 @@ async function init(){
         router.push(`/w/${pathName}`)
     });
     wikiLinkClick.listen(wikiViewArea.value);
+
+    if(props.viewCmt){
+        moveToTitle(cmtTitleId)
+    }
 }
 onUnmounted(()=>{
     clickFold.dispose();
@@ -280,7 +286,7 @@ onUnmounted(()=>{
         <div class="invisible" ref="postScripts"></div>
 
         <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
-        <h1 id="t_666666666">评论区<div class="h1Sep"></div></h1>
+        <h1 :id="titleElementId(cmtTitleId)">评论区<div class="h1Sep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
             <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
@@ -452,5 +458,8 @@ onUnmounted(()=>{
 .comments{
     margin-top: 30px;
     margin-bottom: 40px;
+}
+.commentsNotLoaded{
+    margin-bottom: 100vh;
 }
 </style>

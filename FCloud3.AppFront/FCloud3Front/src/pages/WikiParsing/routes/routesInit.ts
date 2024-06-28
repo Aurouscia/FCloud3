@@ -16,6 +16,12 @@ const routes = [
         name:"viewWiki",
     },
     {
+        path:"/w/:wikiPathName/:viewCmt",
+        component: ViewWiki,
+        props:true,
+        name:"viewWikiCmt",
+    },
+    {
         path:"/templates",
         component:WikiTemplateList,
         name:"wikiTemplateList"
