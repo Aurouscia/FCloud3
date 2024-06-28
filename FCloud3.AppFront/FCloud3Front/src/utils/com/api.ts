@@ -1000,6 +1000,16 @@ export class Api{
                 )
                 return resp.success
             },
+            hide:async(id:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Comment/Hide",
+                    "postForm",
+                    {id},
+                    "已删除评论",
+                    true
+                )
+                return resp.success
+            },
             view:async(type:CommentTargetType, objId:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/Comment/View",

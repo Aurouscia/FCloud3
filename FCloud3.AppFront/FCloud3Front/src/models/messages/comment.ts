@@ -17,6 +17,7 @@ export interface CommentViewResult
 {
     Id:number
     Content:string|null
+    Hidden:boolean
     Rate:number
     UserId:number
     UserName:string

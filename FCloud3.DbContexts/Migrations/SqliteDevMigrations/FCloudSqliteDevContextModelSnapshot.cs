@@ -366,6 +366,9 @@ namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("HiddenByUser")
+                        .HasColumnType("INTEGER");
+
                     b.Property<byte>("Rate")
                         .HasColumnType("INTEGER");
 

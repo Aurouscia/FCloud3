@@ -5,6 +5,9 @@ import { injectApi, injectPop } from '@/provides';
 import { truncate } from 'lodash'; 
 import { rateColor, rateText } from './rateTextColor';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { storeToRefs } from 'pinia';
+import { UserType } from '@/models/identities/user';
 
 const props = defineProps<{
     c:CommentViewResult,
@@ -13,7 +16,17 @@ const props = defineProps<{
     objId:number
 }>()
 const { jumpToUserCenter } = useIdentityRoutesJump();
+const { iden } = storeToRefs(useIdentityInfoStore())
 
+const canDelete = computed<boolean>(()=>{
+    if(iden.value.Type >= UserType.Admin){
+        return true;
+    }
+    if(props.c.UserId == iden.value.Id){
+        return true;
+    }
+    return false
+})
 const emits = defineEmits<{
     (e:'needLoad'):void
 }>()
@@ -63,6 +76,13 @@ async function send(){
     }
 }
 
+async function hide() {
+    const s = await api.messages.comment.hide(props.c.Id);
+    if(s){
+        emits('needLoad')
+    }
+}
+
 async function inputKeyDown(e:KeyboardEvent){
     if(e.key=="Enter"){
         await send();
@@ -76,15 +96,16 @@ async function inputKeyDown(e:KeyboardEvent){
             <img :src="c.UserAvtSrc" class="smallAvatar"/>
             <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
             <div class="time">{{ c.Time }}</div>
-            <div v-if="c.Rate>0" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
+            <div v-if="c.Rate>0 && c.Rate<11" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
         </div>
         <div class="replyInfo" v-if="replyInfo">回复: {{ replyInfo.userName }} "{{ replyInfo.cmtBrief }}"</div>
-        <div class="content">
+        <div class="content" :class="{hidden:c.Hidden}">
             {{ c.Content }}
         </div>
         <div class="ops">
             <div class="btn" v-if="needFold" @click="foldOpened = !foldOpened">查看{{c.Replies.length}}条回复</div>
             <div class="btn" @click="wantWrite=!wantWrite">回复ta</div>
+            <div class="btn" v-if="canDelete && !c.Hidden" @click="hide">删除</div>
             <div v-if="wantWrite" class="replyWrite">
                 <input v-model="writingContent" spellcheck="false" @keydown="inputKeyDown" :placeholder="'回复 '+c.UserName"/>
                 <div>
@@ -134,8 +155,9 @@ async function inputKeyDown(e:KeyboardEvent){
     position: relative;
     gap: 10px;
     .btn{
+        transition: 0.3s;
         font-size: 14px;
-        color: #666;
+        color: #888;
         cursor: pointer;
         user-select: none;
         &:hover{
@@ -158,6 +180,10 @@ async function inputKeyDown(e:KeyboardEvent){
 .content{
     margin: 5px;
     font-weight: bold;
+}
+.content.hidden{
+    color: #888;
+    font-style: italic;
 }
 .replyInfo{
     font-size: 14px;

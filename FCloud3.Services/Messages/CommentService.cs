@@ -2,21 +2,26 @@
 using FCloud3.Repos.Messages;
 using FCloud3.Services.Identities;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Wiki;
 
 namespace FCloud3.Services.Messages
 {
     public class CommentService(
         CommentRepo commentRepo,
+        WikiItemRepo wikiItemRepo,
         UserService userService,
         UserCaching userCaching,
         MaterialCaching materialCaching,
-        NotificationService notificationService)
+        NotificationService notificationService,
+        IOperatingUserIdProvider userIdProvider)
     {
         private readonly CommentRepo _commentRepo = commentRepo;
+        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly UserService _userService = userService;
         private readonly UserCaching _userCaching = userCaching;
         private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly NotificationService _notificationService = notificationService;
+        private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
 
         public bool Create(Comment comment, out string? errmsg)
         {
@@ -35,12 +40,35 @@ namespace FCloud3.Services.Messages
             return success;
         }
 
+        public bool HideComment(int id, bool noAuthCheck, out string? errmsg)
+        {
+            var uid = _userIdProvider.Get();
+            var cmt = _commentRepo.GetById(id);
+            if (cmt is null)
+            {
+                errmsg = "找不到指定评论";
+                return false;
+            }
+            bool auth = noAuthCheck;//一般是“是管理员”，有权删
+            if (!auth && cmt.CreatorUserId == uid)//发评论的人有权删
+                auth = true;
+            if (!auth)
+            {
+                errmsg = "无权删除该评论";
+                return false;
+            }
+            return _commentRepo.HideComment(cmt, out errmsg);
+        }
+
         public List<CommentViewResult> View(CommentTargetType type, int objId)
         {
             var all = _commentRepo.GetComments(type, objId).OrderBy(x => x.Created).ToList();
             if (all.Count == 0)
                 return [];
-            var relatedUsers = all.Select(x => x.CreatorUserId).Distinct().ToList();
+            var relatedUsers = all.Select(x => x.CreatorUserId).ToList();
+            var hider = all.Select(x => x.HiddenByUser).ToList();
+            relatedUsers.AddRange(hider);
+            relatedUsers = relatedUsers.Distinct().ToList();
             var users = _userCaching.GetRange(relatedUsers);
             var relatedMaterials = users.Select(x => x.AvatarMaterialId).Distinct().ToList();
             var materials = _materialCaching.GetRange(relatedMaterials);
@@ -58,6 +86,7 @@ namespace FCloud3.Services.Messages
         {
             public int Id { get; set; }
             public string? Content { get; set; }
+            public bool Hidden { get; set; }
             public byte Rate { get; set; }
             public int UserId { get; set; }
             public string? UserName { get; set; }
@@ -82,10 +111,18 @@ namespace FCloud3.Services.Messages
                     var owner = allu.FirstOrDefault(u => u.Id == x.CreatorUserId);
                     var ownerAvtMat = allm.FirstOrDefault(m => m.Id == owner?.AvatarMaterialId);
                     var avt = avtSrc(ownerAvtMat?.PathName);
+                    var content = x.Content;
+                    string? hiddenBy = null;
+                    var hidden = x.IsHidden();
+                    if (hidden){
+                        hiddenBy = allu.FirstOrDefault(u => u.Id == x.HiddenByUser).Name ?? "??";
+                        content = hidden ? $"该评论已被 {hiddenBy} 删除" : x.Content;
+                    }
                     return new CommentViewResult
                     {
                         Id = x.Id,
-                        Content = x.Content,
+                        Content = content,
+                        Hidden = hidden,
                         Rate = x.Rate,
                         UserId = x.CreatorUserId,
                         UserName = owner?.Name ?? "??",

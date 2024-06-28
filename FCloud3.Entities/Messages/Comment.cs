@@ -31,6 +31,7 @@ namespace FCloud3.Entities.Messages
         /// </summary>
         [MaxLength(contentMaxLength)]
         public string? Content { get; set; }
+        public int HiddenByUser { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

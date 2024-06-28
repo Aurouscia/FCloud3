@@ -44,9 +44,16 @@ namespace FCloud3.Services.Messages
                     var wikiId = x.Param1;
                     var wikiTitle = _wikiItemCaching.Get(x.Param1)?.Title ?? "";
                     var cmtId = x.Param2;
-                    var cmtBrief = relatedComments.Find(x => x.Id == cmtId)?.Content ?? "";
-                    if(cmtBrief.Length>20)
-                        cmtBrief = cmtBrief[..20] + "...";
+                    string cmtBrief = string.Empty;
+                    var cmt = relatedComments.Find(x => x.Id == cmtId);
+                    if (cmt.IsHidden())
+                        cmtBrief = "<该评论已被删除>";
+                    else
+                    {
+                        cmtBrief = cmt.Content;
+                        if (cmtBrief.Length > 20)
+                            cmtBrief = cmtBrief[..20] + "...";
+                    }
                     return new NotifViewItem(x.Id, x.Read, x.Created, x.Type, senderId, senderName, wikiId, wikiTitle, cmtId, cmtBrief);
                 }
                 if(x.Type == NotifType.UserGroupInvite)
