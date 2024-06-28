@@ -13,7 +13,7 @@ const {mainname, subname} = useParaListItem(props);
 </script>
 
 <template>
-    <div class="paraListItem">
+    <div class="paraListItem" :class="{noTitle}">
         <div v-if="!noTitle" class="title">
             <img class="icon" :src="icon">
             {{ mainname }}
@@ -40,6 +40,8 @@ const {mainname, subname} = useParaListItem(props);
 }
 .paraListItem{
     text-align: center;
+}
+.paraListItem.noTitle{
     height: 100px;
     display: flex;
     justify-content: center;
