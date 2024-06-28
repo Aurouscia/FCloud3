@@ -75,6 +75,7 @@ async function load(){
 
 const titles = ref<InstanceType<typeof TitleTree>>();
 const subTitles = ref<HTMLDivElement>();
+let isActiveMoving = false;
 function titleElementId(id:number):string|undefined{
     if(id>0)
         return 't_'+id;
@@ -86,7 +87,11 @@ function moveToTitle(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
     //console.log(title)
     if(title){
+        isActiveMoving = true;
         wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
+        window.setTimeout(()=>{
+            isActiveMoving = false;
+        }, 1000)
     }
 }
 
@@ -107,13 +112,16 @@ function viewAreaScrollHandler(){
     if(Date.now() - lastScrollTime < 50){return;}
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
-        t.offsetTop > st - 20);
+        t.offsetTop > st + 80);
     if(currentTitleIdx == -1){
         return
     }
+    if(currentTitleIdx != 0){
+        currentTitleIdx -= 1;
+    }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
-    if(titleInCatalogOffsetTop){
+    if(titleInCatalogOffsetTop && !isActiveMoving){
         subTitles.value?.scrollTo({top: titleInCatalogOffsetTop - 50, behavior: 'smooth'});
     }
 }
@@ -349,7 +357,7 @@ onUnmounted(()=>{
     transition: 0.3s;
     background-color: white;
     box-sizing: border-box;
-    padding-top: 10px;
+    padding-top: 20px;
     margin-right: 40px;
 }
 .subTitlesFoldBtn{
@@ -429,10 +437,12 @@ onUnmounted(()=>{
     .subTitles{
         position: fixed;
         right: 0px;
-        top: 0px;
-        padding-top: calc($topbar-height + 10px);
+        top: $topbar-height;
+        border-top: 1px solid #ddd;
+        padding-top: 20px;
         box-shadow: 0px 0px 12px 0px black;
         margin-right: 0px;
+        z-index: 950;
     }
     .subTitles.folded{
         right: -180px;
@@ -444,6 +454,8 @@ onUnmounted(()=>{
 
     .cover{
         display: block;
+        background-color: black;
+        opacity: 0.4;
         position: fixed;
         left: 0px;
         right: 0px;
