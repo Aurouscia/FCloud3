@@ -37,7 +37,7 @@ const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
-const { jumpToWikiLocations } = useWikiRoutesJump();
+const { jumpToWikiLocations, jumpToWikiContentEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToSelfUserCenter } = useIdentityRoutesJump();
@@ -297,10 +297,11 @@ onUnmounted(()=>{
 </script>
 
 <template>
-    <h1>
+    <h1 v-if="info">
         {{ info?.Title }}
         <div class="h1Btns">
             <button v-if="info" @click="jumpToWikiLocations(info?.UrlPathName)">位置管理</button>
+            <button v-if="info" @click="jumpToWikiContentEdit(info?.UrlPathName)">整体编辑</button>
             <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)" class="ok">完成</button>
         </div>
     </h1>

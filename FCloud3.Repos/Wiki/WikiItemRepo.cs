@@ -25,7 +25,9 @@ namespace FCloud3.Repos.Wiki
         {
             var q = includeSealed ? Existing : ExistingAndNotSealed;
             return q
-                .Where(x => x.Title != null && x.Title.Contains(str))
+                .Where(x => 
+                    (x.Title != null && x.Title.Contains(str) 
+                     || (x.UrlPathName != null && x.UrlPathName.Contains(str))))
                 .OrderBy(x => x.Title!.Length)
                 .ThenByDescending(x => x.Updated);
         }

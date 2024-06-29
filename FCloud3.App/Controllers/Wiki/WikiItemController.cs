@@ -110,10 +110,15 @@ namespace FCloud3.App.Controllers.Wiki
             var res = _wikiService.GetWikiParaDisplays(id);
             return this.ApiResp(res);
         }
+        [Authorize]
+        [AuthGranted]
+        [UserTypeRestricted]
         public IActionResult LoadFull(int id)
         {
-            var res = _wikiService.GetWikiParaContents(id);
-            return this.ApiResp(res);
+            var res = _wikiService.GetWikiParaContents(id, out string? errmsg);
+            if(res is not null)
+                return this.ApiResp(res);
+            return this.ApiFailedResp(errmsg);
         }
         [Authorize]
         [AuthGranted(nameof(id))]

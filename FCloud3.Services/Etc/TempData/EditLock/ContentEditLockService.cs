@@ -29,6 +29,19 @@ namespace FCloud3.Services.Etc.TempData.EditLock
             _logger = logger;
         }
 
+        public bool HeartbeatRange(List<(HeartbeatObjType type, int objId)> targets, bool isInitial, out string? errmsg)
+        {
+            foreach(var tar in targets)
+            {
+                var s = Heartbeat(tar.type, tar.objId, isInitial, out errmsg);
+                if (!s)
+                {
+                    return false;
+                }
+            }
+            errmsg = null;
+            return true;
+        }
        
         public bool Heartbeat(HeartbeatObjType type, int objId, bool isInitial, out string? errmsg)
         {

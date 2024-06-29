@@ -16,6 +16,7 @@ import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
 import { useRouter } from 'vue-router';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut'
+import { HeartbeatSenderForWholeWiki } from '@/models/etc/heartbeat';
 
 const props = defineProps<{
     urlPathName: string
@@ -46,6 +47,8 @@ async function load(){
                 }
             });
             ready.value = true
+            heartbeat = new HeartbeatSenderForWholeWiki(api, info.value.Id);
+            heartbeat.start();
         }
     }
 }
@@ -169,6 +172,7 @@ async function saveAll() {
     if(changedParas.length == 0){
         return;
     }
+    let successCount = 0;
     for(const p of changedParas){
         if(p.Type == WikiParaType.Text){
             const s = await api.textSection.textSection.editExe({
@@ -178,6 +182,7 @@ async function saveAll() {
             })
             if(s){
                 p.changed = false;
+                successCount += 1;
             }
         }else if(p.Type == WikiParaType.Table){
             let s = false;
@@ -186,10 +191,13 @@ async function saveAll() {
             }
             if(s){
                 p.changed = false;
+                successCount += 1;
             }
         }
     };
     refreshUnsaveStatus();
+    if(successCount)
+        pop.value.show(`成功保存${successCount}个段落的更改`, "success")
 }
 function leave(){
     router.back();
@@ -209,6 +217,7 @@ const ctrlS = new ShortcutListener(saveAll, "s", true, false);
 ctrlZ.startListen();
 ctrlShiftZ.startListen();
 ctrlS.startListen();    
+let heartbeat:HeartbeatSenderForWholeWiki|undefined = undefined;
 onMounted(async()=>{
     setTopbar(false);
     await load();
@@ -223,6 +232,7 @@ onUnmounted(()=>{
     ctrlShiftZ?.dispose();
     ctrlS?.dispose();
     imgClickJump.dispose();
+    heartbeat?.stop();
     setTopbar(true)
 })
 </script>

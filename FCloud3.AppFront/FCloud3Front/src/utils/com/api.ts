@@ -1172,6 +1172,14 @@ export class Api{
                 )
                 return resp.success
             },
+            doRangeForWiki:async(wikiId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Heartbeat/DoRangeForWiki",
+                    "get",
+                    {wikiId}
+                )
+                return resp.success
+            }
         },
         latestWork:{
             get:async(uid=-1)=>{

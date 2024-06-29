@@ -155,7 +155,7 @@ const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
 const { jumpToDiffContentHistory } = useDiffRoutesJump();
-const { jumpToWikiEdit } = useWikiRoutesJump();
+const { jumpToWikiEdit, jumpToWikiContentEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
@@ -258,7 +258,8 @@ onUnmounted(()=>{
                 </div>
             </div>
             <div class="btns">
-                <button @click="jumpToWikiEdit(wikiPathName)">编辑词条</button>
+                <button @click="jumpToWikiContentEdit(wikiPathName)">编辑词条</button>
+                <button @click="jumpToWikiEdit(wikiPathName)">设置词条</button>
                 <LongPress v-if="currentUser.Type >= UserType.Admin" :reached="toggleSealed">
                     {{ displayInfo.Sealed ? '解除隐藏': '隐藏词条'}}
                 </LongPress>

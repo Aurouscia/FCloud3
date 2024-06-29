@@ -14,54 +14,41 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 using FCloud3.Repos.Etc.Caching;
 using System.Text;
+using FCloud3.Services.Etc.TempData.EditLock;
 
 namespace FCloud3.Services.Wiki
 {
-    public class WikiItemService
+    public class WikiItemService(
+        DbTransactionService transaction,
+        WikiItemRepo wikiRepo,
+        WikiItemCaching wikiCaching,
+        WikiToDirRepo wikiToDirRepo,
+        WikiParaRepo paraRepo,
+        TextSectionRepo textSectionRepo,
+        FileItemRepo fileItemRepo,
+        FileDirRepo fileDirRepo,
+        FreeTableRepo freeTableRepo,
+        CacheExpTokenService cacheExpTokenService,
+        OpRecordRepo opRecordRepo,
+        ContentEditLockService contentEditLockService,
+        IOperatingUserIdProvider operatingUserIdProvider,
+        IStorage storage)
     {
-        private readonly DbTransactionService _transaction;
-        private readonly WikiItemRepo _wikiRepo;
-        private readonly WikiItemCaching _wikiCaching;
-        private readonly WikiToDirRepo _wikiToDirRepo;
-        private readonly WikiParaRepo _paraRepo;
-        private readonly TextSectionRepo _textSectionRepo;
-        private readonly FileItemRepo _fileItemRepo;
-        private readonly FileDirRepo _fileDirRepo;
-        private readonly FreeTableRepo _freeTableRepo;
-        private readonly CacheExpTokenService _cacheExpTokenService;
-        private readonly OpRecordRepo _opRecordRepo;
-        private readonly IOperatingUserIdProvider _operatingUserIdProvider;
-        private readonly IStorage _storage;
+        private readonly DbTransactionService _transaction = transaction;
+        private readonly WikiItemRepo _wikiRepo = wikiRepo;
+        private readonly WikiItemCaching _wikiCaching = wikiCaching;
+        private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
+        private readonly WikiParaRepo _paraRepo = paraRepo;
+        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
+        private readonly FileItemRepo _fileItemRepo = fileItemRepo;
+        private readonly FileDirRepo _fileDirRepo = fileDirRepo;
+        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
+        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
+        private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
+        private readonly ContentEditLockService _contentEditLockService = contentEditLockService;
+        private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
+        private readonly IStorage _storage = storage;
         public const int maxWikiTitleLength = 30;
-        public WikiItemService(
-            DbTransactionService transaction,
-            WikiItemRepo wikiRepo,
-            WikiItemCaching wikiCaching,
-            WikiToDirRepo wikiToDirRepo,
-            WikiParaRepo paraRepo,
-            TextSectionRepo textSectionRepo,
-            FileItemRepo fileItemRepo,
-            FileDirRepo fileDirRepo,
-            FreeTableRepo freeTableRepo,
-            CacheExpTokenService cacheExpTokenService,
-            OpRecordRepo opRecordRepo,
-            IOperatingUserIdProvider operatingUserIdProvider,
-            IStorage storage)
-        {
-            _transaction = transaction;
-            _wikiRepo = wikiRepo;
-            _wikiCaching = wikiCaching;
-            _wikiToDirRepo = wikiToDirRepo;
-            _paraRepo = paraRepo;
-            _textSectionRepo = textSectionRepo;
-            _fileItemRepo = fileItemRepo;
-            _fileDirRepo = fileDirRepo;
-            _freeTableRepo = freeTableRepo;
-            _cacheExpTokenService = cacheExpTokenService;
-            _opRecordRepo = opRecordRepo;
-            _operatingUserIdProvider = operatingUserIdProvider;
-            _storage = storage;
-        }
         public WikiItem? GetById(int id)
         {
             return _wikiRepo.GetById(id);
@@ -144,14 +131,26 @@ namespace FCloud3.Services.Wiki
             });
             return paraObjs;
         }
-        public List<WikiParaDisplay> GetWikiParaContents(int wikiId, int start = 0, int count = int.MaxValue)
+        public List<WikiParaDisplay>? GetWikiParaContents(int wikiId, out string? errmsg, int start = 0, int count = int.MaxValue)
         {
             if (!_wikiRepo.Existing.Any(x => x.Id == wikiId))
             {
-                throw new Exception("找不到指定id的wiki");
+                errmsg = "找不到指定id的wiki";
+                return null;
             }
             var paras = GetWikiParas(wikiId, start, count);
             paras.EnsureOrderDense();
+            
+            List<(HeartbeatObjType type, int objId)> heartBeats = [];
+            foreach (var p in paras)
+            {
+                if (p.Type == WikiParaType.Text)
+                    heartBeats.Add((HeartbeatObjType.TextSection, p.ObjectId));
+                else if (p.Type == WikiParaType.Table)
+                    heartBeats.Add((HeartbeatObjType.FreeTable, p.ObjectId));
+            }
+            if (!_contentEditLockService.HeartbeatRange(heartBeats, true, out errmsg))
+                return null;
 
             List<int> textIds = paras.Where(x => x.Type == WikiParaType.Text).Select(x => x.ObjectId).ToList();
             var textParaObjs = _textSectionRepo.GetRangeByIds(textIds).ToList();
@@ -161,7 +160,7 @@ namespace FCloud3.Services.Wiki
 
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             var tableParaObjs = _freeTableRepo.GetRangeByIds(tableIds).ToList();
-
+            
             List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
                 WikiParaType type = x.Type;
