@@ -18,7 +18,7 @@ namespace FCloud3.Services.Etc
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private const int maxMatchesInOnePara = 10;
-        public WikiContentSearchResult Search(string str)
+        public WikiContentSearchResult Search(string str, bool includingSealed)
         {
             if (string.IsNullOrWhiteSpace(str))
                 return new();
@@ -42,6 +42,11 @@ namespace FCloud3.Services.Etc
             var wikiIds = paras.Select(x => x.WikiItemId).Distinct();
             var wikis = _wikiItemCaching.GetRange(wikiIds);
 
+            if (!includingSealed)
+            {
+                wikis.RemoveAll(x => x.Sealed);
+            }
+            
             var res = new WikiContentSearchResult();
             foreach (var w in wikis)
             {
