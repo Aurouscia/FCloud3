@@ -97,11 +97,11 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 <Loading v-else></Loading>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .leaveBtn{
     width: 30px;
     height: 30px;
-    background-color: cornflowerblue;
+    background-color: olivedrab;
     border-radius: 5px;
     position: absolute;
     top:4px;
@@ -111,7 +111,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     transition: 0.5s;
 }
 .leaveBtn:hover{
-    background-color: rgb(0, 49, 139);;
+    background-color: green;
 }
 .preventingLeaving{
     width: 10px;

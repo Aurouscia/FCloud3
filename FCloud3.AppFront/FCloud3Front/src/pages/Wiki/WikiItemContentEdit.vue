@@ -244,7 +244,7 @@ onUnmounted(()=>{
         <div class="btns">
             <button class="off" @click="paraMode = !paraMode" :class="{paraMode}">增删</button>
             <button v-if="preventingLeaving" @click="saveAll">保存</button>
-            <button v-else @click="leave">离开</button>
+            <button v-else @click="leave" class="ok">离开</button>
         </div>
         <div class="preventingLeaving" v-show="preventingLeaving"></div>
     </div>

@@ -360,7 +360,7 @@ const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
         <button v-if="preventingLeaving" @click="replaceContent">
             保存
         </button>
-        <button v-else @click="leave">
+        <button v-else @click="leave" class="ok">
             退出
         </button>
     </div>
