@@ -30,6 +30,7 @@ import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
 import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
 import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
 import { FooterLinks } from '@/models/etc/footerLinks';
+import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 
 
 export class Api{
@@ -1190,6 +1191,22 @@ export class Api{
                     return resp.data as LatestWorkViewItem[]
                 }
             },
+        },
+        searchWikiContent:{
+            search:async(str:string)=>{
+                if(!str){
+                    return;
+                }
+                const resp = await this.httpClient.request(
+                    "/api/WikiContentSearch/Search",
+                    "get",
+                    {str},
+                    undefined, true
+                )
+                if(resp.success){
+                    return resp.data as WikiContentSearchResult
+                }
+            }
         }
     }
 }

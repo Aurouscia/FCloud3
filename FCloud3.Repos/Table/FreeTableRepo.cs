@@ -25,6 +25,13 @@ namespace FCloud3.Repos.Table
                 return new();
             return base.GetRangeByIds(ids).GetMeta().ToList();
         }
+        
+        public List<FreeTable> Search(string str)
+        {
+            return Existing.Where(x => x.Data != null && x.Data.Contains(str))
+                .OrderByDescending(x => x.Updated).Take(10).ToList();
+        }
+        
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
             if (!NameCheck(name, out errmsg)) {

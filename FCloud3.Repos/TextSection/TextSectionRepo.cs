@@ -24,6 +24,12 @@ namespace FCloud3.Repos.TextSec
             return base.GetRangeByIds(ids).GetMeta().ToList();
         }
 
+        public List<TextSection> Search(string str)
+        {
+            return Existing.Where(x => x.Content != null && x.Content.Contains(str))
+                .OrderByDescending(x => x.Updated).Take(10).ToList();
+        }
+
         public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
         {
             errmsg = null;

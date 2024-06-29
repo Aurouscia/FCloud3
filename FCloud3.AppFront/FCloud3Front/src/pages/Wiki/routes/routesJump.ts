@@ -17,5 +17,8 @@ export function useWikiRoutesJump(){
         }
         router.push({name:"wikiLocations", params:{urlPathName}})
     }
-    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations}
+    const wikiContentSearch = ()=>{
+        router.push({name:'wikiContentSearch'})
+    }
+    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations, wikiContentSearch}
 }
