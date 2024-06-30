@@ -70,8 +70,6 @@ namespace FCloud3.Services.Table
         
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, false, out errmsg))
-                return false;
             if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
                 var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);

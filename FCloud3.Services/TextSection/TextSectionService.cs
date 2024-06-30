@@ -134,8 +134,6 @@ namespace FCloud3.Services.TextSec
                 errmsg = "未得到更新文本段Id";
                 return false;
             }
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
-                return false;
             if (title is not null)
             {
                 if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
@@ -143,6 +141,8 @@ namespace FCloud3.Services.TextSec
             }
             if (content is not null)
             {
+                if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
+                    return false;
                 var original = _textSectionRepo.GetById(id);
                 if (original is null)
                 {
