@@ -54,8 +54,8 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                         Link: "/UserList"
                     },
                     {
-                        Title: "用户中心",
-                        Link: "/u"
+                        Title: "关于",
+                        Link: "/About"
                     }
                 ]
             }
