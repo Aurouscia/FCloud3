@@ -1,4 +1,6 @@
-﻿using FCloud3.App.Services.Filters;
+﻿using DotNetColorParser;
+using DotNetColorParser.ColorNotations;
+using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
 using FCloud3.WikiPreprocessor.Util;
@@ -36,6 +38,12 @@ namespace FCloud3.App.Services
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
+            
+            ColorNotationProvider colorNotationProvider = [ 
+                new KnownColorNameNotation(), new HexRGBANotation(), new RGBNotation(), new HSLNotation()];
+            services.AddSingleton<IColorNotationProvider>(colorNotationProvider);
+            services.AddSingleton<IColorParser, ColorParser>();
+            
             return services;
         }
     }

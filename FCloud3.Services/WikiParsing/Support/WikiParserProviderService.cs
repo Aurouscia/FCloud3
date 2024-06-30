@@ -99,7 +99,8 @@ namespace FCloud3.Services.WikiParsing.Support
             });
             allWikis.ForEach(w =>
             {
-                pb.Link.AddLinkItem(w.Title, w.UrlPathName);
+                if(w.Title != null && w.UrlPathName != null)
+                    pb.Link.AddLinkItem(w.Title, w.UrlPathName);
             });
             pb.Link.ReplaceConvertFn((link, name) =>
             {

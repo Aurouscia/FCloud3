@@ -1,6 +1,9 @@
-﻿using Aurouscia.TableEditor.Core;
+﻿using System.Drawing;
+using System.Text.RegularExpressions;
+using Aurouscia.TableEditor.Core;
 using Aurouscia.TableEditor.Core.Excel;
 using Aurouscia.TableEditor.Core.Html;
+using DotNetColorParser;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
@@ -38,6 +41,7 @@ namespace FCloud3.Services.WikiParsing
         WikiParsedResultService wikiParsedResult,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
+        IColorParser colorParser,
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
@@ -55,6 +59,7 @@ namespace FCloud3.Services.WikiParsing
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
+        private readonly IColorParser _colorParser = colorParser;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
         public WikiDisplayInfo? GetWikiDisplayInfo(string pathName)
@@ -266,28 +271,29 @@ namespace FCloud3.Services.WikiParsing
         {
             return parser.RunToParserResultRaw(model.Content);
         }
-        private static ParserResultRaw ParseTable(AuTable data, Parser parser)
+        private ParserResultRaw ParseTable(AuTable data, Parser parser)
         {
             List<IRule> usedRules = new();
-            Func<string?, string> cellConverter;
+            Func<string?, (string tdContent, string tdAttrs)> cellConverter;
             if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 100)
                 cellConverter = (s) =>
                 {
                     if (string.IsNullOrWhiteSpace(s))
-                        return "　";
-                    var res = parser.RunToParserResultRaw(s, false);
+                        return ("　", "");
+                    var colorRes = CellColorAttr(s);
+                    var res = parser.RunToParserResultRaw(colorRes.s, false);
                     usedRules.AddRange(res.UsedRules);
-                    return res.Content;
+                    return (res.Content, colorRes.attrs);
                 };
             else
-                cellConverter = x => x ?? "　";
+                cellConverter = x => (x ?? "　", "");
             var html = data.ConvertToHtml(new()
             {
-                CellConverter = cellConverter
+                CellConverterAttr = cellConverter
             });
             return new(html, usedRules);
         }
-        private static ParserResultRaw ParseTable(FreeTable model, Parser parser)
+        private ParserResultRaw ParseTable(FreeTable model, Parser parser)
         {
             AuTable data = model.GetData();
             return ParseTable(data, parser);
@@ -305,6 +311,27 @@ namespace FCloud3.Services.WikiParsing
             return obj;
         }
 
+        private (string s, string attrs) CellColorAttr(string s)
+        {
+            var tildeSplitted = s.Split('~', 2);
+            if (tildeSplitted.Length == 2)
+            {
+                string sReplace = tildeSplitted[1];
+                string colorStr = tildeSplitted[0];
+                if (_colorParser.TryParseColor(colorStr, out var c))
+                {
+                    string textColor;
+                    var br = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
+                    if (br > 128)
+                        textColor = "black";
+                    else
+                        textColor = "white";
+                    return (sReplace, $"style=\"background-color:{colorStr};color:{textColor}\"");
+                }
+            }
+            return (s, "");
+        }
+        
         public class WikiParsingResult
         {
             public int Id { get; set; }
