@@ -25,6 +25,12 @@ export class TitleClickFold{
                     (h.nextSibling as Element).classList.add(nextFoldedClass);
                     textNode.textContent = removeDefaultFoldedMark(textNode.textContent || "");
                 }
+                if(h.tagName != 'H1'){
+                    const span = document.createElement('span');
+                    span.innerHTML = h.innerHTML;
+                    h.innerHTML = '';
+                    h.prepend(span);
+                }
                 h.prepend(img);
             }
         })
