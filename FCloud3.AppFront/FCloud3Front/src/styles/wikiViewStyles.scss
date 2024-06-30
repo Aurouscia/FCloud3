@@ -1,7 +1,7 @@
 .wikiView{
     * {
         word-break: break-all;
-        transition: 0.5s;
+        transition: 0s;
         border: none;
         white-space: pre-wrap;
     }
@@ -112,9 +112,6 @@
         border-left: 1px solid #aaa;
     }
 
-    table * {
-        text-indent: 0px !important;
-    }
 
     ul {
         list-style-type: disc;
@@ -185,6 +182,7 @@
         margin: 10px;
         margin-left: 1em;
         padding: 5px;
+        padding-right: 15px;
         border-left: 5px solid #999;
         color: #666;
         background-color: #eee;
@@ -233,6 +231,7 @@
     }
 
     table{
+        margin: auto;
         td{
             min-width: 50px;
             min-height: 20px;
@@ -240,7 +239,11 @@
         tr{
             min-height: 20px;
         }
-        margin: auto;
+        p{
+            margin: 0.1em;
+            line-height: 1.5em;
+            text-indent: 0px;
+        }
     }
 
     .footNotes{

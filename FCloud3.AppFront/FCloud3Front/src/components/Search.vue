@@ -193,7 +193,7 @@ onUnmounted(()=>{
     top:32px;
     width: 190px;
     left: 10px;
-    box-shadow: 0px 0px 6px 0px black;
+    box-shadow: 0px 2px 6px 0px black;
     background-color: white;
     z-index: 200;
 }
@@ -215,6 +215,7 @@ onUnmounted(()=>{
     margin:0px;
     height: 100%;
     display: block;
+    font-size: 18px;
 }
 .write{
     display: flex;
@@ -224,6 +225,7 @@ onUnmounted(()=>{
     gap:0px;
     position: relative;
     z-index: 50;
+    height: 32px;
 }
 .search{
     position: relative;
