@@ -25,6 +25,7 @@ const props = defineProps<{
 interface WikiParaDisplayEdit extends WikiParaDisplay{
     changed?: boolean,
     height?: number,
+    tableData?:AuTableData,
     save?:()=>Promise<boolean>
 }
 
@@ -35,7 +36,6 @@ const paras = ref<WikiParaDisplayEdit[]>();
 const selectedPara = ref(0);
 const ready = ref(false);
 const paraMode = ref(false);
-const tableDatas:{tableId: number, data: AuTableData}[] = [];
 async function load(){
     info.value = await api.wiki.wikiItem.edit(props.urlPathName);
     if(info.value){
@@ -43,12 +43,18 @@ async function load(){
         if(paras.value){
             paras.value.forEach(t=>{
                 if(t.Type == WikiParaType.Table){
-                    tableDatas.push({tableId:t.UnderlyingId, data:JSON.parse(t.Content)})
+                    //迫使表格编辑器组件消失并重新生成，才能正常保存
+                    t.tableData = undefined;
+                    window.setTimeout(()=>{
+                        t.tableData = JSON.parse(t.Content) as AuTableData
+                    },1)
                 }
             });
             ready.value = true
-            heartbeat = new HeartbeatSenderForWholeWiki(api, info.value.Id);
-            heartbeat.start();
+            if(!heartbeat){
+                heartbeat = new HeartbeatSenderForWholeWiki(api, info.value.Id);
+                heartbeat.start();
+            }
         }
     }
 }
@@ -70,6 +76,9 @@ async function startEditingFilePara(p:WikiParaDisplay) {
     wikiFileParaEdit.value?.extend();
 }
 async function moveUp(idx:number) {
+    const saveSuccess = await saveAll();
+    if(!saveSuccess)
+        return
     if(idx == 0 || !info.value?.Id){return}
     const ids = paras.value?.map(x=>x.ParaId);
     if(!ids){return;}
@@ -77,16 +86,13 @@ async function moveUp(idx:number) {
     ids.splice(idx-1,0, targetId);
     const s = await api.wiki.wikiItem.setParaOrders({id: info.value.Id, orderedParaIds:ids})
     if(s){
-        const temp = paras.value || [];
-        paras.value = [];
-        ids.forEach(id=>{
-            const p = temp?.find(x=>x.ParaId == id)
-            if(p)
-                paras.value?.push(p)
-        })
+        await load();
     }
 }
 async function removePara(idx:number) {
+    const saveSuccess = await saveAll();
+    if(!saveSuccess)
+        return
     const target = paras.value?.at(idx);
     if(target){
         if(!window.confirm(`确定要删除段落<${displayTitle(target)}>?`)){
@@ -97,10 +103,13 @@ async function removePara(idx:number) {
             paraId:target.ParaId
         })
         if(s)
-            paras.value?.splice(idx, 1);
+            await load();
     }
 }
 async function insertPara(p:WikiParaDisplay, position:"before"|"after", type:WikiParaType) {
+    const saveSuccess = await saveAll();
+    if(!saveSuccess)
+        return
     const afterOrder = position == "after" ? p.Order : p.Order-1;
     const data = await api.wiki.wikiItem.insertParaAndGetId({
         id:info.value?.Id || 0,
@@ -108,6 +117,7 @@ async function insertPara(p:WikiParaDisplay, position:"before"|"after", type:Wik
         type
     })
     if(data){
+        selectedPara.value = data.newlyCreatedParaId;
         if(type == WikiParaType.Text){
             const res = await api.textSection.textSection.createForPara({paraId: data.newlyCreatedParaId});
             if(res){
@@ -118,6 +128,9 @@ async function insertPara(p:WikiParaDisplay, position:"before"|"after", type:Wik
             if(res){
                 await load();
             }
+        }
+        else if(type == WikiParaType.File){
+            await load();
         }
     }
 }
@@ -167,10 +180,10 @@ async function tableSave(data:AuTableData, cb:(s:boolean, msg:string)=>void, p:W
     }
 }
 
-async function saveAll() {
+async function saveAll():Promise<boolean> {
     const changedParas = paras.value?.filter(x=>x.changed) || [];
     if(changedParas.length == 0){
-        return;
+        return true;
     }
     let successCount = 0;
     for(const p of changedParas){
@@ -198,6 +211,8 @@ async function saveAll() {
     refreshUnsaveStatus();
     if(successCount)
         pop.value.show(`成功保存${successCount}个段落的更改`, "success")
+    const changedParasAfter = paras.value?.filter(x=>x.changed) || [];
+    return changedParasAfter.length == 0
 }
 function leave(){
     router.back();
@@ -248,7 +263,7 @@ onUnmounted(()=>{
         </div>
         <div class="preventingLeaving" v-show="preventingLeaving"></div>
     </div>
-    <div class="paras" ref="parasDiv">
+    <div v-if="paras" class="paras" ref="parasDiv">
         <div v-for="p,idx in paras" :key="p.ParaId" class="para"
             :class="{selected:p.ParaId == selectedPara}" @click="selectedPara = p.ParaId">
             <div class="paraTop">
@@ -258,7 +273,6 @@ onUnmounted(()=>{
                 </h2>
                 <div class="ops">
                     <button v-if="p.Type == WikiParaType.File" class="lite" @click="startEditingFilePara(p)">编辑</button>
-                    <button class="lite" @click="moveUp(idx)">上移</button>
                     <button v-show="!paraMode" class="lite" @click="startEditingInfo(p)">设置</button>
                     <button v-show="paraMode" class="lite rmPara" @click="removePara(idx)">移除</button>
                 </div>
@@ -269,8 +283,8 @@ onUnmounted(()=>{
                 <textarea v-model="p.Content" @input="paraChanged(p)" spellcheck="false"></textarea>
             </div>
             <div v-else-if="p.Type == WikiParaType.Table" class="table" :style="{height:p.height}">
-                <AuTableEditor 
-                    :table-data="tableDatas.find(x=>x.tableId == p.UnderlyingId)?.data" 
+                <AuTableEditor v-if="p.tableData"
+                    :table-data="p.tableData" 
                     :no-shortcut="true"
                     @changed="()=>paraChanged(p)"
                     @save="(val, cb)=>tableSave(val, cb, p)"
@@ -280,12 +294,13 @@ onUnmounted(()=>{
             <div v-else-if="p.Type == WikiParaType.File" class="file">
                 <FileParaListItem :w="p" :no-title="true"></FileParaListItem>
             </div>
-            <div v-if="paraMode && p.ParaId==selectedPara" class="paraInsert top">
+            <div v-if="paraMode && idx==0" class="paraInsert top">
                 <button class="minor" @click="insertPara(p, 'before', WikiParaType.Text)">+文本</button>
                 <button class="minor" @click="insertPara(p, 'before', WikiParaType.Table)">+表格</button>
                 <button class="minor" @click="insertPara(p, 'before', WikiParaType.File)">+文件</button>
             </div>
-            <div v-if="paraMode && p.ParaId==selectedPara" class="paraInsert bottom">
+            <div v-if="paraMode" class="paraInsert bottom">
+                <button v-if="idx<paras.length-1" class="minor" @click="moveUp(idx+1)">⇅交换</button>
                 <button class="minor" @click="insertPara(p, 'after', WikiParaType.Text)">+文本</button>
                 <button class="minor" @click="insertPara(p, 'after', WikiParaType.Table)">+表格</button>
                 <button class="minor" @click="insertPara(p, 'after', WikiParaType.File)">+文件</button>
@@ -354,7 +369,8 @@ onUnmounted(()=>{
 }
 .table{
     position: relative;
-    height: 50vh;
+    height: 40vh;
+    transition: 0s;
 }
 .text{
     position: relative;
