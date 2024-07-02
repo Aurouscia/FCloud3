@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectIdentityInfoProvider } from '@/provides';
+import { injectApi, injectIdentityInfoProvider, injectMainDivStyle } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
@@ -100,16 +100,17 @@ let lastScrollTime = 0;
 const commentsLoaded = ref(false);
 const recommendsLoaded = ref(false);
 function viewAreaScrollHandler(){
+    if(Date.now() - lastScrollTime < 50){return;}
     const sh = wikiViewArea.value!.scrollHeight;
     const st = wikiViewArea.value!.scrollTop;
-    if(sh - st < 2000){
+    const oh = wikiViewArea.value!.offsetHeight;
+    if(sh - st < oh+1600){
         recommendsLoaded.value = true
     }
-    if(sh - st < 1500){
+    if(sh - st < oh+1200){
         commentsLoaded.value = true
     }
 
-    if(Date.now() - lastScrollTime < 50){return;}
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
         t.offsetTop > st + 80);
@@ -159,7 +160,11 @@ const { jumpToWikiEdit, jumpToWikiContentEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
+const  mainDivStyle = injectMainDivStyle();
 onMounted(async()=>{
+    mainDivStyle.value.maxWidth = '1300px'
+    mainDivStyle.value.padding = '0px'
+    mainDivStyle.value.width = '100%'
     await init();
 })
 
@@ -230,6 +235,7 @@ async function init(){
     }
 }
 onUnmounted(()=>{
+    mainDivStyle.value = {}
     clickFold.dispose();
     imgClickJump.dispose();
     disposeFootNoteJump();
@@ -293,7 +299,9 @@ onUnmounted(()=>{
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
-        <div style="color:gray;text-align: center;">未经作者允许请勿转载、使用、改编</div>
+        <div style="color:gray;text-align: center;margin-top: 20px;font-size: 14px;">
+            词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
+        </div>
         <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
         <h1 :id="titleElementId(cmtTitleId)">评论区<div class="h1Sep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
@@ -356,7 +364,6 @@ onUnmounted(()=>{
     flex-shrink: 0;
     position: relative;
     transition: 0.3s;
-    background-color: white;
     box-sizing: border-box;
     padding-top: 20px;
     margin-right: 40px;
@@ -381,7 +388,7 @@ onUnmounted(()=>{
     display: none;
 }
 .wikiView{
-    max-width: 900px;
+    // max-width: 900px;
     position: relative;
     height:100%;
     flex-grow: 1;
@@ -390,6 +397,7 @@ onUnmounted(()=>{
 
     margin-right: -220px;
     padding-right: 220px;
+    padding-left: 10px;
 }
 
 .info{
@@ -430,10 +438,10 @@ onUnmounted(()=>{
     text-align: center;
 }
 
-@media screen and (max-width: 900px){
+@media screen and (max-width: 1000px){
     .wikiView{
         margin-right: 0px;
-        padding-right: 0px;
+        padding-right: 10px;
     }
     .subTitles{
         position: fixed;
@@ -444,6 +452,7 @@ onUnmounted(()=>{
         box-shadow: 0px 0px 12px 0px black;
         margin-right: 0px;
         z-index: 950;
+        background-color: white;
     }
     .subTitles.folded{
         right: -180px;

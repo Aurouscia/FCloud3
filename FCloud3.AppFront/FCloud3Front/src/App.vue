@@ -5,7 +5,7 @@ import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import { useProvidesSetup } from './provides';
 import Wait from './components/Wait.vue';
 
-const { pop, displayTopbar, needMemberWarning, wait} = useProvidesSetup();
+const { pop, displayTopbar, needMemberWarning, wait, mainDivStyle} = useProvidesSetup();
 
 </script>
 
@@ -14,7 +14,7 @@ const { pop, displayTopbar, needMemberWarning, wait} = useProvidesSetup();
   <Wait ref="wait"></Wait>
   <NeedMemberWarning ref="needMemberWarning"></NeedMemberWarning>
   <TopbarParent v-if="displayTopbar"></TopbarParent>
-  <div class="main">
+  <div class="main" :style="mainDivStyle">
     <RouterView></RouterView>
   </div>
 </template>

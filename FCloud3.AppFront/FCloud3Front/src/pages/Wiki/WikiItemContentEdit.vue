@@ -331,6 +331,7 @@ onUnmounted(()=>{
     padding: 0px 10px 0px 10px;
     align-items: center;
     justify-content: space-between;
+    background-color: white;
     .wikiTitle{
         font-size: 18px;
         max-width: 180px;

@@ -1,4 +1,4 @@
-import { Ref, provide, inject, ref} from 'vue';
+import { Ref, provide, inject, ref, CSSProperties} from 'vue';
 import { HttpCallBack, HttpClient } from './utils/com/httpClient';
 import { IdentityInfoProvider } from './utils/globalStores/identityInfo';
 import Pop from './components/Pop.vue';
@@ -15,6 +15,7 @@ const apiKey = 'api';
 const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
 const notifCountKey = 'notifCount';
+const mainDivStyleKey = 'mainDivStyle';
 
 export type SetTopbarFunc = (display:boolean)=>void
 
@@ -58,8 +59,11 @@ export function useProvidesSetup() {
     const notifCountProvider = new NotifCountProvider(api, displayTopbar);
     setupNotifCountPollCycle(notifCountProvider);//启动时获取一次通知数量，并设置轮询循环
     provide(notifCountKey, notifCountProvider);
-    
-    return { pop, displayTopbar, needMemberWarning, wait }
+
+    const mainDivStyle = ref<CSSProperties>({});
+    provide(mainDivStyleKey, mainDivStyle);
+
+    return { pop, displayTopbar, needMemberWarning, wait, mainDivStyle }
 }
 
 export function injectPop(){
@@ -79,4 +83,7 @@ export function injectSetTopbar(){
 }
 export function injectNotifCountProvider(){
     return inject(notifCountKey) as NotifCountProvider
+}
+export function injectMainDivStyle(){
+    return inject(mainDivStyleKey) as Ref<CSSProperties>;
 }
