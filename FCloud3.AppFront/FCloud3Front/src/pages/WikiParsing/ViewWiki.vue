@@ -293,7 +293,7 @@ onUnmounted(()=>{
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
-
+        <div style="color:gray;text-align: center;">未经作者允许请勿转载、使用、改编</div>
         <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
         <h1 :id="titleElementId(cmtTitleId)">评论区<div class="h1Sep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
