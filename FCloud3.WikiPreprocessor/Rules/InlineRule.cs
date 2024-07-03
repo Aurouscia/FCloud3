@@ -399,10 +399,10 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new InlineObjectRule(),
                 new ManualTextedAnchorRule(),
                 new ManualAnchorRule(),
-                new CustomInlineRule("*","*","<i>","</i>","斜体"),
+                new CustomInlineRule("****","****","<s>","</s>","删除线（不推荐）"),
+                new CustomInlineRule("***","***","<u>","</u>","下划线（不推荐）"),
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
-                new CustomInlineRule("***","***","<u>","</u>","下划线"),
-                new CustomInlineRule("****","****","<s>","</s>","删除线"),
+                new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
 
                 new CustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),

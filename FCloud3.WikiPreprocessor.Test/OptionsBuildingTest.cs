@@ -130,12 +130,18 @@ namespace FCloud3.WikiPreprocessor.Test
             var builder = new ParserBuilder();
             builder.AutoReplace.AddReplacing(detect1, replace1);
             builder.AutoReplace.AddReplacing(detect2, replace2);
-            var options = builder.GetCurrentOptions();
-
-            CollectionAssert.AreEquivalent(options.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
-            Assert.AreEqual(options.AutoReplaceOptions.Replace("abc"), "ABC2");
-            Assert.AreEqual(options.AutoReplaceOptions.Replace("qwe"), "QWE2");
-            Assert.AreEqual(options.AutoReplaceOptions.Replace("iop"), "IOP1");
+            
+            var options1 = builder.GetCurrentOptions();
+            CollectionAssert.AreEquivalent(options1.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
+            Assert.AreEqual(options1.AutoReplaceOptions.Replace("abc"), "ABC2");
+            Assert.AreEqual(options1.AutoReplaceOptions.Replace("qwe"), "QWE2");
+            Assert.AreEqual(options1.AutoReplaceOptions.Replace("iop"), "IOP1");
+            
+            var options2 = builder.GetCurrentOptions();
+            CollectionAssert.AreEquivalent(options2.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
+            Assert.AreEqual(options2.AutoReplaceOptions.Replace("abc"), "ABC2");
+            Assert.AreEqual(options2.AutoReplaceOptions.Replace("qwe"), "QWE2");
+            Assert.AreEqual(options2.AutoReplaceOptions.Replace("iop"), "IOP1");
         }
     }
 }
