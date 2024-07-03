@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.Text.RegularExpressions;
-using Aurouscia.TableEditor.Core;
+﻿using Aurouscia.TableEditor.Core;
 using Aurouscia.TableEditor.Core.Excel;
 using Aurouscia.TableEditor.Core.Html;
 using DotNetColorParser;
@@ -16,7 +14,6 @@ using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Wiki;
 using FCloud3.Services.WikiParsing.Support;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -95,7 +92,7 @@ namespace FCloud3.Services.WikiParsing
                 int yOwned = y.OwnerUserId == uid ? 1 : 0;
                 if (xOwned != yOwned)
                     return yOwned - xOwned;
-                return string.Compare(x.Name, y.Name);
+                return string.Compare(x.Name, y.Name, StringComparison.InvariantCulture);
             });
             var resp = new WikiDisplayInfo(
                 info.WikiId, info.UserName, _storage.FullUrl(info.UserAvtPath ?? "??"), info.WikiSealed);
@@ -313,16 +310,16 @@ namespace FCloud3.Services.WikiParsing
 
         private (string s, string attrs) CellColorAttr(string s)
         {
-            var tildeSplitted = s.Split('~', 2);
+            var tildeSplitted = s.Split("/-c-/", 2);
             if (tildeSplitted.Length == 2)
             {
-                string sReplace = tildeSplitted[1];
-                string colorStr = tildeSplitted[0];
+                string sReplace = tildeSplitted[0];
+                string colorStr = tildeSplitted[1];
                 if (_colorParser.TryParseColor(colorStr, out var c))
                 {
                     string textColor;
                     var br = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
-                    if (br > 128)
+                    if (br > 160)
                         textColor = "black";
                     else
                         textColor = "white";
@@ -383,9 +380,17 @@ namespace FCloud3.Services.WikiParsing
             }
             public void ExtractRulesCommon()
             {
-                Styles = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetStyles()));
-                PreScripts = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetPreScripts()));
-                PostScripts = string.Join("\n\n", UsedRulesBody.ConvertAll(x => x.GetPostScripts()));
+                var allStyles = UsedRulesBody.ConvertAll(x => x.GetStyles());
+                allStyles.RemoveAll(string.IsNullOrWhiteSpace);
+                Styles = string.Join("\n\n", allStyles);
+
+                var allPreScripts = UsedRulesBody.ConvertAll(x => x.GetPreScripts());
+                allPreScripts.RemoveAll(string.IsNullOrWhiteSpace);
+                PreScripts = string.Join("\n\n", allPreScripts);
+
+                var allPostScripts = UsedRulesBody.ConvertAll(x => x.GetPostScripts());
+                allPostScripts.RemoveAll(string.IsNullOrWhiteSpace);
+                PostScripts = string.Join("\n\n", allPostScripts);
             }
             public class WikiParsingResultItem
             {
