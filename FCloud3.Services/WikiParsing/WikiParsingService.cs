@@ -272,7 +272,7 @@ namespace FCloud3.Services.WikiParsing
         {
             List<IRule> usedRules = new();
             Func<string?, (string tdContent, string tdAttrs)> cellConverter;
-            if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 100)
+            if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 2000)
                 cellConverter = (s) =>
                 {
                     if (string.IsNullOrWhiteSpace(s))
