@@ -57,7 +57,7 @@ export function userTypeText(type: UserType): { type: string, color: string } {
     }else if(type == UserType.Admin){
         return {type: "管理", color: "#990"}
     }else if(type == UserType.SuperAdmin){
-        return {type: "超管", color: "#900"}
+        return {type: "超管", color: "#930"}
     }else{
         return {type: "未知", color: "#aaa"}
     }
