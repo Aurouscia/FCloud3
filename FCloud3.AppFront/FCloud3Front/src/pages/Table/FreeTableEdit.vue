@@ -36,8 +36,8 @@ async function load(){
     }
 }
 async function editName() {
-    if(!tableInfo.value?.Name){return;}
-    await api.table.freeTable.saveInfo(parseInt(props.id),tableInfo.value.Name);
+    if(!tableInfo.value)return;
+    await api.table.freeTable.saveInfo(parseInt(props.id),tableInfo.value.Name || "");
 }
 async function editContent(val:AuTableData, callBack:(success:boolean,msg:string)=>void) {
     const data = JSON.stringify(val);

@@ -52,7 +52,7 @@ async function saveName():Promise<boolean> {
     let s = false;
     if(props.para.Type == WikiParaType.Text){
         s = await api.textSection.textSection.editExe({
-            Title: name.value || null,
+            Title: name.value || "",
             Content: null,
             Id: props.para.UnderlyingId
         })

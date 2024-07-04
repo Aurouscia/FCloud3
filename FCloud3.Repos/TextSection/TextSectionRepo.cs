@@ -32,8 +32,14 @@ namespace FCloud3.Repos.TextSec
 
         public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
         {
+            if (newTitle.Length > 32)
+            {
+                errmsg = "标题长度不能超过32";
+                return false;
+            }
             errmsg = null;
-            int changed = Existing.Where(s => s.Id == id).ExecuteUpdate(s => s.SetProperty(x => x.Title, newTitle));
+            int changed = Existing.Where(s => s.Id == id)
+                .ExecuteUpdate(s => s.SetProperty(x => x.Title, newTitle));
             if (changed == 1)
                 return true;
             else

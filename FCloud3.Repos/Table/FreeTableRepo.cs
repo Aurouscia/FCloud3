@@ -34,6 +34,7 @@ namespace FCloud3.Repos.Table
         
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
+            name ??= "";
             if (!NameCheck(name, out errmsg)) {
                 return false;
             }
@@ -75,7 +76,7 @@ namespace FCloud3.Repos.Table
                 if (row is null) continue;
                 var briefRow = new List<string>();
                 brief.Add(briefRow);
-                for (int c = 0; c < row.Count && r < 4; c++)
+                for (int c = 0; c < row.Count && c < 4; c++)
                 {
                     string cellVal = row[c] ?? "";
                     if (cellVal.Length > briefCellMaxStrLength)
@@ -106,7 +107,7 @@ namespace FCloud3.Repos.Table
         {
             AuTable table = new()
             {
-                Name = newTableDefaultName,
+                Name = "",
                 Cells = DefaultCells(),
                 Merges = new()
             };
@@ -114,18 +115,13 @@ namespace FCloud3.Repos.Table
             FreeTable creating = new();
             creating.SetData(table);
             creating.SetBrief(brief);
-            creating.Name = newTableDefaultName;
+            creating.Name = "";
             return TryAddAndGetId(creating, out errmsg);
         }
 
 
         private static bool NameCheck(string name, out string? errmsg)
         {
-            if(string.IsNullOrWhiteSpace(name))
-            {
-                errmsg = "表格名不能为空";
-                return false;
-            }
             if (name.Length > 25)
             {
                 errmsg = "表格名称过长，请缩短";

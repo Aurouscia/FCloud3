@@ -137,11 +137,11 @@ async function insertPara(p:WikiParaDisplay, position:"before"|"after", type:Wik
 
 function defaultParaTitle(t:WikiParaType){
     if(t == WikiParaType.Text){
-        return "文本段落"
+        return "<文本>"
     }else if(t == WikiParaType.Table){
-        return "表格段落"
+        return "<表格>"
     }else if(t == WikiParaType.File){
-        return "文件"
+        return "<文件>"
     }
 }
 function displayTitle(p:WikiParaDisplayEdit){
@@ -402,7 +402,7 @@ onUnmounted(()=>{
     }
     .defaultFold{
         font-size: 14px;
-        color:#666
+        color:white
     }
     .ops{
         display: flex;

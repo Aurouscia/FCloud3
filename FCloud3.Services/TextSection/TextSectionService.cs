@@ -69,17 +69,7 @@ namespace FCloud3.Services.TextSec
         {
             return _textSectionRepo.GetqById(id).GetMeta().FirstOrDefault();
         }
-
-        public static bool ModelCheck(TextSection section, out string? errmsg)
-        {
-            errmsg = null;
-            if (string.IsNullOrEmpty(section.Title))
-            {
-                errmsg = "标题不能为空";
-                return false;
-            }
-            return true;
-        }
+        
         /// <summary>
         /// 新建一个文本段
         /// </summary>
@@ -88,13 +78,11 @@ namespace FCloud3.Services.TextSec
         {
             TextSection newSection = new()
             {
-                Title = "新建文本段",
+                Title = "",
                 Content = "",
                 ContentBrief = "",
                 CreatorUserId = _userId
             };
-            if (!ModelCheck(newSection, out errmsg))
-                return 0;
             if (!_textSectionRepo.TryAdd(newSection, out errmsg))
                 return 0;
             return newSection.Id;

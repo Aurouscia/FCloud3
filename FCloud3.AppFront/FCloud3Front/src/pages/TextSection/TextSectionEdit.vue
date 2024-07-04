@@ -10,7 +10,6 @@ import { LineAndHash,split } from '@/utils/wikiSource/textSecSplitLine';
 import { WikiSourceHighlighter } from '@/utils/wikiSource/wikiSourceHighlight';
 import md5 from 'md5';
 import { SetTopbarFunc, injectApi, injectPop, injectSetTopbar } from '@/provides';
-import { clone } from 'lodash';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import SideBar from '@/components/SideBar.vue';
@@ -158,13 +157,12 @@ function calculateLines(){
 }
 
 async function replaceTitle() {
-    const val = data.value.Title;
-    if(!val || val==""){
-        pop.value.show("段落标题不可为空","failed");
-        return;
+    const val = data.value.Title || "";
+    const send:TextSection = {
+        Id : data.value.Id,
+        Title : val,
+        Content : null//不更新正文，只更新标题
     }
-    const send = clone(data.value);
-    send.Content = null;//不更新正文，只更新标题
     api.textSection.textSection.editExe(send)
 }
 async function replaceContent() {
