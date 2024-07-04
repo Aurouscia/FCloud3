@@ -106,11 +106,11 @@ async function removePara(idx:number) {
             await load();
     }
 }
-async function insertPara(p:WikiParaDisplay, position:"before"|"after", type:WikiParaType) {
+async function insertPara(pOrder:number, position:"before"|"after", type:WikiParaType) {
     const saveSuccess = await saveAll();
     if(!saveSuccess)
         return
-    const afterOrder = position == "after" ? p.Order : p.Order-1;
+    const afterOrder = position == "after" ? pOrder : pOrder-1;
     const data = await api.wiki.wikiItem.insertParaAndGetId({
         id:info.value?.Id || 0,
         afterOrder: afterOrder,
@@ -295,16 +295,21 @@ onUnmounted(()=>{
                 <FileParaListItem :w="p" :no-title="true"></FileParaListItem>
             </div>
             <div v-if="paraMode && idx==0" class="paraInsert top">
-                <button class="minor" @click="insertPara(p, 'before', WikiParaType.Text)">+文本</button>
-                <button class="minor" @click="insertPara(p, 'before', WikiParaType.Table)">+表格</button>
-                <button class="minor" @click="insertPara(p, 'before', WikiParaType.File)">+文件</button>
+                <button class="minor" @click="insertPara(p.Order, 'before', WikiParaType.Text)">+文本</button>
+                <button class="minor" @click="insertPara(p.Order, 'before', WikiParaType.Table)">+表格</button>
+                <button class="minor" @click="insertPara(p.Order, 'before', WikiParaType.File)">+文件</button>
             </div>
             <div v-if="paraMode" class="paraInsert bottom">
                 <button v-if="idx<paras.length-1" class="minor" @click="moveUp(idx+1)">⇅交换</button>
-                <button class="minor" @click="insertPara(p, 'after', WikiParaType.Text)">+文本</button>
-                <button class="minor" @click="insertPara(p, 'after', WikiParaType.Table)">+表格</button>
-                <button class="minor" @click="insertPara(p, 'after', WikiParaType.File)">+文件</button>
+                <button class="minor" @click="insertPara(p.Order, 'after', WikiParaType.Text)">+文本</button>
+                <button class="minor" @click="insertPara(p.Order, 'after', WikiParaType.Table)">+表格</button>
+                <button class="minor" @click="insertPara(p.Order, 'after', WikiParaType.File)">+文件</button>
             </div>
+        </div>
+        <div v-if="paras.length == 0" class="paraInsert blank">
+            <button class="minor" @click="insertPara(-1, 'after', WikiParaType.Text)">+文本</button>
+            <button class="minor" @click="insertPara(-1, 'after', WikiParaType.Table)">+表格</button>
+            <button class="minor" @click="insertPara(-1, 'after', WikiParaType.File)">+文件</button>
         </div>
     </div>
 </div>
@@ -436,28 +441,35 @@ onUnmounted(()=>{
     button.rmPara{
         font-weight: bold;
     }
-    .paraInsert{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: absolute;
-        left: 0px;
-        right: 0px;
-        height: 24px;
-        z-index: 10;
-        button{
-            height: unset;
-            padding: 2px;
-            border: none;
-            box-shadow: 0px 0px 2px 0px black;
-        }
+}
+.paraInsert {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    height: 24px;
+    z-index: 10;
+
+    button {
+        height: unset;
+        padding: 2px;
+        border: none;
+        box-shadow: 0px 0px 2px 0px black;
     }
-    .paraInsert.top{
-        top: -20px;
-    }
-    .paraInsert.after{
-        bottom: -20px;
-    }
+}
+
+.paraInsert.top {
+    top: -20px;
+}
+
+.paraInsert.after {
+    bottom: -20px;
+}
+
+.paraInsert.blank {
+    top: calc(20px + $topbar-height);
 }
 .para.selected{
     background-color: #ccc;
