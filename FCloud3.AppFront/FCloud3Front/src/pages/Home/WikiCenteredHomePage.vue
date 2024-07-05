@@ -5,11 +5,13 @@ import { injectApi } from '@/provides';
 import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
+import { useFeVersionChecker } from '@/utils/feVersionCheck';
 
 const api = injectApi();
 const model = ref<WikiCenteredHomePage>();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToRootDir } = useFilesRoutesJump();
+const { checkAndPop } = useFeVersionChecker();
 async function init(){
     const resp = await api.etc.wikiCenteredHomePage.get();
     if(resp){
@@ -18,6 +20,7 @@ async function init(){
 }
 onMounted(async()=>{
     await init();
+    checkAndPop();
 })
 </script>
 

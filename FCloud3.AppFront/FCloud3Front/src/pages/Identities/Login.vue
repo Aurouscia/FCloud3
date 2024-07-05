@@ -94,7 +94,7 @@ onUnmounted(()=>{
             注册账号
         </div>
         <div class="guide" style="color:red" v-if="failedGuide">{{ failedGuide }}</div>
-        <div class="guide" style="color:#999" v-else>请使用新版edge或chrome系浏览器以正常使用编辑功能</div>
+        <div class="guide" style="color:#999" v-else>请在较新设备上使用新版edge或chrome系浏览器以正常使用编辑功能</div>
     </div>
     <div class="loginInfo" v-if="iden">
         当前登录：

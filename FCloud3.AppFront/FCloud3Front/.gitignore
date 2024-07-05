@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 前端版本检查
+public/feVersion.txt
+src/build/feVersion.js
