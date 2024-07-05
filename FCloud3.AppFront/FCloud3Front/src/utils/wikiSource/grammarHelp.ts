@@ -65,7 +65,7 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
     {
         title:"表格",
         desc:"用于展示结构化的数据，使用竖杠(|)分隔单元格表示表格",
-        code:"姓名 | 张三 | 李四\n年龄 | 23 | 22",
+        code:"| 姓名 | 张三 | 李四 |\n| 年龄 | 23 | 22 |",
         demo:"<table><tr><td>姓名</td><td>张三</td><td>李四</td></tr><tr><td>年龄</td><td>23</td><td>22</td></tr></table>"
     },
     {
@@ -108,14 +108,23 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         demo:"欢迎使用fcloud3<img class=\"wikiInlineImg\" src=\"/fcloud.svg\" style=\"height:2rem\">内容管理系统。"
     },
     {
-        title:"彩色字体/色块",
-        desc:"可使用\"#颜色#\"创建指定颜色的色块，使用\"#颜色\\@文本#\"创建指定颜色的文字"+
-        "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>"+
-        "或使用六位16进制rgb，例如ff0000",
-        code:"大海和天空是#blue\\@蓝色#的\n #ff0000#一号线 \n #green#二号线",
+        title:"自定义色字体/色块",
+        desc:"可使用\"#颜色#\"创建指定颜色的色块，使用\"#颜色\\@文本#\"创建指定颜色的文字\n"+
+        "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>\n"+
+        "或使用六位16进制rgb例如\"ff0000\"，或使用\"rgb(255,255,255)\"表示颜色",
+        code:"大海和天空是#blue\\@蓝色#的\n#ff0000#一号线 \n#green#二号线",
         demo:"<p>大海和天空是<span class=\"coloredText\" style=\"color:blue\">蓝色</span>的</p>"+
         "<p><span class=\"coloredBlock\" style=\"color:red;background-color:ff0000\"></span>一号线</p>"+
         "<p><span class=\"coloredBlock\" style=\"color:red;background-color:green\"></span>二号线</p>"
+    },
+    {
+        title:"自定义色背景单元格",
+        desc:"可在单元格中写\"文字/-c-/颜色\"来创建任意背景颜色的单元格，字体颜色会根据背景颜色自动调整。本规则也可在表格段落中使用\n"+
+        "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>\n"+
+        "或使用六位16进制rgb，例如ff0000，或使用\"rgb(255,255,255)\"表示颜色",
+        code:"| 一号线/-c-/cornflowerblue | 132km | \n| 二号线/-c-/rgb(255,200,200) | 180km |",
+        demo:"<table><tr><td style=\"background-color:cornflowerblue;color:white\">一号线</td><td>132km</td></tr>"+
+        "<tr><td style=\"background-color:rgb(255,200,200);color:black\">二号线</td><td>180km</td></tr></table>"
     },
     {
         title:"带边框文字",

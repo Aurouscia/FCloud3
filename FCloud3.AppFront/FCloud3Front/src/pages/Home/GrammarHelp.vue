@@ -27,14 +27,18 @@ import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSour
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@import '@/styles/globalValues';
+
 .welcome{
     margin: 10px 0px 10px 0px;
     font-size: 18px;
     text-align: center;
 }
 .choose{
-    margin-top: 20px;
+    padding-top: 20px;
+    height: calc(100vh - $topbar-height - 110px);
+    overflow-y: scroll;
 }
 .title{
     font-size: 18px;
