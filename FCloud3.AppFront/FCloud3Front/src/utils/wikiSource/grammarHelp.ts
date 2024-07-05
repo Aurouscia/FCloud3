@@ -113,7 +113,7 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>"+
         "或使用六位16进制rgb，例如ff0000",
         code:"大海和天空是#blue\\@蓝色#的\n #ff0000#一号线 \n #green#二号线",
-        demo:"<p>大海是<span class=\"coloredText\" style=\"color:blue\">蓝色</span>的</p>"+
+        demo:"<p>大海和天空是<span class=\"coloredText\" style=\"color:blue\">蓝色</span>的</p>"+
         "<p><span class=\"coloredBlock\" style=\"color:red;background-color:ff0000\"></span>一号线</p>"+
         "<p><span class=\"coloredBlock\" style=\"color:red;background-color:green\"></span>二号线</p>"
     },
@@ -132,7 +132,7 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"上角标/下角标",
         desc:"使用\\sup或\\sub将文字包围",
-        code:"18m\\sup 2 \\sup，H\\sub2\\subSO\\sub 4 \\sub",
+        code:"18m\\sup 2 \\sup，H\\sub 2 \\subSO\\sub 4 \\sub",
         demo:"18m<sup>2</sup>，H<sub>2</sub>SO<sub>4</sub>",
     }
 ]
