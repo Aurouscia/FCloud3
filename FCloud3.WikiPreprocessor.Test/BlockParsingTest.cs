@@ -81,6 +81,14 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow(
             "|名称|年龄|\n|---|---|\n|Au|20|\n|旋头|38|",
             "<table><tr><th>名称</th><th>年龄</th></tr><tr><td>Au</td><td>20</td></tr><tr><td>旋头</td><td>38</td></tr></table>")]
+        [DataRow(
+            "|一号线/-c-/blue | 89km |\n|二号线/-c-/rgb(255,190,190) | 130km |",
+            "<table><tr><td style=\"background-color:blue;color:white\">一号线</td><td>89km</td></tr>" +
+            "<tr><td style=\"background-color:rgb(255,190,190);color:black\">二号线</td><td>130km</td></tr></table>")]
+        [DataRow(
+            "|一号线/-c-/哼唧咪咕 | 89km |\n|二号线/-c-/rgb(255,190,190) | 130km |",
+            "<table><tr><td>一号线/-c-/哼唧咪咕</td><td>89km</td></tr>" +
+            "<tr><td style=\"background-color:rgb(255,190,190);color:black\">二号线</td><td>130km</td></tr></table>")]
         public void MiniTableTest(string content, string answer)
         {
             string html = _parser.RunToPlain(content);

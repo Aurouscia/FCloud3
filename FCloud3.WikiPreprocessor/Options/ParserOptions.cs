@@ -10,6 +10,8 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetColorParser;
+using DotNetColorParser.ColorNotations;
 
 namespace FCloud3.WikiPreprocessor.Options
 {
@@ -28,6 +30,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public LinkOptions Link { get; }
         public bool Debug { get; }
         public bool ClearRuleUsageOnCall { get; }
+        public IColorParser ColorParser { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
             TemplateParsingOptions template,
@@ -38,7 +41,8 @@ namespace FCloud3.WikiPreprocessor.Options
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
             LinkOptions link,
-            bool debug, bool clearRuleUsageOnCall, ILocatorHash? locatorHash)
+            bool debug, bool clearRuleUsageOnCall,
+            IColorParser colorParser, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
             ImplantsHandleOptions = implant;
@@ -50,6 +54,7 @@ namespace FCloud3.WikiPreprocessor.Options
             Link = link;
             Debug = debug;
             ClearRuleUsageOnCall = clearRuleUsageOnCall;
+            ColorParser = colorParser;
             LocatorHash = locatorHash;
         }
     }
@@ -66,6 +71,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public LinkOptions Link { get; }
         public bool Debug { get; private set; }
         public bool ClearRuleUsageOnCall { get; private set; }
+        public IColorParser? ColorParser { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
         {
@@ -77,7 +83,7 @@ namespace FCloud3.WikiPreprocessor.Options
             Cache = new(this);
             TitleGathering = new(this);
             Link = new(this);
-
+            
             Block.AddMoreRules(InternalBlockRules.GetInstances());
             Inline.AddMoreRules(InternalInlineRules.GetInstances());
             Template.AddTemplates(InternalTemplates.GetInstances());
@@ -89,19 +95,27 @@ namespace FCloud3.WikiPreprocessor.Options
         }
         public ParserBuilder UseLocatorHash(ILocatorHash locatorHash)
         {
-            LocatorHash = locatorHash;return this;
+            LocatorHash = locatorHash;
+            return this;
         }
         public ParserBuilder ClearUsageInfoOnCall()
         {
-            ClearRuleUsageOnCall = true; return this;
+            ClearRuleUsageOnCall = true;
+            return this;
         }
+        public ParserBuilder UseColorParser(IColorParser colorParser)
+        {
+            ColorParser = colorParser;
+            return this;
+        } 
 
         public ParserOptions GetCurrentOptions()
         {
             Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
+            ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
-                Debug, ClearRuleUsageOnCall, LocatorHash);
+                Debug, ClearRuleUsageOnCall, ColorParser, LocatorHash);
             return options;
         }
 
@@ -119,7 +133,7 @@ namespace FCloud3.WikiPreprocessor.Options
         private static List<IInlineRule> InlineRulesFromAutoReplace(AutoReplaceOptions autoReplaceOptions)
         {
             List<IInlineRule> inlineRules = new();
-            if (autoReplaceOptions is not null && autoReplaceOptions.Detects.Count > 0)
+            if (autoReplaceOptions.Detects.Count > 0)
             {
                 var detects = autoReplaceOptions.Detects;
                 detects.RemoveAll(x => x.Text.Length < 2);
@@ -137,6 +151,13 @@ namespace FCloud3.WikiPreprocessor.Options
                 );
             }
             return inlineRules;
+        }
+
+        private static IColorParser FallToColorParser()
+        {
+            ColorNotationProvider colorNotationProvider = [ 
+                new KnownColorNameNotation(), new HexRGBANotation(), new RGBNotation(), new HSLNotation()];
+            return new ColorParser(colorNotationProvider);
         }
     }
 }

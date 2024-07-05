@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DotNetColorParser;
 
 namespace FCloud3.WikiPreprocessor.Rules
 {
@@ -301,6 +302,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             int width = text.Select(x => x.Length).Max();
             int headSepRowIndex = text.FindIndex(x => x.All(y => y.Length>=3 && y.All(c => c == '-')));
 
+            var colorParser = context.Options.ColorParser;
+            var tempSb = new StringBuilder();
             for(int lineIndex=0; lineIndex<text.Count; lineIndex++)
             {
                 if (lineIndex == headSepRowIndex)
@@ -312,11 +315,11 @@ namespace FCloud3.WikiPreprocessor.Rules
                 foreach(var cell in line)
                 {
                     var cellContent = inlineParser.Run(cell);
-                    rowCells.Add(new TableCellElement(cellContent,isHead));
+                    rowCells.Add(new TableCellElement(cellContent, colorParser, tempSb, isHead ));
                 }
                 int left = width - rowCells.Count;
                 for (int i = 0; i < left; i++)
-                    rowCells.Add(new TableCellElement(null,isHead));
+                    rowCells.Add(new TableCellElement(null, colorParser, tempSb, isHead));
                 rows.Add(new TableRowElement(rowCells));
             }
             return new RuledBlockElement(rows, genByRule: this);
@@ -345,31 +348,74 @@ namespace FCloud3.WikiPreprocessor.Rules
         public class TableCellElement : BlockElement
         {
             public bool IsHead { get; }
-            public TableCellElement(IHtmlable? content, bool isHead = false) : base(content)
+
+            public string CellTagName => IsHead ? "th" : "td";
+
+            private readonly IColorParser _colorParser;
+            private readonly StringBuilder _tempSb;
+
+            public TableCellElement(
+                IHtmlable? content,
+                IColorParser colorParser,
+                StringBuilder tempSb,
+                bool isHead = false) : base(content)
             {
                 IsHead = isHead;
+                _colorParser = colorParser;
+                _tempSb = tempSb;
             }
             public override string ToHtml()
             {
-                if (!IsHead)
-                    return $"<td>{base.ToHtml()}</td>";
-                return $"<th>{base.ToHtml()}</th>";
+                string contentHtml = Content.ToHtml();
+                (string s, string attr) = CellColorAttr(contentHtml, _colorParser);
+                if (attr.Length > 0)
+                {
+                    return $"<{CellTagName} {attr}>{s}</{CellTagName}>";
+                }
+                return $"<{CellTagName}>{s}</{CellTagName}>";
             }
+
             public override void WriteHtml(StringBuilder sb)
             {
-                if(!IsHead)
+                _tempSb.Clear();
+                Content.WriteHtml(_tempSb);
+                var contentHtml = _tempSb.ToString();
+                (string s, string attr) = CellColorAttr(contentHtml, _colorParser);
+
+                sb.Append('<');
+                sb.Append(CellTagName);
+                if (attr.Length > 0)
                 {
-                    sb.Append("<td>");
-                    base.WriteHtml(sb);
-                    sb.Append("</td>");
+                    sb.Append(' ');
+                    sb.Append(attr);
                 }
-                else
+                sb.Append('>');
+                sb.Append(s);
+                sb.Append("</");
+                sb.Append(CellTagName);
+                sb.Append('>');
+            }
+        }
+        
+        public static (string s, string attrs) CellColorAttr(string s, IColorParser colorParser)
+        {
+            var tildeSplitted = s.Split("/-c-/", 2);
+            if (tildeSplitted.Length == 2)
+            {
+                string sReplace = tildeSplitted[0];
+                string colorStr = tildeSplitted[1];
+                if (colorParser.TryParseColor(colorStr, out var c))
                 {
-                    sb.Append("<th>");
-                    base.WriteHtml(sb);
-                    sb.Append("</th>");
+                    string textColor;
+                    var br = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
+                    if (br > 160)
+                        textColor = "black";
+                    else
+                        textColor = "white";
+                    return (sReplace, $"style=\"background-color:{colorStr};color:{textColor}\"");
                 }
             }
+            return (s, "");
         }
     }
 
@@ -390,7 +436,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         {
             var resContent = lines.ToList().ConvertAll(x=> {
                 var match = FootBodyLineMarkRegex().Match(x.Text);
-                if(match is null || !match.Success)
+                if(!match.Success)
                     return null;
                 var head = match.Value;
                 var body = x.Text.Remove(0,head.Length);

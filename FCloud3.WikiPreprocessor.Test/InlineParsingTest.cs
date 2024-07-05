@@ -64,13 +64,16 @@ namespace FCloud3.WikiPreprocessor.Test
 
         [TestMethod]
         [DataRow("小王 #255,0,0\\@小李# 小张", "小王 <span class=\"coloredText\" style=\"color:rgb(255,0,0)\">小李</span> 小张")]
-        [DataRow("小王 #255,0,0# 小张", "小王 <span class=\"coloredBlock\" style=\"color:rgb(255,0,0);background-color:rgb(255,0,0)\"></span> 小张")]
-        [DataRow("小王 #ffff00\\@小李# 小张", "小王 <span class=\"coloredText\" style=\"color:#ffff00\">小李</span> 小张")]
-        [DataRow("小王 #ffff00# 小张", "小王 <span class=\"coloredBlock\" style=\"color:#ffff00;background-color:#ffff00\"></span> 小张")]
+        [DataRow("小王 #rgb(255,0,0)\\@小李# 小张", "小王 <span class=\"coloredText\" style=\"color:rgb(255,0,0)\">小李</span> 小张")]
+        [DataRow("小王 #255,0,0# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(255,0,0)\"></span> 小张")]
+        [DataRow("小王 #rgb(255,0,0)# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(255,0,0)\"></span> 小张")]
+        [DataRow("小王 #ffff00\\@小李# 小张", "小王 <span class=\"coloredText\" style=\"color:rgb(255,255,0)\">小李</span> 小张")]
+        [DataRow("小王 #ffff00# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(255,255,0)\"></span> 小张")]
+        [DataRow("小王 #rgbbbbb# 小张", "小王 #rgbbbbb# 小张")]
         [DataRow("小王 #aeu*i*hea# 小张", "小王 #aeu<i>i</i>hea# 小张")]
         [DataRow("小王 #aeu*i*hea\\@嘿嘿*嘿*嘿# 小张", "小王 #aeu<i>i</i>hea@嘿嘿<i>嘿</i>嘿# 小张")]
-        [DataRow("小王 #cornFlowerBlue\\@嘿嘿*嘿*嘿# 小张", "小王 <span class=\"coloredText\" style=\"color:cornflowerblue\">嘿嘿<i>嘿</i>嘿</span> 小张")]
-        [DataRow("小王 #beige# 小张", "小王 <span class=\"coloredBlock\" style=\"color:beige;background-color:beige\"></span> 小张")]
+        [DataRow("小王 #cornFlowerBlue\\@嘿嘿*嘿*嘿# 小张", "小王 <span class=\"coloredText\" style=\"color:rgb(100,149,237)\">嘿嘿<i>嘿</i>嘿</span> 小张")]
+        [DataRow("小王 #beige# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(245,245,220)\"></span> 小张")]
         public void ColorTextParse(string input,string answer)
         {
             _ctx.SetInitialFrameCount();

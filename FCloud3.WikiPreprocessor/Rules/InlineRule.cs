@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetColorParser;
 using FCloud3.WikiPreprocessor.Context;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -304,13 +305,14 @@ namespace FCloud3.WikiPreprocessor.Rules
         public const string sep = "\\@";
         public IHtmlable MakeElementFromSpan(string span, InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
-            int sepIndex = span.IndexOf(sep);
+            int sepIndex = span.IndexOf(sep, StringComparison.Ordinal);
+            IColorParser colorParser = context.Options.ColorParser;
             if (sepIndex != -1)
             {
                 string color = span[..sepIndex];
                 string text = span[(sepIndex + 2)..];
 
-                if (HtmlColor.TryFormalize(color, out string formalColor))
+                if (ConventionalHtmlColor.TryFormalize(color, colorParser, out string formalColor))
                 {
                     var marksWithOffset = new InlineMarkList(marks, sepIndex + 2);
                     IHtmlable textParsed = inlineParser.SplitByMarks(text, marksWithOffset);
@@ -324,7 +326,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             }
             else
             {
-                if (HtmlColor.TryFormalize(span, out string formalColor))
+                if (ConventionalHtmlColor.TryFormalize(span, colorParser, out string formalColor))
                 {
                     return new ColorTextElement(formalColor,this);
                 }
@@ -341,7 +343,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             public IHtmlable Content { get; }
             public bool HaveText { get; }
             public string ClassName => HaveText ? classNameWhenText : classNameWhenEmpty;
-            public string Style => HaveText ? $"color:{Color}" : $"color:{Color};background-color:{Color}";
+            public string Style => HaveText ? $"color:{Color}" : $"background-color:{Color}";
 
             public const string classNameWhenText = "coloredText";
             public const string classNameWhenEmpty = "coloredBlock";

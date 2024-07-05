@@ -39,11 +39,6 @@ namespace FCloud3.App.Services
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
             
-            ColorNotationProvider colorNotationProvider = [ 
-                new KnownColorNameNotation(), new HexRGBANotation(), new RGBNotation(), new HSLNotation()];
-            services.AddSingleton<IColorNotationProvider>(colorNotationProvider);
-            services.AddSingleton<IColorParser, ColorParser>();
-            
             return services;
         }
     }

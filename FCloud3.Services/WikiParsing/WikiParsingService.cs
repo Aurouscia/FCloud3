@@ -38,7 +38,6 @@ namespace FCloud3.Services.WikiParsing
         WikiParsedResultService wikiParsedResult,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
-        IColorParser colorParser,
         ILogger<WikiParsingService> logger)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
@@ -56,7 +55,6 @@ namespace FCloud3.Services.WikiParsing
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
-        private readonly IColorParser _colorParser = colorParser;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
         public WikiDisplayInfo? GetWikiDisplayInfo(string pathName)
@@ -270,6 +268,7 @@ namespace FCloud3.Services.WikiParsing
         }
         private ParserResultRaw ParseTable(AuTable data, Parser parser)
         {
+            var colorParser = parser.Context.Options.ColorParser;
             List<IRule> usedRules = new();
             Func<string?, (string tdContent, string tdAttrs)> cellConverter;
             if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 2000)
@@ -277,7 +276,7 @@ namespace FCloud3.Services.WikiParsing
                 {
                     if (string.IsNullOrWhiteSpace(s))
                         return ("　", "");
-                    var colorRes = CellColorAttr(s);
+                    var colorRes = MiniTableBlockRule.CellColorAttr(s, colorParser);
                     var res = parser.RunToParserResultRaw(colorRes.s, false);
                     usedRules.AddRange(res.UsedRules);
                     return (res.Content, colorRes.attrs);
@@ -306,27 +305,6 @@ namespace FCloud3.Services.WikiParsing
             obj = new();
             lockObjs.Add(id, obj);
             return obj;
-        }
-
-        private (string s, string attrs) CellColorAttr(string s)
-        {
-            var tildeSplitted = s.Split("/-c-/", 2);
-            if (tildeSplitted.Length == 2)
-            {
-                string sReplace = tildeSplitted[0];
-                string colorStr = tildeSplitted[1];
-                if (_colorParser.TryParseColor(colorStr, out var c))
-                {
-                    string textColor;
-                    var br = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
-                    if (br > 160)
-                        textColor = "black";
-                    else
-                        textColor = "white";
-                    return (sReplace, $"style=\"background-color:{colorStr};color:{textColor}\"");
-                }
-            }
-            return (s, "");
         }
         
         public class WikiParsingResult
