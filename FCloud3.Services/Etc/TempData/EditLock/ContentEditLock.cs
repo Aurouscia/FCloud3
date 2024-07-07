@@ -16,4 +16,13 @@ namespace FCloud3.Services.Etc.TempData.EditLock
         TextSection = 1,
         FreeTable = 2
     }
+
+    public static class ContentEditLockExtensions
+    {
+        public static ContentEditLock? GetByTypeAndId(
+            this IQueryable<ContentEditLock> model, HeartbeatObjType type, int objId)
+        {
+            return model.Where(x => x.ObjectType == type && x.ObjectId == objId).FirstOrDefault();
+        }
+    }
 }

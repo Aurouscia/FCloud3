@@ -37,5 +37,27 @@ namespace FCloud3.App.Controllers.Etc
             }
             return this.ApiResp();
         }
+        
+        public IActionResult Release(HeartbeatObjType objType, int objId)
+        {
+            _contentEditLockService.ReleaseLock(objType, objId);
+            return this.ApiResp();
+        }
+        
+        public IActionResult ReleaseRangeForWiki(int wikiId)
+        {
+            var paras = _wikiItemService.GetWikiParas(wikiId);
+            
+            List<(HeartbeatObjType type, int objId)> heartBeats = [];
+            foreach (var p in paras)
+            {
+                if (p.Type == WikiParaType.Text)
+                    heartBeats.Add((HeartbeatObjType.TextSection, p.ObjectId));
+                else if (p.Type == WikiParaType.Table)
+                    heartBeats.Add((HeartbeatObjType.FreeTable, p.ObjectId));
+            }
+            _contentEditLockService.ReleaseLockRange(heartBeats);
+            return this.ApiResp();
+        }
     }
 }

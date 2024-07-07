@@ -176,6 +176,8 @@ async function replaceContent() {
     }
 }
 function leave(){
+    heartbeatSender?.stop();
+    api.etc.heartbeat.release({objType: HeartbeatObjType.TextSection, objId: textSecId});
     router.back();
 }
 
@@ -193,8 +195,10 @@ async function init(){
         await contentInput();
         releasePreventLeaving()
 
-        heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.TextSection, textSecId);
-        heartbeatSender.start();
+        if(!heartbeatSender){
+            heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.TextSection, textSecId);
+            heartbeatSender.start();
+        }
     }
 }
 

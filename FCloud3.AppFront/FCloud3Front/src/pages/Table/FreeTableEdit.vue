@@ -31,8 +31,10 @@ async function load(){
     tableInfo.value = await api.table.freeTable.load(id);
     if(tableInfo.value && tableInfo.value.Data){
         tableData.value = JSON.parse(tableInfo.value.Data);
-        heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.FreeTable, id);
-        heartbeatSender.start();
+        if(!heartbeatSender){
+            heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.FreeTable, id);
+            heartbeatSender.start();
+        }
     }
 }
 async function editName() {
@@ -54,6 +56,8 @@ function getContent() {
     return join(tableData.value.cells.map(row=>join(row, ',')), ',')
 }
 function leave(){
+    heartbeatSender?.stop();
+    api.etc.heartbeat.release({objType: HeartbeatObjType.FreeTable, objId: parseInt(props.id)});
     router.back();
 }
 

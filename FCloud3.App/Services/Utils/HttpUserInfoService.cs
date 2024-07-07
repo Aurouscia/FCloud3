@@ -17,6 +17,7 @@ namespace FCloud3.App.Services.Utils
         public bool IsAdmin => Type >= UserType.Admin;
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {
+            //TODO: 可按需加载
             AvtSrc = userService.DefaultAvatar();
             var ctx = httpContextAccessor.HttpContext;
             if (ctx is null)
@@ -49,6 +50,7 @@ namespace FCloud3.App.Services.Utils
         public int Get() => Id;
         public HttpUserIdProvider(IHttpContextAccessor httpContextAccessor)
         {
+            //TODO: 可按需加载
             var ctx = httpContextAccessor.HttpContext;
             if (ctx is null)
                 return;

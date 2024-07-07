@@ -215,6 +215,9 @@ async function saveAll():Promise<boolean> {
     return changedParasAfter.length == 0
 }
 function leave(){
+    heartbeat?.stop();
+    if(info.value?.Id)
+        api.etc.heartbeat.releaseRangeForWiki(info.value.Id);
     router.back();
 }
 

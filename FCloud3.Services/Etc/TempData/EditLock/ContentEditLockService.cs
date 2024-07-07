@@ -13,6 +13,7 @@ namespace FCloud3.Services.Etc.TempData.EditLock
         private readonly static Random _random = new();
         private readonly ILogger<ContentEditLockService> _logger;
 
+        private static readonly object lockObj = new();
         private const int lockDiscardSeconds = 180;
         private const int cleanupProb = 30;
         private const int cleanupThrsSeconds = 24 * 60 * 60;
@@ -42,70 +43,96 @@ namespace FCloud3.Services.Etc.TempData.EditLock
             errmsg = null;
             return true;
         }
-       
         public bool Heartbeat(HeartbeatObjType type, int objId, bool isInitial, out string? errmsg)
         {
-            if (type == HeartbeatObjType.None)
+            lock (lockObj)
             {
-                errmsg = "类型未知";
-                return false;
-            }
-            int userId = _userIdProvider.Get();
-            var model = _context.ContentEditLock.Where(x => x.ObjectType == type && x.ObjectId == objId).FirstOrDefault();
-            var now = TimeStamp();
-            if (model is not null)
-            {
-                if(model.UserId != userId)
+                if (type == HeartbeatObjType.None)
                 {
-                    if (!isInitial)
-                    {
-                        //如果是续约，那就必须是自己开的，否则说明中间中断的时间被人写过
-                        var occupyUserName = _userRepo.GetNameById(model.UserId, 6) ?? "??";
-                        errmsg = $"该内容已被 [{occupyUserName}] 编辑过，请手动保存更改到别处并刷新";
-                        _logger.LogDebug("u_{uid}-心跳续约失败-{type}-{objId}", userId, type, objId);
-                        return false;
-                    }
-                    if (now - model.TimeStamp < lockDiscardSeconds)
-                    {
-                        //其他用户在 lockDiscardSeconds 内报告过，阻止本次报告，并返回该用户id
-                        var occupyUserName = _userRepo.GetNameById(model.UserId, 6) ?? "??";
-                        errmsg = $"该内容正在被 [{occupyUserName}] 编辑，请退出，稍后再尝试进入";
-                        _logger.LogDebug("u_{uid}-心跳启动失败-{type}-{objId}", userId, type, objId);
-                        return false;
-                    }
+                    errmsg = "类型未知";
+                    return false;
                 }
-                model.UserId = userId;
-                model.TimeStamp = now;
-            }
-            else
-            {
-                model = new()
+                int userId = _userIdProvider.Get();
+                var model = _context.ContentEditLock.GetByTypeAndId(type, objId);
+                var now = TimeStamp();
+                if (model is not null)
                 {
-                    UserId = userId,
-                    TimeStamp = TimeStamp(),
-                    ObjectId = objId,
-                    ObjectType = type
-                };
-                _context.Add(model);
+                    if (model.UserId != userId)
+                    {
+                        if (!isInitial)
+                        {
+                            //如果是续约，那就必须是自己开的，否则说明中间中断的时间被人写过
+                            var occupyUserName = _userRepo.GetNameById(model.UserId, 6) ?? "??";
+                            errmsg = $"该内容已被 [{occupyUserName}] 编辑过，请手动保存更改到别处并刷新";
+                            _logger.LogDebug("u_{uid}-心跳续约失败-{type}-{objId}", userId, type, objId);
+                            return false;
+                        }
+                        if (now - model.TimeStamp < lockDiscardSeconds)
+                        {
+                            //其他用户在 lockDiscardSeconds 内报告过，阻止本次报告，并返回该用户id
+                            var occupyUserName = _userRepo.GetNameById(model.UserId, 6) ?? "??";
+                            errmsg = $"该内容正在被 [{occupyUserName}] 编辑，请退出，稍后再尝试进入";
+                            _logger.LogDebug("u_{uid}-心跳启动失败-{type}-{objId}", userId, type, objId);
+                            return false;
+                        }
+                    }
+                    model.UserId = userId;
+                    model.TimeStamp = now;
+                }
+                else
+                {
+                    model = new()
+                    {
+                        UserId = userId,
+                        TimeStamp = now,
+                        ObjectId = objId,
+                        ObjectType = type
+                    };
+                    _context.Add(model);
+                }
+                _context.SaveChanges();
+
+                if (_random.Next(0, cleanupProb) == 0)
+                    Shrink();
+
+                errmsg = null;
+                if (isInitial)
+                    _logger.LogDebug("u_{uid}-心跳启动成功-{type}-{objId}", userId, type, objId);
+                else
+                    _logger.LogDebug("u_{uid}-心跳续约成功-{type}-{objId}", userId, type, objId);
+                return true;
             }
-            _context.SaveChanges();
-
-            if (_random.Next(0, cleanupProb) == 0)
-                Shrink();
-
-            errmsg = null;
-            if(isInitial)
-                _logger.LogDebug("u_{uid}-心跳启动成功-{type}-{objId}", userId, type, objId);
-            else
-                _logger.LogDebug("u_{uid}-心跳续约成功-{type}-{objId}", userId, type, objId);
-            return true;
         }
-       
+
+        public void ReleaseLockRange(List<(HeartbeatObjType type, int objId)> targets)
+        {
+            targets.ForEach(t =>
+            {
+                ReleaseLock(t.type, t.objId);
+            });
+        }
+        public void ReleaseLock(HeartbeatObjType type, int objId)
+        {
+            lock (lockObj)
+            {
+                var model = _context.ContentEditLock.GetByTypeAndId(type, objId);
+                var uid = _userIdProvider.Get();
+                if (model is not null && model.UserId == uid)
+                {
+                    _context.ContentEditLock.Remove(model);
+                    _context.SaveChanges();
+                    _logger.LogDebug("u_{uid}-心跳解锁成功-{type}-{objId}", uid, type, objId);
+                }
+            }
+        }
+
         public void Shrink()
         {
-            long now = TimeStamp();
-            long cleanup = now - cleanupThrsSeconds;
-            _context.ContentEditLock.Where(x => x.TimeStamp < cleanup).ExecuteDelete();
+            lock(lockObj){
+                long now = TimeStamp();
+                long cleanup = now - cleanupThrsSeconds;
+                _context.ContentEditLock.Where(x => x.TimeStamp < cleanup).ExecuteDelete();
+            }
         }
 
         private static long TimeStamp()

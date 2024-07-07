@@ -4,7 +4,7 @@ import { injectPop } from '@/provides';
 export function useFeVersionChecker(){
     const pop = injectPop();
     const check = async()=>{
-        const verInPublic = await(await fetch('/feVersion.txt')).text();
+        const verInPublic = await(await fetch('/feVersion.txt', {cache: "no-store"})).text();
         console.log(`代码版本:${verInCode}\n最新版本:${verInPublic}`);
         return verInPublic === verInCode
     };

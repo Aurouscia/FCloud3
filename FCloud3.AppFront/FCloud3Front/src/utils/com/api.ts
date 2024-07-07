@@ -1180,6 +1180,22 @@ export class Api{
                     {wikiId}
                 )
                 return resp.success
+            },
+            release:async(req:HeartbeatRequest)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Heartbeat/Release",
+                    "get",
+                    req
+                )
+                return resp.success
+            },
+            releaseRangeForWiki:async(wikiId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/Heartbeat/ReleaseRangeForWiki",
+                    "get",
+                    {wikiId}
+                )
+                return resp.success
             }
         },
         latestWork:{
