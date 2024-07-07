@@ -211,8 +211,11 @@ namespace FCloud3.Repos
             if(!TryAddCheck(item, out errmsg))
                 return false;
             item.CreatorUserId = _userIdProvider.Get();
-            item.Created = DateTime.Now;
-            item.Updated = DateTime.Now;
+            //仅获取一次当前时间才能确保完全一致，
+            //可通过判断创建时间==更新时间来判断该对象是否新建
+            DateTime now = DateTime.Now;
+            item.Created = now;
+            item.Updated = now;
             _context.Add(item);
             _context.SaveChanges();
             return true;
@@ -229,8 +232,11 @@ namespace FCloud3.Repos
                 }
                 if (!TryAddCheck(item, out errmsg))
                     return false;
-                item.Created = DateTime.Now;
-                item.Updated = DateTime.Now;
+                //仅获取一次当前时间才能确保完全一致，
+                //可通过判断创建时间==更新时间来判断该对象是否新建
+                DateTime now = DateTime.Now;
+                item.Created = now;
+                item.Updated = now;
                 item.CreatorUserId = _userIdProvider.Get();
                 _context.Add(item);
             }

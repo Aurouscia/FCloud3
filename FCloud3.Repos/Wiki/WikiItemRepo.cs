@@ -20,7 +20,7 @@ namespace FCloud3.Repos.Wiki
 
         public IQueryable<WikiItem> ExistingAndNotSealed => Existing.Where(x => !x.Sealed);
         public IQueryable<WikiItem> ExistingAndNotSealedAndEdited
-            => ExistingAndNotSealed.Where(x=>EF.Functions.DateDiffSecond(x.Created, x.Updated) >= 1);
+            => ExistingAndNotSealed.Where(x => x.Created < x.Updated);
         public IQueryable<WikiItem> QuickSearch(string str, bool includeSealed = false)
         {
             var q = includeSealed ? Existing : ExistingAndNotSealed;
