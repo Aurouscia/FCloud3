@@ -19,7 +19,7 @@ import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
 import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
-import { diffContentTypeFromParaType } from '@/models/diff/diffContentType';
+import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
 import { canDisplayAsImage } from '@/utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';

@@ -2,8 +2,8 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { injectApi } from '@/provides';
 import { Api } from '@/utils/com/api';
-import { diffContentTypeFromStr } from '@/models/diff/diffContentType';
-import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
+import { diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
+import { DiffContentHistoryResult } from '@/models/diff/diffContentHistories';
 import DiffContentDetail from './DiffContentDetail.vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';

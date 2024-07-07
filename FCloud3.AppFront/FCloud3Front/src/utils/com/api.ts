@@ -18,8 +18,8 @@ import { WikiTemplate, WikiTemplateListItem, WikiTemplatePreviewResponse } from 
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiRulesCommonsResult } from '@/models/wikiParsing/wikiRulesCommonsResult';
 import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
-import { DiffContentType } from '@/models/diff/diffContentType';
-import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
+import { DiffContentType } from '@/models/diff/diffContentTypes';
+import { DiffContentHistoryResult } from '@/models/diff/diffContentHistories';
 import { DiffContentDetailResult } from '@/models/diff/diffContentDetails';
 import { HeartbeatRequest } from '@/models/etc/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '@/models/messages/comment';

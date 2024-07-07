@@ -1,5 +1,5 @@
 import { useRouter } from "vue-router"
-import {  } from "@/models/diff/diffContentType"
+import {  } from "@/models/diff/diffContentTypes"
 
 export function useFilesRoutesJump(){
     const router = useRouter();
