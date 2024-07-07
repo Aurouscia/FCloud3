@@ -20,7 +20,7 @@ import { WikiRulesCommonsResult } from '@/models/wikiParsing/wikiRulesCommonsRes
 import { WikiTitleContainAutoFillResult, WikiTitleContainGetAllRequest, WikiTitleContainListModel, WikiTitleContainSetAllRequest, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import { DiffContentType } from '@/models/diff/diffContentType';
 import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
-import { DiffContentDetailResult } from '@/models/diff/diffContentDetail';
+import { DiffContentDetailResult } from '@/models/diff/diffContentDetails';
 import { HeartbeatRequest } from '@/models/etc/heartbeat';
 import { Comment, CommentTargetType, CommentViewResult } from '@/models/messages/comment';
 import { NotifViewResult, NotificationGetRequest } from '@/models/messages/notification';

@@ -1,16 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
-using FCloud3.Services.Identities;
-using FCloud3.Repos.Identities;
-using FCloud3.Entities.Identities;
 using FCloud3.App.Services.Utils;
+using FCloud3.Services.Identities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
-namespace FCloud3.App.Controllers
+namespace FCloud3.App.Controllers.Identities
 {
     public class AuthController : Controller
     {

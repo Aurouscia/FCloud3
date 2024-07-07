@@ -1,4 +1,4 @@
-import { DiffDisplayFrag } from "../diff/diffContentDetail";
+import { DiffDisplayFrag } from "../diff/diffContentDetails";
 
 export interface WikiContentSearchResult
 {

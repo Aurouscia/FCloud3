@@ -5,7 +5,7 @@ import { Api } from '@/utils/com/api';
 import { diffContentTypeFromStr } from '@/models/diff/diffContentType';
 import { DiffContentHistoryResult } from '@/models/diff/diffContentHistory';
 import DiffContentDetail from './DiffContentDetail.vue';
-import { DiffContentStepDisplay } from '@/models/diff/diffContentDetail';
+import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 import SideBar from '@/components/SideBar.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
