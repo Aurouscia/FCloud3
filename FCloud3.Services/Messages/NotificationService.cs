@@ -44,13 +44,13 @@ namespace FCloud3.Services.Messages
                     var wikiId = x.Param1;
                     var wikiTitle = _wikiItemCaching.Get(x.Param1)?.Title ?? "";
                     var cmtId = x.Param2;
-                    string cmtBrief = string.Empty;
-                    var cmt = relatedComments.Find(x => x.Id == cmtId);
-                    if (cmt.IsHidden())
+                    string cmtBrief;
+                    var cmt = relatedComments.Find(c => c.Id == cmtId);
+                    if (cmt is null || cmt.IsHidden())
                         cmtBrief = "<该评论已被删除>";
                     else
                     {
-                        cmtBrief = cmt.Content;
+                        cmtBrief = cmt.Content ?? "";
                         if (cmtBrief.Length > 20)
                             cmtBrief = cmtBrief[..20] + "...";
                     }

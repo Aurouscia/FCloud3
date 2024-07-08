@@ -465,7 +465,7 @@ namespace FCloud3.Services.Wiki
         public class WikiInDirLocationView
         {
             public int WikiId { get; set; }
-            public string Title { get; set; }
+            public string? Title { get; set; }
             public List<WikiInDirLocationItem> Locations { get; set; } = [];
             public class WikiInDirLocationItem
             {

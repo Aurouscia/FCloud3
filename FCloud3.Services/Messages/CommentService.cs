@@ -115,7 +115,7 @@ namespace FCloud3.Services.Messages
                     string? hiddenBy = null;
                     var hidden = x.IsHidden();
                     if (hidden){
-                        hiddenBy = allu.FirstOrDefault(u => u.Id == x.HiddenByUser).Name ?? "??";
+                        hiddenBy = allu.FirstOrDefault(u => u.Id == x.HiddenByUser)?.Name ?? "??";
                         content = hidden ? $"该评论已被 {hiddenBy} 删除" : x.Content;
                     }
                     return new CommentViewResult
