@@ -519,8 +519,14 @@ namespace FCloud3.Services.Files
                 errmsg = "只能删除空文件夹";
                 return false;
             }
-            var wikis = _wikiToDirRepo.GetWikiIdsByDir(dirId).Count;
-            if (wikis > 0)
+            //词条被删除，词条-目录关系仍残留，需要检查所有关系指向的存在的词条数量
+            var wikis =
+                from relation in _wikiToDirRepo.Existing
+                from w in _wikiItemRepo.Existing
+                where relation.DirId == dirId
+                where relation.WikiId == w.Id
+                select w.Id;
+            if (wikis.Count() > 0)
             {
                 errmsg = "只能删除空文件夹";
                 return false;
