@@ -246,7 +246,8 @@ onUnmounted(()=>{
 
 <template>
 <div class="wikiViewFrame">
-    <div v-if="data && currentUser" class="wikiView" ref="wikiViewArea">
+    <div v-if="data && currentUser" class="wikiView"
+        :class="{noCopy:data.OwnerId !== currentUser.Id}" ref="wikiViewArea">
         <div class="invisible" v-html="styles"></div>
         <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
@@ -272,7 +273,7 @@ onUnmounted(()=>{
             </div>
         </div>
         <div v-if="displayInfo?.Sealed" class="sealed">该词条已被隐藏</div>
-        <div v-for="p in data.Paras">
+        <div v-for="p in data.Paras" class="para">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
@@ -398,6 +399,9 @@ onUnmounted(()=>{
     margin-right: -220px;
     padding-right: 220px;
     padding-left: 10px;
+}
+.wikiView.noCopy .para{
+    user-select: none;
 }
 
 .info{
