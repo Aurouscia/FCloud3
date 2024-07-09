@@ -134,7 +134,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                             }
                             //检查该右规则是否被escape
                             if (input[right - 1] == '\\')
-                                pointer = left + 1;
+                                pointer = right + 1;
                             //检查该位置是否被占
                             else if (res.Any(x => x.OccupiedAt(right)))
                                 pointer = right + 1;//如果被占了，那就从下一个开始找
