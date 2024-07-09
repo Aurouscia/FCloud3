@@ -80,7 +80,7 @@ async function contentInput(){
     const converted = needRemove.filter(x=>x.textContent && x.textContent.length>0).map(x=>x.textContent).join('\n');
     needRemove.forEach(n=>n.remove());
     if(removed){
-        textNode().textContent += (converted+"\n")
+        textNode().textContent += (converted+"\n")//结尾必须有个换行符（不算入内容里）
     }
     
     if(!previewContent.value){
@@ -190,7 +190,7 @@ async function init(){
         loadComplete.value = true;
         await nextTick();
         if(!writeArea.value){return}
-        textNode().textContent = data.value.Content || "\n";
+        textNode().textContent = data.value.Content || "\n";//结尾必须有个换行符（不算入内容里）
         writeArea.value.addEventListener("keydown", enterKeyHandler);
         await contentInput();
         releasePreventLeaving()
@@ -216,7 +216,7 @@ async function enterKeyHandler(e: KeyboardEvent) {
             const before = data.value.Content.substring(0, offset);
             let after = data.value.Content.substring(offset);
             if (!after) {
-                after = "\n";
+                after = "\n";//结尾必须有个换行符（不算入内容里）
             }
             const newContent = before + "\n" + after;
             data.value.Content = newContent;

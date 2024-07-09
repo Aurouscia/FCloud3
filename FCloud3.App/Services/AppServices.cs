@@ -10,6 +10,7 @@ using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Serilog;
 using FCloud3.Repos.Etc;
+using Microsoft.AspNetCore.Http.Timeouts;
 
 namespace FCloud3.App.Services
 {
@@ -38,6 +39,14 @@ namespace FCloud3.App.Services
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
+            services.AddRequestTimeouts(options =>
+            {
+                // 使用 DefaultPolicy 属性设置全局超时策略，超时为 10 秒
+                options.DefaultPolicy = new RequestTimeoutPolicy
+                {
+                    Timeout = TimeSpan.FromSeconds(10)
+                };
+            });
             
             return services;
         }

@@ -28,13 +28,13 @@ try
     string localVueCors = "localVueCors";
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy(localVueCors, builder =>
+        options.AddPolicy(localVueCors, b =>
         {
-            builder.WithOrigins("http://127.0.0.1:5173")
+            b.WithOrigins("http://127.0.0.1:5173")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
-            builder.WithOrigins("http://localhost:5173")
+            b.WithOrigins("http://localhost:5173")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -50,6 +50,8 @@ try
 
     app.UseRouting();
 
+    app.UseRequestTimeouts();
+    
     app.UseRequestLogging();
 
     app.UseAuthentication();
