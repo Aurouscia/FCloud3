@@ -373,8 +373,8 @@ onUnmounted(()=>{
     position: fixed;
     bottom: 15px;
     right: 15px;
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     background-color: white;
     border-radius: 5px;
     cursor: pointer;

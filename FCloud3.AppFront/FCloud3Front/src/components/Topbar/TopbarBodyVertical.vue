@@ -100,7 +100,7 @@ $topbar-body-vert-width: 180px;
     transition: 0.3s;
     box-shadow: 0px 0px 12px 0px black;
     background-color: white;
-    z-index: 950;
+    z-index: 960;
     padding-top: $topbar-height;
     display: flex;
     flex-direction: column;
