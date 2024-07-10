@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { CSSProperties, ref } from 'vue';
+import { computed, CSSProperties, ref } from 'vue';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 
 const coverStyle = ref<CSSProperties>();
 const barStyle = ref<CSSProperties>();
 const showing = ref<boolean>(false);
 const props = defineProps<{
-    width?:number
+    width?:number,
+    shrinkWay?:'v-if'|'v-show'
 }>()
 const width = props.width? props.width+'px' : '300px';
 const foldedRight = '-'+width;
+const onlyHideWhenShrink = computed<boolean>(()=>props.shrinkWay=='v-show')
 
 barStyle.value = {
     width:width,
@@ -73,8 +75,8 @@ const emit = defineEmits<{
 <div class="sidebarOuter">
     <div class="cover" :style="coverStyle" @click="fold"></div>
     <div class="sideBar" :style="barStyle">
-        <div class="body">
-            <slot v-if="showing"></slot>
+        <div class="body" v-show="showing">
+            <slot v-if="showing || onlyHideWhenShrink" ></slot>
         </div>
     </div>
 </div>

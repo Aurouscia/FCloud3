@@ -169,6 +169,8 @@ async function replaceContent() {
     if(!loadComplete.value){
         return;
     }
+    if(localConfig.value.autoLinkAtSave)
+        await wikiTitleContain.value?.autoFill(true);
     const resp = await api.textSection.textSection.editExe(data.value);
     if(resp){
         releasePreventLeaving()
@@ -340,6 +342,7 @@ let lastRightToLeftHashFadeTimer = 0;
 const { preventLeaving, releasePreventLeaving, preventingLeaving, showUnsavedWarning } = usePreventLeavingUnsaved();
 const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
 const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
+const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </script>
 
 <template>
@@ -368,13 +371,14 @@ const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
     </div>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
 </div>
-<SideBar ref="wikiTitleContainSidebar">
-    <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" :get-content="()=>data.Content" @changed="refreshPreview">
+<SideBar ref="wikiTitleContainSidebar" :shrink-way="'v-show'">
+    <WikiTitleContain ref="wikiTitleContain" :type="WikiTitleContainType.TextSection" :object-id="textSecId" 
+        :get-content="()=>data.Content" @changed="refreshPreview">
     </WikiTitleContain>
 </SideBar>
 <SideBar ref="localConfigSidebar">
     <h1>编辑器设置</h1>
-    <table>
+    <table style="margin: auto;">
         <tr>
             <td>黑色背景</td>
             <td><input type="checkbox" v-model="localConfig.blackBg"/></td>
@@ -384,10 +388,14 @@ const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
             <td><input type="range" min="14" max="20" step="1" v-model="localConfig.fontSize"/></td>
         </tr>
         <tr>
+            <td>保存时自动<br/>更新链接</td>
+            <td><input type="checkbox" v-model="localConfig.autoLinkAtSave"/></td>
+        </tr>
+        <tr>
             <td class="noBg" colspan="2"><button @click="saveLocalConfigClick">保存</button><br/></td>
         </tr>
     </table>
-    <div style="font-size: 14px; color: #aaa">仅会保存在本浏览器内<br/>后续更新可能需重新设置</div>
+    <div style="font-size: 14px; color: #aaa;text-align: center;">仅会保存在本浏览器内<br/>后续更新可能需重新设置</div>
 </SideBar>
 <div v-if="loadComplete" class="background">
     <div class="invisible" v-html="styles"></div>

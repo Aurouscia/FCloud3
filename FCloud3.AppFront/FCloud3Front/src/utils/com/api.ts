@@ -498,7 +498,7 @@ export class Api{
                     "/api/WikiTitleContain/SetAll",
                     "postRaw",
                     req,
-                    "设置成功",
+                    "已成功设置链接",
                     true)
                 return res.success
             },

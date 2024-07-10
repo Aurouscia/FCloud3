@@ -38,7 +38,7 @@ function remove(wikiId: number){
     pullAt(data.value.Items, index);
     changed.value = true;
 }
-async function autoFill(){
+async function autoFill(suppressNoneWarning = false){
     if(!data.value){return}
     const content = props.getContent();
     if(!content){return}
@@ -57,8 +57,10 @@ async function autoFill(){
         const newLength = data.value.Items.length;
         if(newLength > oriLength){
             changed.value = true;
+            await set();
         }else{
-            pop.value.show('没有找到可以添加的', "warning");
+            if(!suppressNoneWarning)
+                pop.value.show('没有找到可以添加的', "warning");
         }
     }
 }
@@ -81,6 +83,7 @@ function keepOrder(){
 const emits = defineEmits<{
     (e:'changed'):void
 }>();
+defineExpose({autoFill})
 
 let api:Api;
 let pop:Ref<InstanceType<typeof Pop>>;
@@ -99,12 +102,13 @@ onMounted(async() => {
         <div class="questionBody">
             <p>只有在这里显示的词条标题才会在本段被自动生成链接。</p>
             <p>手动删除的词条标题将不再会被自动添加。</p>
-            <p>链接在编辑器里会全部生成，在词条查看时仅生成第一次</p>
+            <p>链接在编辑器里会全部生成，在词条查看时仅生成第一次。</p>
+            <p>被隐藏的词条不会生成链接。</p>
         </div>
     </div>
     <div>
         <Search v-if="api" :source="api.etc.quickSearch.wikiItem" @done="searchDone" :placeholder="'手动添加'"></Search>
-        <button @click="autoFill" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
+        <button @click="()=>autoFill()" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
     </div>
     <div v-if="data" class="list">
         <div v-for="item,idx in data.Items" :key="item.WikiId">
