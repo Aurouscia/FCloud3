@@ -400,12 +400,8 @@ namespace FCloud3.WikiPreprocessor.Rules
     {
         public static List<IInlineRule> GetInstances()
         {
-            var centerRule1 = new CustomInlineRule("\\ct", "\\ct", "<div class=\"center\">", "</div>", "左右居中块", ".center{text-align:center}");
-            var centerRule2 = new RelyInlineRule("\\中", "\\中", centerRule1);
-            var mqRule1 = new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条");
-            var mqRule2 = new RelyInlineRule("\\滚", "\\滚", mqRule1);
-            var instances = new List<IInlineRule>()
-            {
+            List<IInlineRule> instances = 
+            [
                 new FootNoteAnchorRule(),
                 new InlineObjectRule(),
                 new ManualTextedAnchorRule(),
@@ -415,16 +411,19 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
-
+                
+                new CustomInlineRule("_(", ")", "<sub>", "</sub>", "下角标"),
+                new CustomInlineRule("^(", ")", "<sup>", "</sup>", "上角标"),
+                new ColorTextRule(),
+                
                 new CustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
                 new CustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),
-                new ColorTextRule(),
-                new CustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标"),
-                new CustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标"),
-                centerRule1,centerRule2,
-                mqRule1,mqRule2
-
-            };
+                new CustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标（不推荐）"),
+                new CustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标（不推荐）"),
+                new CustomInlineRule("\\ct", "\\ct", "<div style=\"text-align:center\">", "</div>", "左右居中块"),
+                new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条"),
+                new CustomInlineRule("\\滚", "\\滚", "<marquee>", "</marquee>", "滚动条")
+            ];
             return instances;
         }
     }
