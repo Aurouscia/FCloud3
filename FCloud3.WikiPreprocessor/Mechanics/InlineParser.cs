@@ -94,10 +94,11 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     //一次性标记字符串中所有该规则
 
                     bool noMoreForThisRule = false;
+                    bool valid = true;
                     int left;
                     while(true){
                         //试图找到最靠左的左规则
-                        left = input.IndexOf(r.MarkLeft, pointer);
+                        left = input.IndexOf(r.MarkLeft, pointer, StringComparison.Ordinal);
                         if (left == -1 || left >= input.Length - 1)
                         {
                             noMoreForThisRule = true;//规则不存在或者已经被找完了，可以结束本规则的搜索了
@@ -126,10 +127,15 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     {
                         while (true)
                         {
-                            right = input.IndexOf(r.MarkRight, pointer);
+                            right = input.IndexOf(r.MarkRight, pointer, StringComparison.Ordinal);
                             if (right == -1)
                             {
                                 noMoreForThisRule = true;
+                                break;
+                            }
+                            if (right - left - r.MarkLeft.Length > r.MaxLengthBetween)
+                            {
+                                valid = false;
                                 break;
                             }
                             //检查该右规则是否被escape
@@ -149,16 +155,18 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                         if (noMoreForThisRule)
                             break;
                     }
-                    InlineMark m = new(r, left, right);
-                    string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
-                    if (r.FulFill(span))
+                    if (valid)
                     {
-                        res.Add(m);
-                        //如果规则是一次性的，那就不找了
-                        if (r.IsSingleUse)
-                            break;
+                        InlineMark m = new(r, left, right);
+                        string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
+                        if (r.FulFill(span))
+                        {
+                            res.Add(m);
+                            //如果规则是一次性的，那就不找了
+                            if (r.IsSingleUse)
+                                break;
+                        }
                     }
-
                     pointer = right + 1;
                     if (pointer >= input.Length - 1)
                         break;

@@ -23,6 +23,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public string MarkRight { get; }
         public string PutLeft { get; }
         public string PutRight { get; }
+        public int MaxLengthBetween { get; }
         /// <summary>
         /// 被MarkLeft和MarkRight截取出的这部分区域是否适用本规则？
         /// </summary>
@@ -42,6 +43,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public string PutRight { get; }
         public string Style { get; }
         public bool IsSingleUse { get; protected set; }
+        public int MaxLengthBetween { get; protected set; } = int.MaxValue;
 
         protected InlineRule(string markLeft,string markRight,string putLeft,string putRight,string style="",string name="",bool isSingleUse = false)
         {
@@ -82,19 +84,25 @@ namespace FCloud3.WikiPreprocessor.Rules
     }
     public class CustomInlineRule : InlineRule
     {
-        public CustomInlineRule(string markLeft,string markRight,string putLeft,string putRight,string name="",string style = "")
-            : base(markLeft, markRight, putLeft, putRight, style, name) { }
+        public CustomInlineRule(string markLeft, string markRight, string putLeft, string putRight,
+            string name = "", string style = "", int maxLengthBetween = int.MaxValue)
+            : base(markLeft, markRight, putLeft, putRight, style, name)
+        {
+            MaxLengthBetween = maxLengthBetween;
+        }
         public override bool FulFill(string span) => true;
     }
     public class RelyInlineRule : IInlineRule
     {
         public CustomInlineRule RelyOn { get; }
+        public int MaxLengthBetween { get; }
         public RelyInlineRule(string markLeft, string markRight, CustomInlineRule relyOn, string name = "")
         {
             RelyOn = relyOn;
             Name = name;
             MarkLeft = markLeft;
             MarkRight = markRight;
+            MaxLengthBetween = relyOn.MaxLengthBetween;
         }
         public string Name { get; }
         public string MarkLeft { get; }
@@ -297,6 +305,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public string PutLeft => "";
         public string PutRight => "";
         public bool IsSingleUse => false;
+        public int MaxLengthBetween => int.MaxValue;
         public bool Equals(IInlineRule? other) => other is ColorTextRule;
         public bool FulFill(string span) => span.Length>2;
         public string GetPostScripts() => string.Empty;

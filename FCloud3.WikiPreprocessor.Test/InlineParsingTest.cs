@@ -108,5 +108,26 @@ namespace FCloud3.WikiPreprocessor.Test
             var html3 = res.ToHtml();
             Assert.AreEqual(answer, html3);
         }
+
+        [TestMethod]
+        [DataRow("__%%12345%%__", "__<>12345</>__", 6)]
+        [DataRow("__%%123456%%__", "__<>123456</>__", 6)]
+        [DataRow("__%%1234567%%__", "__%%1234567%%__", 6)]
+        [DataRow("__%%12345678%%__", "__%%12345678%%__", 6)]
+        public void LengthRestriction(string input, string answer, int maxLengthBetween)
+        {
+            var customInlineRule = new CustomInlineRule(
+                "%%", "%%", "<>", "</>","","", maxLengthBetween);
+            _ctx.SetInitialFrameCount();
+            _ctx.Options.InlineParsingOptions.AddMoreRule(customInlineRule);
+            InlineParser parser = new(_ctx);
+            var res = parser.Run(input);
+            var html = res.ToHtml();
+            Assert.AreEqual(answer, html);
+            var html2 = res.ToHtml();
+            Assert.AreEqual(answer, html2);
+            var html3 = res.ToHtml();
+            Assert.AreEqual(answer, html3);
+        }
     }
 }
