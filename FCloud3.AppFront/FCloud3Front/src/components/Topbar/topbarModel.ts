@@ -33,7 +33,7 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                         Link: "/materials"
                     },
                     {
-                        Title: "搜索",
+                        Title: "正文搜索",
                         Link: "/WikiContentSearch"
                     },
                     {

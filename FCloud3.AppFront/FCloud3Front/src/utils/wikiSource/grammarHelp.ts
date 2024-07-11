@@ -88,7 +88,7 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
 export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"居中和靠右",
-        desc:"行首一个英文句点和三个空格表示本行居中，行首三个英文句点和三个空格表示本行靠右",
+        desc:"行首一个英文句点和三个空格表示本行居中，行首三个英文句点和三个空格表示本行靠右。",
         code:"> 这是我吃过的最难吃的东西\n> ...   ——不愿透露姓名的受访者\n.   本台记者独家报道",
         demo:"<div class=\"quote\"><p>这是我吃过的最难吃的东西</p>"+
         "<div style=\"text-align:right\"><p>——不愿透露姓名的受访者</p></div></div>"+
@@ -102,10 +102,16 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
     },
     {
         title:"嵌入素材",
-        desc:"素材在本站指行内小图片，可用来表示国籍等。\n需先在素材管理页上传，然后使用大括号({xxx})引用。"+
+        desc:"素材在本站指行内小图片，可用来表示国籍等。\n需先在素材管理页上传，然后使用大括号({xxx})引用。\n"+
         "如果需要控制图片尺寸，可写{xxx:3}（3倍行高）或{xxx:20px}来指定其高度",
         code:"欢迎使用fcloud3{fcloud3}内容管理系统。",
         demo:"欢迎使用fcloud3<img class=\"wikiInlineImg\" src=\"/fcloud.svg\" style=\"height:2rem\">内容管理系统。"
+    },
+    {
+        title:"上角标/下角标",
+        desc:"使用^()和_()表示上下角标，注意使用英文括号。\n一般用于计量单位、简易的数学表达式和化学式等。",
+        code:"18m^(2)，H_(2)SO_(4)",
+        demo:"18m<sup>2</sup>，H<sub>2</sub>SO<sub>4</sub>",
     },
     {
         title:"自定义色字体/色块",
@@ -137,11 +143,5 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         desc:"一般用于整活",
         code:"她平时特别喜欢喝奶茶\\hd（别告诉她是我说的）\\hd",
         demo:"她平时特别喜欢喝奶茶<span class=\"hoverToDisplayDemo\">（别告诉她是我说的）</span>"
-    },
-    {
-        title:"上角标/下角标",
-        desc:"使用\\sup或\\sub将文字包围",
-        code:"18m\\sup 2 \\sup，H\\sub 2 \\subSO\\sub 4 \\sub",
-        demo:"18m<sup>2</sup>，H<sub>2</sub>SO<sub>4</sub>",
     }
 ]

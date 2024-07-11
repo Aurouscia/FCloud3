@@ -27,6 +27,7 @@ export class WikiSourceHighlighter {
         this.matchAndMake(/\[.+?\](?=(\())/g, "anchorText")
         this.matchAndMake(/(?<=\])\(.+?\)/g, "anchorLink")
         this.matchAndMake(/\[http.+?\]/g, "link")
+        this.matchAndMake(/[\^_]\(.+?\)/g, "subsupscript")
     }
     private overlapped(start:number, end:number){
         const res = this.ranges.some(r=>
