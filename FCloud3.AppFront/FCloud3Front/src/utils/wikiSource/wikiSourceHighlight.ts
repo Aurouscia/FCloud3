@@ -1,5 +1,6 @@
 export class WikiSourceHighlighter {
     t:Text|undefined = undefined;
+    tContent:string|undefined = undefined;
     ranges:[number,number][] = [];
     private styleTagPattern = new RegExp("<style>(.|\n)*?</style>", "g");
 
@@ -7,6 +8,9 @@ export class WikiSourceHighlighter {
         CSS.highlights.clear();
         this.ranges = []
         this.t = t;
+        this.tContent = t.textContent || "";
+        this.tContent = this.tContent?.replace(/\\\*/g, "zz")
+
         this.matchAndMake(/\*\*.+?\*\*/g, "bold");
         this.matchAndMake(/(?<!\*)\*[^\*]+?\*(?!\*)/g, "italic");
         this.matchAndMake(/~~.+?~~/g, "lineThrough")
@@ -17,7 +21,7 @@ export class WikiSourceHighlighter {
         this.matchAndMake(/(?<=(^|\n))\- /g, "list")
         this.matchAndMake(this.styleTagPattern, "styleTag")
         this.matchAndMake(/(?<!\{)\{[a-zA-Z0-9\u4e00-\u9fa5:\.]{2,16}\}(?!\})/g, "implant")
-        this.matchAndMake(/#.{3,}?#/g, "color")
+        this.matchAndMake(/#.{3,}?(?<!\\)#/g, "color")
         this.matchAndMake(/(?<=(^|\n))\-{3,}(?=($|\n))/g, "sep")
         this.matchAndMake(/\{\{[a-zA-Z0-9\u4e00-\u9fa5]{2,10}\}(.|\n)*?\}/g, "template")
         this.matchAndMake(/\[.+?\](?=(\())/g, "anchorText")
@@ -31,15 +35,17 @@ export class WikiSourceHighlighter {
         return res;
     }
     private matchAndMake(regex:RegExp, highlightName:string){
-        if(!this.t || !this.t.textContent)
+        if(!this.t || !this.tContent)
             return;
-        const matches = this.t.textContent.matchAll(regex);
+        const matches = this.tContent.matchAll(regex);
         if(matches){
             const rangesHere:Range[] = [];
             for(const match of matches){
                 const start = match.index;
                 const end = match.index + match[0].length;
                 if(this.overlapped(start, end))
+                    continue;
+                if(start>=1 && this.tContent[start-1]=='\\')
                     continue;
                 const range = document.createRange();
                 range.setStart(this.t, start);
