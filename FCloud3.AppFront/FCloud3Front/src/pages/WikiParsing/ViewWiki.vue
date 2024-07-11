@@ -366,7 +366,7 @@ onUnmounted(()=>{
     position: relative;
     transition: 0.3s;
     box-sizing: border-box;
-    padding-top: 20px;
+    padding: 20px 0px 20px 0px;
     margin-right: 40px;
 }
 .subTitlesFoldBtn{
@@ -450,6 +450,8 @@ onUnmounted(()=>{
     .subTitles{
         position: fixed;
         right: 0px;
+        bottom: 0px;
+        height: unset;
         top: $topbar-height;
         border-top: 1px solid #ddd;
         padding-top: 20px;

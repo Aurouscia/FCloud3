@@ -93,9 +93,11 @@ async function inputKeyDown(e:KeyboardEvent){
 <template>
     <div class="commentItem">
         <div class="info">
-            <img :src="c.UserAvtSrc" class="smallAvatar"/>
-            <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
-            <div class="time">{{ c.Time }}</div>
+            <div class="sender">
+                <img :src="c.UserAvtSrc" class="smallAvatar"/>
+                <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
+                <div class="time">{{ c.Time }}</div>
+            </div>
             <div v-if="!c.Hidden && c.Rate>0 && c.Rate<11" class="rate" :style="{backgroundColor: rateColor(c.Rate)}">{{ c.Rate }}/10 {{ rateText(c.Rate) }}</div>
         </div>
         <div class="replyInfo" v-if="replyInfo">回复: {{ replyInfo.userName }} "{{ replyInfo.cmtBrief }}"</div>
@@ -123,9 +125,19 @@ async function inputKeyDown(e:KeyboardEvent){
 .info{
     display: flex;
     justify-content: flex-start;
-    align-items: baseline;
+    align-items: center;
     font-size: 18px;
-    gap: 5px;
+    gap: 10px;
+    .sender{
+        display: flex;
+        justify-content: flex-start;
+        gap:5px;
+        flex-wrap: wrap;
+        align-items:end;
+        div{
+            margin-bottom: 3px;
+        }
+    }
 }
 .uname{
     color: #666;
@@ -138,6 +150,7 @@ async function inputKeyDown(e:KeyboardEvent){
 .time{
     color: #aaa;
     font-size: 14px;
+    margin-top: -4px;
 }
 .rate{
     background-color: black;
