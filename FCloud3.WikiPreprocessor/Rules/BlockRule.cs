@@ -412,7 +412,8 @@ namespace FCloud3.WikiPreprocessor.Rules
                         textColor = "black";
                     else
                         textColor = "white";
-                    return (sReplace, $"style=\"background-color:{colorStr};color:{textColor}\"");
+                    var attrs = $"style=\"background-color:{ColorUtil.ToCssColorString(c)};color:{textColor}\"";
+                    return (sReplace, attrs);
                 }
             }
             return (s, "");
