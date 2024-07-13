@@ -2,7 +2,7 @@ export interface LocalConfigModel{
     key:LocalConfigType
     version:string
 }
-export type LocalConfigType = "textSection"
+export type LocalConfigType = "textSection"|"auth"
 
 export interface TextSectionLocalConfig extends LocalConfigModel{
     blackBg:boolean,
@@ -17,7 +17,16 @@ export const textSectionConfigDefault:TextSectionLocalConfig = {
     version: "20240622"
 }
 
-const defaultVals = [textSectionConfigDefault];
+export interface AuthLocalConfig extends LocalConfigModel{
+    expireHours:number
+}
+export const authConfigDefault:AuthLocalConfig = {
+    expireHours:72,
+    key: "auth",
+    version: "20240713"
+}
+
+const defaultVals = [textSectionConfigDefault, authConfigDefault];
 
 export function readLocalConfig(type:LocalConfigType){
     const val = defaultVals.find(x=>x.key == type);

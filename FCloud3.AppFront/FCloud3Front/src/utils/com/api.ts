@@ -40,7 +40,7 @@ export class Api{
     }
     identites = {
         auth:{
-            login: async(reqObj:{userName:string,password:string})=>{
+            login: async(reqObj:{userName:string,password:string,expHours:number})=>{
                 var res = await this.httpClient.request(
                     "/api/Auth/Login",
                     "postForm",

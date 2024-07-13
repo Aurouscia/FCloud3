@@ -26,7 +26,7 @@ namespace FCloud3.App.Controllers.Identities
             _config = config;
             _logger = logger;
         }
-        public IActionResult Login(string? userName, string? password)
+        public IActionResult Login(string? userName, string? password, int expHours)
         {
             _logger.LogInformation("登录请求：{userName}",userName);
 
@@ -39,7 +39,7 @@ namespace FCloud3.App.Controllers.Identities
             string domain = _config["Jwt:Domain"] ?? throw new Exception("未找到配置项Jwt:Domain");
             string secret = _config["Jwt:SecretKey"] ?? throw new Exception("未找到配置项Jwt:SecretKey");
 
-            int expHours = 72;
+            expHours = Math.Clamp(expHours, 3, 24 * 365);
             var claims = new[]
             {
                     new Claim (JwtRegisteredClaimNames.Nbf,$"{new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds()}") ,
