@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 
-defineProps<{
+const router = useRouter();
+
+const props = defineProps<{
     imgSrc:string,
     desc?:string,
     close:()=>void
@@ -13,6 +16,18 @@ const howToSave = computed<string>(()=>{
     }else{
         return "右键保存"
     }
+})
+
+let removeRouteGuard:()=>void
+onMounted(()=>{
+    removeRouteGuard = router.beforeEach(()=>{
+        removeRouteGuard()
+        props.close();
+        return false;
+    });
+})
+onUnmounted(()=>{
+    removeRouteGuard()
 })
 </script>
 
