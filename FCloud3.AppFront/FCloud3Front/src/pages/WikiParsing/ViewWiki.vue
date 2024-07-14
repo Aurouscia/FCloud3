@@ -249,7 +249,7 @@ onUnmounted(()=>{
 
 <template>
 <div class="wikiViewFrame">
-    <div v-if="data && currentUser" class="wikiView"
+    <div v-if="data && currentUser && displayInfo" class="wikiView"
         :class="{noCopy:data.OwnerId !== currentUser.Id}" ref="wikiViewArea">
         <div class="invisible" v-html="styles"></div>
         <div class="invisible" ref="preScripts"></div>
@@ -267,7 +267,7 @@ onUnmounted(()=>{
                     </div>
                 </div>
             </div>
-            <div class="btns">
+            <div class="btns" v-if="displayInfo.CurrentUserAccess">
                 <button @click="jumpToWikiContentEdit(wikiPathName)">编辑词条</button>
                 <button @click="jumpToWikiEdit(wikiPathName)">设置词条</button>
                 <LongPress v-if="currentUser.Type >= UserType.Admin" :reached="toggleSealed">
@@ -275,14 +275,14 @@ onUnmounted(()=>{
                 </LongPress>
             </div>
         </div>
-        <div v-if="displayInfo?.Sealed" class="sealed">该词条已被隐藏</div>
+        <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras" class="para">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
                     <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
-                    <div v-if="p.Editable" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
                 </div>

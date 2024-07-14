@@ -57,6 +57,7 @@ namespace FCloud3.App.Services.Filters
             {
                 if (_httpUserInfoService.IsAdmin)
                 {
+                    //管理员或超级管理员可绕过授权验证，直接通过
                     await next();
                     return;
                 }

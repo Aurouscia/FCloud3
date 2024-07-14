@@ -3,6 +3,7 @@ using Aurouscia.TableEditor.Core.Excel;
 using Aurouscia.TableEditor.Core.Html;
 using DotNetColorParser;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Identities;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Identities;
+using FCloud3.Services.Identities;
 
 namespace FCloud3.Services.WikiParsing
 {
@@ -36,6 +38,7 @@ namespace FCloud3.Services.WikiParsing
         MaterialCaching materialCaching,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
+        AuthGrantService authGrantService,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
         ILogger<WikiParsingService> logger)
@@ -53,11 +56,12 @@ namespace FCloud3.Services.WikiParsing
         private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
+        private readonly AuthGrantService _authGrantService = authGrantService;
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly ILogger<WikiParsingService> _logger = logger;
 
-        public WikiDisplayInfo? GetWikiDisplayInfo(string pathName)
+        public WikiDisplayInfo? GetWikiDisplayInfo(string pathName, bool defaultAccess = false)
         {
             var info = (
                 from w in _wikiItemRepo.Existing
@@ -74,6 +78,11 @@ namespace FCloud3.Services.WikiParsing
                 }).FirstOrDefault();
             if(info is null)
                 return null;
+
+            var access = defaultAccess;
+            if(!access) 
+                access = _authGrantService.Test(AuthGrantOn.WikiItem, info.WikiId);
+            
             var groupLabels = (
                 from ug in _userGroupRepo.Existing
                 from utg in _userToGroupRepo.ExistingAndShowLabel
@@ -100,7 +109,7 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
             var resp = new WikiDisplayInfo(
-                info.WikiId, info.UserName, avtSrc, info.WikiSealed);
+                info.WikiId, info.UserName, avtSrc, info.WikiSealed, access);
             groupLabels.ForEach(l =>
             {
                 resp.UserGroupLabels.Add(new(l.Id, l.Name));
@@ -416,12 +425,15 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
         }
-        public class WikiDisplayInfo(int wikiId, string userName, string? userAvtSrc, bool @sealed)
+        public class WikiDisplayInfo(
+            int wikiId, string userName, string? userAvtSrc,
+            bool @sealed, bool currentUserAccess)
         {
             public int WikiId { get; set; } = wikiId;
             public string UserName { get; set; } = userName;
             public string? UserAvtSrc { get; set; } = userAvtSrc;
             public bool Sealed { get; set; } = @sealed;
+            public bool CurrentUserAccess { get; set; } = currentUserAccess;
             public List<UserGroupLabel> UserGroupLabels { get; set; } = [];
             public struct UserGroupLabel(int id, string name)
             {

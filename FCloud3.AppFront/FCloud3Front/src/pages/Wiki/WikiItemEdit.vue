@@ -358,7 +358,7 @@ onUnmounted(()=>{
             </table>
             <div :style="{maxWidth:'300px'}">
                 <Notice :type="'warn'" >
-                    修改链接名称将导致已分享的词条查看链接失效，请谨慎操作。<br/>
+                    修改链接名称将导致文中已写下的链接名和分享的查看链接失效，请谨慎操作。<br/>
                 </Notice>
             </div>
             <div style="text-align: center; margin-top: 20px;">
