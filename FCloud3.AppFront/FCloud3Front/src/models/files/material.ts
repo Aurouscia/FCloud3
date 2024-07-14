@@ -1,5 +1,7 @@
 import { IndexResult } from "@/components/Index"
 
+export const userDefaultAvatar = "/defaultAvatar.svg"
+
 export interface MaterialIndexItem{
     Id:number
     Name:string

@@ -33,7 +33,7 @@ namespace FCloud3.Services.WikiParsing
         UserRepo userRepo,
         UserGroupRepo userGroupRepo,
         UserToGroupRepo userToGroupRepo,
-        MaterialRepo materialRepo,
+        MaterialCaching materialCaching,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         IStorage storage,
@@ -50,7 +50,7 @@ namespace FCloud3.Services.WikiParsing
         private readonly UserRepo _userRepo = userRepo;
         private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
         private readonly UserToGroupRepo _userToGroupRepo = userToGroupRepo;
-        private readonly MaterialRepo _materialRepo = materialRepo;
+        private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
         private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
         private readonly IStorage _storage = storage;
@@ -61,17 +61,15 @@ namespace FCloud3.Services.WikiParsing
         {
             var info = (
                 from w in _wikiItemRepo.Existing
-                from u in _userRepo.Existing
-                from m in _materialRepo.Existing
+                from u in _userRepo.All
                 where w.UrlPathName == pathName
                 where w.OwnerUserId == u.Id
-                where u.AvatarMaterialId == m.Id
                 select new
                 {
                     WikiId = w.Id,
                     UserId = u.Id,
                     UserName = u.Name,
-                    UserAvtPath = m.StorePathName,
+                    UserAvtId = u.AvatarMaterialId,
                     WikiSealed = w.Sealed
                 }).FirstOrDefault();
             if(info is null)
@@ -92,8 +90,17 @@ namespace FCloud3.Services.WikiParsing
                     return yOwned - xOwned;
                 return string.Compare(x.Name, y.Name, StringComparison.InvariantCulture);
             });
+            string? avtSrc = null;
+            if (info.UserAvtId > 0)
+            {
+                avtSrc = _materialCaching.Get(info.UserAvtId)?.PathName;
+                if (avtSrc is not null)
+                {
+                    avtSrc = _storage.FullUrl(avtSrc);
+                }
+            }
             var resp = new WikiDisplayInfo(
-                info.WikiId, info.UserName, _storage.FullUrl(info.UserAvtPath ?? "??"), info.WikiSealed);
+                info.WikiId, info.UserName, avtSrc, info.WikiSealed);
             groupLabels.ForEach(l =>
             {
                 resp.UserGroupLabels.Add(new(l.Id, l.Name));
@@ -409,11 +416,11 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
         }
-        public class WikiDisplayInfo(int wikiId, string userName, string userAvtSrc, bool @sealed)
+        public class WikiDisplayInfo(int wikiId, string userName, string? userAvtSrc, bool @sealed)
         {
             public int WikiId { get; set; } = wikiId;
             public string UserName { get; set; } = userName;
-            public string UserAvtSrc { get; set; } = userAvtSrc;
+            public string? UserAvtSrc { get; set; } = userAvtSrc;
             public bool Sealed { get; set; } = @sealed;
             public List<UserGroupLabel> UserGroupLabels { get; set; } = [];
             public struct UserGroupLabel(int id, string name)

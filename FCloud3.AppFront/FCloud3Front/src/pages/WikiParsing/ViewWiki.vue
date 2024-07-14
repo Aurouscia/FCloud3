@@ -32,6 +32,7 @@ import LongPress from '@/components/LongPress.vue';
 import Footer from '@/components/Footer.vue';
 import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
+import { userDefaultAvatar } from '@/models/files/material';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -255,7 +256,7 @@ onUnmounted(()=>{
         </div>
         <div class="info" v-if="displayInfo">
             <div class="owner">
-                所有者<img :src="displayInfo.UserAvtSrc" class="smallAvatar"/>
+                所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" class="smallAvatar"/>
                 <span @click="jumpToUserCenter(displayInfo?.UserName||'??')">{{ displayInfo.UserName }}</span>
                 <div class="updateTime">更新于 {{ data.Update }}</div>
                 <div class="groupLabels">

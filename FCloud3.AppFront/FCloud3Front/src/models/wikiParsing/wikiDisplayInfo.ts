@@ -2,7 +2,7 @@ export interface WikiDisplayInfo
 {
     WikiId: number
     UserName: string
-    UserAvtSrc: string
+    UserAvtSrc?: string
     Sealed:boolean,
     UserGroupLabels:UserGroupLabel[]
 }
@@ -14,7 +14,7 @@ export interface UserGroupLabel{
 export const wikiDisplayInfoDefault: WikiDisplayInfo = {
     WikiId:0,
     UserName:'',
-    UserAvtSrc:'',
+    UserAvtSrc:undefined,
     Sealed: false,
     UserGroupLabels:[]
 }

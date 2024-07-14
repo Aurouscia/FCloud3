@@ -6,7 +6,6 @@ import { Api } from '@/utils/com/api';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import { injectApi, injectPop } from '@/provides';
 import { random } from 'lodash';
-import Notice from '@/components/Notice.vue';
 import Search from '@/components/Search.vue';
 
 const user = ref<User>();
@@ -114,9 +113,6 @@ onMounted(async()=>{
                     </td>
                 </tr>
             </table>
-            <Notice :type="'info'">
-                建议更改用户名/密码后立即重新登录一次，让浏览器记住新的用户名和密码
-            </Notice>
         </div>
         <h1>设置头像</h1>
         <div class="section">

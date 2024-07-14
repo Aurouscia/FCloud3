@@ -3,6 +3,7 @@ import { UserType } from "@/models/identities/user"
 import { Api } from "../com/api"
 import { ref } from "vue"
 import { getTimeStamp } from "../timeStamp"
+import { userDefaultAvatar } from "@/models/files/material"
 
 export interface IdentityInfo{
     Name:string
@@ -12,13 +13,12 @@ export interface IdentityInfo{
     AvtSrc: string
 }
 
-const defaultAvatar = "/defaultAvatar.svg"
 const defaultValue:IdentityInfo = {
     Name:"游客",
     Id:0,
     LeftHours:0,
     Type: UserType.Tourist,
-    AvtSrc: defaultAvatar
+    AvtSrc: userDefaultAvatar
 }
 const identityCacheExpireSec = 60*60
 export { defaultValue as defaultIdentity }
