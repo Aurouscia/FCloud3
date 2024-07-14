@@ -285,7 +285,7 @@ namespace FCloud3.Services.Files
             return true;
         }
 
-        public List<int>? MoveFilesIn(int distDirId, List<int> fileItemIds,out string? failMsg, out string? errmsg)
+        public List<int>? MoveFilesIn(int distDirId, List<int> fileItemIds, bool bypassAuth,out string? failMsg, out string? errmsg)
         {
             failMsg = null;
             if (fileItemIds.Count > 5)
@@ -294,7 +294,8 @@ namespace FCloud3.Services.Files
                 return null;
             }
             int originalCount = fileItemIds.Count;
-            fileItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.FileItem, x));
+            if(!bypassAuth)
+                fileItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.FileItem, x));
             if (originalCount > fileItemIds.Count)
                 failMsg = "无权移动该文件";
             if (distDirId < 0)
@@ -317,7 +318,7 @@ namespace FCloud3.Services.Files
             errmsg = null;
             return fileItemIds;
         }
-        public List<int>? MoveDirsIn(int distDirId, List<int> fileDirIds, out string? failMsg, out string? errmsg)
+        public List<int>? MoveDirsIn(int distDirId, List<int> fileDirIds, bool bypassAuth, out string? failMsg, out string? errmsg)
         {
             failMsg = null;
             var dist = _fileDirRepo.GetById(distDirId);
@@ -333,7 +334,8 @@ namespace FCloud3.Services.Files
                 return null;
             }
             int originalCount = fileDirIds.Count;
-            fileDirIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.Dir, x));
+            if(!bypassAuth)
+                fileDirIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.Dir, x));
             if (originalCount > fileDirIds.Count)
                 failMsg = "无权移动该目录";
 
@@ -374,7 +376,7 @@ namespace FCloud3.Services.Files
             transaction.Commit();
             return fileDirIds;
         }
-        public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds, out string? failMsg, out string? errmsg)
+        public List<int>? MoveWikisIn(int distDirId, List<int> wikiItemIds, bool bypassAuth, out string? failMsg, out string? errmsg)
         {
             failMsg = null;
             if (wikiItemIds.Count > 5)
@@ -383,7 +385,8 @@ namespace FCloud3.Services.Files
                 return null;
             }
             int originalCount = wikiItemIds.Count;
-            wikiItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.WikiItem, x));
+            if(!bypassAuth)
+                wikiItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.WikiItem, x));
             if (originalCount > wikiItemIds.Count)
                 failMsg = "无权移动该词条";
             if (wikiItemIds.Count > 0)
@@ -396,12 +399,12 @@ namespace FCloud3.Services.Files
         }
 
 
-        public FileDirPutInResult? MoveThingsIn(int dirId, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
+        public FileDirPutInResult? MoveThingsIn(int dirId, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, bool bypassAuth, out string? errmsg)
         {
             List<int>? chain = _fileDirRepo.GetChainIdsById(dirId);
-            return MoveThingsIn(chain, fileItemIds, fileDirIds, wikiItemIds, out errmsg);
+            return MoveThingsIn(chain, fileItemIds, fileDirIds, wikiItemIds, bypassAuth, out errmsg);
         }
-        private FileDirPutInResult? MoveThingsIn(List<int>? dirIdsChain, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, out string? errmsg)
+        private FileDirPutInResult? MoveThingsIn(List<int>? dirIdsChain, List<int>? fileItemIds, List<int>? fileDirIds, List<int>? wikiItemIds, bool bypassAuth, out string? errmsg)
         {
             errmsg = null;
             string? failMsg = null;
@@ -421,21 +424,21 @@ namespace FCloud3.Services.Files
                     errmsg = "检测到循环，请勿将文件夹移入自身或子级";
                     return null;
                 }
-                fileDirSuccess = MoveDirsIn(distDirId, fileDirIds, out failMsg, out errmsg);
+                fileDirSuccess = MoveDirsIn(distDirId, fileDirIds, bypassAuth, out failMsg, out errmsg);
                 if (errmsg is not null)
                     return null;
                 didSth = true;
             }
             if (fileItemIds is not null && fileItemIds.Count > 0)
             {
-                fileItemSuccess = MoveFilesIn(distDirId, fileItemIds, out failMsg, out errmsg);
+                fileItemSuccess = MoveFilesIn(distDirId, fileItemIds, bypassAuth, out failMsg, out errmsg);
                 if (errmsg is not null)
                     return null;
                 didSth = true;
             }
             if (wikiItemIds is not null && wikiItemIds.Count > 0)
             {
-                wikiItemSuccess = MoveWikisIn(distDirId, wikiItemIds, out failMsg, out errmsg);
+                wikiItemSuccess = MoveWikisIn(distDirId, wikiItemIds, bypassAuth, out failMsg, out errmsg);
                 if (errmsg is not null)
                     return null;
                 didSth = true;
@@ -457,10 +460,10 @@ namespace FCloud3.Services.Files
             };
             return resp;
         }
-        public bool MoveFileIn(int distDirId, int fileItemId, out string? errmsg)
+        public bool MoveFileIn(int distDirId, int fileItemId, bool bypassAuth, out string? errmsg)
         {
             var list = new List<int>() { fileItemId };
-            _ = MoveFilesIn(distDirId, list, out string? failMsg, out errmsg);
+            _ = MoveFilesIn(distDirId, list, bypassAuth, out string? failMsg, out errmsg);
             if (errmsg is null && failMsg is not null)
                 errmsg = failMsg;
             if (errmsg is not null)

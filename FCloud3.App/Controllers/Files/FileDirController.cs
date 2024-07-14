@@ -31,7 +31,7 @@ namespace FCloud3.App.Controllers.Files
 
         public IActionResult Index([FromBody]FileDirIndexRequest req)
         {
-            if (req is null || req.Query is null || req.Path is null)
+            if (req.Query is null || req.Path is null)
                 return BadRequest();
             var isAdmin = _httpUserInfoService.IsAdmin;
             var res = _fileDirService.GetContent(req.Query, req.Path, isAdmin, out string? errmsg);
@@ -61,8 +61,6 @@ namespace FCloud3.App.Controllers.Files
         [UserTypeRestricted]
         public IActionResult EditExe([FromBody]FileDirComModel req)
         {
-            if (req is null)
-                return BadRequest();
             if (!_fileDirService.UpdateInfo(req.Id, req.Name, req.UrlPathName, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
@@ -72,9 +70,10 @@ namespace FCloud3.App.Controllers.Files
         [UserTypeRestricted]
         public IActionResult PutInFile([FromBody] PutInFileRequest req)
         {
-            if(req is null) 
-                return BadRequest();
-            if (!_fileDirService.MoveFileIn(req.DirId, req.FileItemId, out string? errmsg))
+            var isAdminOrHigher = _httpUserInfoService.IsAdmin;
+            if (!_fileDirService.MoveFileIn(
+                    req.DirId, req.FileItemId, 
+                    bypassAuth: isAdminOrHigher, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
@@ -83,9 +82,10 @@ namespace FCloud3.App.Controllers.Files
         [UserTypeRestricted]
         public IActionResult PutInThings([FromBody] PutInThingsRequest req)
         {
-            if(req is null)
-                return BadRequest();
-            var res = _fileDirService.MoveThingsIn(req.DirId,req.FileItemIds,req.FileDirIds,req.WikiItemIds,out string? errmsg);
+            var isAdminOrHigher = _httpUserInfoService.IsAdmin;
+            var res = _fileDirService.MoveThingsIn(
+                req.DirId, req.FileItemIds, req.FileDirIds, req.WikiItemIds,
+                bypassAuth: isAdminOrHigher, out string? errmsg);
             if (res is null || errmsg is not null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);  
