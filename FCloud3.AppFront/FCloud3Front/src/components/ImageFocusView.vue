@@ -1,14 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 defineProps<{
     imgSrc:string,
+    desc?:string,
     close:()=>void
 }>()
+const howToSave = computed<string>(()=>{
+    const w = window.innerWidth;
+    if(w < 1300){
+        return "长按保存"
+    }else{
+        return "右键保存"
+    }
+})
 </script>
 
 <template>
 <div class="bg fixFill"></div>
 <div class="cont fixFill" @click="close">
     <img :src="imgSrc"/>
+    <div class="desc">{{ desc || imgSrc }}</div>
+    <div class="leaveNotice">{{ howToSave }} | 点击任意处离开</div>
 </div>
 </template>
 
@@ -24,9 +37,17 @@ defineProps<{
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap:10px
 }
 img{
     max-width: 90vw;
-    max-height: 90vh;
+    max-height: calc(100vh - 80px);
+}
+.desc{
+    color: white;
+}
+.leaveNotice{
+    color: #ccc;
+    font-size: small;
 }
 </style>

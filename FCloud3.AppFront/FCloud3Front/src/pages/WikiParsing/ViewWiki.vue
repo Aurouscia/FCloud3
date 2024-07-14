@@ -196,6 +196,7 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
 }
 
 const focusImg = ref<string>();
+const focusImgDesc = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
 
 
@@ -214,8 +215,9 @@ async function init(){
     await nextTick();
     clickFold = new TitleClickFold();
     titlesInContent = clickFold.listen(wikiViewArea.value);
-    imgClickJump = new ImageClickJump(src=>{
+    imgClickJump = new ImageClickJump((src, alt)=>{
         focusImg.value = src;
+        focusImgDesc.value = alt
     });
     imgClickJump.listen(wikiViewArea.value);
 
@@ -256,7 +258,7 @@ onUnmounted(()=>{
         </div>
         <div class="info" v-if="displayInfo">
             <div class="owner">
-                所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" class="smallAvatar"/>
+                所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" :alt="displayInfo.UserName+' 头像'" class="smallAvatar"/>
                 <span @click="jumpToUserCenter(displayInfo?.UserName||'??')">{{ displayInfo.UserName }}</span>
                 <div class="updateTime">更新于 {{ data.Update }}</div>
                 <div class="groupLabels">
@@ -287,7 +289,7 @@ onUnmounted(()=>{
             </div>
             <div v-if="p.ParaType==WikiParaType.File && p.Content">
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
-                    <img :src="p.Content"/>
+                    <img :src="p.Content" :alt="p.Title"/>
                     <div>{{ p.Title }}</div>
                 </div>
                 <div v-else class="filePara">
@@ -328,7 +330,8 @@ onUnmounted(()=>{
         <img :src="menuImg" alt="目录">
     </div>
 
-    <ImageFocusView v-if="focusImg" :img-src="focusImg" :close="()=>{focusImg=undefined}" ref="imgFocusViewElement">
+    <ImageFocusView v-if="focusImg" :img-src="focusImg" :desc="focusImgDesc" 
+        :close="()=>{focusImg=undefined;focusImgDesc=undefined}" ref="imgFocusViewElement">
     </ImageFocusView>
 </div>
 </template>

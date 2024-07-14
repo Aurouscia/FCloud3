@@ -2,9 +2,9 @@ export const imgClickJumpExcludeClassName = "noClickJumpImg"
 export const imgClickJumpRequireClassName = "clickJumpImg"
 
 export class ImageClickJump{
-    private srcOperation:(src:string)=>void
+    private srcOperation:(src:string, alt?:string)=>void
     private requireClassOnly:boolean
-    constructor(cb?:(e:string)=>void, requireClassOnly?:boolean){
+    constructor(cb?:typeof this.srcOperation, requireClassOnly?:boolean){
         if(cb){
             this.srcOperation = cb;
         }else{
@@ -35,7 +35,11 @@ export class ImageClickJump{
     private handlerBinded:(e:MouseEvent)=>void
     private handler(e:MouseEvent){
         if(e.target && 'src' in e.target && typeof(e.target.src)=='string'){
-            this.srcOperation(e.target.src)
+            let alt:undefined|string = undefined;
+            if('alt' in e.target && typeof(e.target.alt)=='string'){
+                alt = e.target.alt;
+            }
+            this.srcOperation(e.target.src, alt)
         }
     }
     private srcOperationDefault(src:string){
