@@ -73,6 +73,7 @@ function toggleFold(){
     display: flex;
     align-items: center;
     gap:5px;
+    cursor: pointer;
     img{
         object-fit: contain;
         height: 40px;
@@ -93,7 +94,6 @@ function toggleFold(){
             letter-spacing: 4px;
         }
     }
-    cursor: pointer;
 }
 
 .topbarParent{

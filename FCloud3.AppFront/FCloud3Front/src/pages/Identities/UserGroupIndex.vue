@@ -163,13 +163,13 @@ onUnmounted(()=>{
 $user-group-items-height: calc($body-height - 80px);
 
 h1{
-    button{
-        font-size: medium;
-    }
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-bottom: 5px;
+    button{
+        font-size: medium;
+    }
 }
 .acceptBtns button{
     margin-top: 5px;

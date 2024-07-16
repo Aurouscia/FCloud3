@@ -84,12 +84,12 @@ function clickHandler(item: TopbarModelItem){
         font-size: 18px;
         color: #888;
         border-radius: 4px;
+        margin: 4px;
+        padding: 10px;
         &:hover {
             color: #333;
             background-color: rgb(213, 213, 213);
         }
-        margin: 4px;
-        padding: 10px;
     }
 }
 </style>

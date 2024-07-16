@@ -15,11 +15,6 @@
         white-space: nowrap;
         position: relative;
         z-index: 100;
-        span{
-            font-size: 12px;
-            color: #666;
-            align-self:last baseline
-        }
         text-shadow:
             0px 3px 0px #eee,
             2px 2px 0px #eee,
@@ -28,7 +23,12 @@
             0px -3px 0px #eee,
             -2px -2px 0px #eee,
             -3px 0px 0px #eee,
-            -2px 2px 0px #eee
+            -2px 2px 0px #eee;
+        span{
+            font-size: 12px;
+            color: #666;
+            align-self:last baseline
+        }
     }
 
     .content {

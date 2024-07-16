@@ -415,6 +415,9 @@ onUnmounted(()=>{
     .owner,.owner>span{
         font-size: 16px;
         color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         img{
             margin: 0px 5px 0px 5px;
             vertical-align: bottom;
@@ -425,9 +428,6 @@ onUnmounted(()=>{
                 text-decoration: underline;
             }
         }
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
     .updateTime{
         margin-top: 6px;

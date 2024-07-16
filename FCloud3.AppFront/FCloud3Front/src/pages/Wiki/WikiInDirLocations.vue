@@ -69,13 +69,13 @@ onMounted(async()=>{
     color: #999
 }
 h1{
+    display: flex;
+    justify-content: space-between;
     button{
         font-size: medium;
         white-space: nowrap;
         flex-shrink: 1;
     }
-    display: flex;
-    justify-content: space-between;
 }
 .searching{
     margin: 10px;

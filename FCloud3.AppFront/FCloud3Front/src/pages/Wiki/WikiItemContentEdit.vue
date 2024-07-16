@@ -359,10 +359,10 @@ onUnmounted(()=>{
     .btns{
         button.off{
             background-color: #999;
+            transition: 0.2s;
             &:hover{
                 background-color: #666;
             }
-            transition: 0.2s;
         }
         button.paraMode{
             background-color: cadetblue;
@@ -454,7 +454,6 @@ onUnmounted(()=>{
     right: 0px;
     height: 24px;
     z-index: 10;
-
     button {
         height: unset;
         padding: 2px;

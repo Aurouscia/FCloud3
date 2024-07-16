@@ -123,13 +123,13 @@ onUnmounted(()=>{
     background-color: #eee;
     margin-bottom: 10px;
     padding: 10px;
-    &:hover{
-        background-color: #e3e3e3;
-    }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px
+    gap: 10px;
+    &:hover{
+        background-color: #e3e3e3;
+    }
 }
 @media screen and (max-width: 600px) {
     .n{

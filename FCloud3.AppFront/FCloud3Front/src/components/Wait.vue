@@ -58,11 +58,11 @@ defineExpose({
             transition: 0.5s;
             -webkit-animation: spin 2s cubic-bezier(0.9, 0.1, 0.1, 0.9) infinite;
             animation: spin 2s cubic-bezier(0.9, 0.1, 0.1, 0.9) infinite;
+            top: -200px; 
             @keyframes spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
             }
-            top: -200px; 
         }
     }
 }

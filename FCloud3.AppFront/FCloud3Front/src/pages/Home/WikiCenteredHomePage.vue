@@ -88,14 +88,14 @@ onMounted(async()=>{
         cursor: pointer;
         transition: 0.5s;
         padding: 7px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         &:hover{
             font-weight: bold;
             text-decoration: underline;
             background-color: #eee;
         }
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
     .listTitle{
         color: #aaa;

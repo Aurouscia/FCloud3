@@ -231,13 +231,13 @@ onUnmounted(()=>{
     position: relative;
 }
 .search.compact{
+    width: 210px;
     input{
         width: 170px;
     }
     .cand{
         width: 150px;
     }
-    width: 210px;
 }
 
 .searchOuter{
