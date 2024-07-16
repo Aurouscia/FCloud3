@@ -59,7 +59,7 @@ const api = injectApi();
 <div class="contentSearch">
     <div class="write">
         <input v-model="str" maxlength="32" placeholder="搜索正文内容" @keydown="inputKeydownHandler"/>
-        <button @click="search">搜素</button>    
+        <button @click="search">搜索</button>    
     </div>
     <span v-if="!data" class="hint">暂不支持直接跳转到位置，请在词条页面使用浏览器的页面内搜素功能</span>
     <div class="result" v-if="data">

@@ -85,13 +85,15 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 </script>
 
 <template>
-<div v-if="tableInfo && loadComplete" class="freeTableEdit">
+<div v-if="tableInfo && loadComplete" class="freeTableEditPage">
     <AuTableEditor v-if="tableData" :table-data="tableData" @save="editContent" @changed="preventLeaving">
     </AuTableEditor>
     <img class="leaveBtn" v-if="!preventingLeaving" :src="leaveImg" @click="leave"/>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
-    <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称(必填)"/>
-    <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链接</button>
+    <div class="additional">
+        <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链</button>
+        <input class="name" v-model="tableInfo.Name" @blur="editName" placeholder="表格名称"/>
+    </div>
     <SideBar ref="titleContainSidebar">
         <WikiTitleContain :type="WikiTitleContainType.FreeTable" :object-id="tableInfo.Id" :get-content="getContent">
         </WikiTitleContain>
@@ -127,25 +129,32 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     right: 5px;
     z-index: 19900;
 }
-.titleContainBtn{
+.additional{
     position: absolute;
     top: 1px;
+    right: 35px;
+    display: flex;
+    align-items: center;
+    gap:1px;
+}
+.titleContainBtn{
     padding: 3px;
-    right: 140px;
+    height: 30px;
     z-index: 900;
 }
 .name{
-    position: absolute;
-    top:1px;
-    right: 30px;
+    margin: 0px;
     width: 100px;
     z-index: 900;
     border-radius: 5px;
 }
 </style>
 <style>
-    .tableEditor .control{
-        height: 38px;
-        box-sizing: border-box;
+    .freeTableEditPage .ateControl>div:first-child{
+        max-width: calc(100% - 170px);
+    }
+    .freeTableEditPage .ateControl>div:last-child{
+        margin-top: 2px;
+        align-self: flex-start;
     }
 </style>
