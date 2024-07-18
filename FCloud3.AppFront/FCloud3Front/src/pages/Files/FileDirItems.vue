@@ -9,6 +9,7 @@ import { Api } from '@/utils/com/api';
 import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
+import { fileDownloadLink } from '@/utils/com/api';
 
 const props = defineProps<{
     dirId:number,
@@ -59,9 +60,6 @@ function editFile(f:FileDirItem){
         }
     });
 }
-function downloadHref(fileId:number){
-    return import.meta.env.VITE_BASEURL + '/api/FileItem/Download?id=' + fileId
-}
 
 let editPanel: Ref<InstanceType<typeof FileItemEdit>>
 onMounted(()=>{
@@ -101,7 +99,7 @@ const emit = defineEmits<{
             <Functions x-align="left" y-align="up" :entry-size="20">
                 <button class="minor" @click="toClipBoard($event,item,'fileItem')">移动</button>
                 <button @click="editFile(item)">设置</button>
-                <a :href="downloadHref(item.Id)" download target="_blank" class="downloadBtn">下载</a>
+                <a :href="fileDownloadLink(item.Id)" download target="_blank" class="downloadBtn">下载</a>
             </Functions>
         </div>
         <div class="size">

@@ -41,10 +41,13 @@ namespace FCloud3.Services.Files
                 errmsg = "寻找指定文件的文件夹路径时出错";
                 return null;
             }
+            var friendlyPath = _fileDirRepo.GetFriendlyPathById(item.InDir);
             FileItemDetail d = new()
             {
                 ItemInfo = item,
+                FullUrl = _storage.FullUrl(item.StorePathName??"??"),
                 DirPath = path,
+                DirFriendlyPath = friendlyPath
             };
             errmsg = null;
             return d;
@@ -230,7 +233,9 @@ namespace FCloud3.Services.Files
         public class FileItemDetail
         {
             public FileItem? ItemInfo { get; set; }
+            public string? FullUrl { get; set; }
             public List<string>? DirPath { get; set; }
+            public List<string>? DirFriendlyPath { get; set; }
         }
     }
 }

@@ -10,7 +10,7 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 const props = defineProps<{
     user?: number
 }>()
-const { jumpToDirFromIdRoute } = useFilesRoutesJump()
+const { jumpToDirFromIdRoute, jumpToViewFileItemRoute } = useFilesRoutesJump()
 const { jumpToViewWikiFromIdRoute } = useWikiParsingRoutesJump()
 const { jumpToUserCenterFromIdRoute } = useIdentityRoutesJump();
 const api = injectApi();
@@ -49,6 +49,8 @@ onMounted(async()=>{
                 :to="jumpToDirFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
             <RouterLink v-else-if="r.TargetType==OpRecordTargetType.User"
                 :to="jumpToUserCenterFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            <RouterLink v-else-if="r.TargetType==OpRecordTargetType.FileItem"
+                :to="jumpToViewFileItemRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
             <div v-else>{{ r.Content }}</div>
         </div>
         <div class="t">{{ r.Time }}</div>

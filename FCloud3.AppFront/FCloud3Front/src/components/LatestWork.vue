@@ -5,6 +5,7 @@ import { injectApi } from '../provides';
 import { getFileIconStyle, getFileExt } from '../utils/fileUtils';
 import { useWikiParsingRoutesJump } from '../pages/WikiParsing/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
+import { useFilesRoutesJump } from '@/pages/Files/routes/routesJump';
 
 const props = defineProps<{
     uid?: number,
@@ -13,21 +14,15 @@ const props = defineProps<{
 const api = injectApi();
 const list = ref<LatestWorkViewItem[]>([])
 const loaded = ref(false);
-const { jumpToViewWiki } = useWikiParsingRoutesJump();
-const { jumpToUserCenter } = useIdentityRoutesJump();
+const { jumpToViewWikiRoute } = useWikiParsingRoutesJump();
+const { jumpToUserCenterRoute } = useIdentityRoutesJump();
+const { jumpToViewFileItemRoute } = useFilesRoutesJump();
 
 async function load(){
     const resp = await api.etc.latestWork.get(props.uid || -1)
     if(resp){
         loaded.value = true;
         list.value = resp;
-    }
-}
-function jumpTo(w:LatestWorkViewItem){
-    if(w.Type == LatestWorkType.Wiki){
-        jumpToViewWiki(w.JumpParam);
-    }else if(w.Type == LatestWorkType.File){
-        location.href = w.JumpParam
     }
 }
 
@@ -39,13 +34,18 @@ onMounted(async()=>{
 <template>
 <div class="latests" :class="{canWrap:!noWrap}">
     <div v-for="i in list" class="latest">
-        <div class="t" @click="jumpTo(i)">
+        <div class="t">
             <div v-if="i.Type==LatestWorkType.Wiki" class="wikiIcon">W</div>
             <div v-else-if="i.Type==LatestWorkType.File" class="icon" :style="getFileIconStyle(i.Title)">{{ getFileExt(i.Title) }}</div>
-            <div class="tt">{{ i.Title }}</div>
+            <div class="tt">
+                <RouterLink v-if="i.Type == LatestWorkType.Wiki" :to="jumpToViewWikiRoute(i.JumpParam)" target="_blank">
+                    {{ i.Title }}</RouterLink>
+                <RouterLink v-else-if="i.Type == LatestWorkType.File" :to="jumpToViewFileItemRoute(i.ObjId)" target="_blank">
+                    {{ i.Title }}</RouterLink>
+            </div>
         </div>
         <div class="right">
-            <div class="u" @click="jumpToUserCenter(i.UserName)">{{ i.UserName }}</div>
+            <RouterLink class="u" :to="jumpToUserCenterRoute(i.UserName)">{{ i.UserName }}</RouterLink>
             <div class="time">{{ i.Time }}</div>
         </div>
     </div>
@@ -62,9 +62,7 @@ onMounted(async()=>{
     cursor: pointer;
     word-break: break-all;
     min-width: 30px;
-    &:hover{
-        text-decoration: underline;
-    }
+    color:black
 }
 .t{
     display: flex;
@@ -74,8 +72,8 @@ onMounted(async()=>{
 }
 .tt{
     cursor: pointer;
-    &:hover{
-        text-decoration: underline;
+    a{
+        color: black;
     }
 }
 .time{

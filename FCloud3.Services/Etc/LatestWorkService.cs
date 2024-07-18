@@ -33,6 +33,7 @@ namespace FCloud3.Services.Etc
                     type: LatestWorkType.Wiki, 
                     title: w.Title ?? "??",
                     jumpParam: w.UrlPathName ?? "??", 
+                    objId: w.Id,
                     userId: w.OwnerUserId,
                     userName: uname(w.OwnerUserId),
                     time: w.Updated));
@@ -42,7 +43,8 @@ namespace FCloud3.Services.Etc
                 res.Add(new(
                     type: LatestWorkType.File,
                     title: f.DisplayName ?? "??",
-                    jumpParam: _storage.FullUrl(f.StorePathName??"??"),
+                    jumpParam: "",
+                    objId: f.Id,
                     userId: f.CreatorUserId,
                     userName: uname(f.CreatorUserId),
                     time: f.Created));
@@ -55,6 +57,7 @@ namespace FCloud3.Services.Etc
             LatestWorkType type,
             string title,
             string jumpParam,
+            int objId,
             int userId,
             string userName,
             DateTime time)
@@ -62,6 +65,7 @@ namespace FCloud3.Services.Etc
             public LatestWorkType Type { get; set; } = type;
             public string Title { get; set; } = title;
             public string JumpParam { get; set; } = jumpParam;
+            public int ObjId { get; set; } = objId;
             public int UserId { get; set; } = userId;
             public string UserName { get; set; } = userName;
             public string Time { get; set; } = time.ToString("MM-dd HH:mm");

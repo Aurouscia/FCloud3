@@ -1,4 +1,7 @@
 import { CSSProperties } from "vue";
+import { useFilesRoutesJump } from "@/pages/Files/routes/routesJump";
+
+const { jumpToDir } = useFilesRoutesJump();
 
 export type FileType = "image"|"video"|"audio"|"text"|"unknown";
 
@@ -89,4 +92,19 @@ export function getFileIconStyle(fileName:string):CSSProperties{
 
 export function canDisplayAsImage(fileName:string, byteCount:number){
     return isImageFile(fileName) && byteCount < 1024 * 1024
+}
+
+export function fileLocationShow(path:string[]){
+    if(!path || path.length==0){
+        return "无归属"
+    }
+    return path.join('/')
+}
+export function jumpToLocation(path?:string[]){
+    if(path){
+        if(path.length>0)
+            jumpToDir(path)
+        else
+            jumpToDir(['homeless-items'])
+    }
 }

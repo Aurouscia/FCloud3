@@ -8,7 +8,9 @@ export interface FileItem{
 }
 export interface FileItemDetail{
     ItemInfo:FileItem
+    FullUrl:string
     DirPath:string[]
+    DirFriendlyPath:string[]
 }
 
 export interface StagingFile{

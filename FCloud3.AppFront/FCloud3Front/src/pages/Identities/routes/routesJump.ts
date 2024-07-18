@@ -5,6 +5,9 @@ export function useIdentityRoutesJump(){
     const jumpToUserCenter = (username:string) => {
         router.push({name:'userCenter', params:{username}})
     }
+    const jumpToUserCenterRoute = (username:string) => {
+        return {name:'userCenter', params:{username}}
+    }
     const jumpToUserCenterFromIdRoute = (uid:number) => {
         return {name:'userCenterFromId', params:{uid}}
     }
@@ -23,6 +26,6 @@ export function useIdentityRoutesJump(){
     const jumpToUserGroup = (id:number)=>{
         router.push({name:'userGroup',params:{id}})
     }
-    return { jumpToLogin, jumpToUserCenter, jumpToUserCenterFromIdRoute,
+    return { jumpToLogin, jumpToUserCenter, jumpToUserCenterRoute, jumpToUserCenterFromIdRoute,
         jumpToSelfUserCenter, jumpToRegister, jumpToGlobalAuthGrants, jumpToUserGroup }
 }

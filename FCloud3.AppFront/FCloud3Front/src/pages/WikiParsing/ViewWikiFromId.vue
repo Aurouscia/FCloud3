@@ -27,4 +27,5 @@ else{
 <template>
     <h1 v-if="!failed">正在跳转</h1>
     <h1 v-else>跳转失败</h1>
+    <div v-if="failed">可能原因：操作记录在旧版记录，无法自动跳转</div>
 </template>

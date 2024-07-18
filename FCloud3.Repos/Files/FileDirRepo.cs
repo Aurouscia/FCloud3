@@ -36,6 +36,17 @@ namespace FCloud3.Repos.Files
                 return list.ToDictionary(x => x.Id, x => x.UrlPathName ?? "???");
             });
         }
+        public List<string>? GetFriendlyPathById(int id)
+        {
+            var chain = _fileDirCaching.GetChain(id);
+            if (chain is null)
+                return null;
+            return GetRangeByIdsOrdered<string>(chain, dirs =>
+            {
+                var list = dirs.Select(x => new { x.Id, x.Name }).ToList();
+                return list.ToDictionary(x => x.Id, x => x.Name ?? "???");
+            });
+        }
         public List<(int id, List<string> nameChain)> GetNameChainsByIds(List<int> ids)
         {
             List<(int id, List<string>)> res = [];

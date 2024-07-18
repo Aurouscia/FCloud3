@@ -3,6 +3,7 @@ import { addToRouter } from "@/utils/routerAdd";
 import FileDirIndex from '../FileDirIndex.vue'
 import Material from "../Material.vue";
 import FileDirFromId from "../FileDirFromId.vue";
+import FileItemView from "../FileItemView.vue";
 
 export function addFiles(r:Router){
     addToRouter(r,routes);
@@ -25,5 +26,11 @@ const routes = [
         name: 'materials',
         path: '/materials',
         component: Material,
+    },
+    {
+        name: 'fileItemView',
+        path: '/viewFileItem/:fileItemId',
+        props: true,
+        component: FileItemView
     }
 ]

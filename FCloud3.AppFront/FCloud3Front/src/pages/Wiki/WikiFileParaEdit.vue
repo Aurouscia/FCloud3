@@ -5,10 +5,10 @@ import Search from '@/components/Search.vue';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import { Api } from '@/utils/com/api';
 import { FileItemDetail } from '@/models/files/fileItem';
-import _ from 'lodash'
-import { useRouter } from 'vue-router';
+import { fileLocationShow } from '@/utils/fileUtils';
+import { useFilesRoutesJump } from '../Files/routes/routesJump';
 
-const router = useRouter();
+const { jumpToDir } = useFilesRoutesJump()
 const props = defineProps<{
     paraId?:number,
     fileId?:number,
@@ -38,11 +38,13 @@ async function loadDetail(fileId?:number){
     });
 }
 function jumpToLocation(){
-    if(detail.value && detail.value.DirPath){
-        router.push({name:'files', params:{path:detail.value.DirPath}})
+    if(detail.value?.DirPath){
+        if(detail.value.DirPath.length>0)
+            jumpToDir(detail.value.DirPath)
+        else
+            jumpToDir(['homeless-items'])
     }
 }
-
 var api:Api;
 onBeforeMount(()=>{
     //如果mount之后再inject会造成Search组件认为api是undefined
@@ -59,7 +61,7 @@ const emit = defineEmits<{
         <h1>文件段落设置</h1>
         <div class="detail" v-if="detail">
             文件：<span class="detailValue">{{ detail.ItemInfo.DisplayName }}</span><br/>
-            路径：<span class="detailValue path" @click="jumpToLocation">{{ _.join(detail.DirPath, '/')}}</span><br/>
+            路径：<span class="detailValue path" @click="jumpToLocation">{{ fileLocationShow(detail.DirFriendlyPath) }}</span><br/>
         </div>
         <SwitchingTabs :texts="['选择已有','新上传']">
             <div>

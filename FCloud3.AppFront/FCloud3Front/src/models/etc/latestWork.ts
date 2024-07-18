@@ -3,6 +3,7 @@ export interface LatestWorkViewItem
     Type: LatestWorkType
     Title: string
     JumpParam: string
+    ObjId: number
     UserId: number
     UserName: string
     Time: string

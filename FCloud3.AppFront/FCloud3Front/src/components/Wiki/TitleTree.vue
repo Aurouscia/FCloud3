@@ -84,6 +84,7 @@ defineExpose({
     font-size: 14px;
     display: flex;
     align-items: center;
+    word-break: break-all;
 }
 .titleTreeNodeText:hover{
     color: black;
