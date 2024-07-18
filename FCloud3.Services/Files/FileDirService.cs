@@ -179,7 +179,7 @@ namespace FCloud3.Services.Files
             var wikiData = new IndexResult<FileDirIndexResult.FileDirWiki>(wikiList, 0, 0, 0);
             var fileData = new IndexResult<FileDirIndexResult.FileDirItem>(fileList, 0, 0, 0);
 
-            //subDirsData会被用来显示页数
+            //subDirs会被用来显示页数
             subDirData.PageCount = pageCount;
             subDirData.TotalCount = totalCount;
             subDirData.PageIdx = pageIdx;
@@ -245,6 +245,11 @@ namespace FCloud3.Services.Files
                 FriendlyPath = new List<string> { $"无归属文件(属于 {userName})" },
                 ThisDirId = -1
             };
+            
+            //subDirs会被用来显示页数
+            res.SubDirs.PageCount = itemsData.PageCount;
+            res.SubDirs.PageIdx = itemsData.PageIdx;
+            res.SubDirs.TotalCount = itemsData.TotalCount;
             errmsg = null;
             return res;
         }
