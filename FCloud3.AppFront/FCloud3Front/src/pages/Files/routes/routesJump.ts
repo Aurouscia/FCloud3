@@ -6,6 +6,9 @@ export function useFilesRoutesJump(){
     const jumpToDirFromId = (id:number)=>{
         router.push({name:'filesFromId', params:{id}})
     }
+    const jumpToDirFromIdRoute = (id:number)=>{
+        return {name:'filesFromId', params:{id}}
+    }
     const jumpToRootDir = (urlPathName?:string)=>{
         router.push({name:'files',params:{path:urlPathName}})
     }
@@ -13,5 +16,5 @@ export function useFilesRoutesJump(){
         const joined = path.join('/');
         router.push("/d/"+joined)
     }
-    return { jumpToDirFromId, jumpToRootDir, jumpToDir }
+    return { jumpToDirFromId, jumpToDirFromIdRoute, jumpToRootDir, jumpToDir }
 }

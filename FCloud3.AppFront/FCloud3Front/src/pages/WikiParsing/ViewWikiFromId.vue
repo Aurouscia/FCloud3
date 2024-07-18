@@ -5,15 +5,15 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter()
 const props = defineProps<{
-    id:string
+    wikiId:string
 }>();
-const id = parseInt(props.id);
+const id = parseInt(props.wikiId);
 const api = injectApi();
 const failed = ref(false);
 if(!isNaN(id) && id>0){
-    api.files.fileDir.getPathById(id).then(p=>{
-        if(p){
-            router.replace(`/d/${p.join('/')}`)
+    api.wiki.wikiItem.getInfoById(id).then(w=>{
+        if(w){
+            router.replace(`/w/${w.UrlPathName}`)
         }else{
             failed.value = true
         }

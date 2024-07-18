@@ -5,15 +5,15 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter()
 const props = defineProps<{
-    id:string
+    uid:string
 }>();
-const id = parseInt(props.id);
+const id = parseInt(props.uid);
 const api = injectApi();
 const failed = ref(false);
 if(!isNaN(id) && id>0){
-    api.files.fileDir.getPathById(id).then(p=>{
-        if(p){
-            router.replace(`/d/${p.join('/')}`)
+    api.identites.user.getInfo(id).then(u=>{
+        if(u){
+            router.replace(`/u/${u.Name}`)
         }else{
             failed.value = true
         }

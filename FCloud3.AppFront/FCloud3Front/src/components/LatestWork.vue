@@ -60,6 +60,8 @@ onMounted(async()=>{
 .u{
     font-weight: bold;
     cursor: pointer;
+    word-break: break-all;
+    min-width: 30px;
     &:hover{
         text-decoration: underline;
     }
@@ -68,6 +70,7 @@ onMounted(async()=>{
     display: flex;
     align-items: center;
     gap: 5px;
+    word-break: break-all;
 }
 .tt{
     cursor: pointer;
@@ -77,6 +80,7 @@ onMounted(async()=>{
 }
 .time{
     color: #888;
+    white-space: nowrap;
 }
 .latest{
     background-color: #eee;

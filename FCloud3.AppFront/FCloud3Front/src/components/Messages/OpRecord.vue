@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable } from '@/models/messages/opRecord';
+import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable, OpRecordTargetType } from '@/models/messages/opRecord';
 import { injectApi, injectPop } from '@/provides';
 import Loading from '../Loading.vue';
+import { useFilesRoutesJump } from '@/pages/Files/routes/routesJump';
+import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const props = defineProps<{
     user?: number
 }>()
+const { jumpToDirFromIdRoute } = useFilesRoutesJump()
+const { jumpToViewWikiFromIdRoute } = useWikiParsingRoutesJump()
+const { jumpToUserCenterFromIdRoute } = useIdentityRoutesJump();
 const api = injectApi();
 const records = ref<OpRecordViewModel[]>([])
 const loaded = ref(false)
@@ -36,7 +42,15 @@ onMounted(async()=>{
             </div>
             <div class="tarType">{{ TargetTypeReadable(r.TargetType) }}</div>
         </div>
-        <div class="c">{{ r.Content }}</div>
+        <div class="c">
+            <RouterLink v-if="r.TargetType==OpRecordTargetType.WikiItem" 
+                :to="jumpToViewWikiFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            <RouterLink v-else-if="r.TargetType==OpRecordTargetType.FileDir" 
+                :to="jumpToDirFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            <RouterLink v-else-if="r.TargetType==OpRecordTargetType.User"
+                :to="jumpToUserCenterFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            <div v-else>{{ r.Content }}</div>
+        </div>
         <div class="t">{{ r.Time }}</div>
     </div>
     <div class="more" @click="load(true)">加载更多</div>
@@ -69,6 +83,9 @@ onMounted(async()=>{
     background-color: #ddd;
     margin: 5px 0px 5px 0px;
     padding: 5px;
+    a{
+        color:black
+    }
 }
 .more{
     text-align: center;

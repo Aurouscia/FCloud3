@@ -3,6 +3,7 @@ import { addToRouter } from "@/utils/routerAdd";
 import WikiTemplateList from "../WikiTemplateList.vue"
 import WikiTemplateEditor from "../WikiTemplateEditor.vue";
 import ViewWiki from "../ViewWiki.vue";
+import ViewWikiFromId from "../ViewWikiFromId.vue";
 
 export function addWikiParsing(r:Router){
     addToRouter(r,routes);
@@ -14,6 +15,12 @@ const routes = [
         component: ViewWiki,
         props:true,
         name:"viewWiki",
+    },
+    {
+        path:"/wFromId/:wikiId",
+        component: ViewWikiFromId,
+        props:true,
+        name:"viewWikiFromId",
     },
     {
         path:"/w/:wikiPathName/:viewCmt",
