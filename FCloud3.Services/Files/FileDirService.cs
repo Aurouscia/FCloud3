@@ -281,7 +281,7 @@ namespace FCloud3.Services.Files
                 return false;
 
             if (!string.IsNullOrEmpty(record))
-                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, record);
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, id, 0, record);
             return true;
         }
 
@@ -499,18 +499,19 @@ namespace FCloud3.Services.Files
             {
                 if (newDir.RootDir == 0)
                 {
+                    //如果“根文件夹”为0说明自己就是根文件夹，应把RootDir设为自己的id
                     newDir.RootDir = created;
                     _fileDirRepo.TryEdit(newDir, out _);
                 }
-                string parentName = parent?.Name ?? "根文件夹";
+                string parentName = parent?.Name ?? "根目录";
                 _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
-                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir,
-                    $"在 {parentName} 中新建 {name} ({urlPathName})");
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir, created, parentDir,
+                    $"在 {parentName} 中新建目录 {name} ({urlPathName})");
                 return true;
             }
             return false;
         }
-        public bool Delete(int dirId,out string? errmsg)
+        public bool Delete(int dirId, out string? errmsg)
         {
             errmsg = null;
             var item = _fileDirRepo.GetById(dirId);
@@ -542,7 +543,12 @@ namespace FCloud3.Services.Files
             }
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
-                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, $" {item.Name} ");
+                string? parentName = null;
+                if (item.ParentDir > 0)
+                    parentName = _fileDirRepo.GetqById(item.ParentDir).Select(x => x.Name).FirstOrDefault();
+                parentName ??= "根目录";
+                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileDir, dirId, 0, 
+                    $"从 {parentName} 中删除目录 {item.Name} ({item.UrlPathName})");
                 return true;
             }
             return false;

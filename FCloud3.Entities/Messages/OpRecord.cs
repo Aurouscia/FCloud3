@@ -12,6 +12,14 @@ namespace FCloud3.Entities.Messages
         public string? Content { get; set; }
         public OpRecordOpType OpType { get; set; }
         public OpRecordTargetType TargetType { get; set; }
+        /// <summary>
+        /// 主Id（例如“为目录加入词条”的目录Id），对应当前操作目标（TargetType）
+        /// </summary>
+        public int ObjA { get; set; }
+        /// <summary>
+        /// 副Id（例如“为目录加入词条”的词条Id）
+        /// </summary>
+        public int ObjB { get; set; }
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }

@@ -119,7 +119,8 @@ namespace FCloud3.Services.Files
             var createdId = _fileItemRepo.TryAddAndGetId(f, out errmsg);
             if(createdId > 0)
             {
-                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileItem, $"{displayName}");
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileItem, createdId, 0,
+                    $"{displayName} ({storePathName})");
                 return createdId;
             }
             return 0;

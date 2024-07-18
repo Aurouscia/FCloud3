@@ -448,6 +448,12 @@ namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("ObjA")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ObjB")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("OpType")
                         .HasColumnType("INTEGER");
 

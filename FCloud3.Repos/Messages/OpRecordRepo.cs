@@ -15,13 +15,15 @@ namespace FCloud3.Repos.Messages
         {
         }
 
-        public void Record(OpRecordOpType opType, OpRecordTargetType targetType, string? content = null)
+        public void Record(OpRecordOpType opType, OpRecordTargetType targetType, int objA, int objB, string? content = null)
         {
             OpRecord r = new()
             {
                 OpType = opType,
                 TargetType = targetType,
                 Content = content,
+                ObjA = objA,
+                ObjB = objB
             };
             _ = TryAdd(r, out _);
         }

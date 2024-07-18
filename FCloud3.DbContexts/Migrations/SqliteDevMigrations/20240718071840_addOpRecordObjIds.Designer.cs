@@ -3,16 +3,19 @@ using System;
 using FCloud3.DbContexts.DbSpecific;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace FCloud3.DbContexts.Migrations.SqliteMigrations
+namespace FCloud3.DbContexts.Migrations.SqliteDevMigrations
 {
-    [DbContext(typeof(FCloudSqliteContext))]
-    partial class FCloudSqliteContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(FCloudSqliteDevContext))]
+    [Migration("20240718071840_addOpRecordObjIds")]
+    partial class addOpRecordObjIds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");

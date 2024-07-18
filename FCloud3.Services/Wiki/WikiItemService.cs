@@ -217,9 +217,9 @@ namespace FCloud3.Services.Wiki
             if (success)
             {
                 SetWikiUpdated(wikiId);
-                var name = _wikiCaching.Get(wikiId)?.Title;
-                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, 
-                    $"为 {name} 插入了新 {WikiParaTypes.Readable(type)} 段落");
+                var w = _wikiCaching.Get(wikiId);
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, newlyCreatedParaId,
+                    $"为 {w?.Title} ({w?.UrlPathName}) 在第 {afterOrder+1} 段后 插入了新 {WikiParaTypes.Readable(type)} 段落");
                 return newlyCreatedParaId;
             }
             else
@@ -234,6 +234,7 @@ namespace FCloud3.Services.Wiki
                 errmsg = "数据不一致，请刷新页面后重试";
                 return false;
             }
+            List<int> orderRecord = [];
             List<WikiPara> orderedParas = new(itsParas.Count);
             foreach (int id in orderedParaIds)
             {
@@ -244,6 +245,7 @@ namespace FCloud3.Services.Wiki
                     return false;
                 }
                 orderedParas.Add(p);
+                orderRecord.Add(p.Order + 1);
             }
             orderedParas.ResetOrder();
             if (!_paraRepo.TryEditRange(orderedParas, out errmsg))
@@ -251,8 +253,9 @@ namespace FCloud3.Services.Wiki
 
             SetWikiUpdated(wikiId);
             var name = _wikiCaching.Get(wikiId)?.Title;
-            _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
-                $"为 {name} 调整段落顺序");
+            var orderRecordStr = string.Join('-', orderRecord);
+            _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, 0,
+                $"为 {name} 调整段落顺序为 {orderRecordStr}");
             return true;
         }
         public bool RemovePara(int id, int paraId, out string? errmsg)
@@ -284,8 +287,8 @@ namespace FCloud3.Services.Wiki
             {
                 SetWikiUpdated(id);
                 var name = _wikiCaching.Get(id)?.Title;
-                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem,
-                    $"从 {name} 移除了段落");
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, paraId,
+                    $"从 {name} 移除了第 {target.Order+1} 个段落({WikiParaTypes.Readable(target.Type)})");
             }
             return success;
         }
@@ -307,7 +310,7 @@ namespace FCloud3.Services.Wiki
                     var xn = x.nameChain[i];
                     var yn = y.nameChain[i];
                     if (xn != yn)
-                        return string.Compare(xn, yn);
+                        return string.Compare(xn, yn, StringComparison.CurrentCulture);
                 }
                 return x.nameChain.Count - y.nameChain.Count;
             });
@@ -325,17 +328,25 @@ namespace FCloud3.Services.Wiki
         }
         public bool CreateInDir(string title,string urlPathName,int dirId, out string? errmsg)
         {
+            var dir = _fileDirRepo.GetById(dirId);
+            if (dir is null)
+            {
+                errmsg = "找不到指定目录";
+                return false;
+            }
             var newWiki = new WikiItem()
             {
                 Title = title,
                 UrlPathName = urlPathName,
             };
-            int id = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
-            if (id > 0)
+            int createdWikiId = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
+            if (createdWikiId > 0)
             {
-                if(_wikiToDirRepo.AddWikisToDir([id], dirId, out errmsg))
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, createdWikiId, 0, $"{title} ({urlPathName})");
+                if(_wikiToDirRepo.AddWikisToDir([createdWikiId], dirId, out errmsg))
                 {
-                    _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
+                    _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, dirId, createdWikiId,
+                        $"将词条 {title} ({urlPathName}) 移入目录 {dir.Name}");
                     return true;
                 }
             }
@@ -348,22 +359,27 @@ namespace FCloud3.Services.Wiki
                 Title = title,
                 UrlPathName = urlPathName,
             };
-            var s = _wikiRepo.TryAdd(newWiki, out errmsg);
-            if (s)
+            var createdWikiId = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
+            if (createdWikiId > 0)
             {
-                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, $" {title} ({urlPathName})");
+                _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, createdWikiId, 0, $"{title} ({urlPathName})");
                 return true;
             }
             return false;
         }
         public bool RemoveFromDir(int wikiId, int dirId, out string? errmsg)
         {
+            var dir = _fileDirRepo.GetById(dirId);
+            if (dir is null)
+            {
+                errmsg = "找不到指定目录";
+                return false;
+            }
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
-                var d = _fileDirRepo.GetqById(dirId).Select(x=>x.Name).FirstOrDefault();
                 var w = _wikiCaching.Get(wikiId);
-                if (w is not null && d is not null)
-                    _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, $"从 {d} 移除词条 {w.Title} ({w.UrlPathName})");
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, dirId, wikiId,
+                    $"从 {dir.Name} ({dir.Id}) 移除词条 {w?.Title} ({w?.UrlPathName})");
                 return true;
             }
             return false;
@@ -378,7 +394,8 @@ namespace FCloud3.Services.Wiki
             }
             var s = _wikiRepo.TryRemove(w, out errmsg);
             if (s)
-                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.WikiItem, $"{w.Title} ({w.UrlPathName})");
+                _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.WikiItem, id, 0,
+                    $"{w.Title} ({w.UrlPathName})");
             return s;
         }
         public WikiItem? GetInfo(string urlPathName, out string? errmsg)
@@ -416,7 +433,7 @@ namespace FCloud3.Services.Wiki
                 {
                     _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
                     if(record.Length>0)
-                        _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, record);
+                        _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, 0, record);
                     return true;
                 }
                 else
@@ -439,7 +456,7 @@ namespace FCloud3.Services.Wiki
             if (s)
             {
                 string opStr = @sealed ? "隐藏" : "解除隐藏";
-                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, opStr);
+                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem ,id, 0, opStr);
             }
             return s;
         }

@@ -477,6 +477,12 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("ObjA")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ObjB")
+                        .HasColumnType("int");
+
                     b.Property<int>("OpType")
                         .HasColumnType("int");
 
