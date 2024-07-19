@@ -3,23 +3,32 @@ using FCloud3.Diff.Display;
 using FCloud3.Diff.Object;
 using FCloud3.Diff.String;
 using FCloud3.Entities.Diff;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Diff;
+using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
+using FCloud3.Repos.Wiki;
 
 namespace FCloud3.Services.Diff
 {
     public class DiffContentService(
         DiffContentRepo contentDiffRepo,
         UserRepo userRepo,
+        UserCaching userCaching,
         TextSectionRepo textSectionRepo,
-        FreeTableRepo freeTableRepo)
+        FreeTableRepo freeTableRepo,
+        WikiParaRepo wikiParaRepo,
+        WikiItemRepo wikiItemRepo)
     {
         private readonly DiffContentRepo _contentDiffRepo = contentDiffRepo;
         private readonly UserRepo _userRepo = userRepo;
+        private readonly UserCaching _userCaching = userCaching;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
+        private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
+        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
 
         public bool MakeDiff(int objId, DiffContentType type, string? original, string? modified, out string? errmsg)
         {
@@ -52,7 +61,7 @@ namespace FCloud3.Services.Diff
             return _contentDiffRepo.AddRangeDiffSingle(dss, out errmsg);
         }
 
-        public DiffContentHistoryResult DiffHistory(DiffContentType type, int objId)
+        public DiffContentHistoryResult? DiffHistory(DiffContentType type, int objId, out string? errmsg)
         {
             var list = (
                 from diff in _contentDiffRepo.GetDiffs(type, objId)
@@ -73,13 +82,71 @@ namespace FCloud3.Services.Diff
             {
                 res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added);
             }
+            errmsg = null;
             return res;
         }
 
-        public DiffContentDetailResult DiffDetail(DiffContentType type, int objId, int diffId)
+        public DiffContentHistoryResult? DiffHistoryForWiki(string wikiPathName, out string? errmsg)
         {
-            string content = GetCurrentContent(type, objId) 
-                ?? throw new Exception("找不到指定内容");
+            var paras = (
+                from para in _wikiParaRepo.Existing
+                from w in _wikiItemRepo.Existing
+                where w.UrlPathName == wikiPathName && para.WikiItemId == w.Id
+                select new { para.Type, para.ObjectId }).ToList();
+            List<(DiffContentType type, int objId)> targets = [];
+            foreach (var p in paras)
+            {
+                if (p.Type == WikiParaType.Text)
+                    targets.Add((DiffContentType.TextSection, p.ObjectId));
+                else if(p.Type == WikiParaType.Table)
+                    targets.Add((DiffContentType.FreeTable, p.ObjectId));
+            }
+            return DiffHistoryForRange(targets, out errmsg);
+        }
+        
+        public DiffContentHistoryResult? DiffHistoryForRange(List<(DiffContentType type, int objId)> targets, out string? errmsg)
+        {
+            var diffs = _contentDiffRepo.GetDiffsForRange(targets);
+            var users = _userCaching.GetAll();
+            var list = (
+                from diff in diffs
+                from user in users
+                where diff.CreatorUserId == user.Id
+                orderby diff.Created descending
+                select new
+                {
+                    DiffId = diff.Id,
+                    Time = diff.Created,
+                    UserId = diff.CreatorUserId,
+                    UserName = user.Name,
+                    Removed = diff.RemovedChars,
+                    Added = diff.AddedChars,
+                }).ToList();
+            var res = new DiffContentHistoryResult();
+            foreach ( var item in list )
+            {
+                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added);
+            }
+            errmsg = null;
+            return res;
+        }
+
+        public DiffContentDetailResult? DiffDetail(int diffId, out string? errmsg)
+        {
+            var diff = _contentDiffRepo.GetById(diffId);
+            if (diff is null)
+            {
+                errmsg = "找不到指定改动";
+                return null;
+            }
+            var type = diff.DiffType;
+            var objId = diff.ObjectId;
+            string? content = GetCurrentContent(type, objId);
+            if (content is null)
+            {
+                errmsg = "找不到指定内容";
+                return null;
+            }
             List<char> contentChars = [.. content];
             var diffIds = _contentDiffRepo
                 .GetDiffs(type, objId)
@@ -95,13 +162,14 @@ namespace FCloud3.Services.Diff
                 select s).ToList();
 
             DiffContentDetailResult res = new();
-            foreach(int diff in diffIds)
+            foreach(int id in diffIds)
             {
-                var itsDiffSingles = singles.FindAll(x=>x.DiffContentId == diff);
+                var itsDiffSingles = singles.FindAll(x=>x.DiffContentId == id);
                 StringDiffCollection sdc = ConvertToStringDiffCollection(itsDiffSingles);
                 var disp = DiffDisplay.Make(contentChars, sdc, 10);
-                res.Items.Add(new(diff, disp.From, disp.To));
+                res.Items.Add(new(id, disp.From, disp.To));
             }
+            errmsg = null;
             return res;
         }
         public DiffContentCompleteResult DiffComplete(DiffContentType type, int objId, int diffId)

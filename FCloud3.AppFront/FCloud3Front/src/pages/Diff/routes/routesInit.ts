@@ -12,5 +12,11 @@ const routes = [
         component: DiffContentHistory,
         props: true,
         name: 'diffContentHistory'
+    },
+    {
+        path:"/HistoryForWiki/:wikiPathName",
+        component: DiffContentHistory,
+        props: true,
+        name: 'diffContentHistoryForWiki'
     }
 ]

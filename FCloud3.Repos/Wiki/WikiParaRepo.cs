@@ -39,6 +39,11 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing.Where(x => x.Type == type && x.ObjectId == objId).Select(x => x.WikiItemId);
         }
+
+        public IQueryable<WikiPara> GetParasByWikiId(int wikiId)
+        {
+            return Existing.Where(x => x.WikiItemId == wikiId);
+        }
         
         public List<WikiPara> ParaContainingThem(List<(WikiParaType type, int objId)> info)
         {

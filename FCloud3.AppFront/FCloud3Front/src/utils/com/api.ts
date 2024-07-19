@@ -975,12 +975,24 @@ export class Api{
                     return resp.data as DiffContentHistoryResult
                 }
             },
-            detail: async(type:DiffContentType, objId:number, diffId:number)=>{
+            historyForWiki: async(wikiPathName:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/DiffContent/HistoryForWiki",
+                    "postForm",
+                    {
+                        wikiPathName
+                    }
+                )
+                if(resp.success){
+                    return resp.data as DiffContentHistoryResult
+                }
+            },
+            detail: async(diffId:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/DiffContent/Detail",
                     "postForm",
                     {
-                        type, objId, diffId
+                        diffId
                     }
                 )
                 if(resp.success){

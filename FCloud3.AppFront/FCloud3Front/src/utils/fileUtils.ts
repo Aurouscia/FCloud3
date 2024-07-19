@@ -1,7 +1,5 @@
 import { CSSProperties } from "vue";
-import { useFilesRoutesJump } from "@/pages/Files/routes/routesJump";
-
-const { jumpToDir } = useFilesRoutesJump();
+import { Router } from "vue-router";
 
 export type FileType = "image"|"video"|"audio"|"text"|"unknown";
 
@@ -99,12 +97,4 @@ export function fileLocationShow(path:string[]){
         return "无归属"
     }
     return path.join('/')
-}
-export function jumpToLocation(path?:string[]){
-    if(path){
-        if(path.length>0)
-            jumpToDir(path)
-        else
-            jumpToDir(['homeless-items'])
-    }
 }

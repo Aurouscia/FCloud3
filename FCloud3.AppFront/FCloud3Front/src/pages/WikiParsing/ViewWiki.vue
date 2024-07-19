@@ -156,7 +156,7 @@ const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNot
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
-const { jumpToDiffContentHistory } = useDiffRoutesJump();
+const { jumpToDiffContentHistory, jumpToDiffContentHistoryForWiki } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
@@ -267,9 +267,13 @@ onUnmounted(()=>{
                     </div>
                 </div>
             </div>
-            <div class="btns" v-if="displayInfo.CurrentUserAccess">
-                <button @click="jumpToWikiContentEdit(wikiPathName)">编辑词条</button>
-                <button @click="jumpToWikiEdit(wikiPathName)">设置词条</button>
+            <div class="btns">
+                <div>
+                    <button @click="jumpToDiffContentHistoryForWiki(wikiPathName)" class="minor">历史</button>
+                    <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiEdit(wikiPathName)">设置</button>
+                    <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiContentEdit(wikiPathName)">编辑</button>
+                </div>
+                
                 <LongPress v-if="currentUser.Type >= UserType.Admin" :reached="toggleSealed">
                     {{ displayInfo.Sealed ? '解除隐藏': '隐藏词条'}}
                 </LongPress>

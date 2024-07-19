@@ -6,5 +6,8 @@ export function useDiffRoutesJump(){
     const jumpToDiffContentHistory = (type:DiffContentType, objId:number)=>{
         router.push({name:'diffContentHistory', params:{type:diffContentTypeToStr(type), objId:objId}})
     }
-    return { jumpToDiffContentHistory }
+    const jumpToDiffContentHistoryForWiki = (wikiPathName:string)=>{
+        router.push({name:'diffContentHistoryForWiki', params:{wikiPathName}})
+    }
+    return { jumpToDiffContentHistory, jumpToDiffContentHistoryForWiki }
 }

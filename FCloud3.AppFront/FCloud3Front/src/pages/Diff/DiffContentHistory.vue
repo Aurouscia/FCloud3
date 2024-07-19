@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { injectApi } from '@/provides';
+import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
-import { diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
+import { DiffContentType, diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
 import { DiffContentHistoryResult } from '@/models/diff/diffContentHistories';
 import DiffContentDetail from './DiffContentDetail.vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 import SideBar from '@/components/SideBar.vue';
+import Loading from '@/components/Loading.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import _ from 'lodash'
 
 const props = defineProps<{
-    type: string;
-    objId: string;
+    type?: string
+    objId?: string
+    // or
+    wikiPathName?: string
 }>();
-const type = diffContentTypeFromStr(props.type)
-const objId = parseInt(props.objId)
+
 
 const history = ref<DiffContentHistoryResult>()
 const selectedHistoryIdx = ref<number>(-1)
@@ -26,7 +29,9 @@ const detailSidebar = ref<InstanceType<typeof SideBar>>()
 async function switchDetail(id:number){
     selectedHistoryIdx.value = id;
     if(!displays.some(d=>d.Id == id)){
-        displays = (await api.diff.diffContent.detail(type, objId, id))?.Items || [];
+        const resp = (await api.diff.diffContent.detail(id))?.Items || [];
+        _.pullAllWith(displays, resp, (x,y)=>x.Id==y.Id)
+        displays.push(...resp);
     }
     displaying.value = displays.find(x=>x.Id == id);
     detailSidebar.value?.extend()
@@ -39,10 +44,22 @@ function tooNarrowOrNot(width:number){
 
 let api:Api;
 let disposeWidthWatch:undefined|(()=>void)
+const pop = injectPop();
 onMounted(async()=>{
     setTitleTo('编辑历史')
     api = injectApi();
-    history.value = await api.diff.diffContent.history(type, objId)
+    if(props.type && props.objId){
+        const type = diffContentTypeFromStr(props.type)
+        const objId = parseInt(props.objId)
+        if(!!objId && type != DiffContentType.None)
+            history.value = await api.diff.diffContent.history(type, objId)
+    }else if(props.wikiPathName){
+        history.value = await api.diff.diffContent.historyForWiki(props.wikiPathName)
+    }
+    if(!history.value){
+        pop.value.show('页面参数错误','failed')
+    }
+    
     disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
     tooNarrowOrNot(window.innerWidth)
 })
@@ -76,6 +93,7 @@ onUnmounted(async()=>{
                 </td>
             </tr>
         </table>
+        <Loading v-else></Loading>
     </div>
     <SideBar v-if="tooNarrow" ref="detailSidebar">
         <div class="detailInsideSidebar">
@@ -99,7 +117,7 @@ onUnmounted(async()=>{
 }
 .historyList{
     overflow-y: auto;
-    width: 360px;
+    width: 300px;
     flex-shrink: 0;
     flex-grow: 0;
     td{
