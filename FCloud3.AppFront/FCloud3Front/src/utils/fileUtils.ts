@@ -1,5 +1,4 @@
 import { CSSProperties } from "vue";
-import { Router } from "vue-router";
 
 export type FileType = "image"|"video"|"audio"|"text"|"unknown";
 

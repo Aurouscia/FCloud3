@@ -1,7 +1,8 @@
 export interface WikiItem{
     Id:number,
     Title:string,
-    UrlPathName:string
+    UrlPathName:string,
+    OwnerId:number
 }
 
 export interface WikiInDirLocationView{

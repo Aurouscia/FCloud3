@@ -191,7 +191,7 @@ onUnmounted(()=>{
 .cand{
     position: absolute;
     top:32px;
-    width: 190px;
+    width: 220px;
     left: 10px;
     box-shadow: 0px 2px 6px 0px black;
     background-color: white;

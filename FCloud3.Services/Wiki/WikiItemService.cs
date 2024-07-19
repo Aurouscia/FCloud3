@@ -14,6 +14,7 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 using FCloud3.Repos.Etc.Caching;
 using System.Text;
+using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc.TempData.EditLock;
 
 namespace FCloud3.Services.Wiki
@@ -30,6 +31,7 @@ namespace FCloud3.Services.Wiki
         FreeTableRepo freeTableRepo,
         CacheExpTokenService cacheExpTokenService,
         OpRecordRepo opRecordRepo,
+        UserRepo userRepo,
         ContentEditLockService contentEditLockService,
         IOperatingUserIdProvider operatingUserIdProvider,
         IStorage storage)
@@ -45,6 +47,7 @@ namespace FCloud3.Services.Wiki
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
+        private readonly UserRepo _userRepo = userRepo;
         private readonly ContentEditLockService _contentEditLockService = contentEditLockService;
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
         private readonly IStorage _storage = storage;
@@ -441,6 +444,36 @@ namespace FCloud3.Services.Wiki
             }
             errmsg = null;
             return true;
+        }
+
+        public bool Transfer(int id, int uid, out string? errmsg)
+        {
+            var currentUid = _operatingUserIdProvider.Get();
+            var w = _wikiRepo.GetById(id);
+            if (w is null)
+            {
+                errmsg = "找不到目标词条";
+                return false;
+            }
+            if (w.OwnerUserId != currentUid)
+            {
+                errmsg = "只有词条所有者能转让";
+                return false;
+            }
+            var targetUser = _userRepo.GetById(uid);
+            if (targetUser is null)
+            {
+                errmsg = "找不到指定用户";
+                return false;
+            }
+            w.OwnerUserId = uid;
+            if (_wikiRepo.TryEdit(w, out errmsg, false))
+            {
+                var recordStr = $"将词条转让给 {targetUser.Name} ({targetUser.Id})";
+                _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, id, uid, recordStr);
+                return true;
+            }
+            return false;
         }
         public bool SetSealed(int id, bool @sealed, out string? errmsg)
         {

@@ -326,6 +326,16 @@ export class Api{
                 )
                 return res.success
             },
+            transfer: async(wikiId:number, uid:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiItem/Transfer",
+                    "postForm",
+                    {wikiId, uid},
+                    "转让成功",
+                    true
+                )
+                return res.success
+            },
             loadSimple: async(id:number)=>{
                 const res = await this.httpClient.request(
                     "/api/WikiItem/LoadSimple",

@@ -28,11 +28,13 @@ import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import LongPress from '@/components/LongPress.vue';
-import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
 import { useWikiRoutesJump } from './routes/routesJump';
+import Search from '@/components/Search.vue';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo'
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
+const { iden } = useIdentityInfoStore();
 const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
@@ -40,7 +42,6 @@ const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToWikiLocations, jumpToWikiContentEdit } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
-const { jumpToSelfUserCenter } = useIdentityRoutesJump();
 
 const props = defineProps<{
     urlPathName:string
@@ -236,12 +237,23 @@ async function saveInfoEdit(){
     }
 }
 
+const dangerZoneOpen = ref(false);
 async function del() {
     if(info.value){
         const res = await api.wiki.wikiItem.delete(info.value.Id);
         if(res){
-            jumpToSelfUserCenter();
+            if(window.history.length>2)
+                router.go(-2)
+            else
+                router.go(-1)
         }
+    }
+}
+async function transfer(uid:number) {
+    if(info.value && uid > 0){
+        await api.wiki.wikiItem.transfer(info.value.Id, uid);
+        info.value.OwnerId = uid;
+        dangerZoneOpen.value = false;
     }
 }
 
@@ -361,8 +373,14 @@ onUnmounted(()=>{
                     修改链接名称将导致文中已写下的链接名和分享的查看链接失效，请谨慎操作。<br/>
                 </Notice>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <LongPress :reached="del">长按删除词条</LongPress>
+            <button v-if="iden.Id === info.OwnerId" class="dangerZoneBtn" :class="{danger:dangerZoneOpen}" @click="dangerZoneOpen = true">危险区</button>
+            <div v-if="dangerZoneOpen" class="dangerZone">
+                <div>
+                    <LongPress :reached="del">长按删除词条</LongPress>
+                </div>
+                <div class="transfer">
+                    <Search :source="api.etc.quickSearch.userName" @done="(_val,uid)=>transfer(uid)" placeholder="转让词条给用户"></Search>
+                </div>
             </div>
         </div>
         <Loading v-else></Loading>
@@ -395,6 +413,22 @@ h1{
 
 .wikiInfo>*{
     margin: 0px auto 0px auto;
+}
+
+.wikiInfo .dangerZoneBtn{
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+}
+.wikiInfo .dangerZone{
+    text-align: center;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.transfer{
+    padding-bottom: 270px;
 }
 
 .fileLink{
