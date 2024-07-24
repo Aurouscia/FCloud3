@@ -469,7 +469,7 @@ namespace FCloud3.Services.Wiki
             w.OwnerUserId = uid;
             if (_wikiRepo.TryEdit(w, out errmsg, false))
             {
-                var recordStr = $"将词条转让给 {targetUser.Name} ({targetUser.Id})";
+                var recordStr = $"将 {w.Title} ({w.UrlPathName}) 转让给 {targetUser.Name} ({targetUser.Id})";
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, id, uid, recordStr);
                 return true;
             }
