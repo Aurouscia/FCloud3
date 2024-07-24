@@ -12,6 +12,8 @@ namespace FCloud3.Diff.Test.String
         [DataRow("1234567", "12ABCD67", "2-345-4", DisplayName = "longer_new_1")]
         [DataRow("1234567", "12A67", "2-345-1", DisplayName = "longer_ori_2")]
         [DataRow("1234567", "12ABCDE67", "2-345-5", DisplayName = "longer_new_2")]
+        [DataRow("1234ABCDEFGHI", "12345", "4-ABCDEFGHI-1", DisplayName = "longer_ori_3")]
+        [DataRow("12345", "1234ABCDEFGHI", "4-5-9", DisplayName = "longer_new_3")]
         public void Single(string oldStr, string newStr, string strDiff)
         {
             var diff = StrStringDiff.Parse(strDiff);

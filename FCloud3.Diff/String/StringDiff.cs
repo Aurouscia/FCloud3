@@ -24,20 +24,25 @@ namespace FCloud3.Diff.String
             {
                 int needMoveIndex = Index + New;
                 int needMoveDistance = Ori.Length - New;
-                int countNow = current.Count;
-                for (int i = needMoveDistance; i > 0; i--)
+                int countOriginal = current.Count;
+                int needMoveCharCount = countOriginal - needMoveIndex;
+                EnlargeCharListBy(current, needMoveDistance);
+                for (int i = 0; i < needMoveCharCount; i++)
                 {
-                    current.Add(current[countNow - i]);
-                }
-                for (int i = countNow - needMoveDistance - 1; i >= needMoveIndex; i--)
-                {
-                    current[i + needMoveDistance] = current[i];
+                    current[current.Count - 1 - i] = current[countOriginal - 1 - i];
                 }
             }
             for(int i = 0; i < Ori.Length; i++)
             {
                 current[Index + i] = Ori[i];
             }
+        }
+
+        private void EnlargeCharListBy(List<char> chars, int by)
+        {
+            chars.EnsureCapacity(chars.Count + by);
+            for (int i = 0; i < by; i++)
+                chars.Add('?');
         }
     }
 
