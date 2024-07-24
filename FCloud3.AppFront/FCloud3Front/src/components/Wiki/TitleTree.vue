@@ -56,7 +56,7 @@ defineExpose({
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .currentTitleInCatalog .currentMark{
     background-color: cornflowerblue;
     position: absolute;
@@ -94,5 +94,18 @@ defineExpose({
     font-weight: 600;
     font-size: 18px;
     color: #333;
+}
+</style>
+<style lang="scss">
+.titleTreeNodeText{
+    a {
+        color: inherit;
+        &:hover{
+            text-decoration: none;
+        }
+    }
+    .wikiInlineImg{
+        vertical-align: middle;
+    }
 }
 </style>

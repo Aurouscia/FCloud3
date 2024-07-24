@@ -102,7 +102,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 titles: htmlable.ContainTitleNodes());
             return result;
         }
-        public IHtmlable RunToObject(string? input)
+        public IHtmlable RunToObject(string? input, bool enforceBlock = true)
         {
             _ctx.Reset();
             _ctx.SetInitialFrameCount();
@@ -110,7 +110,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 return new EmptyElement();
             if (input.Length > maxInputLength)
                 return new TextElement(input);
-            IHtmlable htmlable = _blockParser.Run(input, true, true);
+            IHtmlable htmlable = _blockParser.Run(input, enforceBlock, true);
             return htmlable;
         }
 

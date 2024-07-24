@@ -85,7 +85,8 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<ParserTitleTreeNode>? ContainTitleNodes()
         {
-            var node = new ParserTitleTreeNode(Level, TitleOriginal, TitleId);
+            var title = Title.ToHtml();
+            var node = new ParserTitleTreeNode(Level, title, TitleId);
             node.Subs = Content.ContainTitleNodes();
             return new()
             {
