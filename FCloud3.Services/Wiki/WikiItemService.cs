@@ -489,6 +489,7 @@ namespace FCloud3.Services.Wiki
             if (s)
             {
                 string opStr = @sealed ? "隐藏" : "解除隐藏";
+                opStr += $" {w.Title} ({w.UrlPathName})";
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem ,id, 0, opStr);
             }
             return s;
