@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectIdentityInfoProvider, injectMainDivStyle } from '@/provides';
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
+import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectWikiViewScrollMemory } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
@@ -38,11 +38,12 @@ const props = defineProps<{
     wikiPathName: string;
     viewCmt?: boolean;
 }>()
-watch(()=>props.wikiPathName,async()=>{
+watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
+    wikiViewScrollMemory.save(oldVal, wikiViewArea.value)
     data.value = undefined;
     commentsLoaded.value = false;
     recommendsLoaded.value = false;
-    await init();
+    await init(true);
 })
 
 const data = ref<WikiParsingResult>();
@@ -100,8 +101,9 @@ function moveToTitle(titleId:number){
 let lastScrollTime = 0;
 const commentsLoaded = ref(false);
 const recommendsLoaded = ref(false);
-function viewAreaScrollHandler(){
-    if(Date.now() - lastScrollTime < 50){return;}
+function viewAreaScrollHandler(enforce?:boolean){
+    if(!enforce)
+        if(Date.now() - lastScrollTime < 50){return;}
     const sh = wikiViewArea.value!.scrollHeight;
     const st = wikiViewArea.value!.scrollTop;
     const oh = wikiViewArea.value!.offsetHeight;
@@ -198,9 +200,9 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
+const wikiViewScrollMemory = injectWikiViewScrollMemory()
 
-
-async function init(){
+async function init(changedPathName?:boolean){
     currentUser.value = await iden.getIdentityInfo();
     if(data.value){
         data.value.Paras = []
@@ -226,7 +228,7 @@ async function init(){
         titlesInContent.push(commentTitle)
 
     viewAreaScrollHandler();
-    wikiViewArea.value?.addEventListener('scroll',viewAreaScrollHandler);
+    wikiViewArea.value?.addEventListener('scroll', _e=>viewAreaScrollHandler(false));
 
     wikiLinkClick = new WikiLinkClick(pathName => {
         router.push(`/w/${pathName}`)
@@ -235,6 +237,9 @@ async function init(){
 
     if(props.viewCmt){
         moveToTitle(cmtTitleId)
+    }else if(changedPathName){
+        wikiViewScrollMemory.read(props.wikiPathName, wikiViewArea.value)
+        viewAreaScrollHandler(true)
     }
 }
 onUnmounted(()=>{

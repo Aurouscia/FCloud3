@@ -8,6 +8,7 @@ import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
 import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from './utils/globalStores/notifCount';
+import { WikiViewScrollMemory } from './utils/wikiView/wikiViewScrollMemory'
 
 const popKey = 'pop';
 const httpKey = 'http';
@@ -16,6 +17,7 @@ const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
 const notifCountKey = 'notifCount';
 const mainDivStyleKey = 'mainDivStyle';
+const wikiViewScrollMemoryKey = 'wikiViewScrollMemory'
 
 export type SetTopbarFunc = (display:boolean)=>void
 
@@ -63,6 +65,9 @@ export function useProvidesSetup() {
     const mainDivStyle = ref<CSSProperties>({});
     provide(mainDivStyleKey, mainDivStyle);
 
+    const wikiViewScrollMemory = new WikiViewScrollMemory();
+    provide(wikiViewScrollMemoryKey, wikiViewScrollMemory);
+
     return { pop, displayTopbar, needMemberWarning, wait, mainDivStyle }
 }
 
@@ -86,4 +91,7 @@ export function injectNotifCountProvider(){
 }
 export function injectMainDivStyle(){
     return inject(mainDivStyleKey) as Ref<CSSProperties>;
+}
+export function injectWikiViewScrollMemory(){
+    return inject(wikiViewScrollMemoryKey) as WikiViewScrollMemory
 }
