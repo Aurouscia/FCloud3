@@ -1008,6 +1008,18 @@ export class Api{
                 if(resp.success){
                     return resp.data as DiffContentDetailResult
                 }
+            },
+            setHidden: async(diffId:number, hidden:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/DiffContent/SetHidden",
+                    "postForm",
+                    {
+                        diffId, hidden
+                    },
+                    "操作成功",
+                    true
+                )
+                return resp.success
             }
         }
     }

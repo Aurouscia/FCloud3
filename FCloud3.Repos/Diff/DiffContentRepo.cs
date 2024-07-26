@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Diff;
 using FCloud3.Repos.Etc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Diff
 {
@@ -36,5 +37,19 @@ namespace FCloud3.Repos.Diff
         }
         
         public IQueryable<DiffSingle> DiffSingles => _context.Set<DiffSingle>();
+
+        public bool SetHidden(int id, bool hidden, out string? errmsg)
+        {
+            var affected = Existing
+                .Where(dc => dc.Id == id)
+                .ExecuteUpdate(spc => spc.SetProperty(dc => dc.Hidden, hidden));
+            if (affected == 0)
+            {
+                errmsg = "找不到指定记录";
+                return false;
+            }
+            errmsg = null;
+            return true;
+        }
     }
 }

@@ -5,6 +5,7 @@ export interface DiffContentDetailResult{
 export interface DiffContentStepDisplay
 {
     Id: number
+    Hidden:boolean
     From: DiffDisplayFrag[]
     To: DiffDisplayFrag[]
 }

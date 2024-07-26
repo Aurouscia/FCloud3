@@ -13,6 +13,10 @@ namespace FCloud3.Entities.Diff
         public DiffContentType DiffType { get; set; }
         public int RemovedChars { get; set; }
         public int AddedChars { get; set; }
+        /// <summary>
+        /// 管理员可隐藏有隐私信息的记录，使其只有管理员可见
+        /// </summary>
+        public bool Hidden { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

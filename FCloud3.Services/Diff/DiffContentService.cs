@@ -76,11 +76,12 @@ namespace FCloud3.Services.Diff
                     UserName = user.Name,
                     Removed = diff.RemovedChars,
                     Added = diff.AddedChars,
+                    Hidden = diff.Hidden,
                 }).ToList();
             var res = new DiffContentHistoryResult();
             foreach ( var item in list )
             {
-                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added);
+                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added, item.Hidden);
             }
             errmsg = null;
             return res;
@@ -121,17 +122,18 @@ namespace FCloud3.Services.Diff
                     UserName = user.Name,
                     Removed = diff.RemovedChars,
                     Added = diff.AddedChars,
+                    Hidden = diff.Hidden
                 }).ToList();
             var res = new DiffContentHistoryResult();
             foreach ( var item in list )
             {
-                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added);
+                res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added, item.Hidden);
             }
             errmsg = null;
             return res;
         }
 
-        public DiffContentDetailResult? DiffDetail(int diffId, out string? errmsg)
+        public DiffContentDetailResult? DiffDetail(int diffId, out string? errmsg, bool canViewHidden = false)
         {
             var diff = _contentDiffRepo.GetById(diffId);
             if (diff is null)
@@ -148,30 +150,39 @@ namespace FCloud3.Services.Diff
                 return null;
             }
             List<char> contentChars = [.. content];
-            var diffIds = _contentDiffRepo
+            var diffs = _contentDiffRepo
                 .GetDiffs(type, objId)
                 .OrderByDescending(x=>x.Created)
-                .Select(x=>x.Id).ToList();
-            var targetIdx = diffIds.IndexOf(diffId);
-            var diffCount = diffIds.Count;
+                .Select(x=>new{x.Id, x.Hidden}).ToList();
+            var targetIdx = diffs.FindIndex(d=>d.Id == diffId);
+            var diffCount = diffs.Count;
             var shouldRevertCount = ShouldRevertCount(diffCount, targetIdx + 1);
-            diffIds = diffIds.GetRange(0, shouldRevertCount);
+            diffs = diffs.GetRange(0, shouldRevertCount);
+            var diffIds = diffs.ConvertAll(x => x.Id);
             var singles = (
                 from s in _contentDiffRepo.DiffSingles
                 where diffIds.Contains(s.DiffContentId)
                 select s).ToList();
 
             DiffContentDetailResult res = new();
-            foreach(int id in diffIds)
+            foreach (var d in diffs)
             {
-                var itsDiffSingles = singles.FindAll(x=>x.DiffContentId == id);
-                StringDiffCollection sdc = ConvertToStringDiffCollection(itsDiffSingles);
-                var disp = DiffDisplay.Make(contentChars, sdc, 10);
-                res.Items.Add(new(id, disp.From, disp.To));
+                if (d.Hidden && !canViewHidden)
+                {
+                    res.Items.Add(new(d.Id, true));
+                }
+                else
+                {
+                    var itsDiffSingles = singles.FindAll(x => x.DiffContentId == d.Id);
+                    StringDiffCollection sdc = ConvertToStringDiffCollection(itsDiffSingles);
+                    var disp = DiffDisplay.Make(contentChars, sdc, 10);
+                    res.Items.Add(new(d.Id, disp.From, disp.To));
+                }
             }
             errmsg = null;
             return res;
         }
+        [Obsolete("未考虑Hidden改动")]
         public DiffContentCompleteResult DiffComplete(DiffContentType type, int objId, int diffId)
         {
             string content = GetCurrentContent(type, objId)
@@ -209,6 +220,11 @@ namespace FCloud3.Services.Diff
             if (res is null)
                 throw new Exception("更改浏览(完整)出错");
             return res;
+        }
+
+        public bool SetHidden(int id, bool hidden, out string? errmsg)
+        {
+            return _contentDiffRepo.SetHidden(id, hidden, out errmsg);
         }
 
         private string? GetCurrentContent(DiffContentType type, int objId)
@@ -259,11 +275,12 @@ namespace FCloud3.Services.Diff
         public class DiffContentHistoryResult
         {
             public List<DiffContentHistoryResultItem> Items { get; set; } = [];
-            public void Add(int id, DateTime time, int uid, string uname, int removed, int added)
+            public void Add(int id, DateTime time, int uid, string uname, int removed, int added, bool hidden)
             {
-                Items.Add(new(id, time, uid, uname, removed, added));
+                Items.Add(new(id, time, uid, uname, removed, added, hidden));
             }
-            public class DiffContentHistoryResultItem(int id, DateTime time, int uid, string uname, int removed, int added)
+            public class DiffContentHistoryResultItem(
+                int id, DateTime time, int uid, string uname, int removed, int added, bool hidden)
             {
                 public int Id { get; set; } = id;
                 public string T { get; set; } = time.ToString("yy/MM/dd HH:mm:ss");
@@ -271,6 +288,7 @@ namespace FCloud3.Services.Diff
                 public string UName { get; set; } = uname;
                 public int R { get; set; } = removed;
                 public int A { get; set; } = added;
+                public bool H { get; set; } = hidden;
             }
         }
 
@@ -284,7 +302,13 @@ namespace FCloud3.Services.Diff
         }
         public class DiffContentStepDisplay(int id, List<DiffDisplayFrag> from, List<DiffDisplayFrag> to)
         {
+            public DiffContentStepDisplay(int id, bool hidden) : this(id, [], [])
+            {
+                Id = id;
+                Hidden = hidden;
+            }
             public int Id { get; set; } = id;
+            public bool Hidden { get; set; }
             public List<DiffDisplayFrag> From { get; set; } = from;
             public List<DiffDisplayFrag> To { get; set; } = to;
         }

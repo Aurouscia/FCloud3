@@ -12,6 +12,13 @@ namespace FCloud3.Entities.Wiki
         [MaxLength(urlPathNameMaxLength)]
         public string? UrlPathName { get; set; }
         public int OwnerUserId { get; set; }
+        /// <summary>
+        /// 词条所有者可设置的“词条隐藏”
+        /// </summary>
+        public bool Hidden { get; set; }
+        /// <summary>
+        /// 管理员可设置的“词条封禁”
+        /// </summary>
         public bool Sealed { get; set; }
 
         public int CreatorUserId { get; set; }

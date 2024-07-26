@@ -119,15 +119,18 @@ onUnmounted(()=>{
 
 <template>
 <div class="diffContentDetail">
-    <div class="from" ref="from" @scroll="scrollHandler('from')">
+    <div v-show="!display?.Hidden" class="from" ref="from" @scroll="scrollHandler('from')">
         <div v-for="t,idx in display?.From" :id="domId('from', idx)">
         {{ t.Text }}
         </div>
     </div>
-    <div class="to" ref="to" @scroll="scrollHandler('to')">
+    <div v-show="!display?.Hidden" class="to" ref="to" @scroll="scrollHandler('to')">
         <div v-for="t,idx in display?.To" :id="domId('to', idx)">
         {{ t.Text }}
         </div>
+    </div>
+    <div v-show="display?.Hidden" class="hiddenNotice">
+        该编辑记录已被隐藏，可能违法或包含隐私信息<br/>仅管理员可见，如有查看需要请咨询管理员
     </div>
 </div>
 </template>
@@ -158,7 +161,7 @@ onUnmounted(()=>{
         padding: 5px;
     }
 }
-@media screen and ( max-width: 850px ){
+@media screen and ( max-width: 1100px ){
     .diffContentDetail{
         flex-direction: column;
     }
@@ -166,6 +169,15 @@ onUnmounted(()=>{
         width: 100%;
         height: 50%;
     }
+}
+.hiddenNotice{
+    width: 100%;
+    height: 100%;
+    background-color: #eee;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 ::highlight(added) {

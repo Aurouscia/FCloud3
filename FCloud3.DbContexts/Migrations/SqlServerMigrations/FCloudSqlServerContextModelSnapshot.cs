@@ -45,6 +45,9 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
                     b.Property<int>("DiffType")
                         .HasColumnType("int");
 
+                    b.Property<bool>("Hidden")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ObjectId")
                         .HasColumnType("int");
 
@@ -584,6 +587,9 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Hidden")
+                        .HasColumnType("bit");
 
                     b.Property<int>("OwnerUserId")
                         .HasColumnType("int");

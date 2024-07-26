@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectWikiViewScrollMemory } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';

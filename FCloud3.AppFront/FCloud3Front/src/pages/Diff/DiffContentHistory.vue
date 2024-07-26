@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { injectApi, injectPop } from '@/provides';
+import { injectApi, injectMainDivStyle, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { DiffContentType, diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
-import { DiffContentHistoryResult } from '@/models/diff/diffContentHistories';
+import { DiffContentHistoryResult, DiffContentHistoryResultItem } from '@/models/diff/diffContentHistories';
 import DiffContentDetail from './DiffContentDetail.vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
@@ -11,6 +11,9 @@ import SideBar from '@/components/SideBar.vue';
 import Loading from '@/components/Loading.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import _ from 'lodash'
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { UserType } from '@/models/identities/user';
+import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
 
 const props = defineProps<{
     type?: string
@@ -22,6 +25,9 @@ const props = defineProps<{
 
 const history = ref<DiffContentHistoryResult>()
 const selectedHistoryIdx = ref<number>(-1)
+const { iden } = useIdentityInfoStore()
+const { jumpToUserCenterRoute } = useIdentityRoutesJump()
+const mainDivStyle = injectMainDivStyle();
 
 let displays:DiffContentStepDisplay[] = []
 const displaying = ref<DiffContentStepDisplay>()
@@ -37,9 +43,17 @@ async function switchDetail(id:number){
     detailSidebar.value?.extend()
 }
 
+async function setHidden(diff:DiffContentHistoryResultItem){
+    const targetHidden = !diff.H;
+    const res = await api.diff.diffContent.setHidden(diff.Id, targetHidden)
+    if(res){
+        diff.H = targetHidden;
+    }
+}
+
 const tooNarrow = ref<boolean>(false);
 function tooNarrowOrNot(width:number){
-    tooNarrow.value = width<700;
+    tooNarrow.value = width<800;
 }
 
 let api:Api;
@@ -47,6 +61,7 @@ let disposeWidthWatch:undefined|(()=>void)
 const pop = injectPop();
 onMounted(async()=>{
     setTitleTo('编辑历史')
+    mainDivStyle.value = { maxWidth: 'unset' }
     api = injectApi();
     if(props.type && props.objId){
         const type = diffContentTypeFromStr(props.type)
@@ -64,6 +79,7 @@ onMounted(async()=>{
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
+    mainDivStyle.value = {}
     recoverTitle()
     disposeWidthWatch?.()
 })
@@ -77,19 +93,23 @@ onUnmounted(async()=>{
                 <th class="t">时间</th>
                 <th>操作者</th>
                 <th class="c">变动</th>
+                <th v-if="iden.Type >= UserType.Admin" style="width: 15px;"></th>
             </tr>
-            <tr v-for="i in history.Items" @click="switchDetail(i.Id)" :class="{selected:selectedHistoryIdx==i.Id}">
+            <tr v-for="i in history.Items" :class="{selected:selectedHistoryIdx==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
                 <td class="t">
                     {{ i.T }}
                 </td>
                 <td class="u">
-                    {{ i.UName }}
+                    <RouterLink :to="jumpToUserCenterRoute(i.UName)" target="_blank">{{ i.UName }}</RouterLink>
                 </td>
-                <td>
+                <td class="ard">
                     <div class="ar">
                         <span class="a">{{ i.A ? '+'+i.A : ''}}</span>
                         <span class="r">{{ i.R ? '-'+i.R : ''}}</span>
                     </div>
+                </td>
+                <td v-if="iden.Type >= UserType.Admin" class="hideBtn" :class="{hide:!i.H, unhide:i.H}" @click="setHidden(i)">
+                    ×
                 </td>
             </tr>
         </table>
@@ -117,14 +137,30 @@ onUnmounted(async()=>{
 }
 .historyList{
     overflow-y: auto;
-    width: 300px;
+    width: 400px;
     flex-shrink: 0;
     flex-grow: 0;
+    &.grow{
+        flex-grow: 1;
+    }
+}
+tr:hover td{
+    background-color: #ddd;
+}
+tr.hidden:hover td{
+    background-color: rgb(255, 214, 255);
+}
     td{
         cursor: pointer;
     }
+    tr.hidden td{
+        background-color: rgb(255, 231, 255);
+    }
     tr.selected td{
-        background-color: #bbb;
+        background-color: #ccc;
+    }
+    tr.selected.hidden td{
+        background-color: rgb(255, 196, 255);
     }
     .ar{
         display: flex;
@@ -142,21 +178,30 @@ onUnmounted(async()=>{
         font-size: 14px;
     }
     th.t{
-        width: 80px;
+        width: 70px;
     }
     th.c{
         width: 100px;
     }
     .u{
         word-break: break-all;
+        a{
+            color: black;
+        }
     }
     table{
         width: 100%;
         table-layout: fixed;
     }
-    &.grow{
-        flex-grow: 1;
-    }
+.hideBtn{
+    color:white;
+    cursor: pointer;
+}
+td.hide:hover{
+    background-color: red !important;
+}
+td.unhide:hover{
+    background-color: green !important;
 }
 .detailInsideSidebar{
     position: absolute;

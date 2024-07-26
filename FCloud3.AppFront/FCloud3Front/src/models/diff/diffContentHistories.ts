@@ -6,6 +6,7 @@ export interface DiffContentHistoryResultItem
     UName:string
     R:number
     A:number
+    H:boolean
 }
 
 export interface DiffContentHistoryResult{
