@@ -1,3 +1,9 @@
-import { sayHello } from '../lib/auRouteRenderer'
+import './style.css'
+import { run } from '../lib/auRouteRenderer'
 
-sayHello()
+const sample = '/sandbox/table1.html'
+const resp = await fetch(sample)
+const html = await resp.text()
+document.querySelector("#app")!.innerHTML = html
+
+run()

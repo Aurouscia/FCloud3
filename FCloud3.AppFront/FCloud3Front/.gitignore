@@ -26,3 +26,6 @@ dist-ssr
 # 前端版本检查
 public/feVersion.txt
 src/build/feVersion.js
+
+# 插件
+public/plugins/*

@@ -1,0 +1,7 @@
+table{
+    border-collapse: separate;
+}
+td{
+    background-color: #eee;
+    padding: 5px;
+}
