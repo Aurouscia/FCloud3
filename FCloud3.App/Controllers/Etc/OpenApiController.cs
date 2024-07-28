@@ -12,6 +12,7 @@ namespace FCloud3.App.Controllers.Etc
 {
     public class OpenApiController(
         WikiItemRepo wikiItemRepo,
+        WikiToDirRepo wikiToDirRepo,
         UserRepo userRepo,
         FileDirRepo dirRepo)
         :Controller
@@ -27,10 +28,25 @@ namespace FCloud3.App.Controllers.Etc
             else
                 q = q.OrderByDescending(x => x.Id);
             var wikis = 
-                q.Select(x=>new{x.Id,x.Title,x.OwnerUserId,x.Sealed,x.Updated,x.Created})
-                .Skip(skip)
-                .Take(take)
+                q.Select(x => new{
+                        x.Id,x.Title,x.OwnerUserId,x.Sealed,x.Updated,x.Created,
+                        Dirs = new List<int>()})
+                    .Skip(skip)
+                    .Take(take)
+                    .ToList();
+            var wikiIds = wikis.ConvertAll(x => x.Id);
+            var wikiToDirs = wikiToDirRepo.Existing
+                .Where(x => wikiIds.Contains(x.WikiId))
+                .Select(x => new { x.DirId, x.WikiId })
                 .ToList();
+            foreach (var w in wikis)
+            {
+                var itsDirs = wikiToDirs
+                    .Where(x => x.WikiId == w.Id)
+                    .Select(x => x.DirId);
+                w.Dirs.AddRange(itsDirs);
+            }
+            
             var wikisReformed = ListReformer.Run(wikis);
             return this.ApiResp(wikisReformed);
         }
