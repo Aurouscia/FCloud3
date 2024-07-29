@@ -1,5 +1,5 @@
 import { isValidTarget } from "./isValidTarget"
-import { Target } from "./target"
+import { Target } from "../common/target"
 
 export function locateTargets(area:HTMLElement):Target[]{
     const targets:Target[] = []
