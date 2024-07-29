@@ -156,6 +156,16 @@
             text-align: center;
         }
     }
+    audio{
+        display: block;
+        margin: 10px auto 10px auto;
+    }
+    video{
+        display: block;
+        max-height: 800px;
+        max-width: 100%;
+        margin: 10px auto 10px auto;
+    }
     .filePara{
         text-align: center;
         margin: 15px;

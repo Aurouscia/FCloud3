@@ -20,7 +20,7 @@ import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
-import { canDisplayAsImage } from '@/utils/fileUtils';
+import { canDisplayAsImage, getFileType } from '@/utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 import { sleep } from '@/utils/sleep';
@@ -300,6 +300,12 @@ onUnmounted(()=>{
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
                     <img :src="p.Content" :alt="p.Title"/>
                     <div>{{ p.Title }}</div>
+                </div>
+                <div v-else-if="getFileType(p.Content)=='audio'">
+                    <audio :src="p.Content" controls></audio>
+                </div>
+                <div v-else-if="getFileType(p.Content)=='video'">
+                    <video :src="p.Content" controls></video>
                 </div>
                 <div v-else class="filePara">
                     <span class="fileHint">点击下载文件：</span>
