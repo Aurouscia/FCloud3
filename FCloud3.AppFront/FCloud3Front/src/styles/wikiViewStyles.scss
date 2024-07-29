@@ -57,6 +57,9 @@
             font-weight: normal;
             margin-right: 10px;
             white-space: nowrap;
+            a{
+                color: inherit;
+            }
         }
         .editBtn:hover{
             color:cornflowerblue

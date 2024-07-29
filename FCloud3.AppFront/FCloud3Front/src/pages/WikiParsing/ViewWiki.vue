@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectWikiViewScrollMemory } from '@/provides';
-import { Api } from '@/utils/com/api';
+import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
@@ -290,6 +290,9 @@ onUnmounted(()=>{
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
+                    <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
+                        <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+                    </div>
                     <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>

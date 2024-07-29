@@ -255,16 +255,20 @@ namespace FCloud3.Services.WikiParsing
                                 result.SubTitles.Add(title);
                                 result.AddRules(resOfP.UsedRulesWithCommons);
                                 result.FootNotes.AddRange(resOfP.FootNotes);
-                                result.Paras.Add(new(
+                                WikiParsingResult.WikiParsingResultItem para = new(
                                     realTitle, titleId, resOfP.Content, p.Id, WikiParaType.Table,
-                                    p.ObjectId, 0, false, false));
+                                    p.ObjectId, 0, false, false);
+                                para.IsFromFile = true;
+                                result.Paras.Add(para);
                                 return;
                             }
                         }
                         errmsg ??= "xlsx文件可能格式异常";
-                        result.Paras.Add(new(
+                        WikiParsingResult.WikiParsingResultItem errPara = new(
                             "xlsx表格解析失败", 0, errmsg, p.Id, WikiParaType.Text, 
-                            p.ObjectId, 0, false, false));
+                            p.ObjectId, 0, false, false);
+                        errPara.IsFromFile = true;
+                        result.Paras.Add(errPara);
                     }
                     else
                     {
@@ -393,6 +397,7 @@ namespace FCloud3.Services.WikiParsing
                 public string? Content { get; set; }
                 public int ParaId { get; set; }
                 public WikiParaType ParaType { get; set; }
+                public bool IsFromFile { get; set; }
                 public int UnderlyingId { get; set; }
                 public int Bytes { get; set; }
                 public bool Editable { get; set; }
