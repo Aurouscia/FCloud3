@@ -1,14 +1,10 @@
-﻿using DotNetColorParser;
-using DotNetColorParser.ColorNotations;
-using FCloud3.App.Services.Filters;
+﻿using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
 using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Services;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
-using Microsoft.AspNetCore.Authorization;
-using Serilog;
 using FCloud3.Repos.Etc;
 using Microsoft.AspNetCore.Http.Timeouts;
 
@@ -27,7 +23,8 @@ namespace FCloud3.App.Services
             });
             services.AddAuthGrantedActionFilter();
             services.AddUserActiveOperationFilter();
-            services.AddUserTypeRestrictedAttribute();
+            services.AddUserTypeRestrictedFilter();
+            services.AddRateLimitedFilter();
             services.AddFilePathBaseConstraint();
             services.AddMemoryCache(option =>
             {

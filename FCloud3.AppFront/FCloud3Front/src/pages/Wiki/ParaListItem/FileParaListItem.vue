@@ -16,7 +16,7 @@ const {mainname, subname} = useParaListItem(props);
     <div class="paraListItem" :class="{noTitle}">
         <div v-if="!noTitle" class="title">
             <img class="icon" :src="icon">
-            {{ mainname }}
+            <div class="mainName">{{ mainname }}</div>
             <span>{{ subname }}</span>
         </div>
         <img class="fileImage" :class="[imgClickJumpRequireClassName]" v-if="canDisplayAsImage(w.Content, w.Bytes)" :src="props.w.Content" />

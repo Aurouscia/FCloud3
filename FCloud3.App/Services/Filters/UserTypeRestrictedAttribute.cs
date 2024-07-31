@@ -52,7 +52,7 @@ namespace FCloud3.App.Services.Filters
     }
     public static class UserTypeRestrictedAttributeExtensions
     {
-        public static IServiceCollection AddUserTypeRestrictedAttribute(this IServiceCollection services)
+        public static IServiceCollection AddUserTypeRestrictedFilter(this IServiceCollection services)
         {
             services.AddScoped<UserTypeRestrictedAttribute.UserTypeRestrictedFilter>();
             return services;

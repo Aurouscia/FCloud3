@@ -29,6 +29,11 @@
             color: #666;
             align-self:last baseline
         }
+        .mainName{
+            max-width: calc(100vw - 140px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     .content {

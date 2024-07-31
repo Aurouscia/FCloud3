@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectWikiViewScrollMemory } from '@/provides';
-import { Api } from '@/utils/com/api';
+import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
@@ -20,7 +20,7 @@ import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
-import { canDisplayAsImage } from '@/utils/fileUtils';
+import { canDisplayAsImage, getFileType } from '@/utils/fileUtils';
 import { useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 import { sleep } from '@/utils/sleep';
@@ -300,6 +300,9 @@ onUnmounted(()=>{
                 <h1 :id="titleElementId(p.TitleId)">
                     <span v-html="p.Title"></span>
                     <div class="h1Sep"></div>
+                    <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
+                        <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+                    </div>
                     <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
@@ -310,6 +313,12 @@ onUnmounted(()=>{
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
                     <img :src="p.Content" :alt="p.Title"/>
                     <div>{{ p.Title }}</div>
+                </div>
+                <div v-else-if="getFileType(p.Content)=='audio'">
+                    <audio :src="p.Content" controls></audio>
+                </div>
+                <div v-else-if="getFileType(p.Content)=='video'">
+                    <video :src="p.Content" controls></video>
                 </div>
                 <div v-else class="filePara">
                     <span class="fileHint">点击下载文件：</span>

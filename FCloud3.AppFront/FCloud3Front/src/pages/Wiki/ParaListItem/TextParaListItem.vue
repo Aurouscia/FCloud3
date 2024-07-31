@@ -13,7 +13,7 @@ const {mainname, subname} = useParaListItem(props);
     <div class="paraListItem">
         <div class="title">
             <img class="icon" :src="icon">
-            {{ mainname }}
+            <div class="mainName">{{ mainname }}</div>
             <span>{{ subname }}</span>
         </div>
         <div class="content">{{ props.w.Content }}</div>

@@ -20,6 +20,7 @@ export interface WikiParsingResultItem {
     Content?: string;
     ParaId: number;
     ParaType: WikiParaType;
+    IsFromFile: boolean;
     UnderlyingId: number;
     Bytes:number;
     Editable: boolean;

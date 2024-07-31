@@ -276,7 +276,7 @@ onUnmounted(()=>{
                 </h2>
                 <div class="ops">
                     <button v-if="p.Type == WikiParaType.File" class="lite" @click="startEditingFilePara(p)">编辑</button>
-                    <button v-show="!paraMode" class="lite" @click="startEditingInfo(p)">设置</button>
+                    <button class="lite" @click="startEditingInfo(p)">设置</button>
                     <button v-show="paraMode" class="lite rmPara" @click="removePara(idx)">移除</button>
                 </div>
             </div>
