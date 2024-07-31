@@ -1,8 +1,8 @@
-import { ValidMarks } from "./marks"
-
 export interface Target{
     element:HTMLTableElement
     rowFrom:number
-    marks:ValidMarks[]
+    cells:string[]
+    grid:string[][]
+    annotations:string[][]
     cvs?:HTMLCanvasElement
 }

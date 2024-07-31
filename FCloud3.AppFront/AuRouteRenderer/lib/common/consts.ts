@@ -1,2 +1,4 @@
-export const cvsUnitPx = 120
-export const displayUnitPx = 60
+export const cvsYUnitPx = 120
+export const cvsXUnitPx = 60
+export const displayYUnitPx = 60
+export const displayXUnitPx = 30

@@ -1,6 +1,6 @@
-import { marksDefined, ValidMarks } from "../common/marks";
+import { marksDefined, seperator } from "../common/marks";
 
-type TargetValidationResult = {from:number, marks:ValidMarks[]} | undefined
+type TargetValidationResult = {from:number, cells:string[]} | undefined
 
 export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
     if(t.rows.length<=1){
@@ -9,7 +9,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
     let started = false;
     let from = 0;
     const validMarks = Object.values(marksDefined) as string[]
-    const foundMarks:ValidMarks[] = []
+    const cells:string[] = []
     for(let idx=0;idx<t.rows.length;idx++){
         const r = t.rows[idx]
         if(r.cells.length==0)
@@ -18,24 +18,34 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
         if(firstCell.colSpan>1)
             continue;
         const firstCellContent = firstCell.textContent?.trim()
-        console.log(idx,firstCellContent)
-        if(firstCellContent && validMarks.includes(firstCellContent)){
+        if(firstCellContent && isValidTargetCell(firstCellContent, validMarks)){
             if(!started){
                 from = idx;
                 started = true;
             }
-            foundMarks.push(firstCellContent as ValidMarks)
+            cells.push(firstCellContent)
         }else{
             if(started){
                 break;
             }
         }
     }
-    if(foundMarks.length < 3){
+    if(cells.length < 3){
         return undefined
     }
     return {
         from,
-        marks: foundMarks
+        cells
     }
+}
+
+function isValidTargetCell(cell:string, validMarks:string[]){
+    const splitted = cell.split(seperator, 1)
+    const firstPart = splitted[0]
+    for(let c of firstPart){
+        if(!validMarks.includes(c)){
+            return false;
+        }
+    }
+    return true
 }

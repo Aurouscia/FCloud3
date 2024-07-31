@@ -1,19 +1,28 @@
-import { cvsUnitPx } from "../common/consts";
+import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
 import { Target } from "../common/target";
 import { setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle, setTrStyle } from "./setStyle";
 
-export function reformTarget(t:Target):HTMLCanvasElement{
+export function reformTarget(t:Target):void{
     const table = t.element
     setTableStyle(table)
-    const rowCount = t.marks.length
+    const rowCount = t.cells.length
     const expandTd = table.rows[t.rowFrom].cells[0]
+    let xUnitCount = 1;
+    for(let i = 0;i<rowCount;i++){
+        const gridCount = t.grid[i].length
+        const annoCount = t.annotations[i].length
+        const sum = gridCount+annoCount;
+        if(sum > xUnitCount){
+            xUnitCount = sum
+        }
+    }
     expandTd.rowSpan = rowCount;
     expandTd.innerHTML = ''
-    setMainTdStyle(expandTd)
+    setMainTdStyle(expandTd, xUnitCount)
     const cvs = document.createElement('canvas')
-    cvs.width = cvsUnitPx;
-    cvs.height = cvsUnitPx*rowCount
-    setCanvasStyle(cvs, rowCount)
+    cvs.width = cvsXUnitPx * xUnitCount;
+    cvs.height = cvsYUnitPx * rowCount
+    setCanvasStyle(cvs, rowCount, xUnitCount)
     expandTd.appendChild(cvs)
     for(let i=0; i<rowCount; i++){
         const row = table.rows[i+t.rowFrom]
@@ -36,5 +45,5 @@ export function reformTarget(t:Target):HTMLCanvasElement{
         }
         setTrStyle(row)
     }
-    return cvs;
+    t.cvs = cvs;
 }

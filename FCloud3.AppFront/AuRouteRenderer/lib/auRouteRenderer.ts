@@ -1,10 +1,12 @@
-import { locateTargets } from "./targetLocator/targetLocator";
+import { callDrawer } from "./drawerCaller/drawerCaller";
+import { parseTargets } from "./targetParser/targetParser";
 import { reformTarget } from "./targetReformer/targetReformer";
 
 export function run(area?:HTMLElement):void{
     area = area || document.body
-    const targets = locateTargets(area)
+    const targets = parseTargets(area)
     targets.forEach(t=>{
-        t.cvs = reformTarget(t)
+        reformTarget(t)
+        callDrawer(t)
     })
 }
