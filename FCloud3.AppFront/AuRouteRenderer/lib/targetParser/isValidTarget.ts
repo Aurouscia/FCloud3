@@ -40,7 +40,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
 }
 
 function isValidTargetCell(cell:string, validMarks:string[]){
-    const splitted = cell.split(seperator, 1)
+    const splitted = cell.trim().split(seperator, 1)
     const firstPart = splitted[0]
     for(let c of firstPart){
         if(!validMarks.includes(c)){

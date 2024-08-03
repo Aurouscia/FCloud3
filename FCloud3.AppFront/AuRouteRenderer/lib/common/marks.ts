@@ -1,8 +1,8 @@
-export type ValidMark = 'o'|'I'|' '
+export type ValidMark = 'o'|'I'|'_'
 export const marksDefined:Record<string, ValidMark> = {
     sta:'o',
     line:'I',
-    empty:' '
+    empty:'_'
 }
 export const seperator = ';'
 export const configSeperator = '_'

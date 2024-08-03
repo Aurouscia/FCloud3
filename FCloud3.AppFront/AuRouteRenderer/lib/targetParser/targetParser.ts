@@ -27,7 +27,7 @@ export function parseTargets(area:HTMLElement):Target[]{
                 const gridHere:string[] = []
                 const annoHere:string[] = []
                 for(let char of firstPart){
-                    gridHere.push(char)
+                    gridHere.push(char.trim())
                 }
                 for(let i=1;i<parts.length;i++){
                     annoHere.push(parts[i])
@@ -47,6 +47,7 @@ export function parseTargets(area:HTMLElement):Target[]{
                     }
                 }
             })
+            fillGrid(grid)
             const newTarget:Target = {
                 element:t,
                 rowFrom:res.from,
@@ -75,4 +76,19 @@ function parseConfig(s:string):TargetConfig|undefined{
         }
     })
     return config
+}
+
+function fillGrid(grid:string[][]){
+    let maxRowLength = 0;
+    grid.forEach(r=>{
+        if(r.length>maxRowLength){
+            maxRowLength = r.length
+        }
+    })
+    grid.forEach(r=>{
+        const needFillCount = maxRowLength - r.length;
+        for(let i=0;i<needFillCount;i++){
+            r.push('_')
+        }
+    })
 }

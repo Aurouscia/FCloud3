@@ -10,8 +10,16 @@ export function reformTarget(t:Target):void{
     let xUnitCount = 1;
     for(let i = 0;i<rowCount;i++){
         const gridCount = t.grid[i].length
+        let gridCountTrimmed = gridCount
+        for(let c=gridCount-1;c>=0;c--){
+            if(t.grid[i][c]==='_'){
+                gridCountTrimmed--;
+            }else{
+                break;
+            }
+        }
         const annoCount = t.annotations[i].length
-        const sum = gridCount+annoCount;
+        const sum = gridCountTrimmed+annoCount;
         if(sum > xUnitCount){
             xUnitCount = sum
         }
