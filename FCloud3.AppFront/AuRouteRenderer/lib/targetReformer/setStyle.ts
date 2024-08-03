@@ -12,6 +12,7 @@ export function setMainTdStyle(td:HTMLTableCellElement, xUnitCount:number){
 }
 export function setTdStyle(td:HTMLTableCellElement){
     td.style.whiteSpace = 'nowrap'
+    td.style.textAlign = 'left'
 }
 export function setCanvasStyle(cvs:HTMLCanvasElement, rowCount:number, xUnitCount:number){
     cvs.style.width = `${displayXUnitPx*xUnitCount}px`

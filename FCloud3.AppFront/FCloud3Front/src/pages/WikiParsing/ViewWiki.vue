@@ -244,13 +244,10 @@ async function init(changedPathName?:boolean){
         viewAreaScrollHandler(true)
     }
 
-    // if(routeRendererContainer.value){
-    //     const rr = new RouteRenderer(routeRendererContainer.value)
-    //     rr.run()
-    //     setTimeout(() => {
-    //         rr.run()
-    //     }, 10000);
-    // }
+    if(routeRendererContainer.value){
+        const rr = new RouteRenderer(routeRendererContainer.value)
+        rr.run()
+    }
 }
 onUnmounted(()=>{
     mainDivStyle.value = {}
