@@ -1,15 +1,7 @@
-import { isValidTarget } from "./isValidTarget"
+import { isValidTarget } from "./targetValidator"
 import { Target, TargetConfig, targetConfigDefault } from "../common/target"
 import { configKvSeperator, configSeperator, seperator } from "../common/marks"
 
-/*
-*   正确目标的每一行应该都有内容（至少有空格）
-*   目标的每一行由seperator分为几个部分，第一部分为主要描述，描述这块应该绘制什么东西
-*       第二部分及以后是一个或多个标注(annotation)
-*   第一行的第一个标注会被试图读取为合法的配置，如果是合法配置就从标注数组中移除
-*       配置必须以configSeperator开头和结尾，中间为数个由configSeperator隔开的键值对组成
-*       键值对由configKvSeperator分开
-*/
 
 export function parseTargets(area:HTMLElement):Target[]{
     const targets:Target[] = []
