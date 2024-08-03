@@ -26,11 +26,13 @@ export function parseTargets(area:HTMLElement):Target[]{
                 const firstPart = parts[0]
                 const gridHere:string[] = []
                 const annoHere:string[] = []
-                for(let char of firstPart){
-                    gridHere.push(char.trim())
+                for(let char of firstPart.trim()){
+                    gridHere.push(char)
                 }
                 for(let i=1;i<parts.length;i++){
-                    annoHere.push(parts[i])
+                    const anno = parts[i].trim()
+                    if(anno)
+                        annoHere.push(anno)
                 }
                 grid.push(gridHere)
                 annotations.push(annoHere)

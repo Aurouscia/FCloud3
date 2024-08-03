@@ -6,10 +6,18 @@ export interface DrawerContext{
     xuPx:number
     yuPx:number
 }
+
+export type DrawLineType = "regular" | "endTop" | "endBottom" | "trans"
+export interface DrawLineConfig{
+    topBias?:number,
+    bottomBias?:number
+}
+export type DrawStationType = "single" | "cross" | "shareLeft" | "shareRight" | "shareBoth"
+
 export interface Drawer{
     ctx:DrawerContext;
-    drawLine(pos:Point, color:string, type:"regular"|"endTop"|"endBottom"|"transLeft"|"transRight", transStep?:number):void
-    drawStation(pos:Point, color:string, type:"single"|"cross"|"shareLeft"|"shareRight"|"shareBoth"):void
+    drawLine(pos:Point, color:string, type:DrawLineType, config:DrawLineConfig):void
+    drawStation(pos:Point, color:string, type:DrawStationType):void
 }
 
 export abstract class DrawerBase implements Drawer{
@@ -19,9 +27,9 @@ export abstract class DrawerBase implements Drawer{
         this.cvs = ctx.cvsctx
         this.ctx = ctx
     }
-    abstract drawLine(pos: Point, color: string, type: "regular" | "endTop" | "endBottom" | "transLeft" | "transRight", transStep?: number): void
-    abstract drawStation(pos: Point, color: string, type: "single" | "cross" | "shareLeft" | "shareRight" | "shareBoth"): void
-    protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"b"){
+    abstract drawLine(pos: Point, color: string, type: DrawLineType, config:DrawLineConfig): void
+    abstract drawStation(pos: Point, color: string, type: DrawStationType): void
+    protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb"){
         let xbiasNum = 0;
         if(xbias=='c')
             xbiasNum = 0.5;
@@ -32,6 +40,10 @@ export abstract class DrawerBase implements Drawer{
             ybiasNum = 0.5;
         else if(ybias=='b')
             ybiasNum = 1
+        else if(ybias=='bb')
+            ybiasNum = 1.5
+        else if(ybias=='tt')
+            ybiasNum = -0.5
         return {
             x:(pos.x+xbiasNum)*this.ctx.xuPx,
             y:(pos.y+ybiasNum)*this.ctx.yuPx

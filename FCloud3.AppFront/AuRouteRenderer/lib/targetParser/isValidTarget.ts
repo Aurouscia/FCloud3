@@ -30,7 +30,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
             }
         }
     }
-    if(cells.length < 3){
+    if(cells.length < 5){
         return undefined
     }
     return {
@@ -41,7 +41,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
 
 function isValidTargetCell(cell:string, validMarks:string[]){
     const splitted = cell.trim().split(seperator, 1)
-    const firstPart = splitted[0]
+    const firstPart = splitted[0].trim()
     for(let c of firstPart){
         if(!validMarks.includes(c)){
             return false;
