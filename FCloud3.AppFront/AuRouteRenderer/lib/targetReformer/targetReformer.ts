@@ -10,7 +10,8 @@ export function reformTarget(t:Target):void{
     let xUnitCount = 1;
     for(let i = 0;i<rowCount;i++){
         const annoCount = t.annotations[i].length
-        const sum = t.gridTrimmedLengths[i]+annoCount;
+        const annoNeedUnits = Math.ceil(annoCount/2)
+        const sum = t.gridTrimmedLengths[i]+annoNeedUnits;
         if(sum > xUnitCount){
             xUnitCount = sum
         }
