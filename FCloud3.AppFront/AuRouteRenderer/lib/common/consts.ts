@@ -5,3 +5,4 @@ export const displayYUnitPx = 65
 export const displayXUnitPx = 25
 
 export const activationCode = 'AuRtRd'
+export const airportCalls = ['_机场_','_airport_']

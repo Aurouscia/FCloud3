@@ -1,5 +1,7 @@
 import { autoTextColor } from "../../common/colorUtil";
+import { airportCalls } from "../../common/consts";
 import { Point } from "../../common/point";
+import { drawAirport } from "../../common/specialIconDraw";
 import { DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer";
 
 
@@ -91,6 +93,14 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.fillStyle = bgColor
         this.cvs.arc(x,y,radius, 0, 2*Math.PI)
         this.cvs.fill()
+
+        //特殊字符串处理
+        if(airportCalls.includes(text)){
+            this.cvs.lineWidth = radius/10
+            this.cvs.strokeStyle = 'white'
+            drawAirport(this.cvs, x, y, radius*0.9)
+            return
+        }
 
         this.cvs.textAlign = 'center'
         this.cvs.textBaseline = 'middle'

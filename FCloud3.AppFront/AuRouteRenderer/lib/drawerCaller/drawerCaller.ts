@@ -119,12 +119,19 @@ function transLineType(grid:string[][], y:number, x:number)
 }
 
 function readAnnoAsIcon(anno:string):{text:string, bgColor:string}|undefined{
-    const isIcon = /.*\(.+?\)$/.test(anno)
-    if(isIcon){
+    const isIconFixed = /^_.*?_$/.test(anno)
+    if(isIconFixed){
+        return {
+            text: anno, bgColor: '#999'
+        }
+    }
+    const isIconWithParam = /.*\(.*?\)$/.test(anno)
+    if(isIconWithParam){
         const firstB = anno.indexOf('(')
         const secondB = anno.indexOf(')')
         const text = anno.substring(0, firstB)
-        const bgColor = anno.substring(firstB+1, secondB)
+        let bgColor = anno.substring(firstB+1, secondB)
+        bgColor = bgColor || '#999'
         return{
             text, bgColor
         }
