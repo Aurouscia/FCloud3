@@ -1,5 +1,5 @@
 import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
-import { ValidMark } from "../common/marks";
+import { emptyMark, lineMark, transLeftMark, transRightMark, ValidMark } from "../common/marks";
 import { Target } from "../common/target";
 import { DrawLineType } from "../drawer/drawer";
 import { DbgDrawer } from "../drawer/Drawer/dbgDrawer";
@@ -26,9 +26,9 @@ export function callDrawer(t:Target){
         }
     }
     enumerateGrid((x,y,mark)=>{
-        if(mark === 'l'){
+        if(mark === lineMark){
             drawer.drawLine({x,y}, color, "regular")
-        }else if(mark === '/'||mark==='\\'){
+        }else if(mark === transLeftMark||mark===transRightMark){
             const param = transLineType(t.grid, y, x)
             if(param){
                 drawer.drawLine({x,y}, color, param.type, {
@@ -58,12 +58,12 @@ function staLineType(grid:string[][], y:number, x:number):DrawLineType|undefined
     if(!canReachTop){
         topConn = false
     }
-    else if(grid[y-1][x]==='_'){
+    else if(grid[y-1][x]===emptyMark){
         topConn = false
     }
     if(!canReachBottom){
         bottomConn = false
-    }else if(grid[y+1][x]==='_'){
+    }else if(grid[y+1][x]===emptyMark){
         bottomConn = false
     }
     if(topConn){
@@ -82,12 +82,12 @@ function transLineType(grid:string[][], y:number, x:number)
     const rl = grid[y].length
     let canReachLeft = x>0;
     let canReachRight = x<rl-1;
-    if(trans==='/'){
+    if(trans===transLeftMark){
         if(canReachRight && canReachLeft){
             return {type:'trans', topBias:1, bottomBias:-1}
         }
     }
-    if(trans==='\\'){
+    if(trans===transRightMark){
         if(canReachRight && canReachLeft){
             return {type:'trans', topBias:-1, bottomBias:1}
         }

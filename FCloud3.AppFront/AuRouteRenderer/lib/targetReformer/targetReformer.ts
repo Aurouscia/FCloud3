@@ -1,4 +1,5 @@
 import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
+import { emptyMark } from "../common/marks";
 import { Target } from "../common/target";
 import { setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle, setTrStyle } from "./setStyle";
 
@@ -12,7 +13,7 @@ export function reformTarget(t:Target):void{
         const gridCount = t.grid[i].length
         let gridCountTrimmed = gridCount
         for(let c=gridCount-1;c>=0;c--){
-            if(t.grid[i][c]==='_'){
+            if(t.grid[i][c]===emptyMark){
                 gridCountTrimmed--;
             }else{
                 break;

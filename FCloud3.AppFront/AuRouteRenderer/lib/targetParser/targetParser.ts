@@ -1,6 +1,6 @@
 import { isValidTarget } from "./targetValidator"
 import { Target, TargetConfig, targetConfigDefault } from "../common/target"
-import { configKvSeperator, configSeperator, seperator } from "../common/marks"
+import { configKvSeperator, configSeperator, emptyMark, seperator } from "../common/marks"
 
 
 export function parseTargets(area:HTMLElement):Target[]{
@@ -75,7 +75,7 @@ function fillGrid(grid:string[][]){
     grid.forEach(r=>{
         const needFillCount = maxRowLength - r.length;
         for(let i=0;i<needFillCount;i++){
-            r.push('_')
+            r.push(emptyMark)
         }
     })
 }
