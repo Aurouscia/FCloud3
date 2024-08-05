@@ -3,6 +3,7 @@ export const lineMark = 'T'
 export const emptyMark = '_'
 export const transLeftMark = '/'
 export const transRightMark = '\\'
+export const isTransMark=(s?:string) => s===transLeftMark || s===transRightMark; 
 export type ValidMark = typeof staMark|typeof lineMark|typeof emptyMark|typeof transLeftMark|typeof transRightMark
 export const marksDefined:Record<string, ValidMark> = {
     sta:staMark,

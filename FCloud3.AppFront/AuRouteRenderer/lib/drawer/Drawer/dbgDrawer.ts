@@ -29,6 +29,7 @@ export class DbgDrawer extends DrawerBase{
             this.cvs.lineTo(to.x,to.y)
             this.cvs.stroke()
         }else if(type=='trans'){
+            console.log(config)
             const fromPos = {x:pos.x, y:pos.y}
             const toPos = {x:pos.x, y:pos.y}
             if(config && config.topBias){
@@ -37,13 +38,31 @@ export class DbgDrawer extends DrawerBase{
             if(config && config.bottomBias){
                 toPos.x += config.bottomBias
             }
-            let from = super.posToCord(fromPos,'c','tt')
-            let cp0 = super.posToCord(fromPos,'c','c')
-            let to = super.posToCord(toPos,'c','bb')
-            let cp1 = super.posToCord(toPos,'c','c')
+            let fromYbias:'t'|'tt' = config?.topShrink ? 't' : 'tt'
+            let toYbias:'b'|'bb' = config?.bottomShrink ? 'b' : 'bb'
+            let from = super.posToCord(fromPos,'c', fromYbias)
+            let to = super.posToCord(toPos,'c',toYbias)
+            let cp0x = from.x
+            let cp0y = (from.y + to.y) / 2
+            let cp1x = to.x
+            let cp1y = cp0y
             this.cvs.moveTo(from.x, from.y)
-            this.cvs.bezierCurveTo(cp0.x, cp0.y, cp1.x, cp1.y, to.x, to.y)
+            this.cvs.bezierCurveTo(cp0x, cp0y, cp1x, cp1y, to.x, to.y)
             this.cvs.stroke()
+            if(config?.topShrink){
+                this.cvs.beginPath()
+                let fromFill = super.posToCord(fromPos,'c','tt')
+                this.cvs.moveTo(from.x, from.y)
+                this.cvs.lineTo(fromFill.x, fromFill.y)
+                this.cvs.stroke()
+            }
+            if(config?.bottomShrink){
+                this.cvs.beginPath()
+                let toFill = super.posToCord(toPos,'c','bb')
+                this.cvs.moveTo(to.x, to.y)
+                this.cvs.lineTo(toFill.x, toFill.y)
+                this.cvs.stroke()
+            }
         }
     }
     drawStation(pos: Point, color: string, type: DrawStationType): void {

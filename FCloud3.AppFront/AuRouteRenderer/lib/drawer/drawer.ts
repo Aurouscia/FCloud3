@@ -10,7 +10,9 @@ export interface DrawerContext{
 export type DrawLineType = "regular" | "endTop" | "endBottom" | "trans"
 export interface DrawLineConfig{
     topBias?:number,
-    bottomBias?:number
+    bottomBias?:number,
+    topShrink?:boolean,
+    bottomShrink?:boolean
 }
 export type DrawStationType = "single" | "cross" | "shareLeft" | "shareRight" | "shareBoth"
 
