@@ -10,6 +10,8 @@ export interface Target{
 export type TargetConfig = {
     c:string
 } & Record<string,string|null|undefined>
-export const targetConfigDefault:TargetConfig = {
-    c:"#ff0000"
+export function targetConfigDefault():TargetConfig{
+    return{
+        c:"#ff0000"
+    }
 }

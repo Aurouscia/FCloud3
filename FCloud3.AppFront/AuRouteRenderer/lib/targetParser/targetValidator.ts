@@ -1,7 +1,7 @@
 import { activationCode } from "../common/consts";
 import { marksDefined, seperator } from "../common/marks";
 
-type TargetValidationResult = {from:number, cells:string[]} | undefined
+type TargetValidationResult = {from:number, cells:string[], config?:string} | undefined
 
 export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
     if(t.rows.length<=1){
@@ -9,6 +9,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
     }
     let started = false;
     let from = 0;
+    let config:string|undefined
     const validMarks = Object.values(marksDefined) as string[]
     const cells:string[] = []
     for(let idx=0;idx<t.rows.length;idx++){
@@ -23,7 +24,10 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
             if(!started){
                 from = idx;
                 started = true;
-                cells.push(removeActivationCode(firstCellContent))
+                const withoutCode = removeActivationCode(firstCellContent)
+                const configInfo = extractConfig(withoutCode)
+                cells.push(configInfo.otherVals)
+                config = configInfo.config
             }
             else
                 cells.push(firstCellContent)
@@ -38,7 +42,8 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
     }
     return {
         from,
-        cells
+        cells,
+        config
     }
 }
 
@@ -48,6 +53,7 @@ function isValidTargetCell(cellTrimmed:string, validMarks:string[], started:bool
             return false;
         }else{
             cellTrimmed = removeActivationCode(cellTrimmed)
+            cellTrimmed = cellTrimmed.replace(/^\(.*?\)/, "")
         }
     }
     const splitted = cellTrimmed.split(seperator, 1)
@@ -61,4 +67,17 @@ function isValidTargetCell(cellTrimmed:string, validMarks:string[], started:bool
 }
 function removeActivationCode(cellTrimmed:string){
     return cellTrimmed.substring(activationCode.length).trim()
+}
+function extractConfig(cellTrimmed:string):{otherVals:string, config?:string}{
+    const res = /^\(.*?\)/.exec(cellTrimmed)
+    if(res && res.length>0){
+        const m = res[0]
+        return {
+            otherVals: cellTrimmed.substring(m.length),
+            config: m
+        }
+    }
+    return {
+        otherVals: cellTrimmed
+    }
 }
