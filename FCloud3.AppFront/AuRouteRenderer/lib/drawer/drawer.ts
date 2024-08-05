@@ -15,11 +15,14 @@ export interface DrawLineConfig{
     bottomShrink?:boolean
 }
 export type DrawStationType = "single" | "cross" | "shareLeft" | "shareRight" | "shareBoth"
+export type DrawIconType = "middle" | "upper"| "lower"
 
 export interface Drawer{
     ctx:DrawerContext;
-    drawLine(pos:Point, color:string, type:DrawLineType, config:DrawLineConfig):void
+    drawLine(pos:Point, color:string, type:DrawLineType, config?:DrawLineConfig):void
     drawStation(pos:Point, color:string, type:DrawStationType):void
+    drawStation(pos: Point, color: string, type: DrawStationType): void
+    drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
 }
 
 export abstract class DrawerBase implements Drawer{
@@ -29,8 +32,9 @@ export abstract class DrawerBase implements Drawer{
         this.cvs = ctx.cvsctx
         this.ctx = ctx
     }
-    abstract drawLine(pos: Point, color: string, type: DrawLineType, config:DrawLineConfig): void
+    abstract drawLine(pos: Point, color: string, type: DrawLineType, config?:DrawLineConfig): void
     abstract drawStation(pos: Point, color: string, type: DrawStationType): void
+    abstract drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
     protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb"){
         let xbiasNum = 0;
         if(xbias=='c')

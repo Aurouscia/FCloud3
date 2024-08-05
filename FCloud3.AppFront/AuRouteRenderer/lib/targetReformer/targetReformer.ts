@@ -1,5 +1,4 @@
 import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
-import { emptyMark } from "../common/marks";
 import { Target } from "../common/target";
 import { setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle, setTrStyle } from "./setStyle";
 
@@ -10,17 +9,8 @@ export function reformTarget(t:Target):void{
     const expandTd = table.rows[t.rowFrom].cells[0]
     let xUnitCount = 1;
     for(let i = 0;i<rowCount;i++){
-        const gridCount = t.grid[i].length
-        let gridCountTrimmed = gridCount
-        for(let c=gridCount-1;c>=0;c--){
-            if(t.grid[i][c]===emptyMark){
-                gridCountTrimmed--;
-            }else{
-                break;
-            }
-        }
         const annoCount = t.annotations[i].length
-        const sum = gridCountTrimmed+annoCount;
+        const sum = t.gridTrimmedLengths[i]+annoCount;
         if(sum > xUnitCount){
             xUnitCount = sum
         }

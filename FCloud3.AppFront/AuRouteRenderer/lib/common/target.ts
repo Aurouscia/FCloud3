@@ -5,6 +5,7 @@ export interface Target{
     rowFrom:number
     cells:string[]
     grid:string[][]
+    gridTrimmedLengths:number[]
     annotations:string[][]
     config:TargetConfig
     cvs?:HTMLCanvasElement

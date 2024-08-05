@@ -1,5 +1,6 @@
+import { autoTextColor } from "../../common/colorUtil";
 import { Point } from "../../common/point";
-import { DrawerBase, DrawerContext, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer";
+import { DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer";
 
 
 export class DbgDrawer extends DrawerBase{
@@ -29,7 +30,6 @@ export class DbgDrawer extends DrawerBase{
             this.cvs.lineTo(to.x,to.y)
             this.cvs.stroke()
         }else if(type=='trans'){
-            console.log(config)
             const fromPos = {x:pos.x, y:pos.y}
             const toPos = {x:pos.x, y:pos.y}
             if(config && config.topBias){
@@ -78,5 +78,43 @@ export class DbgDrawer extends DrawerBase{
             this.cvs.fill()
             this.cvs.stroke()
         }
+    }
+    drawIcon(pos: Point, bgColor: string, text: string, type:DrawIconType):void{
+        let {x,y} = super.posToCord(pos, 'c', 'c')
+        if(type=='upper'){
+            y+=this.ctx.uPx/2.4
+        }else if(type=='lower'){
+            y-=this.ctx.uPx/2.4
+        }
+        const radius = this.ctx.uPx / 2.7
+        this.cvs.beginPath()
+        this.cvs.fillStyle = bgColor
+        this.cvs.arc(x,y,radius, 0, 2*Math.PI)
+        this.cvs.fill()
+
+        this.cvs.textAlign = 'center'
+        this.cvs.textBaseline = 'middle'
+        let fontSize = radius*1.5
+        if(text.length>3)
+            text = text.substring(0,3)
+        let length = 10000
+        let vertBias = 0;
+        while(true){
+            this.cvs.font = `${fontSize}px Calibri 微软雅黑`
+            const mea = this.cvs.measureText(text)
+            let asc = mea.actualBoundingBoxAscent
+            let dsc = mea.actualBoundingBoxDescent
+            vertBias = (asc-dsc)/2
+            length = mea.width
+            if(length>radius*1.8){
+                fontSize -= 0.5
+            }else{
+                break;
+            }
+        }
+        
+        const textColor = autoTextColor(bgColor)
+        this.cvs.fillStyle = textColor
+        this.cvs.fillText(text, x, y+vertBias)
     }
 }

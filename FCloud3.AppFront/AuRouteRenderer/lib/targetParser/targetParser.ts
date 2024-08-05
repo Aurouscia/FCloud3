@@ -35,11 +35,26 @@ export function parseTargets(area:HTMLElement):Target[]{
                 annotations.push(annoHere)
             })
             fillGrid(grid)
+            
+            let gridTrimmedLengths = []
+            for(let i = 0;i<grid.length;i++){
+                const rowCount = grid[i].length
+                let rowCountTrimmed = rowCount
+                for(let c=rowCount-1;c>=0;c--){
+                    if(grid[i][c]===emptyMark){
+                        rowCountTrimmed--;
+                    }else{
+                        break;
+                    }
+                }
+                gridTrimmedLengths.push(rowCountTrimmed)
+            }
             const newTarget:Target = {
                 element:t,
                 rowFrom:res.from,
                 cells:res.cells,
                 grid,
+                gridTrimmedLengths,
                 annotations,
                 config
             }

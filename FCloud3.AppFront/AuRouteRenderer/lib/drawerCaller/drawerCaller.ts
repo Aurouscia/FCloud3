@@ -1,20 +1,8 @@
-import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
 import { emptyMark, isTransMark, lineMark, staMark, transLeftMark, transRightMark, ValidMark } from "../common/marks";
 import { gridNeighbor, gridNeighborEmpty, Target } from "../common/target";
-import { DrawLineConfig, DrawLineType } from "../drawer/drawer";
-import { DbgDrawer } from "../drawer/Drawer/dbgDrawer";
+import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
-export function callDrawer(t:Target){
-    const ctx = t.cvs?.getContext('2d')
-    if(!ctx){
-        return
-    }
-    const drawer = new DbgDrawer({
-        cvsctx:ctx,
-        uPx: cvsXUnitPx,
-        xuPx: cvsXUnitPx,
-        yuPx: cvsYUnitPx
-    })
+export function callDrawer(t:Target, drawer:Drawer){
     const color = t.config.c
     const enumerateGrid = (cb:(x:number,y:number,mark:ValidMark)=>void)=>{
         for(let y=0;y<t.grid.length;y++){
@@ -22,6 +10,16 @@ export function callDrawer(t:Target){
             for(let x=0;x<gridRow.length;x++){
                 const mark = gridRow[x] as ValidMark
                 cb(x,y,mark)
+            }
+        }
+    }
+    const enumerateAnno = (cb:(x:number,y:number,anno:string,isLast:boolean)=>void)=>{
+        for(let y=0;y<t.annotations.length;y++){
+            const annoRow = t.annotations[y]
+            for(let x=0;x<annoRow.length;x++){
+                const anno = annoRow[x] as string
+                const isLast = x === annoRow.length-1
+                cb(x,y,anno,isLast)
             }
         }
     }
@@ -48,6 +46,16 @@ export function callDrawer(t:Target){
             if(type)
                 drawer.drawLine({x,y}, color, type)
             drawer.drawStation({x,y}, color, "single")
+        }
+    })
+    enumerateAnno((x,y,anno,isLast)=>{
+        const icon = readAnnoAsIcon(anno);
+        const baseX = t.gridTrimmedLengths[y]
+        const isOdd = !(x % 2)
+        const biasType:DrawIconType = isOdd ? (isLast ? 'middle':'upper') : 'lower'
+        const realX = Math.floor(x/2)
+        if(icon){
+            drawer.drawIcon({x:baseX+realX, y}, icon.bgColor, icon.text, biasType)
         }
     })
 }
@@ -108,4 +116,17 @@ function transLineType(grid:string[][], y:number, x:number)
         return {type:'trans', topBias, bottomBias, bottomShrink}
     }
     return undefined
+}
+
+function readAnnoAsIcon(anno:string):{text:string, bgColor:string}|undefined{
+    const isIcon = /.*\(.+?\)$/.test(anno)
+    if(isIcon){
+        const firstB = anno.indexOf('(')
+        const secondB = anno.indexOf(')')
+        const text = anno.substring(0, firstB)
+        const bgColor = anno.substring(firstB+1, secondB)
+        return{
+            text, bgColor
+        }
+    }
 }
