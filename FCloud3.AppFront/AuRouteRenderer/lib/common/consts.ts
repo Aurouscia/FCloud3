@@ -6,3 +6,4 @@ export const displayXUnitPx = 25
 
 export const activationCode = 'AuRtRd'
 export const airportCalls = ['_机场_','_airport_']
+export const waterColor = '#b6dee8'

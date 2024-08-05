@@ -17,7 +17,8 @@ export function run(area?:HTMLElement):void{
             cvsctx:ctx,
             uPx: cvsUnitPx,
             xuPx: cvsXUnitPx,
-            yuPx: cvsYUnitPx
+            yuPx: cvsYUnitPx,
+            lineWidth: cvsUnitPx/3
         })
 
         callDrawer(t,drawer)

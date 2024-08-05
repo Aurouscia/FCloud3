@@ -1,8 +1,8 @@
 import { autoTextColor } from "../../common/colorUtil";
-import { airportCalls } from "../../common/consts";
+import { airportCalls, waterColor } from "../../common/consts";
 import { Point } from "../../common/point";
 import { drawAirport } from "../../common/specialIconDraw";
-import { DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer";
+import { DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
 
 
 export class DbgDrawer extends DrawerBase{
@@ -12,7 +12,10 @@ export class DbgDrawer extends DrawerBase{
     drawLine(pos: Point, color: string, type: DrawLineType, config?:DrawLineConfig): void {
         this.cvs.beginPath()
         this.cvs.strokeStyle = color;
-        this.cvs.lineWidth = this.ctx.uPx / 3
+        this.cvs.lineWidth = this.ctx.lineWidth
+        if(config?.lineWidthRatio){
+            this.cvs.lineWidth *= config.lineWidthRatio
+        }
         if(type=='regular'||type=='endTop'||type=='endBottom'){
             let from:Point = {x:0,y:0} 
             let to:Point = {x:0,y:0} 
@@ -67,18 +70,18 @@ export class DbgDrawer extends DrawerBase{
             }
         }
     }
-    drawStation(pos: Point, color: string, type: DrawStationType): void {
+    drawStation(pos: Point, color: string, type: DrawStationType, config?:DrawStationConfig): void {
         if(type=='single'){
             const {x,y} = super.posToCord(pos,'c','c')
-            const radius = this.ctx.uPx / 4
+            const radius = this.ctx.uPx / 4 * (config?.radiusRatio || 1)
             this.cvs.beginPath()
             this.cvs.strokeStyle = color
             this.cvs.fillStyle = 'white'
-            this.cvs.lineWidth = radius / 3
-            this.cvs.moveTo(x + radius, y)
+            this.cvs.lineWidth = radius / 3 
             this.cvs.arc(x, y, radius, 0, 2*Math.PI)
             this.cvs.fill()
-            this.cvs.stroke()
+            if(!config?.noStroke)
+                this.cvs.stroke()
         }
     }
     drawIcon(pos: Point, bgColor: string, text: string, type:DrawIconType):void{
@@ -126,5 +129,16 @@ export class DbgDrawer extends DrawerBase{
         const textColor = autoTextColor(bgColor)
         this.cvs.fillStyle = textColor
         this.cvs.fillText(text, x, y+vertBias)
+    }
+    drawRiver(pos: Point): void {
+        const {x:fx,y:fy} = this.posToCord(pos,'l','c')
+        const {x:tx,y:ty} = this.posToCord(pos,'r','c')
+        const riverWidth = this.ctx.uPx;
+        this.cvs.lineWidth = riverWidth;
+        this.cvs.strokeStyle = waterColor
+        this.cvs.beginPath()
+        this.cvs.moveTo(fx,fy);
+        this.cvs.lineTo(tx,ty)
+        this.cvs.stroke()
     }
 }

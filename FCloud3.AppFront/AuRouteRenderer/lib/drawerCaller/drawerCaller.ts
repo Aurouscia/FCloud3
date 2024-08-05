@@ -1,4 +1,4 @@
-import { emptyMark, isTransMark, lineMark, staMark, transLeftMark, transRightMark, ValidMark } from "../common/marks";
+import { emptyMark, isTransMark, needFillLine, staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborEmpty, Target } from "../common/target";
 import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
@@ -23,31 +23,44 @@ export function callDrawer(t:Target, drawer:Drawer){
             }
         }
     }
+
     enumerateGrid((x,y,mark)=>{
-        if(mark === lineMark){
-            const type = staLineType(t.grid, y, x)
-            if(type)
-                drawer.drawLine({x,y}, color, type)
-        }else if(isTransMark(mark)){
-            const param = transLineType(t.grid, y, x)
-            if(param){
-                drawer.drawLine({x,y}, color, param.type, {
-                    topBias:param.topBias,
-                    bottomBias:param.bottomBias,
-                    topShrink: param.topShrink,
-                    bottomShrink:param.bottomShrink
-                })
+        if(mark===waterMark){
+            drawer.drawRiver({x,y})
+        }
+    })
+    const drawAllLines = (color:string, lineWidthRatio?:number)=>{
+        enumerateGrid((x,y,mark)=>{
+            if(needFillLine(mark)){
+                const type = staLineType(t.grid, y, x)
+                if(type)
+                    drawer.drawLine({x,y}, color, type, {lineWidthRatio})
+            }else if(isTransMark(mark)){
+                const param = transLineType(t.grid, y, x)
+                if(param){
+                    drawer.drawLine({x,y}, color, param.type, {
+                        topBias:param.topBias,
+                        bottomBias:param.bottomBias,
+                        topShrink: param.topShrink,
+                        bottomShrink:param.bottomShrink,
+                        lineWidthRatio
+                    })
+                }
             }
-        }
-    })
-    enumerateGrid((x,y,mark)=>{
-        if(mark ==='o'){
-            const type = staLineType(t.grid, y, x)
-            if(type)
-                drawer.drawLine({x,y}, color, type)
-            drawer.drawStation({x,y}, color, "single")
-        }
-    })
+        })
+    }
+    const drawAllSta = (noStroke?:boolean, radiusRatio?:number)=>{
+        enumerateGrid((x,y,mark)=>{
+            if(mark ==='o'){
+                drawer.drawStation({x,y}, color, "single", {noStroke, radiusRatio})
+            }
+        })
+    }
+    drawAllLines('white', 1.4)
+    drawAllSta(true, 1.4)
+    drawAllLines(color)
+    drawAllSta()
+
     enumerateAnno((x,y,anno,isLast)=>{
         const icon = readAnnoAsIcon(anno);
         const baseX = t.gridTrimmedLengths[y]
