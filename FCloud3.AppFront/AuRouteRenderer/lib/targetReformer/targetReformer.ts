@@ -9,17 +9,9 @@ export function reformTarget(t:Target):void{
     const expandTd = table.rows[t.rowFrom].cells[0]
     let xUnitCount = 1;
     for(let i = 0;i<rowCount;i++){
-        const gridCount = t.grid[i].length
-        let gridCountTrimmed = gridCount
-        for(let c=gridCount-1;c>=0;c--){
-            if(t.grid[i][c]==='_'){
-                gridCountTrimmed--;
-            }else{
-                break;
-            }
-        }
         const annoCount = t.annotations[i].length
-        const sum = gridCountTrimmed+annoCount;
+        const annoNeedUnits = Math.ceil(annoCount/2)
+        const sum = t.gridTrimmedLengths[i]+annoNeedUnits;
         if(sum > xUnitCount){
             xUnitCount = sum
         }

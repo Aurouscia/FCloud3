@@ -1,6 +1,6 @@
 import { isValidTarget } from "./targetValidator"
 import { Target, TargetConfig, targetConfigDefault } from "../common/target"
-import { configKvSeperator, configSeperator, seperator } from "../common/marks"
+import { configKvSeperator, configSeperator, emptyMark, seperator } from "../common/marks"
 
 
 export function parseTargets(area:HTMLElement):Target[]{
@@ -11,8 +11,13 @@ export function parseTargets(area:HTMLElement):Target[]{
         if(res){
             const grid:string[][] = [];
             const annotations:string[][] = [];
-            let isFirstCell = true;
-            let config = targetConfigDefault;
+            let config = targetConfigDefault();
+            if(res.config){
+                const parsedConfig = parseConfig(res.config)
+                if(parsedConfig){
+                    config = parsedConfig
+                }
+            }
             res.cells.forEach(c=>{
                 const parts = c.split(seperator)
                 const firstPart = parts[0]
@@ -28,25 +33,28 @@ export function parseTargets(area:HTMLElement):Target[]{
                 }
                 grid.push(gridHere)
                 annotations.push(annoHere)
-                if(isFirstCell){
-                    isFirstCell = false;
-                    if(annoHere.length>0){
-                        const seemsConfig = annoHere[0]
-                        const cfg = parseConfig(seemsConfig)
-                        console.log(cfg)
-                        if(cfg){
-                            config = cfg
-                            annoHere.shift()
-                        }
-                    }
-                }
             })
             fillGrid(grid)
+            
+            let gridTrimmedLengths = []
+            for(let i = 0;i<grid.length;i++){
+                const rowCount = grid[i].length
+                let rowCountTrimmed = rowCount
+                for(let c=rowCount-1;c>=0;c--){
+                    if(grid[i][c]===emptyMark){
+                        rowCountTrimmed--;
+                    }else{
+                        break;
+                    }
+                }
+                gridTrimmedLengths.push(rowCountTrimmed)
+            }
             const newTarget:Target = {
                 element:t,
                 rowFrom:res.from,
                 cells:res.cells,
                 grid,
+                gridTrimmedLengths,
                 annotations,
                 config
             }
@@ -58,10 +66,10 @@ export function parseTargets(area:HTMLElement):Target[]{
 }
 
 function parseConfig(s:string):TargetConfig|undefined{
-    if(!s.startsWith(configSeperator) || !s.endsWith(configSeperator)){
-        return undefined
+    if(s.startsWith("(") && s.endsWith(")")){
+        s = s.slice(1, s.length-1)
     }
-    const config:TargetConfig = targetConfigDefault
+    const config:TargetConfig = targetConfigDefault()
     const parts = s.split(configSeperator)
     parts.forEach(p=>{
         if(p.includes(configKvSeperator)){
@@ -82,7 +90,7 @@ function fillGrid(grid:string[][]){
     grid.forEach(r=>{
         const needFillCount = maxRowLength - r.length;
         for(let i=0;i<needFillCount;i++){
-            r.push('_')
+            r.push(emptyMark)
         }
     })
 }

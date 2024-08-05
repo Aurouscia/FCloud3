@@ -1,20 +1,8 @@
-import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
-import { ValidMark } from "../common/marks";
-import { Target } from "../common/target";
-import { DrawLineType } from "../drawer/drawer";
-import { DbgDrawer } from "../drawer/Drawer/dbgDrawer";
+import { emptyMark, isTransMark, needFillLine, staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
+import { gridNeighbor, gridNeighborEmpty, Target } from "../common/target";
+import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
-export function callDrawer(t:Target){
-    const ctx = t.cvs?.getContext('2d')
-    if(!ctx){
-        return
-    }
-    const drawer = new DbgDrawer({
-        cvsctx:ctx,
-        uPx: cvsXUnitPx,
-        xuPx: cvsXUnitPx,
-        yuPx: cvsYUnitPx
-    })
+export function callDrawer(t:Target, drawer:Drawer){
     const color = t.config.c
     const enumerateGrid = (cb:(x:number,y:number,mark:ValidMark)=>void)=>{
         for(let y=0;y<t.grid.length;y++){
@@ -25,45 +13,76 @@ export function callDrawer(t:Target){
             }
         }
     }
-    enumerateGrid((x,y,mark)=>{
-        if(mark === 'l'){
-            drawer.drawLine({x,y}, color, "regular")
-        }else if(mark === '/'||mark==='\\'){
-            const param = transLineType(t.grid, y, x)
-            if(param){
-                drawer.drawLine({x,y}, color, param.type, {
-                    topBias:param.topBias,
-                    bottomBias:param.bottomBias
-                })
+    const enumerateAnno = (cb:(x:number,y:number,anno:string,isLast:boolean)=>void)=>{
+        for(let y=0;y<t.annotations.length;y++){
+            const annoRow = t.annotations[y]
+            for(let x=0;x<annoRow.length;x++){
+                const anno = annoRow[x] as string
+                const isLast = x === annoRow.length-1
+                cb(x,y,anno,isLast)
             }
         }
-    })
+    }
+
     enumerateGrid((x,y,mark)=>{
-        if(mark ==='o'){
-            const type = staLineType(t.grid, y, x)
-            if(type)
-                drawer.drawLine({x,y}, color, type)
-            drawer.drawStation({x,y}, color, "single")
+        if(mark===waterMark){
+            drawer.drawRiver({x,y})
+        }
+    })
+    const drawAllLines = (color:string, lineWidthRatio?:number)=>{
+        enumerateGrid((x,y,mark)=>{
+            if(needFillLine(mark)){
+                const type = staLineType(t.grid, y, x)
+                if(type)
+                    drawer.drawLine({x,y}, color, type, {lineWidthRatio})
+            }else if(isTransMark(mark)){
+                const param = transLineType(t.grid, y, x)
+                if(param){
+                    drawer.drawLine({x,y}, color, param.type, {
+                        topBias:param.topBias,
+                        bottomBias:param.bottomBias,
+                        topShrink: param.topShrink,
+                        bottomShrink:param.bottomShrink,
+                        lineWidthRatio
+                    })
+                }
+            }
+        })
+    }
+    const drawAllSta = (noStroke?:boolean, radiusRatio?:number)=>{
+        enumerateGrid((x,y,mark)=>{
+            if(mark ==='o'){
+                drawer.drawStation({x,y}, color, "single", {noStroke, radiusRatio})
+            }
+        })
+    }
+    drawAllLines('white', 1.4)
+    drawAllSta(true, 1.4)
+    drawAllLines(color)
+    drawAllSta()
+
+    enumerateAnno((x,y,anno,isLast)=>{
+        const icon = readAnnoAsIcon(anno);
+        const baseX = t.gridTrimmedLengths[y]
+        const isOdd = !(x % 2)
+        const biasType:DrawIconType = isOdd ? (isLast ? 'middle':'upper') : 'lower'
+        const realX = Math.floor(x/2)
+        if(icon){
+            drawer.drawIcon({x:baseX+realX, y}, icon.bgColor, icon.text, biasType)
         }
     })
 }
 
 
 function staLineType(grid:string[][], y:number, x:number):DrawLineType|undefined{
-    const rc = grid.length;
     let topConn = true;
     let bottomConn = true;
-    let canReachTop = y>0;
-    let canReachBottom = y<rc-1;
-    if(!canReachTop){
+    const upNei = gridNeighbor(grid, x, y, "middle", "up")
+    const downNei = gridNeighbor(grid, x, y, "middle", "down")
+    if(!upNei || upNei===emptyMark || isTransMark(upNei)){
         topConn = false
     }
-    else if(grid[y-1][x]==='_'){
-        topConn = false
-    }
-    if(!canReachBottom){
-        bottomConn = false
-    }else if(grid[y+1][x]==='_'){
+    if(!downNei || downNei===emptyMark || isTransMark(downNei)){
         bottomConn = false
     }
     if(topConn){
@@ -77,20 +96,57 @@ function staLineType(grid:string[][], y:number, x:number):DrawLineType|undefined
 }
 
 function transLineType(grid:string[][], y:number, x:number)
-        :{type:DrawLineType, topBias:number, bottomBias:number}|undefined{
+        :(DrawLineConfig & {type:DrawLineType})|undefined{
     const trans = grid[y][x]
-    const rl = grid[y].length
-    let canReachLeft = x>0;
-    let canReachRight = x<rl-1;
-    if(trans==='/'){
-        if(canReachRight && canReachLeft){
-            return {type:'trans', topBias:1, bottomBias:-1}
+    if(trans===transLeftMark){
+        let topBias = 1
+        let bottomBias = -1
+        let topShrink = false
+        if(gridNeighborEmpty(grid, x, y, "right", "up") && !gridNeighborEmpty(grid, x, y, "middle", "up")){
+            topBias = 0
         }
+        if(gridNeighborEmpty(grid, x, y, "left", "down") && !gridNeighborEmpty(grid, x, y, "middle", "down")){
+            bottomBias = 0
+        }
+        if(topBias == 0 && bottomBias == -1 && gridNeighbor(grid,x,y,"left","middle") === staMark){
+            topShrink = true
+        }
+        return {type:'trans', topBias, bottomBias, topShrink}
     }
-    if(trans==='\\'){
-        if(canReachRight && canReachLeft){
-            return {type:'trans', topBias:-1, bottomBias:1}
+    if(trans===transRightMark){
+        let topBias = -1
+        let bottomBias = 1
+        let bottomShrink = false
+        if(gridNeighborEmpty(grid, x, y, "left", "up") && !gridNeighborEmpty(grid, x, y, "middle", "up")){
+            topBias = 0
         }
+        if(gridNeighborEmpty(grid, x, y, "right", "down") && !gridNeighborEmpty(grid, x, y, "middle", "down")){
+            bottomBias = 0
+        }
+        if(topBias == -1 && bottomBias === 0 && gridNeighbor(grid,x,y,"left","middle") === staMark){
+            bottomShrink = true
+        }
+        return {type:'trans', topBias, bottomBias, bottomShrink}
     }
     return undefined
+}
+
+function readAnnoAsIcon(anno:string):{text:string, bgColor:string}|undefined{
+    const isIconFixed = /^_.*?_$/.test(anno)
+    if(isIconFixed){
+        return {
+            text: anno, bgColor: '#999'
+        }
+    }
+    const isIconWithParam = /.*\(.*?\)$/.test(anno)
+    if(isIconWithParam){
+        const firstB = anno.indexOf('(')
+        const secondB = anno.indexOf(')')
+        const text = anno.substring(0, firstB)
+        let bgColor = anno.substring(firstB+1, secondB)
+        bgColor = bgColor || '#999'
+        return{
+            text, bgColor
+        }
+    }
 }

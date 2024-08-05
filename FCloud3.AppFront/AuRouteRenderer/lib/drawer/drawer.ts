@@ -5,19 +5,31 @@ export interface DrawerContext{
     uPx:number
     xuPx:number
     yuPx:number
+    lineWidth:number
 }
 
 export type DrawLineType = "regular" | "endTop" | "endBottom" | "trans"
 export interface DrawLineConfig{
     topBias?:number,
-    bottomBias?:number
+    bottomBias?:number,
+    topShrink?:boolean,
+    bottomShrink?:boolean,
+    lineWidthRatio?:number
 }
 export type DrawStationType = "single" | "cross" | "shareLeft" | "shareRight" | "shareBoth"
+export interface DrawStationConfig{
+    noStroke?:boolean,
+    radiusRatio?:number
+}
+export type DrawIconType = "middle" | "upper"| "lower"
 
 export interface Drawer{
     ctx:DrawerContext;
-    drawLine(pos:Point, color:string, type:DrawLineType, config:DrawLineConfig):void
-    drawStation(pos:Point, color:string, type:DrawStationType):void
+    drawLine(pos:Point, color:string, type:DrawLineType, config?:DrawLineConfig):void
+    drawStation(pos:Point, color:string, type:DrawStationType, config?:DrawStationConfig):void
+    drawStation(pos: Point, color: string, type: DrawStationType): void
+    drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
+    drawRiver(pos:Point):void
 }
 
 export abstract class DrawerBase implements Drawer{
@@ -27,8 +39,10 @@ export abstract class DrawerBase implements Drawer{
         this.cvs = ctx.cvsctx
         this.ctx = ctx
     }
-    abstract drawLine(pos: Point, color: string, type: DrawLineType, config:DrawLineConfig): void
-    abstract drawStation(pos: Point, color: string, type: DrawStationType): void
+    abstract drawLine(pos: Point, color: string, type: DrawLineType, config?:DrawLineConfig): void
+    abstract drawStation(pos: Point, color: string, type: DrawStationType, config?:DrawStationConfig): void
+    abstract drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
+    abstract drawRiver(pos: Point): void
     protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb"){
         let xbiasNum = 0;
         if(xbias=='c')

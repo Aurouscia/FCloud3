@@ -17,4 +17,6 @@ export function setTdStyle(td:HTMLTableCellElement){
 export function setCanvasStyle(cvs:HTMLCanvasElement, rowCount:number, xUnitCount:number){
     cvs.style.width = `${displayXUnitPx*xUnitCount}px`
     cvs.style.height = `${displayYUnitPx*rowCount}px`
+    cvs.style.margin = '0px'
+    cvs.style.verticalAlign = 'middle' //否则canvas底部出现空隙撑大表格
 }
