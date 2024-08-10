@@ -4,8 +4,8 @@ export const emptyMark = '_'
 export const transLeftMark = '/'
 export const transRightMark = '\\'
 export const waterMark = '~'
-export const branchUpperMark = 'p'
-export const branchLowerMark = 'b'
+export const branchUpperMark = 'b'
+export const branchLowerMark = 'p'
 export const branchBothMark = "B"
 export const isTransMark=(s?:string) => s===transLeftMark || s===transRightMark; 
 const needFillLineMarks = [lineMark, staMark, waterMark, branchBothMark, branchLowerMark, branchUpperMark]

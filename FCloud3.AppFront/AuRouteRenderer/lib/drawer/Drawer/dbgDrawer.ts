@@ -150,7 +150,7 @@ export class DbgDrawer extends DrawerBase{
     drawBranch(pos: Point, color: string, type: DrawBranchType, config?:DrawBranchConfig): void {
         const branchWidth = this.ctx.lineWidth * 0.5;
         const xOffset = (this.ctx.lineWidth - branchWidth)/2
-        const sizeShrink = 0
+        const sizeShrink = this.ctx.lineWidth / 7
         const vertPos:'t'|'b' = type=='upper' ? 't' : 'b' 
         const fyOffset = type=='upper' ? sizeShrink : -sizeShrink
         let {x:fx,y:fy} = this.posToCord(pos, 'c', vertPos, {x:xOffset, y:fyOffset})
@@ -162,16 +162,16 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.moveTo(fx, fy);
         this.cvs.quadraticCurveTo(cx,cy,tx,ty)
 
-        const arrowSize = branchWidth*2;
+        const arrowSize = branchWidth*1.9;
         let ex = this.cvs.canvas.width - arrowSize 
         let ey = cy
         this.cvs.lineTo(ex, ey)
         this.cvs.stroke()
         this.cvs.beginPath()
-        this.cvs.moveTo(ex, ey - arrowSize/2)
-        this.cvs.lineTo(ex, ey + arrowSize/2)
+        this.cvs.moveTo(ex, ey - arrowSize*0.6)
+        this.cvs.lineTo(ex, ey + arrowSize*0.6)
         this.cvs.lineTo(ex+arrowSize, ey)
-        this.cvs.lineTo(ex, ey - arrowSize/2)
+        this.cvs.lineTo(ex, ey - arrowSize*0.6)
         this.cvs.fillStyle = color
         this.cvs.fill()
     }
