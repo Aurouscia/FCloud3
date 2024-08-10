@@ -1,6 +1,6 @@
 import { cvsLRMarginPx, cvsXUnitPx, cvsYUnitPx } from "../common/consts";
 import { Target } from "../common/target";
-import { appendStyleTag, setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle } from "./setStyle";
+import { appendStyleTag, setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle, setTrStyle } from "./setStyle";
 
 export function reformTarget(t:Target):void{
     appendStyleTag()
@@ -44,6 +44,7 @@ export function reformTarget(t:Target):void{
                 }
             }
         }
+        setTrStyle(row)
     }
     t.cvs = cvs;
 }

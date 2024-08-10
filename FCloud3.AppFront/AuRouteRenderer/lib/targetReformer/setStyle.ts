@@ -1,6 +1,7 @@
 import { displayYUnitPx, displayXUnitPx, displayLRMargin } from "../common/consts"
 
 const tableClassName = "aurtrd"
+const tableRowClassName = "aurtrd-row"
 const tdContentWrapperClassName = 'aurtrd-tdwrapper'
 export function appendStyleTag(){
     const st = document.createElement('style')
@@ -14,6 +15,9 @@ export function setTableStyle(table:HTMLTableElement){
 export function setMainTdStyle(td:HTMLTableCellElement, xUnitCount:number){
     td.style.width = `${displayXUnitPx*xUnitCount + 2*displayLRMargin}px`
     td.style.padding = '0px'
+}
+export function setTrStyle(tr:HTMLTableRowElement){
+    tr.classList.toggle(tableRowClassName, true)
 }
 export function setTdStyle(td:HTMLTableCellElement){
     const div = document.createElement('div')
@@ -30,11 +34,11 @@ export function setCanvasStyle(cvs:HTMLCanvasElement, rowCount:number, xUnitCoun
 }
 
 const styleCode = `
-    .aurtrd td, .aurtrd td *{
+    .aurtrd-row td, .aurtrd-row td *{
         white-space:nowrap !important;
         text-align:left !important;
     }
-    .aurtrd td, .aurtrd td p{
+    .aurtrd-row td, .aurtrd-row td p{
         padding: 0px !important;
         margin: 0px !important;
     }
