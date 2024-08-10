@@ -2,7 +2,7 @@ import { autoTextColor } from "../../common/colorUtil";
 import { airportCalls, waterColor } from "../../common/consts";
 import { Point } from "../../common/point";
 import { drawAirport } from "../../common/specialIconDraw";
-import { DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
+import { DrawBranchConfig, DrawBranchType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
 
 
 export class DbgDrawer extends DrawerBase{
@@ -146,5 +146,33 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.moveTo(fx,fy);
         this.cvs.lineTo(tx,ty)
         this.cvs.stroke()
+    }
+    drawBranch(pos: Point, color: string, type: DrawBranchType, config?:DrawBranchConfig): void {
+        const branchWidth = this.ctx.lineWidth * 0.5;
+        const xOffset = (this.ctx.lineWidth - branchWidth)/2
+        const sizeShrink = 0
+        const vertPos:'t'|'b' = type=='upper' ? 't' : 'b' 
+        const fyOffset = type=='upper' ? sizeShrink : -sizeShrink
+        let {x:fx,y:fy} = this.posToCord(pos, 'c', vertPos, {x:xOffset, y:fyOffset})
+        let {x:cx,y:cy} = this.posToCord(pos, 'c', 'c', {x:xOffset})
+        let {x:tx,y:ty} = this.posToCord(pos, 'c', 'c', {x:xOffset+this.ctx.yuPx/2-sizeShrink})
+        this.cvs.beginPath()
+        this.cvs.strokeStyle = color;
+        this.cvs.lineWidth = branchWidth * (config?.lineWidthRatio || 1)
+        this.cvs.moveTo(fx, fy);
+        this.cvs.quadraticCurveTo(cx,cy,tx,ty)
+
+        const arrowSize = branchWidth*2;
+        let ex = this.cvs.canvas.width - arrowSize 
+        let ey = cy
+        this.cvs.lineTo(ex, ey)
+        this.cvs.stroke()
+        this.cvs.beginPath()
+        this.cvs.moveTo(ex, ey - arrowSize/2)
+        this.cvs.lineTo(ex, ey + arrowSize/2)
+        this.cvs.lineTo(ex+arrowSize, ey)
+        this.cvs.lineTo(ex, ey - arrowSize/2)
+        this.cvs.fillStyle = color
+        this.cvs.fill()
     }
 }

@@ -1,4 +1,5 @@
-import { emptyMark, isTransMark, needFillLine, staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
+import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, needFillLine,
+    staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
 import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
@@ -56,7 +57,18 @@ export function callDrawer(t:Target, drawer:Drawer){
             }
         })
     }
+    const drawBranches = (color:string, lineWidthRatio?:number)=>{
+        enumerateGrid((x,y,m)=>{
+            if(m==branchUpperMark || m==branchBothMark){
+                drawer.drawBranch({x,y}, color, 'upper',{lineWidthRatio})
+            }
+            if(m==branchLowerMark || m==branchBothMark){
+                drawer.drawBranch({x,y}, color, 'lower',{lineWidthRatio})
+            }
+        })
+    }
     drawAllLines('white', 1.4)
+    drawBranches(color)
     drawAllSta(true, 1.4)
     drawAllLines(color)
     drawAllSta()

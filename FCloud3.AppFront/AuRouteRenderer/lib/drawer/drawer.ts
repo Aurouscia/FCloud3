@@ -1,5 +1,5 @@
 import { cvsLRMarginPx } from "../common/consts"
-import { Point } from "../common/point"
+import { Point, PointLoose } from "../common/point"
 
 export interface DrawerContext{
     cvsctx:CanvasRenderingContext2D,
@@ -24,6 +24,10 @@ export interface DrawStationConfig{
     radiusRatio?:number
 }
 export type DrawIconType = "middle" | "upper"| "lower"
+export type DrawBranchType = "upper"|"lower"
+export interface DrawBranchConfig{
+    lineWidthRatio?:number
+}
 
 export interface Drawer{
     ctx:DrawerContext;
@@ -32,6 +36,7 @@ export interface Drawer{
     drawStation(pos: Point, color: string, type: DrawStationType): void
     drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
     drawRiver(pos:Point):void
+    drawBranch(pos:Point, color: string, type:DrawBranchType, config?:DrawBranchConfig):void
 }
 
 export abstract class DrawerBase implements Drawer{
@@ -45,7 +50,8 @@ export abstract class DrawerBase implements Drawer{
     abstract drawStation(pos: Point, color: string, type: DrawStationType, config?:DrawStationConfig): void
     abstract drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
     abstract drawRiver(pos: Point): void
-    protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb"){
+    abstract drawBranch(pos: Point, color:string, type: DrawBranchType, config?:DrawBranchConfig): void
+    protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb", offset?:PointLoose){
         let xbiasNum = 0;
         if(xbias=='c')
             xbiasNum = 0.5;
@@ -60,9 +66,17 @@ export abstract class DrawerBase implements Drawer{
             ybiasNum = 1.5
         else if(ybias=='tt')
             ybiasNum = -0.5
+
+        let xOffset = 0
+        let yOffset = 0
+        if(offset){
+            xOffset = offset.x || 0
+            yOffset = offset.y || 0
+        }
+        
         return {
-            x:(pos.x+xbiasNum)*this.ctx.xuPx + cvsLRMarginPx,
-            y:(pos.y+ybiasNum)*this.ctx.yuPx
+            x:(pos.x+xbiasNum)*this.ctx.xuPx + cvsLRMarginPx + xOffset,
+            y:(pos.y+ybiasNum)*this.ctx.yuPx + yOffset
         }
     }
 }
