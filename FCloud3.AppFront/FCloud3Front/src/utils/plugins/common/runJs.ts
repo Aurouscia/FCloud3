@@ -1,6 +1,6 @@
 export async function runJsFile(path:string, scriptContainer:HTMLDivElement){
     const existReq = await fetch(path,
-        { method: "HEAD" }
+        { method: "HEAD", cache: 'no-store'}
     )
     if(!existReq.ok){
         return false
