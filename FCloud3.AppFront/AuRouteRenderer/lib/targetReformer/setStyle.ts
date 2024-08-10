@@ -25,6 +25,21 @@ export function setTdStyle(td:HTMLTableCellElement){
     div.innerHTML = td.innerHTML
     td.innerHTML = ''
     td.appendChild(div)
+    let needWrapP = false;
+    if(div.childNodes.length>1)
+        for(let c of div.childNodes){
+            if('tagName' in c && c.tagName == 'P'){
+                continue;
+            }
+            needWrapP = true;
+            break;
+        }
+    if(needWrapP){
+        const p = document.createElement('p')
+        p.innerHTML = div.innerHTML;
+        div.innerHTML = '';
+        div.appendChild(p)
+    }
 }
 export function setCanvasStyle(cvs:HTMLCanvasElement, rowCount:number, xUnitCount:number){
     cvs.style.width = `${displayXUnitPx*xUnitCount + 2*displayLRMargin}px`
