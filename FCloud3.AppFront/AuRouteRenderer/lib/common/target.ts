@@ -1,4 +1,4 @@
-import { emptyMark } from "./marks"
+import { emptyMark, isTransMark } from "./marks"
 
 export interface Target{
     element:HTMLTableElement
@@ -51,4 +51,9 @@ export function gridNeighborEmpty(grid: string[][], x:number, y:number,
         xb:"left"|"middle"|"right", yb:"up"|"middle"|"down"):boolean {
     const res = gridNeighbor(grid, x, y, xb, yb);
     return res === undefined || res === emptyMark
+}
+export function gridNeighborActiveLink(grid: string[][], x:number, y:number, 
+        xb:"left"|"middle"|"right", yb:"up"|"middle"|"down"):boolean {
+    const res = gridNeighbor(grid, x, y, xb, yb);
+    return res !== undefined && res !== emptyMark && !isTransMark(res)
 }

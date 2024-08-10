@@ -1,5 +1,5 @@
 import { emptyMark, isTransMark, needFillLine, staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
-import { gridNeighbor, gridNeighborEmpty, Target } from "../common/target";
+import { gridNeighbor, gridNeighborActiveLink, gridNeighborEmpty, Target } from "../common/target";
 import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
 export function callDrawer(t:Target, drawer:Drawer){
@@ -99,14 +99,14 @@ function transLineType(grid:string[][], y:number, x:number)
         :(DrawLineConfig & {type:DrawLineType})|undefined{
     const trans = grid[y][x]
     if(trans===transLeftMark){
-        let topBias = 1
-        let bottomBias = -1
+        let topBias = 0
+        let bottomBias = 0
         let topShrink = false
-        if(gridNeighborEmpty(grid, x, y, "right", "up") && !gridNeighborEmpty(grid, x, y, "middle", "up")){
-            topBias = 0
+        if(gridNeighborActiveLink(grid, x, y, "right", "up") && !gridNeighborActiveLink(grid, x, y, "middle", "up")){
+            topBias = 1
         }
-        if(gridNeighborEmpty(grid, x, y, "left", "down") && !gridNeighborEmpty(grid, x, y, "middle", "down")){
-            bottomBias = 0
+        if(gridNeighborActiveLink(grid, x, y, "left", "down") && !gridNeighborActiveLink(grid, x, y, "middle", "down")){
+            bottomBias = -1
         }
         if(topBias == 0 && bottomBias == -1 && gridNeighbor(grid,x,y,"left","middle") === staMark){
             topShrink = true
@@ -114,14 +114,14 @@ function transLineType(grid:string[][], y:number, x:number)
         return {type:'trans', topBias, bottomBias, topShrink}
     }
     if(trans===transRightMark){
-        let topBias = -1
-        let bottomBias = 1
+        let topBias = 0
+        let bottomBias = 0
         let bottomShrink = false
-        if(gridNeighborEmpty(grid, x, y, "left", "up") && !gridNeighborEmpty(grid, x, y, "middle", "up")){
-            topBias = 0
+        if(gridNeighborActiveLink(grid, x, y, "left", "up") && !gridNeighborActiveLink(grid, x, y, "middle", "up")){
+            topBias = -1
         }
-        if(gridNeighborEmpty(grid, x, y, "right", "down") && !gridNeighborEmpty(grid, x, y, "middle", "down")){
-            bottomBias = 0
+        if(gridNeighborActiveLink(grid, x, y, "right", "down") && !gridNeighborActiveLink(grid, x, y, "middle", "down")){
+            bottomBias = 1
         }
         if(topBias == -1 && bottomBias === 0 && gridNeighbor(grid,x,y,"left","middle") === staMark){
             bottomShrink = true
