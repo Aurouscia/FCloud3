@@ -34,7 +34,7 @@ export function parseTargets(area:HTMLElement):Target[]{
                 grid.push(gridHere)
                 annotations.push(annoHere)
             })
-            fillGrid(grid)
+            const maxRowLength = fillGrid(grid)
             
             let gridTrimmedLengths = []
             for(let i = 0;i<grid.length;i++){
@@ -54,6 +54,8 @@ export function parseTargets(area:HTMLElement):Target[]{
                 rowFrom:res.from,
                 cells:res.cells,
                 grid,
+                gridRowCount: grid.length,
+                gridColCount: maxRowLength,
                 gridTrimmedLengths,
                 annotations,
                 config
@@ -93,4 +95,5 @@ function fillGrid(grid:string[][]){
             r.push(emptyMark)
         }
     })
+    return maxRowLength
 }

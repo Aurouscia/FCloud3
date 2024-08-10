@@ -6,6 +6,8 @@ export interface Target{
     cells:string[]
     grid:string[][]
     gridTrimmedLengths:number[]
+    gridRowCount:number
+    gridColCount:number
     annotations:string[][]
     config:TargetConfig
     cvs?:HTMLCanvasElement

@@ -131,8 +131,14 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.fillText(text, x, y+vertBias)
     }
     drawRiver(pos: Point): void {
-        const {x:fx,y:fy} = this.posToCord(pos,'l','c')
-        const {x:tx,y:ty} = this.posToCord(pos,'r','c')
+        let {x:fx,y:fy} = this.posToCord(pos,'l','c')
+        let {x:tx,y:ty} = this.posToCord(pos,'r','c')
+        if(pos.x == 0){
+            fx = 0
+        }
+        if(pos.x == this.ctx.xUnitCount-1){
+            tx = this.cvs.canvas.width
+        }
         const riverWidth = this.ctx.uPx;
         this.cvs.lineWidth = riverWidth;
         this.cvs.strokeStyle = waterColor

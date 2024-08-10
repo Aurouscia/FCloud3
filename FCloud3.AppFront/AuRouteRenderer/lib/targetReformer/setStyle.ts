@@ -1,4 +1,4 @@
-import { displayYUnitPx, displayXUnitPx } from "../common/consts"
+import { displayYUnitPx, displayXUnitPx, displayLRMargin } from "../common/consts"
 
 const tableClassName = "aurtrd"
 const tdContentWrapperClassName = 'aurtrd-tdwrapper'
@@ -12,7 +12,7 @@ export function setTableStyle(table:HTMLTableElement){
     table.classList.toggle(tableClassName, true)
 }
 export function setMainTdStyle(td:HTMLTableCellElement, xUnitCount:number){
-    td.style.width = `${displayXUnitPx*xUnitCount}px`
+    td.style.width = `${displayXUnitPx*xUnitCount + 2*displayLRMargin}px`
     td.style.padding = '0px'
 }
 export function setTdStyle(td:HTMLTableCellElement){
@@ -23,7 +23,7 @@ export function setTdStyle(td:HTMLTableCellElement){
     td.appendChild(div)
 }
 export function setCanvasStyle(cvs:HTMLCanvasElement, rowCount:number, xUnitCount:number){
-    cvs.style.width = `${displayXUnitPx*xUnitCount}px`
+    cvs.style.width = `${displayXUnitPx*xUnitCount + 2*displayLRMargin}px`
     cvs.style.height = `${displayYUnitPx*rowCount}px`
     cvs.style.margin = '0px'
     cvs.style.verticalAlign = 'middle' //否则canvas底部出现空隙撑大表格

@@ -1,3 +1,4 @@
+import { cvsLRMarginPx } from "../common/consts"
 import { Point } from "../common/point"
 
 export interface DrawerContext{
@@ -6,6 +7,7 @@ export interface DrawerContext{
     xuPx:number
     yuPx:number
     lineWidth:number
+    xUnitCount:number
 }
 
 export type DrawLineType = "regular" | "endTop" | "endBottom" | "trans"
@@ -59,7 +61,7 @@ export abstract class DrawerBase implements Drawer{
         else if(ybias=='tt')
             ybiasNum = -0.5
         return {
-            x:(pos.x+xbiasNum)*this.ctx.xuPx,
+            x:(pos.x+xbiasNum)*this.ctx.xuPx + cvsLRMarginPx,
             y:(pos.y+ybiasNum)*this.ctx.yuPx
         }
     }

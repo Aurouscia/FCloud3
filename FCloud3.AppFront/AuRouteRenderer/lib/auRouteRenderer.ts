@@ -18,7 +18,8 @@ export function run(area?:HTMLElement):void{
             uPx: cvsUnitPx,
             xuPx: cvsXUnitPx,
             yuPx: cvsYUnitPx,
-            lineWidth: cvsUnitPx/3
+            lineWidth: cvsUnitPx/3,
+            xUnitCount: t.gridColCount
         })
 
         callDrawer(t,drawer)

@@ -1,5 +1,5 @@
 import { emptyMark, isTransMark, needFillLine, staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
-import { gridNeighbor, gridNeighborActiveLink, gridNeighborEmpty, Target } from "../common/target";
+import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
 import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
 
 export function callDrawer(t:Target, drawer:Drawer){

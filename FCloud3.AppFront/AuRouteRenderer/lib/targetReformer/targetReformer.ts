@@ -1,4 +1,4 @@
-import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
+import { cvsLRMarginPx, cvsXUnitPx, cvsYUnitPx } from "../common/consts";
 import { Target } from "../common/target";
 import { appendStyleTag, setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle } from "./setStyle";
 
@@ -21,7 +21,7 @@ export function reformTarget(t:Target):void{
     expandTd.innerHTML = ''
     setMainTdStyle(expandTd, xUnitCount)
     const cvs = document.createElement('canvas')
-    cvs.width = cvsXUnitPx * xUnitCount;
+    cvs.width = cvsXUnitPx * xUnitCount + 2 * cvsLRMarginPx;
     cvs.height = cvsYUnitPx * rowCount
     setCanvasStyle(cvs, rowCount, xUnitCount)
     expandTd.appendChild(cvs)
