@@ -105,7 +105,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                             break;
                         }
                         //检查该左规则是否被escape
-                        if (left > 0 && input[left - 1] == '\\')
+                        if (left > 0 && input[left - 1] == Escape.escapeChar)
                             pointer = left + 1;
                         //检查该位置是否被占
                         else if (res.Any(x => x.OccupiedAt(left)))
@@ -139,7 +139,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                                 break;
                             }
                             //检查该右规则是否被escape
-                            if (input[right - 1] == '\\')
+                            if (input[right - 1] == Escape.escapeChar)
                                 pointer = right + 1;
                             //检查该位置是否被占
                             else if (res.Any(x => x.OccupiedAt(right)))

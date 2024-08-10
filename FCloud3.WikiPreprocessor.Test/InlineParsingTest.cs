@@ -49,6 +49,8 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow("1[/2*3*4]5","1<a href=\"/2*3*4\">/2*3*4</a>5")]
         [DataRow("1[哼唧](/234)5", "1<a href=\"/234\">哼唧</a>5")]
         [DataRow("小王 \\bd 小李 \\bd 小张", "小王 <span class=\"bordered\"> 小李 </span> 小张")]
+        [DataRow("\\反斜杠不应该全部去掉\\，应该仅去掉\\*规则\\*前的","\\反斜杠不应该全部去掉\\，应该仅去掉*规则*前的")]
+        [DataRow("\\[xx\\]，\\|\\-\\~\\a", "[xx]，|-~\\a")]
         public void Parse(string input,string answer)
         {
             _ctx.SetInitialFrameCount();

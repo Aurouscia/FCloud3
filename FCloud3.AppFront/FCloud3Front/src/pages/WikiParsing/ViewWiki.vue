@@ -359,7 +359,7 @@ onUnmounted(()=>{
         :close="()=>{focusImg=undefined;focusImgDesc=undefined}" ref="imgFocusViewElement">
     </ImageFocusView>
 
-    <div ref="routeRendererContainer"></div>
+    <div ref="routeRendererContainer" style="display: none;"></div>
 </div>
 </template>
 
