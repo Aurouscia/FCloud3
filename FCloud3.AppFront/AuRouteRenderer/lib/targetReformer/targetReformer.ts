@@ -1,8 +1,9 @@
 import { cvsXUnitPx, cvsYUnitPx } from "../common/consts";
 import { Target } from "../common/target";
-import { setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle, setTrStyle } from "./setStyle";
+import { appendStyleTag, setCanvasStyle, setMainTdStyle, setTableStyle, setTdStyle } from "./setStyle";
 
 export function reformTarget(t:Target):void{
+    appendStyleTag()
     const table = t.element
     setTableStyle(table)
     const rowCount = t.cells.length
@@ -43,7 +44,6 @@ export function reformTarget(t:Target):void{
                 }
             }
         }
-        setTrStyle(row)
     }
     t.cvs = cvs;
 }
