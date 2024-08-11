@@ -32,7 +32,7 @@ onMounted(async()=>{
                 最近更新
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" @click="jumpToViewWiki(w.Path)" class="listItem">
-                {{ w.Title }}
+                <img :src="w.Avt"><span>{{ w.Title }}</span>
             </div>
         </div>
         <div class="list">
@@ -95,6 +95,17 @@ onMounted(async()=>{
             font-weight: bold;
             text-decoration: underline;
             background-color: #eee;
+        }
+        img{
+            vertical-align: middle;
+            display: inline-block;
+            height: 20px;
+            width: 20px;
+            margin-right: 3px;
+            border-radius: 200px;
+        }
+        span{
+            vertical-align: middle;
         }
     }
     .listTitle{

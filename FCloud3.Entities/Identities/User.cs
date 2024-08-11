@@ -18,6 +18,8 @@ namespace FCloud3.Entities.Identities
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+        
+        public const string defaultAvatar = "/defaultAvatar.svg";
     }
 
     public enum UserType
