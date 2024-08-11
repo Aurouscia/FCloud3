@@ -73,7 +73,7 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow("小王 #ffff00# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(255,255,0)\"></span> 小张")]
         [DataRow("小王 #rgbbbbb# 小张", "小王 #rgbbbbb# 小张")]
         [DataRow("小王 #aeu*i*hea# 小张", "小王 #aeu<i>i</i>hea# 小张")]
-        [DataRow("小王 #aeu*i*hea\\@嘿嘿*嘿*嘿# 小张", "小王 #aeu<i>i</i>hea@嘿嘿<i>嘿</i>嘿# 小张")]
+        [DataRow("小王 #aeu*i*hea\\@嘿嘿*嘿*嘿# 小张", "小王 #aeu<i>i</i>hea\\@嘿嘿<i>嘿</i>嘿# 小张")]
         [DataRow("小王 #cornFlowerBlue\\@嘿嘿*嘿*嘿# 小张", "小王 <span class=\"coloredText\" style=\"color:rgb(100,149,237)\">嘿嘿<i>嘿</i>嘿</span> 小张")]
         [DataRow("小王 #beige# 小张", "小王 <span class=\"coloredBlock\" style=\"background-color:rgb(245,245,220)\"></span> 小张")]
         [DataRow("#111111\\@\\#111111#", "<span class=\"coloredText\" style=\"color:rgb(17,17,17)\">#111111</span>")]
