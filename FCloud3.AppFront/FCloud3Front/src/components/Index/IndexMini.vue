@@ -197,14 +197,14 @@ function getQObj(){
                             <button class="tabToggle" 
                                 @click="searchPanelOpen=!searchPanelOpen;orderPanelOpen=false"
                                 :class="{highlightToggle:highlightSearchBtn}">
-                                {{ (query.Search && query.Search.length>0)?'已筛选':'搜索' }}
+                                {{ (query.Search && query.Search.length>0)?'已筛选':'筛选' }}
                             </button>
                             <div v-if="searchPanelOpen" class="searchPanel">
                                 <div  v-for="c in cols">
                                     <div v-if="c.canSearch" class="searchItem">
                                         {{ c.alias }}
                                         <input class="search" v-model="c.searchText" ref="search" 
-                                            @blur="setSearch(c.name);fnLeave()" @keydown="searchInputEnter($event, c.name)" placeholder="搜索">
+                                            @blur="setSearch(c.name);fnLeave()" @keydown="searchInputEnter($event, c.name)" placeholder="筛选">
                                     </div>
                                 </div>
                                 <div class="searchPanelBtns">

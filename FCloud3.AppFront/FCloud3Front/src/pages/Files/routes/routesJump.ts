@@ -18,5 +18,8 @@ export function useFilesRoutesJump(){
     const jumpToDir = (path:string[])=>{
         router.push({name:'files', params:{path}})
     }
-    return { jumpToDirFromId, jumpToDirFromIdRoute, jumpToViewFileItemRoute, jumpToRootDir, jumpToDir }
+    const jumpToHomelessFiles = ()=>{
+        router.push({name:'files', params:{path:['homeless-items']}})
+    }
+    return { jumpToDirFromId, jumpToDirFromIdRoute, jumpToViewFileItemRoute, jumpToRootDir, jumpToDir, jumpToHomelessFiles }
 }

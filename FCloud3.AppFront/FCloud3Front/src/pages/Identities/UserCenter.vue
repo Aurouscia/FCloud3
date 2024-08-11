@@ -14,6 +14,7 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import Pop from '@/components/Pop.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
+import { useFilesRoutesJump } from '../Files/routes/routesJump';
 
 const props = defineProps<{
     username?:string
@@ -23,6 +24,7 @@ var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
 const ok = ref<boolean>(false);
 const { jumpToLogin, jumpToGlobalAuthGrants } = useIdentityRoutesJump();
+const { jumpToHomelessFiles } = useFilesRoutesJump();
 
 watch(props, _newVal=>{
     location.reload();
@@ -90,6 +92,7 @@ onUnmounted(()=>{
             <div class="settings">
                 <button v-if="username==iden?.Name" @click="editInfoSidebar?.extend">编辑信息</button>
                 <button v-if="username==iden?.Name" @click="jumpToGlobalAuthGrants">授权设置</button>
+                <button v-if="username==iden?.Name" @click="jumpToHomelessFiles" class="minor">无归属文件</button>
             </div>
         </div>
         <SwitchingTabs style="width: 300px;height: 400px;" :texts="['最新作品','最近动态','自荐']">
@@ -109,6 +112,10 @@ onUnmounted(()=>{
 
 .info .settings{
     margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
 }
 .info .motto{
     color:#aaa;
