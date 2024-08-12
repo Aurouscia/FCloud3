@@ -41,6 +41,7 @@ onMounted(async()=>{
                 随机看看
             </div>
             <div v-for="w in model.RandomWikis" :key="w.Path" class="listItem">
+                <img :src="w.Avt">
                 <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>

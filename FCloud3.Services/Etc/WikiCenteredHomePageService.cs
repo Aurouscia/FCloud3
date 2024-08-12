@@ -73,11 +73,11 @@ namespace FCloud3.Services.Etc
                 .Select(x => x.Id)
                 .Take(randRange).ToList();
             var randedWikisIds = RandomPick(randFromWikiIds, latestWikisRaw.Count);
-            var randomWikis = _wikiItemRepo.GetRangeByIdsOrdered<WikiCenteredHomePage.Wiki>(randedWikisIds, x
-                => x.Select(w => new { w.Id, w.UrlPathName, w.Title })
+            var randomWikisRaw = _wikiItemRepo.GetRangeByIdsOrdered<WikiCenteredHomePage.WikiWithOwner>(randedWikisIds, x
+                => x.Select(w => new { w.Id, w.UrlPathName, w.Title, w.OwnerUserId })
                     .ToDictionary(
                         w => w.Id,
-                        w => new WikiCenteredHomePage.Wiki(w.UrlPathName ?? "??", w.Title ?? "??")));
+                        w => new WikiCenteredHomePage.WikiWithOwner(w.UrlPathName ?? "??", w.Title ?? "??", w.OwnerUserId)));
 
             int uid = _userIdProvider.Get();
             if (uid > 0)
@@ -115,10 +115,12 @@ namespace FCloud3.Services.Etc
             }
 
             var latestOwners = latestWikisRaw.ConvertAll(x => x.OwnerId);
+            var randomOwners = randomWikisRaw.ConvertAll(x => x.Owner);
+            var owners = latestOwners.Union(randomOwners);
             var avtInfo = (
                 from u in _userRepo.Existing
                 from m in _materialRepo.Existing
-                where latestOwners.Contains(u.Id)
+                where owners.Contains(u.Id)
                 where u.AvatarMaterialId == m.Id
                 select new { Uid = u.Id, m.StorePathName })
                 .ToList();
@@ -127,6 +129,12 @@ namespace FCloud3.Services.Etc
                 var avt = avtInfo.Find(y => y.Uid == x.OwnerId)?.StorePathName;
                 string avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
                 return new WikiCenteredHomePage.WikiWithAvt(x.UrlPathName, x.Title, avtUrl);
+            });
+            List<WikiCenteredHomePage.WikiWithAvt> randomWikis = randomWikisRaw.ConvertAll(x =>
+            {
+                var avt = avtInfo.Find(y => y.Uid == x.Owner)?.StorePathName;
+                string avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
+                return new WikiCenteredHomePage.WikiWithAvt(x.Path, x.Title, avtUrl);
             });
             
             var model = new WikiCenteredHomePage(latestWikis, randomWikis, topPairs);
@@ -152,14 +160,14 @@ namespace FCloud3.Services.Etc
         
         public class WikiCenteredHomePage
         {
-            public WikiCenteredHomePage(List<WikiWithAvt> latestWikis, List<Wiki> randomWikis, List<Pair> topDirs)
+            public WikiCenteredHomePage(List<WikiWithAvt> latestWikis, List<WikiWithAvt> randomWikis, List<Pair> topDirs)
             {
                 LatestWikis = latestWikis;
                 RandomWikis = randomWikis;
                 TopDirs = topDirs;
             }
             public List<WikiWithAvt> LatestWikis { get; set; }
-            public List<Wiki> RandomWikis { get; set; }
+            public List<WikiWithAvt> RandomWikis { get; set; }
             public List<Pair> TopDirs { get; set; }
             public struct Pair(
                 string wikiUrlPathName, string wikiTitle,
@@ -178,6 +186,10 @@ namespace FCloud3.Services.Etc
             public class WikiWithAvt(string urlPathName, string title, string avt) :Wiki(urlPathName, title)
             {
                 public string Avt { get; set; } = avt;
+            }
+            public class WikiWithOwner(string urlPathName, string title, int owner) :Wiki(urlPathName, title)
+            {
+                public int Owner { get; set; } = owner;
             }
             public struct FileDir(string urlPathName, string name)
             {

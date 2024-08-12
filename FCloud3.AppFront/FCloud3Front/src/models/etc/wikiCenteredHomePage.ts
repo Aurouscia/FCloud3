@@ -1,7 +1,7 @@
 export interface WikiCenteredHomePage
 {
     LatestWikis:Array<WikiWithAvt>
-    RandomWikis:Array<Wiki>
+    RandomWikis:Array<WikiWithAvt>
     TopDirs:Array<Pair>
 }
 
