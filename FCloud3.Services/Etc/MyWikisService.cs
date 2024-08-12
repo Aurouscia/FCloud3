@@ -3,7 +3,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using Newtonsoft.Json;
 
-namespace FCloud3.Services.Wiki.Support
+namespace FCloud3.Services.Etc
 {
     public class MyWikisService(
         WikiItemRepo wikiItemRepo,
@@ -11,7 +11,7 @@ namespace FCloud3.Services.Wiki.Support
         WikiToDirRepo wikiToDirRepo,
         FileDirRepo fileDirRepo)
     {
-        public MyWikisDetailResp MyWikiDetail(int uid)
+        public MyWikisOverallResp MyWikiOverall(int uid)
         {
             var myAllWs = wikiItemRepo.Existing
                 .Where(x => x.OwnerUserId == uid)
@@ -107,14 +107,14 @@ namespace FCloud3.Services.Wiki.Support
                 Dirs = roots
             };
             treeView.CalculateCount();
-            return new MyWikisDetailResp()
+            return new MyWikisOverallResp()
             {
                 HomelessWikis = homelessWikis,
                 TreeView = treeView
             };
         }
 
-        public class MyWikisDetailResp
+        public class MyWikisOverallResp
         {
             public MyWikisInDir? TreeView { get; set; }
             public List<string?[]>? HomelessWikis { get; set; }

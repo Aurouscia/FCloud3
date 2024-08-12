@@ -6,6 +6,7 @@ using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Etc;
 using FCloud3.Services.Test.TestSupport;
 using FCloud3.Services.Wiki.Support;
 
@@ -132,7 +133,7 @@ namespace FCloud3.Services.Test.Wiki.Support
         [TestMethod]
         public void Test()
         {
-            var res = _myWikisService.MyWikiDetail(0);
+            var res = _myWikisService.MyWikiOverall(0);
             Assert.IsNotNull(res.HomelessWikis);
             WikiListSame([["5号词条","wiki-5"],["6号词条","wiki-6"]], res.HomelessWikis);
             Assert.IsNotNull(res.TreeView);

@@ -52,6 +52,7 @@ namespace FCloud3.Services
             services.AddScoped<LatestWorkService>();
             services.AddScoped<WikiCenteredHomePageService>();
             services.AddScoped<WikiContentSearchService>();
+            services.AddScoped<MyWikisService>();
 
 
             string storageType = config["FileStorage:Type"] ?? "Local";

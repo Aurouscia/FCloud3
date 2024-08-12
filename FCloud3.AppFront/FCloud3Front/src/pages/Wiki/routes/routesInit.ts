@@ -4,6 +4,7 @@ import WikiItemEdit from "../WikiItemEdit.vue"
 import WikiInDirLocations from "../WikiInDirLocations.vue";
 import WikiItemContentEdit from "../WikiItemContentEdit.vue";
 import WikiContentSearch from "../WikiContentSearch.vue";
+import MyWikisOverall from "../MyWikisOverall.vue";
 
 export function addWiki(r:Router){
     addToRouter(r,routes);
@@ -32,5 +33,11 @@ const routes = [
         path:"/WikiContentSearch",
         component:WikiContentSearch,
         name:"wikiContentSearch"
+    },
+    {
+        path:"/MyWikis/:uid?",
+        component:MyWikisOverall,
+        props:true,
+        name:"myWikisOverall"
     }
 ]

@@ -152,8 +152,8 @@ async function toggleSealed(){
 
 const api:Api = injectApi();
 const iden = injectIdentityInfoProvider();
-let clickFold:TitleClickFold;
-let wikiLinkClick:WikiLinkClick;
+let clickFold:TitleClickFold|undefined;
+let wikiLinkClick:WikiLinkClick|undefined;
 let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = ref<HTMLDivElement>();
@@ -251,8 +251,8 @@ async function init(changedPathName?:boolean){
 }
 onUnmounted(()=>{
     mainDivStyle.value = {}
-    clickFold.dispose();
-    imgClickJump.dispose();
+    clickFold?.dispose();
+    imgClickJump?.dispose();
     disposeFootNoteJump();
     swl?.stopListen();
     recoverTitle();
