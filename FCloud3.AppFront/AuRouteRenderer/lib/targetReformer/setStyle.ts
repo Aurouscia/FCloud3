@@ -3,10 +3,18 @@ import { displayYUnitPx, displayXUnitPx, displayLRMargin } from "../common/const
 const tableClassName = "aurtrd"
 const tableRowClassName = "aurtrd-row"
 const tdContentWrapperClassName = 'aurtrd-tdwrapper'
+const styleContainerId = 'aurtrd-style-container'
 export function appendStyleTag(){
+    let cont = document.getElementById(styleContainerId)
+    if(!cont){
+        cont = document.createElement('div');
+        cont.id = styleContainerId;
+        document.body.appendChild(cont)
+    }
     const st = document.createElement('style')
-    st.innerText = styleCode;
-    document.body.appendChild(st)
+    st.innerHTML = styleCode;
+    cont.innerHTML = ''
+    cont.appendChild(st)
 }
 export function setTableStyle(table:HTMLTableElement){
     table.style.borderCollapse = 'collapse'
