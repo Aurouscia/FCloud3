@@ -7,60 +7,64 @@ export function parseTargets(area:HTMLElement):Target[]{
     const targets:Target[] = []
     const tables = area.getElementsByTagName('table')
     for(const t of tables){
-        const res = isValidTarget(t)
-        if(res){
-            const grid:string[][] = [];
-            const annotations:string[][] = [];
-            let config = targetConfigDefault();
-            if(res.config){
-                const parsedConfig = parseConfig(res.config)
-                if(parsedConfig){
-                    config = parsedConfig
-                }
-            }
-            res.cells.forEach(c=>{
-                const parts = c.split(seperator)
-                const firstPart = parts[0]
-                const gridHere:string[] = []
-                const annoHere:string[] = []
-                for(let char of firstPart.trim()){
-                    gridHere.push(char)
-                }
-                for(let i=1;i<parts.length;i++){
-                    const anno = parts[i].trim()
-                    if(anno)
-                        annoHere.push(anno)
-                }
-                grid.push(gridHere)
-                annotations.push(annoHere)
-            })
-            const maxRowLength = fillGrid(grid)
-            
-            let gridTrimmedLengths = []
-            for(let i = 0;i<grid.length;i++){
-                const rowCount = grid[i].length
-                let rowCountTrimmed = rowCount
-                for(let c=rowCount-1;c>=0;c--){
-                    if(grid[i][c]===emptyMark){
-                        rowCountTrimmed--;
-                    }else{
-                        break;
+        const ress = isValidTarget(t)
+        if(ress.length>0){
+            ress.forEach(res=>{
+                if(!res)
+                    return;
+                const grid:string[][] = [];
+                const annotations:string[][] = [];
+                let config = targetConfigDefault();
+                if(res.config){
+                    const parsedConfig = parseConfig(res.config)
+                    if(parsedConfig){
+                        config = parsedConfig
                     }
                 }
-                gridTrimmedLengths.push(rowCountTrimmed)
-            }
-            const newTarget:Target = {
-                element:t,
-                rowFrom:res.from,
-                cells:res.cells,
-                grid,
-                gridRowCount: grid.length,
-                gridColCount: maxRowLength,
-                gridTrimmedLengths,
-                annotations,
-                config
-            }
-            targets.push(newTarget);
+                res.cells.forEach(c=>{
+                    const parts = c.split(seperator)
+                    const firstPart = parts[0]
+                    const gridHere:string[] = []
+                    const annoHere:string[] = []
+                    for(let char of firstPart.trim()){
+                        gridHere.push(char)
+                    }
+                    for(let i=1;i<parts.length;i++){
+                        const anno = parts[i].trim()
+                        if(anno)
+                            annoHere.push(anno)
+                    }
+                    grid.push(gridHere)
+                    annotations.push(annoHere)
+                })
+                const maxRowLength = fillGrid(grid)
+                
+                let gridTrimmedLengths = []
+                for(let i = 0;i<grid.length;i++){
+                    const rowCount = grid[i].length
+                    let rowCountTrimmed = rowCount
+                    for(let c=rowCount-1;c>=0;c--){
+                        if(grid[i][c]===emptyMark){
+                            rowCountTrimmed--;
+                        }else{
+                            break;
+                        }
+                    }
+                    gridTrimmedLengths.push(rowCountTrimmed)
+                }
+                const newTarget:Target = {
+                    element:t,
+                    rowFrom:res.from,
+                    cells:res.cells,
+                    grid,
+                    gridRowCount: grid.length,
+                    gridColCount: maxRowLength,
+                    gridTrimmedLengths,
+                    annotations,
+                    config
+                }
+                targets.push(newTarget);
+            })
         }
     }
     console.log(targets)

@@ -3,48 +3,63 @@ import { marksDefined, seperator } from "../common/marks";
 
 type TargetValidationResult = {from:number, cells:string[], config?:string} | undefined
 
-export function isValidTarget(t:HTMLTableElement):TargetValidationResult{
+export function isValidTarget(t:HTMLTableElement):TargetValidationResult[]{
     if(t.rows.length<=1){
-        return undefined;
+        return [];
     }
-    let started = false;
-    let from = 0;
-    let config:string|undefined
     const validMarks = Object.values(marksDefined) as string[]
-    const cells:string[] = []
-    for(let idx=0;idx<t.rows.length;idx++){
-        const r = t.rows[idx]
-        if(r.cells.length==0)
-            continue;
-        const firstCell = r.cells[0]
-        if(firstCell.colSpan>1)
-            continue;
-        const firstCellContent = firstCell.textContent?.trim()
-        if(firstCellContent && isValidTargetCell(firstCellContent, validMarks, started)){
-            if(!started){
-                from = idx;
-                started = true;
-                const withoutCode = removeActivationCode(firstCellContent)
-                const configInfo = extractConfig(withoutCode)
-                cells.push(configInfo.otherVals)
-                config = configInfo.config
-            }
-            else
-                cells.push(firstCellContent)
-        }else{
-            if(started){
-                break;
+    const res:TargetValidationResult[] = []
+    let cursor = 0;
+    let safety = 100;
+    while(true){
+        const cells:string[] = []
+        let idx = 0;
+        let started = false;
+        let from = 0;
+        let config:string|undefined
+        for(idx=cursor;idx<t.rows.length;idx++){
+            const r = t.rows[idx]
+            if(r.cells.length==0)
+                continue;
+            const firstCell = r.cells[0]
+            if(firstCell.colSpan>1)
+                continue;
+            const firstCellContent = firstCell.textContent?.trim()
+            if(firstCellContent && isValidTargetCell(firstCellContent, validMarks, started)){
+                if(!started){
+                    from = idx;
+                    started = true;
+                    const withoutCode = removeActivationCode(firstCellContent)
+                    const configInfo = extractConfig(withoutCode)
+                    cells.push(configInfo.otherVals)
+                    config = configInfo.config
+                }
+                else
+                    cells.push(firstCellContent)
+            }else{
+                if(started){
+                    cursor = idx;
+                    break;
+                }
             }
         }
+        if(cells.length < 2){
+            continue;
+        }
+        res.push({
+            from,
+            cells,
+            config
+        })
+        if(idx>=t.rows.length){
+            break;
+        }
+        safety--;
+        if(safety<=0){
+            break;
+        }
     }
-    if(cells.length < 3){
-        return undefined
-    }
-    return {
-        from,
-        cells,
-        config
-    }
+    return res;
 }
 
 function isValidTargetCell(cellTrimmed:string, validMarks:string[], started:boolean){
