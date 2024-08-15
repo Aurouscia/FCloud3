@@ -132,8 +132,11 @@ onMounted(async()=>{
             <td>
                 内容名称
             </td>
-            <td>
+            <td v-if="para.UnderlyingId>0">
                 <input v-model="name" placeholder="必填" @input="nameChanged = true"/>
+            </td>
+            <td v-else>
+                请先点击"编辑"<br/>向段落写入内容
             </td>
         </tr>
         <tr>
@@ -159,9 +162,10 @@ onMounted(async()=>{
                 例如“内容名称”可能为<i>上海市轨道交通线路</i>，其“词条内显示名称”可为<i>本市轨道交通线路</i>
             </td>
         </tr>
-        <tr>
+        <tr v-if="para.Type===WikiParaType.File">
             <td class="note" colspan="2">
-                “默认折起”对文件段落无效
+                “默认折起”对文件段落无效<br/><br/>
+                注意更改“内容名称”时不要改坏文件的后缀名
             </td>
         </tr>
         <tr>
