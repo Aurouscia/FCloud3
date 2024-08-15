@@ -12,6 +12,7 @@ namespace FCloud3.Services.Wiki
     public class WikiTitleContainService(
         WikiTitleContainRepo wikiTitleContainRepo,
         WikiItemRepo wikiItemRepo,
+        WikiItemService wikiItemService,
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
@@ -21,6 +22,7 @@ namespace FCloud3.Services.Wiki
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
+        private readonly WikiItemService _wikiItemService = wikiItemService;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
@@ -103,6 +105,44 @@ namespace FCloud3.Services.Wiki
             });
             return model;
         }
+
+        public WikiTitleContainForWikiResult GetAllForWiki(int wikiId)
+        {
+            var textType = GetWikiParaType(WikiTitleContainType.TextSection);
+            var tableType = GetWikiParaType(WikiTitleContainType.FreeTable);
+            var paras = _wikiItemService.GetWikiParaDisplays(wikiId);
+            var allTextIds = paras
+                .FindAll(x => x.Type == textType)
+                .ConvertAll(x=>x.UnderlyingId);
+            var allTableIds = paras
+                .FindAll(x => x.Type == tableType)
+                .ConvertAll(x=>x.UnderlyingId);
+            var contains = _wikiTitleContainRepo
+                .GetByTypeAndObjIds(WikiTitleContainType.TextSection, allTextIds);
+            contains.AddRange(_wikiTitleContainRepo
+                .GetByTypeAndObjIds(WikiTitleContainType.FreeTable, allTableIds));
+            var relatedWikiIds = contains.ConvertAll(x => x.WikiId).Distinct();
+            var relatedWikis = _wikiItemCaching.GetRange(relatedWikiIds);
+            WikiTitleContainForWikiResult res = new();
+            paras.ForEach(p =>
+            {
+                var itsList = res.Add(p.ParaId, p.UnderlyingId, p.NameOverride ?? p.Title ?? "未命名段落").Items;
+                var itsConts = contains
+                    .FindAll(x => x.ObjectId == p.UnderlyingId && x.Type == GetContainType(p.Type));
+                itsConts.ForEach(c =>
+                {
+                    var title = relatedWikis.Find(x => x.Id == c.WikiId)?.Title;
+                    if(title is {})
+                        itsList.Add(new()
+                        {
+                            Id = c.Id,
+                            WikiId = c.WikiId,
+                            WikiTitle = title
+                        });
+                });
+            });
+            return res;
+        }
         public bool SetAll(WikiTitleContainType type, int objectId, List<int> wikiIds, out string? errmsg)
         {
             wikiIds = wikiIds.Distinct().ToList();
@@ -144,6 +184,14 @@ namespace FCloud3.Services.Wiki
                 return WikiParaType.Table;
             throw new NotImplementedException();
         }
+        private static WikiTitleContainType GetContainType(WikiParaType wikiParaType)
+        {
+            if (wikiParaType == WikiParaType.Text)
+                return WikiTitleContainType.TextSection;
+            else if (wikiParaType == WikiParaType.Table)
+                return WikiTitleContainType.FreeTable;
+            return WikiTitleContainType.Unknown;
+        }
 
         public class WikiTitleContainListModel
         {
@@ -161,21 +209,35 @@ namespace FCloud3.Services.Wiki
                     WikiTitle = wikiTitle
                 });
             }
-            public class WikiTitleContainListModelItem
+        }
+        public class WikiTitleContainListModelItem
+        {
+            public int Id { get; set; }
+            public string? WikiTitle { get; set; }
+            public int WikiId { get; set; }
+        }
+
+        public class WikiTitleContainForWikiResult
+        {
+            public List<WikiTitleContainForWikiResultItem> Items { get; set; } = [];
+            public WikiTitleContainForWikiResultItem Add(int paraId, int underlyingId, string paraDisplayName)
             {
-                public int Id { get; set; }
-                public string? WikiTitle { get; set; }
-                public int WikiId { get; set; }
+                var added = new WikiTitleContainForWikiResultItem(paraId, underlyingId, paraDisplayName);
+                Items.Add(added);
+                return added;
+            }
+            public class WikiTitleContainForWikiResultItem(int pid, int objId, string pname)
+            {
+                public int PId { get; set; } = pid;
+                public int ObjId { get; set; } = objId;
+                public string PDName { get; set; } = pname;
+                public List<WikiTitleContainListModelItem> Items { get; set; } = [];
             }
         }
 
         public class WikiTitleContainAutoFillResult
         {
-            public List<WikiTitleContainAutoFillResultItem> Items { get; }
-            public WikiTitleContainAutoFillResult()
-            {
-                Items = new();
-            }
+            public List<WikiTitleContainAutoFillResultItem> Items { get; } = [];
             public void Add(int id,string title)
             {
                 Items.Add(new() { Id = id, Title = title });
