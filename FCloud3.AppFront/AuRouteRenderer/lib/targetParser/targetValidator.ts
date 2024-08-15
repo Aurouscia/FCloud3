@@ -10,7 +10,6 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult[]{
     const validMarks = Object.values(marksDefined) as string[]
     const res:TargetValidationResult[] = []
     let cursor = 0;
-    let safety = 100;
     while(true){
         const cells:string[] = []
         let idx = 0;
@@ -43,19 +42,16 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult[]{
                 }
             }
         }
-        if(cells.length < 2){
-            continue;
-        }
-        res.push({
-            from,
-            cells,
-            config
-        })
-        if(idx>=t.rows.length){
+        if(cells.length == 0)
             break;
+        if(cells.length >= 2){
+            res.push({
+                from,
+                cells,
+                config
+            })
         }
-        safety--;
-        if(safety<=0){
+        if(idx>=t.rows.length){
             break;
         }
     }
