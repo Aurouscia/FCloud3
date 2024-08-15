@@ -17,8 +17,14 @@ export function useWikiRoutesJump(){
         }
         router.push({name:"wikiLocations", params:{urlPathName}})
     }
-    const wikiContentSearch = ()=>{
+    const jumpToWikiLocationsRoute = (urlPathName?:string)=>{
+        return {name:"wikiLocations", params:{urlPathName}}
+    }
+    const jumpToWikiContentSearch = ()=>{
         router.push({name:'wikiContentSearch'})
     }
-    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations, wikiContentSearch}
+    const jumpToMyWikisOverall = (uid?:number)=>{
+        router.push({name:'myWikisOverall', params:{uid}})
+    }
+    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations, jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall}
 }

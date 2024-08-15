@@ -1,7 +1,7 @@
 export interface WikiCenteredHomePage
 {
-    LatestWikis:Array<Wiki>
-    RandomWikis:Array<Wiki>
+    LatestWikis:Array<WikiWithAvt>
+    RandomWikis:Array<WikiWithAvt>
     TopDirs:Array<Pair>
 }
 
@@ -9,6 +9,12 @@ export interface Wiki
 {
     Path:string
     Title:string
+}
+export interface WikiWithAvt
+{
+    Path:string
+    Title:string
+    Avt:string
 }
 export interface FileDir
 {

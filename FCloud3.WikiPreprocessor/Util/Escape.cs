@@ -15,7 +15,7 @@ namespace FCloud3.WikiPreprocessor.Util
             return RemoveEscapeChar().Replace(input, string.Empty);
         }
 
-        [GeneratedRegex(@"\\(?=(\[|\]|\*|\||-|~))")]
+        [GeneratedRegex(@"\\(?=(\[|\]|\*|\||-|~|#))")]
         private static partial Regex RemoveEscapeChar();
     }
 }

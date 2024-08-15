@@ -31,6 +31,7 @@ import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
 import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
 import { FooterLinks } from '@/models/etc/footerLinks';
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
+import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 
 
 export class Api{
@@ -1255,6 +1256,18 @@ export class Api{
                 )
                 if(resp.success){
                     return resp.data as WikiContentSearchResult
+                }
+            }
+        },
+        myWikis:{
+            myWikisOverall: async(uid?:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/MyWikis/MyWikisOverall",
+                    "get",
+                    {uid},
+                )
+                if(resp.success){
+                    return resp.data as MyWikisOverallResp
                 }
             }
         }

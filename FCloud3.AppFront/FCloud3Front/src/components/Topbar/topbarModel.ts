@@ -25,11 +25,15 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                 Title: "作品",
                 SubItems: [
                     {
-                        Title: "目录",
+                        Title: "所有作品",
                         Link: "/d"
                     },
                     {
-                        Title: "素材",
+                        Title: "我的词条",
+                        Link: "/MyWikis"
+                    },
+                    {
+                        Title: "素材列表",
                         Link: "/materials"
                     },
                     {

@@ -9,8 +9,8 @@ import { useFeVersionChecker } from '@/utils/feVersionCheck';
 
 const api = injectApi();
 const model = ref<WikiCenteredHomePage>();
-const { jumpToViewWiki } = useWikiParsingRoutesJump();
-const { jumpToRootDir } = useFilesRoutesJump();
+const { jumpToViewWikiRoute } = useWikiParsingRoutesJump();
+const { jumpToRootDirRoute } = useFilesRoutesJump();
 const { checkAndPop } = useFeVersionChecker();
 async function init(){
     const resp = await api.etc.wikiCenteredHomePage.get();
@@ -31,16 +31,18 @@ onMounted(async()=>{
             <div class="listTitle">
                 最近更新
             </div>
-            <div v-for="w in model.LatestWikis" :key="w.Path" @click="jumpToViewWiki(w.Path)" class="listItem">
-                {{ w.Title }}
+            <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
+                <img :src="w.Avt">
+                <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
         <div class="list">
             <div class="listTitle">
                 随机看看
             </div>
-            <div v-for="w in model.RandomWikis" :key="w.Path" @click="jumpToViewWiki(w.Path)" class="listItem">
-                {{ w.Title }}
+            <div v-for="w in model.RandomWikis" :key="w.Path" class="listItem">
+                <img :src="w.Avt">
+                <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
     </div>    
@@ -55,8 +57,12 @@ onMounted(async()=>{
                 </div>
             </div>
             <div v-for="p in model.TopDirs" class="twinListRow">
-                <div class="listItem" @click="jumpToRootDir(p.DPath)">{{ p.DName }}</div>
-                <div class="listItem" @click="jumpToViewWiki(p.WPath)">{{ p.WTitle }}</div>
+                <div class="listItem">
+                    <RouterLink :to="jumpToRootDirRoute(p.DPath)">{{ p.DName }}</RouterLink>
+                </div>
+                <div class="listItem">
+                    <RouterLink :to="jumpToViewWikiRoute(p.WPath)">{{ p.WTitle }}</RouterLink>
+                </div>
             </div>
         </div>
     </div>
@@ -85,7 +91,6 @@ onMounted(async()=>{
     .listItem,.listTitle{
         font-weight: bold;
         border-bottom: 1px solid #ccc;
-        cursor: pointer;
         transition: 0.5s;
         padding: 7px;
         white-space: nowrap;
@@ -93,14 +98,24 @@ onMounted(async()=>{
         text-overflow: ellipsis;
         &:hover{
             font-weight: bold;
-            text-decoration: underline;
             background-color: #eee;
+        }
+        img{
+            vertical-align: middle;
+            display: inline-block;
+            height: 20px;
+            width: 20px;
+            margin-right: 3px;
+            border-radius: 200px;
+        }
+        a{
+            color: #000;
+            vertical-align: middle;
         }
     }
     .listTitle{
         color: #aaa;
         font-size: 18px;
-        cursor: default;
         &:hover{
             text-decoration: none;
         }
