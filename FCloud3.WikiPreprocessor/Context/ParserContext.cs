@@ -17,6 +17,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserRuleUsageContext RuleUsage { get; }
         public ParserFootNoteContext FootNote { get; }
         public ParserTitleGatheringContext TitleGathering { get; }
+        public AutoReplaceContext AutoReplace { get; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -24,12 +25,13 @@ namespace FCloud3.WikiPreprocessor.Context
         public int UniqueSlotIncre { get; set; }
         public ParserContext(ParserOptions options)
         {
+            Options = options;
             RuleUsage = new();
             TemplateSlotInfo = new();
-            Options = options;
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
+            AutoReplace = new(options.InlineParsingOptions, options.AutoReplaceOptions, RuleUsage);
         }
 
         private int initialFrameCount = 0;

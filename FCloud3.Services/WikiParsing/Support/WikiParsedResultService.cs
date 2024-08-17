@@ -51,7 +51,7 @@ namespace FCloud3.Services.WikiParsing.Support
             var dir = new DirectoryInfo(dirPath);
             if (!dir.Exists)
                 dir.Create();
-            var versions = dir.GetFiles().OrderByDescending(f => f.CreationTime);
+            var versions = dir.GetFiles().OrderByDescending(f => f.CreationTime).ToList();
             var newest = versions.FirstOrDefault();
             if (newest is null || newest.Name != FileName(update))
                 return null; //没有文件或没有最新版文件

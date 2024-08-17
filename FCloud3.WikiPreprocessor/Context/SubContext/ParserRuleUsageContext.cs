@@ -30,9 +30,9 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             _ = UsedRulesLog.TryGetValue(rule, out int times);
             return times;
         }
-        public bool ViolateSingleUsage(IEnumerable<IRule> usingRules)
+        public bool ViolateSingleUsage(List<IRule> usingRules)
         {
-            var usingSingles = usingRules.Where(x => x.IsSingleUse);
+            var usingSingles = usingRules.FindAll(x => x.IsSingleUse);
             if (usingSingles.Count() == 0) return false;
             var usedSingles = UsedRulesLog.Keys.Where(x => x.IsSingleUse);
             return usedSingles.Intersect(usingSingles).Any();
