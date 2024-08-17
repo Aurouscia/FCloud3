@@ -66,7 +66,6 @@ const refreshThrs=750;//这么多毫秒后还没有新的输入，则发送previ
 //let inputCounter:number = 0;
 async function contentInput(){
     if(!writeArea.value){return;}
-    data.value.Content = textNode()?.textContent || "";
     //有时候会莫名其妙出现多余的子节点，检查一下并删掉即可
     const childs = writeArea.value.childNodes
     const needRemove:ChildNode[] = []
@@ -78,10 +77,20 @@ async function contentInput(){
         }
     }
     const converted = needRemove.filter(x=>x.textContent && x.textContent.length>0).map(x=>x.textContent).join('\n');
-    needRemove.forEach(n=>n.remove());
+    needRemove.forEach(n=>writeArea.value?.removeChild(n));
     if(removed){
         textNode().textContent += (converted+"\n")//结尾必须有个换行符（不算入内容里）
+        const node = textNode()
+        const textLength = node.textContent?.length||1;
+        setTimeout(()=>{
+            const newRange = document.createRange()
+            newRange.setStart(node, textLength - 1);
+            newRange.setEnd(node, textLength - 1);
+            window.getSelection()?.removeAllRanges();
+            window.getSelection()?.addRange(newRange);
+        },5)
     }
+    data.value.Content = textNode()?.textContent || "";
     
     if(!previewContent.value){
         previewContent.value="加载中..."
@@ -194,6 +203,7 @@ async function init(){
         if(!writeArea.value){return}
         textNode().textContent = data.value.Content || "\n";//结尾必须有个换行符（不算入内容里）
         writeArea.value.addEventListener("keydown", enterKeyHandler);
+        writeArea.value.addEventListener("keydown", backspaceKeyHandler);
         await contentInput();
         releasePreventLeaving()
 
@@ -204,7 +214,15 @@ async function init(){
     }
 }
 
-function textNode(){return writeArea.value?.childNodes[0] as Text}
+function textNode(){
+    const res = writeArea.value?.childNodes[0] as Text
+    if(res===undefined){
+        const t = document.createTextNode("\n");
+        writeArea.value?.appendChild(t)
+        return t;
+    }
+    return res;
+}
 async function enterKeyHandler(e: KeyboardEvent) {
     //contenteditable的div中按下回车键时，如果光标在最后，会自动在最后插入一个<br>，导致保存后空行莫名其妙变多，这里要阻止这个行为
     //自定义实现一个换行功能
@@ -229,6 +247,28 @@ async function enterKeyHandler(e: KeyboardEvent) {
             newRange.setEnd(node, offset + 1);
             window.getSelection()?.removeAllRanges();
             window.getSelection()?.addRange(newRange);
+            contentInput();
+        }
+    }
+}
+async function backspaceKeyHandler(e:KeyboardEvent) {
+    //修复删除最后一行的唯一一个字符后的诡异行为（输入中文多出字符）
+    if (e.key == "Backspace") {
+        let sel = window.getSelection();
+        const node = textNode();
+        if (writeArea.value && sel && sel.isCollapsed && data.value.Content && node && sel.focusNode == node) {
+            const range = sel.getRangeAt(0);
+            const length = data.value.Content.length;
+            if(length>2 && range.endOffset == length && data.value.Content[length-2]=='\n'){
+                e.preventDefault()
+                textNode().textContent = textNode().textContent?.substring(0, length-1)+"\n" || "\n"
+                await sleep(5);
+                const newRange = document.createRange()
+                newRange.setStart(node, length - 1);
+                newRange.setEnd(node, length - 1);
+                window.getSelection()?.removeAllRanges();
+                window.getSelection()?.addRange(newRange);
+            }
             contentInput();
         }
     }
