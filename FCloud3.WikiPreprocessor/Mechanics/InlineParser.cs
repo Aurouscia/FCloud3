@@ -27,7 +27,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
         public IHtmlable Run(string input,bool mayContainTemplateCall = true)
         {
-            if (_ctx.FrameCountCheck() is IHtmlable err)
+            if (_ctx.FrameCountCheck() is { } err)
                 return err;
             if (input.Length <= 5)
                 mayContainTemplateCall = false;

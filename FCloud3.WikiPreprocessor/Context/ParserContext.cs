@@ -25,13 +25,13 @@ namespace FCloud3.WikiPreprocessor.Context
         public int UniqueSlotIncre { get; set; }
         public ParserContext(ParserOptions options)
         {
+            Options = options;
             RuleUsage = new();
             TemplateSlotInfo = new();
-            Options = options;
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
-            AutoReplace = new();
+            AutoReplace = new(options.InlineParsingOptions, options.AutoReplaceOptions);
         }
 
         private int initialFrameCount = 0;
@@ -58,7 +58,6 @@ namespace FCloud3.WikiPreprocessor.Context
                 RuleUsage.Reset();
             Caches.Reset();
             FootNote.Clear();
-            AutoReplace.Clear();
         }
         public string DebugInfo()
         {

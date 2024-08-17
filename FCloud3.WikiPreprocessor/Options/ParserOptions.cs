@@ -111,7 +111,6 @@ namespace FCloud3.WikiPreprocessor.Options
 
         public ParserOptions GetCurrentOptions()
         {
-            Inline.AddMoreRules(InlineRulesFromAutoReplace(AutoReplace));
             ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
@@ -123,34 +122,6 @@ namespace FCloud3.WikiPreprocessor.Options
         {
             var options = GetCurrentOptions();
             return new Parser(options);
-        }
-
-        /// <summary>
-        /// AutoReplace会被转译为字面量行内规则(LiteralInlineRules)被行内解析器(InlineParser)匹配
-        /// </summary>
-        /// <param name="autoReplaceOptions"></param>
-        /// <returns></returns>
-        private static List<IInlineRule> InlineRulesFromAutoReplace(AutoReplaceOptions autoReplaceOptions)
-        {
-            List<IInlineRule> inlineRules = new();
-            if (autoReplaceOptions.Detects.Count > 0)
-            {
-                var detects = autoReplaceOptions.Detects;
-                detects.RemoveAll(x => x.Text.Length < 2);
-                detects.Sort((x, y) => y.Text.Length - x.Text.Length);
-                var rules = detects.ConvertAll(x =>
-                    new LiteralInlineRule(
-                        target: x.Text,
-                        getReplacement: () => autoReplaceOptions.Replace(x.Text),
-                        isSingle: x.IsSingleUse
-                    ));
-                inlineRules.InsertRange
-                (
-                    index: 0,
-                    collection: rules
-                );
-            }
-            return inlineRules;
         }
 
         private static IColorParser FallToColorParser()
