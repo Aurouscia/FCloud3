@@ -17,6 +17,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserRuleUsageContext RuleUsage { get; }
         public ParserFootNoteContext FootNote { get; }
         public ParserTitleGatheringContext TitleGathering { get; }
+        public AutoReplaceContext AutoReplace { get; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -30,6 +31,7 @@ namespace FCloud3.WikiPreprocessor.Context
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
+            AutoReplace = new();
         }
 
         private int initialFrameCount = 0;
@@ -56,6 +58,7 @@ namespace FCloud3.WikiPreprocessor.Context
                 RuleUsage.Reset();
             Caches.Reset();
             FootNote.Clear();
+            AutoReplace.Clear();
         }
         public string DebugInfo()
         {

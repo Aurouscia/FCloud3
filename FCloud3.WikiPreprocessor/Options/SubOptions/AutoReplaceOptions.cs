@@ -17,13 +17,6 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
             Replace = x => x;
             _master = master;
         }
-        public readonly struct ReplaceTarget
-        {
-            public string Text { get; }
-            public bool IsSingleUse { get; }
-            public ReplaceTarget(string text, bool isSingleUse) { Text = text; IsSingleUse = isSingleUse; }
-        }
-
         public ParserBuilder AddReplacing(List<string> targets, Func<string, string> replace, bool isSingle = true)
         {
             Detects.RemoveAll(x=> targets.Contains(x.Text));
@@ -41,5 +34,12 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
             };
             return _master;
         }
+    }
+    
+    public readonly struct ReplaceTarget
+    {
+        public string Text { get; }
+        public bool IsSingleUse { get; }
+        public ReplaceTarget(string text, bool isSingleUse) { Text = text; IsSingleUse = isSingleUse; }
     }
 }
