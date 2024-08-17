@@ -31,7 +31,7 @@ namespace FCloud3.WikiPreprocessor.Context
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
-            AutoReplace = new(options.InlineParsingOptions, options.AutoReplaceOptions);
+            AutoReplace = new(options.InlineParsingOptions, options.AutoReplaceOptions, RuleUsage);
         }
 
         private int initialFrameCount = 0;

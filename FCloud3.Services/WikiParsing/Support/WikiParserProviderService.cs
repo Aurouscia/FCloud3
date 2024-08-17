@@ -26,7 +26,9 @@ namespace FCloud3.Services.WikiParsing.Support
         private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly ILogger<WikiParserProviderService> _logger = logger;
 
-        public Parser Get(string cacheKey, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
+        public Parser Get(string cacheKey, List<WikiItemCachingModel>? allWikis = null,
+            Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null,
+            bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
@@ -45,7 +47,7 @@ namespace FCloud3.Services.WikiParsing.Support
                     b.Cache.SetExpireToken(token);
                 };
                 var changeToken = new CancellationChangeToken(token);
-                p = Get(configureAndToken, containInfos, linkSingle);
+                p = Get(allWikis, configureAndToken, containInfos, linkSingle);
                 _logger.LogInformation("词条解析器[{cacheKey}]已创建", cacheKey);
                 var options = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromMinutes(5))
@@ -58,10 +60,10 @@ namespace FCloud3.Services.WikiParsing.Support
             }
             return p;
         }
-        private Parser Get(Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
+        private Parser Get(List<WikiItemCachingModel>? allWikis = null, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
         {
             var pb = DefaultConfigureBuilder();
-            var allWikis = _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
+            allWikis ??= _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
             var allMeterials = _materialCaching.GetAll();
             if (containInfos != null)
             {
@@ -75,8 +77,7 @@ namespace FCloud3.Services.WikiParsing.Support
                         return WikiReplacement(w.UrlPathName, w.Title);
                     return title;
                 };
-                var reps = wikis.Where(x => x.Title != null).Select(x => x.Title).ToList();
-                pb.AutoReplace.AddReplacing(reps!, func, linkSingle);
+                pb.AutoReplace.AddReplacing([], func, linkSingle);
             }
             pb.Implant.AddImplantsHandler(x =>
             {

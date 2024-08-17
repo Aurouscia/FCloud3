@@ -43,7 +43,8 @@ namespace FCloud3.Repos.Wiki
         }
         private List<WikiTitleContain> CheckDuplicate(List<WikiTitleContain> list)
         {
-            var distincted = list.DistinctBy(x => x.WikiId).ToList();
+            var distincted = list.DistinctBy(x =>
+                $"{x.WikiId}_{x.Type}_{x.ObjectId}").ToList();
             if (distincted.Count == list.Count)
                 return distincted;
             var redundancy = list.Except(distincted).ToList();

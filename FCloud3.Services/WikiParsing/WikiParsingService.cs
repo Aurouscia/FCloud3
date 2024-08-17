@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Identities;
+using Microsoft.Extensions.Configuration;
 
 namespace FCloud3.Services.WikiParsing
 {
@@ -41,7 +42,8 @@ namespace FCloud3.Services.WikiParsing
         AuthGrantService authGrantService,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
-        ILogger<WikiParsingService> logger)
+        ILogger<WikiParsingService> logger,
+        IConfiguration config)
     {
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
@@ -60,6 +62,7 @@ namespace FCloud3.Services.WikiParsing
         private readonly IStorage _storage = storage;
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly ILogger<WikiParsingService> _logger = logger;
+        private readonly bool debug = config["Debug"] == "on";
 
         public WikiDisplayInfo? GetWikiDisplayInfo(string pathName, bool defaultAccess = false)
         {
@@ -130,7 +133,9 @@ namespace FCloud3.Services.WikiParsing
         {
             lock (GetLockObj(id))
             {
-                Stream? stream = _wikiParsedResult.Read(id, update);
+                Stream? stream = null;
+                if(!debug)
+                    stream = _wikiParsedResult.Read(id, update);
                 if (stream is not null)
                 {
                     _logger.LogInformation("提供[{id}]号词条，缓存命中", id);
@@ -182,8 +187,10 @@ namespace FCloud3.Services.WikiParsing
             List<WikiTitleContain> textContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.TextSection, textIds);
             List<WikiTitleContain> tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.FreeTable, tableIds);
 
-            var contains = textContains.UnionBy(tableContains, x => x.WikiId).ToList();
+            var contains = textContains.Union(tableContains).ToList();
+            var allWikis = _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
             var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
+                allWikis,
                 configure: builder => builder.Cache.DisableCache(),//片段缓存必须关闭
                 contains,
                 true,
@@ -204,6 +211,18 @@ namespace FCloud3.Services.WikiParsing
             }
             paras.ForEach(p =>
             {
+                //更换为该段的自动替换目标
+                var containType = WikiTitleContainType.Unknown;
+                if (p.Type == WikiParaType.Text)
+                    containType = WikiTitleContainType.TextSection;
+                else if (p.Type == WikiParaType.Table)
+                    containType = WikiTitleContainType.FreeTable;
+                var itsContains = contains.AsQueryable()
+                    .WithTypeAndId(containType, p.ObjectId).Select(x=>x.WikiId).ToList();
+                var itsContainDetects = itsContains.ConvertAll(wid =>
+                    allWikis.Find(w => w.Id == wid)?.Title);
+                parser.Context.AutoReplace.Register(itsContainDetects);
+                
                 if (p.Type == WikiParaType.Text)
                 {
                     TextSection? model = textParaObjs.FirstOrDefault(x => x.Id == p.ObjectId);

@@ -1,17 +1,16 @@
-﻿using FCloud3.Services.TextSec;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using FCloud3.WikiPreprocessor.Mechanics;
-using FCloud3.Entities.TextSection;
-using FCloud3.Services.WikiParsing.Support;
-using FCloud3.WikiPreprocessor.Util;
-using FCloud3.Entities.Wiki;
-using FCloud3.Services.Wiki;
+﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
-using FCloud3.App.Models.COM;
+using FCloud3.Entities.Wiki;
+using FCloud3.Services.TextSec;
+using FCloud3.Services.Wiki;
+using FCloud3.Services.WikiParsing.Support;
+using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Util;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace FCloud3.App.Controllers.TextSec
+namespace FCloud3.App.Controllers.TextSection
 {
     [Authorize]
     public class TextSectionController:Controller, IAuthGrantTypeProvidedController
@@ -86,7 +85,7 @@ namespace FCloud3.App.Controllers.TextSec
         {
             string cacheKey = $"tse_{id}";
             List<WikiTitleContain> contains = _titleContainService.GetByTypeAndObjId(WikiTitleContainType.TextSection, id);
-            var parser = _genParser.Get(cacheKey, builder =>
+            var parser = _genParser.Get(cacheKey, null, builder =>
             {
                 builder.UseLocatorHash(_locatorHash);
                 builder.ClearUsageInfoOnCall();
@@ -108,7 +107,7 @@ namespace FCloud3.App.Controllers.TextSec
             public int AuthGrantOnId => Id;
 
             public TextSectionComModel() { }
-            public TextSectionComModel(TextSection original)
+            public TextSectionComModel(Entities.TextSection.TextSection original)
             {
                 Id = original.Id;
                 Title = original.Title;
