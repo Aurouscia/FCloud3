@@ -91,7 +91,7 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                     </div>
                     <div class="foldBtn" v-show="subdir.showChildren" @click="subdir.showChildren = false" style="color:black">▼
                     </div>
-                    <div class="subdirName" @click="jumpToSubDir(subdir.UrlPathName)">{{ subdir.Name }}</div>
+                    <div class="subdirName nowrapEllipsis" @click="jumpToSubDir(subdir.UrlPathName)">{{ subdir.Name }}</div>
                     <Functions :entry-size="20" x-align="left" y-align="up">
                         <button class="danger" @click="deleteDir(subdir.Id)">删除</button>
                         <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>

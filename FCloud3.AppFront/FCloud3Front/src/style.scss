@@ -235,3 +235,8 @@ a{
   font-size: 15px;
   flex-shrink: 0;
 }
+.nowrapEllipsis{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

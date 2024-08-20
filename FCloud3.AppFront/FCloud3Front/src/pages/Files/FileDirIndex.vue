@@ -287,7 +287,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                         <div>
                             <div class="foldBtn" v-show="!item.showChildren" @click="item.showChildren=true;hideFnUpdate()" style="color:#999">▶</div>
                             <div class="foldBtn" v-show="item.showChildren" @click="item.showChildren=false;hideFnUpdate()" style="color:black">▼</div>
-                            <div class="subdirName" @click="jumpToSubDir(item.UrlPathName)">{{ item.Name }}</div>
+                            <div class="subdirName nowrapEllipsis" @click="jumpToSubDir(item.UrlPathName)">{{ item.Name }}</div>
                             <Functions :entry-size="20" x-align="left" y-align="up">
                                 <button class="danger" @click="deleteDir(item.Id)">删除</button>
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
@@ -373,9 +373,12 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     font-size: small;
     color:gray;
     display: flex;
+    overflow: hidden;
+    flex-wrap: wrap;
 }
 .ancestors div span{
     padding: 0px 3px 0px 3px;
+    white-space: nowrap;
 }
 .ancestors div span:hover{
     text-decoration: underline;
@@ -415,6 +418,8 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 .subdirName{
     text-align: left;
     font-weight: bold;
+    max-width: calc(100vw - 100px);
+    display: block !important;
 }
 .subdirName:hover{
     text-decoration: underline;
