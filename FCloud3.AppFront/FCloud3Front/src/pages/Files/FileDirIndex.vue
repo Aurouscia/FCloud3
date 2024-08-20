@@ -26,6 +26,8 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import Footer from '@/components/Footer.vue';
+import Search from '@/components/Search.vue';
+import { useFilesRoutesJump } from './routes/routesJump';
 
 
 const props = defineProps<{
@@ -172,6 +174,16 @@ function windowResizeHandler(){
     }, 500)
 }
 
+const { jumpToViewFileItemRoute, jumpToDirFromId } = useFilesRoutesJump()
+const fileSearchSidebar = ref<InstanceType<typeof SideBar>>()
+const dirSearchSidebar = ref<InstanceType<typeof SideBar>>()
+function fileSearchDone(id:number){
+    router.push(jumpToViewFileItemRoute(id))
+}
+function dirSearchDone(id:number){
+    jumpToDirFromId(id)
+}
+
 const index = ref<InstanceType<typeof IndexMini>>();
 let api:Api = injectApi();
 const iden = useIdentityInfoStore().iden
@@ -276,8 +288,9 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         <div v-if="thisDirId>0" class="owner">
             目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
         </div>
-        <div v-else class="owner">
-            　
+        <div v-else class="owner searchEntry">
+            <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
+            <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
             :hide-page="false" :hide-fn="hideFn" :no-load-on-mounted="true">
@@ -324,6 +337,14 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
     <SideBar ref="authgrantsSidebar">
         <AuthGrants :on="AuthGrantOn.Dir" :on-id="thisDirId"></AuthGrants>
     </SideBar>
+    <SideBar ref="fileSearchSidebar">
+        <h1>搜索文件</h1>
+        <Search :source="api.etc.quickSearch.fileItem" @done="(_name,id)=>fileSearchDone(id)" :placeholder="'输入文件名'"></Search>
+    </SideBar>
+    <SideBar ref="dirSearchSidebar">
+        <h1>搜索目录</h1>
+        <Search :source="api.etc.quickSearch.fileDir" @done="(_name,id)=>dirSearchDone(id)" :placeholder="'输入目录名'"></Search>
+    </SideBar>
     <FileItemEdit ref="fileItemEdit" @need-refresh="index?.reloadData"></FileItemEdit>
     <ClipBoard ref="clip" :current-dir="friendlyPathThisName||'根文件夹'" @put-down="clipBoardAction"></ClipBoard>
 </template>
@@ -350,6 +371,10 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 }
 .owner span:hover{
     text-decoration: underline;
+}
+.searchEntry button{
+    text-decoration: underline;
+    margin-right: 8px;
 }
 .settingsBtn:hover{
     background-color: #999;
