@@ -12,11 +12,13 @@ import ImageFocusView from '@/components/ImageFocusView.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import SideBar from '@/components/SideBar.vue';
 import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue'
+import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
 import { useRouter } from 'vue-router';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut'
 import { HeartbeatSenderForWholeWiki } from '@/models/etc/heartbeat';
+import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 
 const props = defineProps<{
     urlPathName: string
@@ -220,6 +222,16 @@ function leave(){
         api.etc.heartbeat.releaseRangeForWiki(info.value.Id);
     router.back();
 }
+const titleContainEdit = ref<InstanceType<typeof SideBar>>()
+const titleContainEditing = ref<{type:WikiTitleContainType, objId:number, getContent:()=>string}>()
+function editTitleContains(p:WikiParaDisplay){
+    titleContainEditing.value = {
+        type: paraType2ContainType(p.Type),
+        objId: p.UnderlyingId,
+        getContent: ()=>p.Content
+    }
+    titleContainEdit.value?.extend();
+}
 
 let imgClickJump:ImageClickJump;
 const focusImg = ref<string>();
@@ -275,6 +287,7 @@ onUnmounted(()=>{
                     <span class="defaultFold">{{ p.NameOverride?.startsWith('^') ? '(默认折起)':''}}</span>
                 </h2>
                 <div class="ops">
+                    <button v-if="p.TitleContainCount" class="lite" @click="editTitleContains(p)">{{ p.TitleContainCount }}链</button>
                     <button v-if="p.Type == WikiParaType.File" class="lite" @click="startEditingFilePara(p)">编辑</button>
                     <button class="lite" @click="startEditingInfo(p)">设置</button>
                     <button v-show="paraMode" class="lite rmPara" @click="removePara(idx)">移除</button>
@@ -322,6 +335,12 @@ onUnmounted(()=>{
 </ImageFocusView>
 <SideBar ref="wikiFileParaEdit">
     <WikiFileParaEdit :para-id="editingPara.ParaId" :file-id="editingPara.UnderlyingId" @file-id-set="load"></WikiFileParaEdit>
+</SideBar>
+<SideBar ref="titleContainEdit">
+    <WikiTitleContain v-if="titleContainEditing" 
+        :type="titleContainEditing.type"
+        :object-id="titleContainEditing.objId"
+        :get-content="titleContainEditing.getContent"></WikiTitleContain>
 </SideBar>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
 </template>
