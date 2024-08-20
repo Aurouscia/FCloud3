@@ -188,7 +188,9 @@ namespace FCloud3.WikiPreprocessor.Rules
                 }
                 else
                 {
-                    return new TextElement($"[{span}]");
+                    return new TextElement(
+                        $"<a class=\"{Consts.redLinkClassName}\" " +
+                        $"{Consts.redLinkItemUrlAttr}=\"{trimmedSpan}\">{trimmedSpan}</a>");
                 }
             }
             // [https://baidu.com]
@@ -232,8 +234,9 @@ namespace FCloud3.WikiPreprocessor.Rules
                 }
                 else
                 {
-                    //TODO：找不到的变为红链
-                    return new TextElement($"[{span})");
+                    return new TextElement(
+                        $"<a class=\"{Consts.redLinkClassName}\" " +
+                        $"{Consts.redLinkItemUrlAttr}=\"{trimmedPart2}\">{trimmedPart1}</a>");
                 }
             }
             // [百度](https://baidu.com)

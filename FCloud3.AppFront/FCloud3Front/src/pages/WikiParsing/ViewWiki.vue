@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectWikiViewScrollMemory } from '@/provides';
+import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
@@ -203,6 +203,7 @@ const focusImgDesc = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
 const wikiViewScrollMemory = injectWikiViewScrollMemory()
 const routeRendererContainer = ref<HTMLDivElement>()
+const pop = injectPop()
 
 async function init(changedPathName?:boolean){
     currentUser.value = await iden.getIdentityInfo();
@@ -232,9 +233,12 @@ async function init(changedPathName?:boolean){
     viewAreaScrollHandler();
     wikiViewArea.value?.addEventListener('scroll', _e=>viewAreaScrollHandler(false));
 
-    wikiLinkClick = new WikiLinkClick(pathName => {
-        router.push(`/w/${pathName}`)
-    });
+    wikiLinkClick = new WikiLinkClick(
+        (wikiPathName) => router.resolve({name:'viewWiki', params:{wikiPathName}}).href,
+        (pathName, _name) => {
+            pop.value.show(`${pathName} 暂不存在`, 'failed')
+        }
+    );
     wikiLinkClick.listen(wikiViewArea.value);
 
     if(props.viewCmt){

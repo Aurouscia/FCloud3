@@ -19,5 +19,7 @@ namespace FCloud3.WikiPreprocessor.Util
 
         public const string locatorAttrName = "loc";
         public const string titleIdAttrName = "id";
+        public const string redLinkClassName = "redLink";
+        public const string redLinkItemUrlAttr = "pathName";
     }
 }
