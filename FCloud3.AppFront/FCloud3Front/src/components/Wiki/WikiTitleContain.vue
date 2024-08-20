@@ -11,7 +11,7 @@ import Pop from '../Pop.vue';
 const props = defineProps<{
     type: WikiTitleContainType
     objectId: number
-    getContent: ()=>string|null|undefined
+    getContent?: ()=>string|null|undefined
 }>(); 
 
 const data = ref<WikiTitleContainListModel>();
@@ -39,7 +39,7 @@ function remove(wikiId: number){
     changed.value = true;
 }
 async function autoFill(suppressNoneWarning = false){
-    if(!data.value){return}
+    if(!data.value || !props.getContent){return}
     const content = props.getContent();
     if(!content){return}
     const res = await api.wiki.wikiTitleContain.autoFill(props.objectId, props.type, content);
@@ -102,13 +102,13 @@ onMounted(async() => {
         <div class="questionBody">
             <p>只有在这里显示的词条标题才会在本段被自动生成链接。</p>
             <p>手动删除的词条标题将不再会被自动添加。</p>
-            <p>链接在编辑器里会全部生成，在词条查看时仅生成第一次。</p>
+            <p>链接在编辑器里会全部生成，查看时仅在段落内生成一次。</p>
             <p>被隐藏的词条不会生成链接。</p>
         </div>
     </div>
     <div>
         <Search v-if="api" :source="api.etc.quickSearch.wikiItem" @done="searchDone" :placeholder="'手动添加'"></Search>
-        <button @click="()=>autoFill()" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
+        <button @click="()=>autoFill()" v-if="getContent" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
     </div>
     <div v-if="data" class="list">
         <div v-for="item,idx in data.Items" :key="item.WikiId">
@@ -146,8 +146,8 @@ onMounted(async() => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: top;
-    height: 240px;
+    justify-content: flex-start;
+    min-height: 340px;
     overflow-y: auto;
 }
 .list>div{

@@ -48,7 +48,8 @@ namespace FCloud3.Services.Wiki
                 .WithTypeAndId(containType, objId)
                 .Select(x => x.WikiId);
             //自身的词条不添加
-            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
+            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(
+                _wikiTitleContainRepo.ContainType2ParaType(containType), objId);
 
             var wikis = _wikiItemRepo.ExistingAndNotSealed
                 .Where(x => x.Title != null && content.Contains(x.Title) && !someStrangeWord.Contains(x.Title))
@@ -70,7 +71,8 @@ namespace FCloud3.Services.Wiki
                 .WithTypeAndId(containType, objId)
                 .Select(x => x.WikiId);
             //自身的词条不添加
-            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(GetWikiParaType(containType), objId);
+            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(
+                _wikiTitleContainRepo.ContainType2ParaType(containType), objId);
 
             IQueryable<string?> content;
             if (containType == WikiTitleContainType.TextSection)
@@ -108,8 +110,8 @@ namespace FCloud3.Services.Wiki
 
         public WikiTitleContainForWikiResult GetAllForWiki(int wikiId)
         {
-            var textType = GetWikiParaType(WikiTitleContainType.TextSection);
-            var tableType = GetWikiParaType(WikiTitleContainType.FreeTable);
+            var textType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.TextSection);
+            var tableType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.FreeTable);
             var paras = _wikiItemService.GetWikiParaDisplays(wikiId);
             var allTextIds = paras
                 .FindAll(x => x.Type == textType)
@@ -128,7 +130,8 @@ namespace FCloud3.Services.Wiki
             {
                 var itsList = res.Add(p.ParaId, p.UnderlyingId, p.NameOverride ?? p.Title ?? "未命名段落").Items;
                 var itsConts = contains
-                    .FindAll(x => x.ObjectId == p.UnderlyingId && x.Type == GetContainType(p.Type));
+                    .FindAll(x => x.ObjectId == p.UnderlyingId 
+                                  && x.Type == _wikiTitleContainRepo.ParaType2ContainType(p.Type));
                 itsConts.ForEach(c =>
                 {
                     var title = relatedWikis.Find(x => x.Id == c.WikiId)?.Title;
@@ -166,7 +169,7 @@ namespace FCloud3.Services.Wiki
 
             if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
             {
-                WikiParaType pt = GetWikiParaType(type);
+                WikiParaType pt = _wikiTitleContainRepo.ContainType2ParaType(type);
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
                 foreach(int w in wIds)
                     _cacheExpTokenService.WikiTitleContain.GetByKey(w).CancelAll();
@@ -174,23 +177,6 @@ namespace FCloud3.Services.Wiki
             }
             _dbTransactionService.CommitTransaction(t);
             return true;
-        }
-
-        private static WikiParaType GetWikiParaType(WikiTitleContainType wikiTitleContainType)
-        {
-            if (wikiTitleContainType == WikiTitleContainType.TextSection)
-                return WikiParaType.Text;
-            else if (wikiTitleContainType == WikiTitleContainType.FreeTable)
-                return WikiParaType.Table;
-            throw new NotImplementedException();
-        }
-        private static WikiTitleContainType GetContainType(WikiParaType wikiParaType)
-        {
-            if (wikiParaType == WikiParaType.Text)
-                return WikiTitleContainType.TextSection;
-            else if (wikiParaType == WikiParaType.Table)
-                return WikiTitleContainType.FreeTable;
-            return WikiTitleContainType.Unknown;
         }
 
         public class WikiTitleContainListModel

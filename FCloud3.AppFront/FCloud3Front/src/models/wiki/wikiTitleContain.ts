@@ -1,7 +1,16 @@
+import { WikiParaType } from "./wikiParaType"
+
 export enum WikiTitleContainType {
     Unknown = 0,
     TextSection = 1,
     FreeTable = 2,
+}
+export function paraType2ContainType(type:WikiParaType){
+    if(type==WikiParaType.Text)
+        return WikiTitleContainType.TextSection
+    else if(type==WikiParaType.Table)
+        return WikiTitleContainType.FreeTable
+    return WikiTitleContainType.Unknown
 }
 export interface WikiTitleContainListModel {
     Items: WikiTitleContainListModelItem[]

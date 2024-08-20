@@ -41,16 +41,37 @@ namespace FCloud3.Repos.Wiki
             var res = from.WithTypeAndIds(type, objIds).ToList();
             return CheckDuplicate(res);
         }
+        public List<WikiTitleContain> GetByTypeAndObjIds(WikiParaType type, List<int> objIds, bool noBlackList = true)
+        {
+            return GetByTypeAndObjIds(ParaType2ContainType(type), objIds, noBlackList);
+        }
         private List<WikiTitleContain> CheckDuplicate(List<WikiTitleContain> list)
         {
             var distincted = list.DistinctBy(x =>
-                $"{x.WikiId}_{x.Type}_{x.ObjectId}").ToList();
+                x.WikiId.GetHashCode() + x.Type.GetHashCode() + x.ObjectId.GetHashCode()).ToList();
             if (distincted.Count == list.Count)
                 return distincted;
             var redundancy = list.Except(distincted).ToList();
             _context.RemoveRange(redundancy);
             _context.SaveChanges();
             return distincted;
+        }
+        
+        public WikiTitleContainType ParaType2ContainType(WikiParaType wikiParaType)
+        {
+            if (wikiParaType == WikiParaType.Text)
+                return WikiTitleContainType.TextSection;
+            else if (wikiParaType == WikiParaType.Table)
+                return WikiTitleContainType.FreeTable;
+            return WikiTitleContainType.Unknown;
+        }
+        public WikiParaType ContainType2ParaType(WikiTitleContainType wikiTitleContainType)
+        {
+            if (wikiTitleContainType == WikiTitleContainType.TextSection)
+                return WikiParaType.Text;
+            else if (wikiTitleContainType == WikiTitleContainType.FreeTable)
+                return WikiParaType.Table;
+            throw new NotImplementedException();
         }
     }
 

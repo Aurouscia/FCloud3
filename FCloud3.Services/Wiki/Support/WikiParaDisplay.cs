@@ -17,13 +17,16 @@ namespace FCloud3.Services.Wiki.Support
         /// 指该段落代表的文本段/文件/表格的Id
         /// </summary>
         public int UnderlyingId { get; set; }
+        public int TitleContainCount { get; set; }
         public string? Title { get; set; }
         public string? Content { get; set; }
         public string? NameOverride { get; set; }
         public int Order { get; set; }
         public WikiParaType Type { get; set; }
         public int Bytes { get; set; }
-        public WikiParaDisplay(WikiPara para, int underlyingId, string? title, string? content, string? nameOverride, WikiParaType type, int bytes)
+        public WikiParaDisplay(
+            WikiPara para, int underlyingId, string? title, string? content, string? nameOverride,
+            WikiParaType type, int bytes, int titleContainCount = 0)
         {
             ParaId = para.Id;
             Order = para.Order;
@@ -33,6 +36,7 @@ namespace FCloud3.Services.Wiki.Support
             NameOverride = nameOverride;
             Type = type;
             Bytes = bytes;
+            TitleContainCount = titleContainCount;
         }
     }
     public class WikiParaPlaceholder

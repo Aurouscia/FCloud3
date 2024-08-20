@@ -7,6 +7,7 @@ export interface WikiParaDisplay{
     NameOverride:string|null,
     Content:string,
     Order:number,
+    TitleContainCount:number,
     Type:WikiParaType,
     Bytes:number
 }
@@ -24,6 +25,7 @@ export const wikiParaDisplayPlaceholder:WikiParaDisplay = {
     NameOverride:null,
     Content:"",
     Order:0,
+    TitleContainCount:0,
     Type:WikiParaType.Text,
     Bytes:0
 }

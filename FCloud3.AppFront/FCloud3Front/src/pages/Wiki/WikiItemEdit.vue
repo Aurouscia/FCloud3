@@ -22,6 +22,7 @@ import { injectApi } from '@/provides';
 import TableParaListItem from './ParaListItem/TableParaListItem.vue';
 import AuthGrants from '@/components/AuthGrants.vue';
 import WikiParaInfo from './WikiParaInfo.vue';
+import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import { AuthGrantOn } from '@/models/identities/authGrant';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
@@ -31,6 +32,7 @@ import LongPress from '@/components/LongPress.vue';
 import { useWikiRoutesJump } from './routes/routesJump';
 import Search from '@/components/Search.vue';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo'
+import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -188,6 +190,16 @@ async function fileEditFold(){
     editingFileParaChanged = false;
 }
 
+const titleContainEdit = ref<InstanceType<typeof SideBar>>()
+const titleContainEditing = ref<{type:WikiTitleContainType, objId:number}>()
+function editTitleContains(p:WikiParaDisplay){
+    titleContainEditing.value = {
+        type: paraType2ContainType(p.Type),
+        objId: p.UnderlyingId
+    }
+    titleContainEdit.value?.extend();
+}
+
 const loadComplete = ref<boolean>(false)
 async function Load(loadInfo:boolean=true, loadParas:boolean=true){
     if(loadInfo){
@@ -312,12 +324,12 @@ onUnmounted(()=>{
     <h1 v-if="info">
         {{ info?.Title }}
         <div class="h1Btns">
-            <button v-if="info" @click="jumpToWikiLocations(info?.UrlPathName)">位置管理</button>
-            <button v-if="info" @click="jumpToWikiContentEdit(info?.UrlPathName)">整体编辑</button>
+            <button v-if="info" @click="jumpToWikiLocations(info?.UrlPathName)">位置</button>
+            <button v-if="info" @click="jumpToWikiContentEdit(info?.UrlPathName)">编辑</button>
             <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)" class="ok">完成</button>
         </div>
     </h1>
-    <SwitchingTabs v-if="loadComplete" :texts="['编辑内容','基础信息','权限设置']" @switch="tabSwitched">
+    <SwitchingTabs v-if="loadComplete" :texts="['段落信息','基础信息','权限设置']" @switch="tabSwitched">
     <div class="paras" ref="parasDiv">
         <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
@@ -327,6 +339,9 @@ onUnmounted(()=>{
             <FileParaListItem v-else-if="p.Type==1" :w="p"></FileParaListItem>
             <TableParaListItem v-else :w="p"></TableParaListItem>
             <div class="menu paraButton">
+                <button v-if="p.TitleContainCount" @click="editTitleContains(p)">
+                    {{ p.TitleContainCount }}链
+                </button>
                 <button @click="EnterEdit(p.ParaId)">编辑</button>
                 <button @click="StartEditInfo(p)">设置</button>
                 <button @click="RemovePara(p.ParaId)">移除</button>
@@ -396,6 +411,9 @@ onUnmounted(()=>{
     </SideBar>
     <WikiParaInfo :para="editingPara"
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
+    <SideBar ref="titleContainEdit">
+        <WikiTitleContain v-if="titleContainEditing" :type="titleContainEditing.type" :object-id="titleContainEditing.objId"></WikiTitleContain>
+    </SideBar>
 </template>
 
 <style scoped lang="scss">
@@ -497,14 +515,13 @@ h1{
 }
 .menu{
     position: absolute;
-    width: 130px;
     height: 30px;
     right: 5px;
     bottom: 5px;
     display: flex;
     justify-content: space-between;
     padding: 0px 6px 0px 6px !important;
-    gap: 3px;
+    gap: 10px;
     button{
         background-color: transparent;
         border: none;

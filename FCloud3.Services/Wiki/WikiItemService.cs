@@ -25,6 +25,7 @@ namespace FCloud3.Services.Wiki
         WikiItemCaching wikiCaching,
         WikiToDirRepo wikiToDirRepo,
         WikiParaRepo paraRepo,
+        WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
         FileItemRepo fileItemRepo,
         FileDirRepo fileDirRepo,
@@ -41,6 +42,7 @@ namespace FCloud3.Services.Wiki
         private readonly WikiItemCaching _wikiCaching = wikiCaching;
         private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo = paraRepo;
+        private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly FileDirRepo _fileDirRepo = fileDirRepo;
@@ -107,6 +109,9 @@ namespace FCloud3.Services.Wiki
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTableMeta> tableParaObjs = _freeTableRepo.GetMetaRangeByIds(tableIds);
 
+            var textContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiParaType.Text, textIds);
+            var tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiParaType.Table, tableIds);
+
             List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
                 WikiParaType type = x.Type;
@@ -114,20 +119,25 @@ namespace FCloud3.Services.Wiki
                 if (type == WikiParaType.Text)
                 {
                     var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
+                    var itsContainsCount = textContains.Count(c => c.ObjectId == x.ObjectId);
                     if(obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title, obj.ContentBrief, x.NameOverride, WikiParaType.Text, 0);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title,
+                            obj.ContentBrief, x.NameOverride, WikiParaType.Text, 0, itsContainsCount);
                 }
                 else if(type == WikiParaType.File)
                 {
                     var obj = fileParaObjs.Find(p => p.Id == x.ObjectId);
                     if (obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName, _storage.FullUrl(obj.StorePathName??"missing"), x.NameOverride, WikiParaType.File, obj.ByteCount);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.DisplayName,
+                            _storage.FullUrl(obj.StorePathName??"missing"), x.NameOverride, WikiParaType.File, obj.ByteCount);
                 }
                 else if(type == WikiParaType.Table)
                 {
                     var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
+                    var itsContainsCount = tableContains.Count(c => c.ObjectId == x.ObjectId);
                     if (obj is not null)
-                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name, obj.Brief, x.NameOverride, WikiParaType.Table, 0);
+                        paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name,
+                            obj.Brief, x.NameOverride, WikiParaType.Table, 0, itsContainsCount);
                 }
                 paraDisplay ??= new WikiParaPlaceholder(type).ToDisplay(x);
                 return paraDisplay;
