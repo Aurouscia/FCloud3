@@ -10,7 +10,7 @@
     "prebuild": "node src/build/markVersion.cjs"
   },
   "dependencies": {
-    "@aurouscia/au-table-editor": "^0.5.3",
+    "@aurouscia/au-table-editor": "^0.5.5",
     "@aurouscia/keyboard-shortcut": "^0.0.3",
     "axios": "^1.7.2",
     "lodash": "^4.17.21",

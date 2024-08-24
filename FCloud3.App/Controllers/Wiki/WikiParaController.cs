@@ -43,5 +43,13 @@ namespace FCloud3.App.Controllers.Wiki
             }
             return this.ApiResp();
         }
+
+        public IActionResult ViewParaRawContent(int paraId)
+        {
+            var res = _wikiParaService.GetParaRawContent(paraId, out string? errmsg);
+            if(errmsg is not null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(res);
+        }
     }
 }

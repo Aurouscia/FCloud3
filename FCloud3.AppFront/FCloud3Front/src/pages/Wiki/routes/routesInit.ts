@@ -5,6 +5,7 @@ import WikiInDirLocations from "../WikiInDirLocations.vue";
 import WikiItemContentEdit from "../WikiItemContentEdit.vue";
 import WikiContentSearch from "../WikiContentSearch.vue";
 import MyWikisOverall from "../MyWikisOverall.vue";
+import ViewParaRawContent from "../ViewParaRawContent.vue";
 
 export function addWiki(r:Router){
     addToRouter(r,routes);
@@ -39,5 +40,11 @@ const routes = [
         component:MyWikisOverall,
         props:true,
         name:"myWikisOverall"
+    },
+    {
+        path:"/WikiParaRawContent/:paraId",
+        component:ViewParaRawContent,
+        props:true,
+        name:'viewParaRawContent'
     }
 ]

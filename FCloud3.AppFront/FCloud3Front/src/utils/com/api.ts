@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { IndexQuery, IndexResult } from "@/components/Index/index";
 import { User, UserType } from "@/models/identities/user";
 import { TextSection, TextSectionMeta, TextSectionPreviewResponse } from "@/models/textSection/textSection";
-import { WikiParaDisplay } from "@/models/wiki/wikiPara";
+import { WikiParaDisplay, WikiParaRawContentRes } from "@/models/wiki/wikiPara";
 import { WikiParaType } from "@/models/wiki/wikiParaType";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "../globalStores/identityInfo";
@@ -492,6 +492,16 @@ export class Api{
                     true
                 )
                 return resp.success
+            },
+            viewParaRawContent:async(paraId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiPara/ViewParaRawContent",
+                    "get",
+                    {paraId}
+                )
+                if(resp.success){
+                    return resp.data as WikiParaRawContentRes
+                }
             }
         },
         wikiTitleContain:{

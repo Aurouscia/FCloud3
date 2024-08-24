@@ -31,3 +31,14 @@ export const wikiParaDisplayPlaceholder:WikiParaDisplay = {
 }
 
 export const wikiParaDefaultFoldMark = "^"
+
+export interface WikiParaRawContentRes
+{
+    ParaId:number
+    ParaName:string|null
+    ParaType:WikiParaType 
+    ObjId:number
+    OwnerId:number
+    LastEdit:string
+    Content:string
+}

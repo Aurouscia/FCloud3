@@ -26,5 +26,9 @@ export function useWikiRoutesJump(){
     const jumpToMyWikisOverall = (uid?:number)=>{
         router.push({name:'myWikisOverall', params:{uid}})
     }
-    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations, jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall}
+    const jumpToViewParaRawContentRoute = (paraId:number)=>{
+        return {name:"viewParaRawContent", params:{paraId}}
+    }
+    return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations,
+        jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall, jumpToViewParaRawContentRoute}
 }

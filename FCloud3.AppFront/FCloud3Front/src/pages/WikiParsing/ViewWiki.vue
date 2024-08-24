@@ -160,7 +160,7 @@ const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
 const { jumpToDiffContentHistory, jumpToDiffContentHistoryForWiki } = useDiffRoutesJump();
-const { jumpToWikiEdit, jumpToWikiContentEdit } = useWikiRoutesJump();
+const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
@@ -304,6 +304,7 @@ onUnmounted(()=>{
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
+                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
                     <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
