@@ -34,14 +34,12 @@ namespace FCloud3.Services.Wiki
         {
             return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
         }
-
-        /// <summary>
-        /// 用于排除emoji，不知道为什么，任意字符串.Contains("🐷")都会返回true<br/>
-        /// 搞一个生僻字符串排除emoji即可
-        /// </summary>
-        private const string someStrangeWord = "亐髵";
-        public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string content)
+        
+        public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string? content)
         {
+            WikiTitleContainAutoFillResult res = new();
+            if (content is null)
+                return res;                
             //之前被删过的就不会再自动添加
             IQueryable<int> excludeWikiIds = _wikiTitleContainRepo
                 .BlackListed
@@ -51,12 +49,11 @@ namespace FCloud3.Services.Wiki
             IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(
                 _wikiTitleContainRepo.ContainType2ParaType(containType), objId);
 
-            var wikis = _wikiItemRepo.ExistingAndNotSealed
-                .Where(x => x.Title != null && content.Contains(x.Title) && !someStrangeWord.Contains(x.Title))
+            var wikis = _wikiItemCaching.GetAll()
+                .Where(x => x.Title != null && content.Contains(x.Title))
                 .Where(x => !excludeWikiIds.Contains(x.Id))
                 .Where(x => !containingSelf.Contains(x.Id))
-                .Select(x => new { x.Id, x.Title }).ToList();
-            WikiTitleContainAutoFillResult res = new();
+                .ToList();
             wikis.ForEach(x =>
             {
                 res.Add(x.Id, x.Title!);
@@ -65,33 +62,12 @@ namespace FCloud3.Services.Wiki
         }
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType)
         {
-            //之前被删过的就不会再自动添加
-            IQueryable<int> excludeWikiIds = _wikiTitleContainRepo
-                .BlackListed
-                .WithTypeAndId(containType, objId)
-                .Select(x => x.WikiId);
-            //自身的词条不添加
-            IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(
-                _wikiTitleContainRepo.ContainType2ParaType(containType), objId);
-
-            IQueryable<string?> content;
+            string? content;
             if (containType == WikiTitleContainType.TextSection)
-                content = _textSectionRepo.GetqById(objId).Select(x => x.Content);
+                content = _textSectionRepo.GetqById(objId).Select(x => x.Content).FirstOrDefault();
             else
-                content = _freeTableRepo.GetqById(objId).Select(x => x.Data);
-
-            var ws =
-                from w in _wikiItemRepo.Existing
-                from c in content
-                where w.Title != null && c.Contains(w.Title) && !someStrangeWord.Contains(w.Title)
-                where !excludeWikiIds.Contains(w.Id) && !containingSelf.Contains(w.Id)
-                select new { w.Id, w.Title };
-            WikiTitleContainAutoFillResult res = new();
-            ws.ToList().ForEach(x =>
-            {
-                res.Add(x.Id, x.Title!);
-            });
-            return res;
+                content = _freeTableRepo.GetqById(objId).Select(x => x.Data).FirstOrDefault();
+            return AutoFill(objId, containType, content);
         }
         public WikiTitleContainListModel GetAll(WikiTitleContainType type, int objectId)
         {
