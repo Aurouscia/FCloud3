@@ -119,21 +119,7 @@ async function insertPara(pOrder:number, position:"before"|"after", type:WikiPar
         type
     })
     if(data){
-        selectedPara.value = data.newlyCreatedParaId;
-        if(type == WikiParaType.Text){
-            const res = await api.textSection.textSection.createForPara({paraId: data.newlyCreatedParaId});
-            if(res){
-                await load();
-            }
-        }else if(type == WikiParaType.Table){
-            const res = await api.table.freeTable.createForPara(data.newlyCreatedParaId);
-            if(res){
-                await load();
-            }
-        }
-        else if(type == WikiParaType.File){
-            await load();
-        }
+        await load()
     }
 }
 

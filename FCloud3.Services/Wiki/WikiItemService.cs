@@ -14,6 +14,8 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 using FCloud3.Repos.Etc.Caching;
 using System.Text;
+using FCloud3.Entities.Table;
+using FCloud3.Entities.TextSection;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc.TempData.EditLock;
 
@@ -219,12 +221,23 @@ namespace FCloud3.Services.Wiki
                 itsParas.EnsureOrderDense();
                 var moveBackwards = itsParas.FindAll(x => x.Order > afterOrder);
                 moveBackwards.ForEach(x => x.Order++);
-
+                
+                var underlyingId = 0;
+                if (type == WikiParaType.Text)
+                {
+                    var text = new TextSection();
+                    underlyingId = _textSectionRepo.TryAddAndGetId(text, out msg);
+                }
+                else if (type == WikiParaType.Table)
+                {
+                    underlyingId = _freeTableRepo.TryCreateDefaultAndGetId(out msg);
+                }
                 WikiPara p = new()
                 {
                     WikiItemId = wikiId,
                     Order = afterOrder+1,
-                    Type = type
+                    Type = type,
+                    ObjectId = underlyingId
                 };
                 newlyCreatedParaId = _paraRepo.TryAddAndGetId(p, out msg);
                 if(newlyCreatedParaId <= 0)
