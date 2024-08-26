@@ -1,4 +1,5 @@
 ﻿using FCloud3.App.Services.Filters;
+using FCloud3.App.Services.Middlewares;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
 using FCloud3.WikiPreprocessor.Util;
@@ -36,16 +37,15 @@ namespace FCloud3.App.Services
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
-            services.AddRequestTimeouts(options =>
-            {
-                // 使用 DefaultPolicy 属性设置全局超时策略，超时为 10 秒
-                options.DefaultPolicy = new RequestTimeoutPolicy
-                {
-                    Timeout = TimeSpan.FromSeconds(10)
-                };
-            });
             
             return services;
+        }
+
+        public static IApplicationBuilder UseAnomalyMonitoring(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<RequestAnomalyRecorder>();
+            app.UseMiddleware<RequestAnomalyLimiter>();
+            return app;
         }
     }
 }

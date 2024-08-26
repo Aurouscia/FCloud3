@@ -50,7 +50,7 @@ try
 
     app.UseRouting();
 
-    app.UseRequestTimeouts();
+    app.UseAnomalyMonitoring();
     
     app.UseRequestLogging();
 
