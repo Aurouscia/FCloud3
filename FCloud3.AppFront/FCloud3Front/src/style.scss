@@ -240,3 +240,10 @@ a{
   overflow: hidden;
   text-overflow: ellipsis;
 }
+textarea{
+  font-size: unset;
+  font-family: unset;
+  width: 200px;
+  word-break: break-all;
+  resize: none;
+}

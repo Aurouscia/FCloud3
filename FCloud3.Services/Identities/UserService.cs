@@ -39,7 +39,7 @@ namespace FCloud3.Services.Identities
 
         public UserComModel? GetById(int id)
         {
-            var u = _userCaching.Get(id);
+            var u = _repo.GetById(id);
             if(u is null)
                 return null;
             string? avtStoreName = null;
@@ -54,12 +54,13 @@ namespace FCloud3.Services.Identities
                 AvatarMaterialId = u.AvatarMaterialId,
                 AvatarSrc = avatarUrl,
                 Type = u.Type,
+                Desc = u.Desc
             };
         }
 
         public UserComModel? GetByName(string name)
         {
-            var u = _userCaching.GetByName(name);
+            var u = _repo.Existing.Where(x => x.Name == name).FirstOrDefault();
             if (u is null)
                 return null;
             string? avtStoreName = null;
@@ -74,6 +75,7 @@ namespace FCloud3.Services.Identities
                 AvatarMaterialId = u.AvatarMaterialId,
                 AvatarSrc = avatarUrl,
                 Type = u.Type,
+                Desc = u.Desc,
             };
         }
 
@@ -114,7 +116,7 @@ namespace FCloud3.Services.Identities
             return u;
         }
 
-        public static bool BasicInfoCheck(string? name,string pwd,out string? errmsg,bool allowEmptyPwd=false)
+        public static bool BasicInfoCheck(string? name,string pwd,string? desc, out string? errmsg,bool allowEmptyPwd=false)
         {
             errmsg = null;
             if (string.IsNullOrEmpty(name))
@@ -133,13 +135,18 @@ namespace FCloud3.Services.Identities
             {
                 errmsg = PasswordRuleText; return false;
             }
+            if (desc is { } && desc.Length > 64)
+            {
+                errmsg = "个人简介不得长于64字符";
+                return false;
+            }
             return true;
         }
 
         public bool TryCreate(string? name, string? pwd, out string? errmsg)
         {
             pwd ??= "";
-            if (!BasicInfoCheck(name, pwd, out errmsg))
+            if (!BasicInfoCheck(name, pwd, null, out errmsg))
                 return false;
 
             User u = new()
@@ -155,10 +162,10 @@ namespace FCloud3.Services.Identities
             return false;
         }
 
-        public bool TryEdit(int id, string? name,string? pwd,out string? errmsg)
+        public bool TryEdit(int id, string? name,string? pwd, string? desc,out string? errmsg)
         {
             pwd ??= "";
-            if (!BasicInfoCheck(name, pwd, out errmsg, allowEmptyPwd:true))
+            if (!BasicInfoCheck(name, pwd, desc, out errmsg, allowEmptyPwd:true))
                 return false;
             User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
 
@@ -166,6 +173,7 @@ namespace FCloud3.Services.Identities
             u.Name = name;
             if (!string.IsNullOrEmpty(pwd))
                 u.PwdEncrypted = _userPwdEncryption.Run(pwd);
+            u.Desc = desc;
 
             if (!_repo.TryEdit(u, out errmsg))
                 return false;
@@ -266,6 +274,7 @@ namespace FCloud3.Services.Identities
             public string? Pwd { get; set; }
             public int AvatarMaterialId { get; set; }
             public string? AvatarSrc { get; set; }
+            public string? Desc { get; set; }
             public UserType Type { get; set; }
 
             public static UserComModel ExcludePwd(User u, string avatarSrc)

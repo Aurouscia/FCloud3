@@ -91,7 +91,7 @@ onUnmounted(()=>{
         <div class="info">
             <img class="bigAvatar" :src="user?.AvatarSrc"/>
             <div class="username">{{ user?.Name }}</div>
-            <div class="motto">暂无简介</div>
+            <div class="motto">{{ user?.Desc }}</div>
             <div class="settings">
                 <button v-if="username==iden?.Name" @click="editInfoSidebar?.extend">编辑信息</button>
                 <button v-if="username==iden?.Name" @click="jumpToGlobalAuthGrants">授权设置</button>

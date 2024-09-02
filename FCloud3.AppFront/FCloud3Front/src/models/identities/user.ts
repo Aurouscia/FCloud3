@@ -4,7 +4,8 @@ export interface User{
     Id:number,
     Name:string,
     Pwd:string,
-    AvatarSrc:string
+    AvatarSrc:string,
+    Desc:string|null
 }
 
 export enum UserType{

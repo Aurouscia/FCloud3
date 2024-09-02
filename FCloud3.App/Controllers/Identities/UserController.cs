@@ -51,7 +51,8 @@ namespace FCloud3.App.Controllers.Identities
         [AuthGranted]
         public IActionResult EditExe([FromBody]UserComModelRequest model)
         {
-            if (!_userService.TryEdit(model.Id ,model.Name, model.Pwd, out string? errmsg))
+            if (!_userService.TryEdit(
+                    model.Id ,model.Name, model.Pwd, model.Desc, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }

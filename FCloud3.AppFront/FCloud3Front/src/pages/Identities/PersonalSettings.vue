@@ -107,6 +107,12 @@ onMounted(async()=>{
                         <input v-model="user.Pwd"/>
                     </td>
                 </tr>
+                <tr>
+                    <td>个人简介</td>
+                    <td>
+                        <textarea v-model="user.Desc" rows="3"></textarea>
+                    </td>
+                </tr>
                 <tr class="noneBackground">
                     <td colspan="2">
                         <button @click="editUserInfo">保存</button>
