@@ -95,6 +95,8 @@ namespace FCloud3.Services.Messages
         {
             var sender = _operatingUserIdProvider.Get();
             var targetCmtOwner = _commentRepo.Existing.Where(x=>x.Id == replyTo).Select(x=>x.CreatorUserId).FirstOrDefault();
+            if (sender == targetCmtOwner)
+                return;
             Notification notif = new()
             {
                 Sender = sender,
