@@ -110,7 +110,7 @@ onMounted(async()=>{
                 <tr>
                     <td>个人简介</td>
                     <td>
-                        <textarea v-model="user.Desc" rows="3"></textarea>
+                        <textarea class="infoEditTextarea" v-model="user.Desc" rows="3"></textarea>
                     </td>
                 </tr>
                 <tr class="noneBackground">
