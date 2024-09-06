@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectIdentityInfoProvider, injectMainDivStyle, injectPop, injectWikiViewScrollMemory } from '@/provides';
+import { injectApi, injectContentMaxWidth, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
@@ -164,11 +164,9 @@ const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } =
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
-const  mainDivStyle = injectMainDivStyle();
+const contentMaxWidth = injectContentMaxWidth()
 onMounted(async()=>{
-    mainDivStyle.value.maxWidth = '1300px'
-    mainDivStyle.value.padding = '0px'
-    mainDivStyle.value.width = '100%'
+    contentMaxWidth.value = 'unset'
     await init();
 })
 
@@ -254,7 +252,7 @@ async function init(changedPathName?:boolean){
     }
 }
 onUnmounted(()=>{
-    mainDivStyle.value = {}
+    contentMaxWidth.value = undefined
     clickFold?.dispose();
     imgClickJump?.dispose();
     disposeFootNoteJump();
@@ -403,7 +401,7 @@ onUnmounted(()=>{
     transition: 0.3s;
     box-sizing: border-box;
     padding: 20px 0px 20px 0px;
-    margin-right: 40px;
+    margin-right: 20px;
 }
 .subTitlesFoldBtn{
     position: fixed;
@@ -438,6 +436,11 @@ onUnmounted(()=>{
 }
 .wikiView.noCopy .para{
     user-select: none;
+}
+.wikiView>*{
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .info{

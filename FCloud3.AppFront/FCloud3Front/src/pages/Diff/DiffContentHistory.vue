@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { injectApi, injectMainDivStyle, injectPop } from '@/provides';
+import { injectApi, injectContentMaxWidth, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { DiffContentType, diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
 import { DiffContentHistoryResult, DiffContentHistoryResultItem } from '@/models/diff/diffContentHistories';
@@ -27,7 +27,7 @@ const history = ref<DiffContentHistoryResult>()
 const selectedHistoryIdx = ref<number>(-1)
 const { iden } = useIdentityInfoStore()
 const { jumpToUserCenterRoute } = useIdentityRoutesJump()
-const mainDivStyle = injectMainDivStyle();
+const  contentMaxWidth = injectContentMaxWidth()
 
 let displays:DiffContentStepDisplay[] = []
 const displaying = ref<DiffContentStepDisplay>()
@@ -61,7 +61,7 @@ let disposeWidthWatch:undefined|(()=>void)
 const pop = injectPop();
 onMounted(async()=>{
     setTitleTo('编辑历史')
-    mainDivStyle.value = { maxWidth: 'unset' }
+    contentMaxWidth.value = 'unset'
     api = injectApi();
     if(props.type && props.objId){
         const type = diffContentTypeFromStr(props.type)
@@ -79,7 +79,7 @@ onMounted(async()=>{
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
-    mainDivStyle.value = {}
+    contentMaxWidth.value = undefined
     recoverTitle()
     disposeWidthWatch?.()
 })

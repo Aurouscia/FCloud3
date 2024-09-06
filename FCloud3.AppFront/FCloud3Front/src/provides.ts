@@ -1,4 +1,4 @@
-import { Ref, provide, inject, ref, CSSProperties} from 'vue';
+import { Ref, provide, inject, ref } from 'vue';
 import { HttpCallBack, HttpClient } from './utils/com/httpClient';
 import { IdentityInfoProvider } from './utils/globalStores/identityInfo';
 import Pop from './components/Pop.vue';
@@ -16,7 +16,7 @@ const apiKey = 'api';
 const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
 const notifCountKey = 'notifCount';
-const mainDivStyleKey = 'mainDivStyle';
+const contentMaxWidthKey = 'contentMaxWidth';
 const wikiViewScrollMemoryKey = 'wikiViewScrollMemory'
 
 export type SetTopbarFunc = (display:boolean)=>void
@@ -62,13 +62,13 @@ export function useProvidesSetup() {
     setupNotifCountPollCycle(notifCountProvider);//启动时获取一次通知数量，并设置轮询循环
     provide(notifCountKey, notifCountProvider);
 
-    const mainDivStyle = ref<CSSProperties>({});
-    provide(mainDivStyleKey, mainDivStyle);
+    const contentMaxWidth = ref<string|undefined>();
+    provide(contentMaxWidthKey, contentMaxWidth);
 
     const wikiViewScrollMemory = new WikiViewScrollMemory();
     provide(wikiViewScrollMemoryKey, wikiViewScrollMemory);
 
-    return { pop, displayTopbar, needMemberWarning, wait, mainDivStyle }
+    return { pop, displayTopbar, needMemberWarning, wait, contentMaxWidth }
 }
 
 export function injectPop(){
@@ -89,8 +89,8 @@ export function injectSetTopbar(){
 export function injectNotifCountProvider(){
     return inject(notifCountKey) as NotifCountProvider
 }
-export function injectMainDivStyle(){
-    return inject(mainDivStyleKey) as Ref<CSSProperties>;
+export function injectContentMaxWidth(){
+    return inject(contentMaxWidthKey) as Ref<string|undefined>;
 }
 export function injectWikiViewScrollMemory(){
     return inject(wikiViewScrollMemoryKey) as WikiViewScrollMemory

@@ -14,16 +14,18 @@ body{
 .main {
   margin: auto;
   margin-top: $topbar-height;
-  width: calc(100% - 40px);
-  max-width: 1100px;
+  width: calc(100vw);
   height: calc(100vh - $topbar-height);
   overflow-x: auto;
   overflow-y: auto;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 .main>* {
   overflow: auto;
+}
+.mainInner{
+  max-width: 1200px;
+  margin: auto;
+  padding: 0px 20px 0px 20px;
 }
 
 table td {
