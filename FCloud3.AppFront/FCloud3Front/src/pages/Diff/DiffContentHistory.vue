@@ -61,7 +61,7 @@ let disposeWidthWatch:undefined|(()=>void)
 const pop = injectPop();
 onMounted(async()=>{
     setTitleTo('编辑历史')
-    contentMaxWidth.value = 'unset'
+    contentMaxWidth.value = false
     api = injectApi();
     if(props.type && props.objId){
         const type = diffContentTypeFromStr(props.type)
@@ -79,7 +79,7 @@ onMounted(async()=>{
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
-    contentMaxWidth.value = undefined
+    contentMaxWidth.value = true
     recoverTitle()
     disposeWidthWatch?.()
 })

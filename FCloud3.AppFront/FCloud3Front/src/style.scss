@@ -13,19 +13,25 @@ body{
 
 .main {
   margin: auto;
-  margin-top: $topbar-height;
+  margin-top: 0px;
   width: calc(100vw);
-  height: calc(100vh - $topbar-height);
+  height: 100vh;
   overflow-x: auto;
   overflow-y: auto;
+}
+.main.mainDivMarginTop{
+  margin-top: $topbar-height;
+  height: calc(100vh - $topbar-height);
 }
 .main>* {
   overflow: auto;
 }
 .mainInner{
-  max-width: 1200px;
   margin: auto;
+}
+.mainInner.contentMaxWidth{
   padding: 0px 20px 0px 20px;
+  max-width: 1200px;
 }
 
 table td {

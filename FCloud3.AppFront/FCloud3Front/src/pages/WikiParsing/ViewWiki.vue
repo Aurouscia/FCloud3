@@ -166,7 +166,7 @@ const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
 const contentMaxWidth = injectContentMaxWidth()
 onMounted(async()=>{
-    contentMaxWidth.value = 'unset'
+    contentMaxWidth.value = false;
     await init();
 })
 
@@ -252,7 +252,7 @@ async function init(changedPathName?:boolean){
     }
 }
 onUnmounted(()=>{
-    contentMaxWidth.value = undefined
+    contentMaxWidth.value = true
     clickFold?.dispose();
     imgClickJump?.dispose();
     disposeFootNoteJump();
@@ -427,7 +427,7 @@ onUnmounted(()=>{
     position: relative;
     height:100%;
     flex-grow: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
 
     margin-right: -220px;
