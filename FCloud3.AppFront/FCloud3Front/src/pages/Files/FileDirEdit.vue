@@ -95,7 +95,7 @@ onMounted(async()=>{
                 </div>
                 <div>
                     <div v-if="data.CanPutThings">
-                        <FileUpload @uploaded="newFile" dist="test"></FileUpload>
+                        <FileUpload @uploaded="newFile" dist="upload"></FileUpload>
                         <Notice type="info">文件不能同时放在多个目录内</Notice>
                     </div>
                     <AuthProblem v-else></AuthProblem>
