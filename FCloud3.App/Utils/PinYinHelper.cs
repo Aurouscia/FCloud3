@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
+using FCloud3.Entities.Wiki;
 using TinyPinyin;
 
 namespace FCloud3.App.Utils
@@ -39,8 +41,18 @@ namespace FCloud3.App.Utils
             {
                 clusters.Add(buildingCluster.ToString().ToLower());
             }
-            string res = string.Join('-', clusters);
-            res = res.Replace("---", "-").Replace("--", "-");
+            clusters.RemoveAll(string.IsNullOrWhiteSpace);
+            string res;
+            if (clusters.Sum(c => c.Length) + clusters.Count > WikiItem.urlPathNameMaxLength)
+            {
+                var firstLetters = clusters.ConvertAll(c => c[0]).ToArray();
+                res = new string(firstLetters);
+            }
+            else
+            {
+                res = string.Join('-', clusters);
+            }
+            res = Regex.Replace(res, "-{2,}", "-");
             return res;
         }
         public static bool IsUrlValidChar(char c)
