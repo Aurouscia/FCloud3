@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import SideBar from '@/components/SideBar.vue';
 import { WikiParaDisplay, wikiParaDefaultFoldMark } from '@/models/wiki/wikiPara';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
+import { getFileExt } from '@/utils/fileUtils';
 
 const props = defineProps<{
     para:WikiParaDisplay
@@ -16,6 +17,8 @@ const emits = defineEmits<{
 defineExpose({comeout})
 
 const name = ref<string>()
+let originalExt = '';
+let originalName = '';
 const nameOverride = ref<string|null>("");
 const defaultFold = ref<boolean>(false);
 const nameChanged = ref(false);
@@ -108,7 +111,16 @@ async function initName(){
         pop.value.show("页面参数异常", "failed")
     }
     name.value = n;
+    originalName = n || '';
+    originalExt = getFileExt(n || '', false, false);
 }
+
+const extChanged = computed<boolean>(()=>{
+    if(props.para.Type !== WikiParaType.File)
+        return false;
+    const ext = getFileExt(name.value || '', false, false)
+    return originalExt!==ext
+})
 
 watch(nameOverride,(newVal)=>{
     if(!newVal?.trim()){
@@ -134,6 +146,11 @@ onMounted(async()=>{
             </td>
             <td v-if="para.UnderlyingId>0">
                 <input v-model="name" placeholder="必填" @input="nameChanged = true"/>
+                <div v-if="extChanged" class="extWarn">
+                    文件后缀名变更<br/>会造成下载后无法打开<br/>
+                    需要词条中不显示后缀<br/>请填写下方的框<br/>
+                    <button class="lite" @click="name = originalName">点击恢复后缀名</button>
+                </div>
             </td>
             <td v-else>
                 请先点击"编辑"<br/>向段落写入内容
@@ -190,5 +207,9 @@ td{
     i{
         margin: 0px 2px 0px 2px;
     }
+}
+.extWarn{
+    color: red;
+    font-size: 12px;
 }
 </style>
