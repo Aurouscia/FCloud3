@@ -40,7 +40,8 @@ function jumpToLocation(){
     <h1>文件详情</h1>
     <div v-if="fileInfo && !failed" class="fileItemView">
         <img v-if="canDisplayAsImage(fileInfo.ItemInfo.StorePathName, fileInfo.ItemInfo.ByteCount)" :src="fileInfo.FullUrl"/>
-        <div class="fileName">{{ fileInfo.ItemInfo.DisplayName }} ({{ fileSizeStr(fileInfo.ItemInfo.ByteCount) }})</div>
+        <div class="fileName">
+            <a :href="fileInfo.FullUrl">{{ fileInfo.ItemInfo.DisplayName }}</a> ({{ fileSizeStr(fileInfo.ItemInfo.ByteCount) }})</div>
         <div class="loc" @click="jumpToLocation">
             文件位置: {{ fileLocationShow(fileInfo.DirFriendlyPath) }}
         </div>
