@@ -140,6 +140,14 @@ namespace FCloud3.Services.Identities
                 errmsg = "个人简介不得长于64字符";
                 return false;
             }
+            if (desc is { })
+            {
+                if (desc.Count(c => c == '\n') > 2)
+                {
+                    errmsg = "个人简介不得多于三行";
+                    return false;
+                }
+            }
             return true;
         }
 

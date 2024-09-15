@@ -126,6 +126,7 @@ onUnmounted(()=>{
     max-width: 300px;
     text-align: center;
     word-break: break-all;
+    white-space: pre-wrap;
 }
 .info .username{
     font-size: 30px;
