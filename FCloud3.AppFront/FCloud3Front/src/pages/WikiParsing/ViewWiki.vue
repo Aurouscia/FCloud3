@@ -212,7 +212,7 @@ async function init(changedPathName?:boolean){
 
     listenFootNoteJump();
     footNoteJumpCallBack.value = (top)=>{
-        wikiViewArea.value?.scrollTo({top: top, behavior: 'smooth'})
+        wikiViewArea.value?.scrollTo({top: top-150, behavior: 'smooth'})
     };
 
     await nextTick();

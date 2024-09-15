@@ -112,7 +112,7 @@ onUnmounted(()=>{
             <button @click="Login" class="confirm">登&nbsp;录</button>
         </div>
         <div class="needExpire">
-            <div @click="setExpire=!setExpire">登录状态保持</div>
+            <div @click="setExpire=!setExpire" style="cursor: pointer;">登录状态保持</div>
             <select v-show="setExpire" v-model="needExpire">
                 <option :value="3">3小时</option>
                 <option :value="24">24小时</option>

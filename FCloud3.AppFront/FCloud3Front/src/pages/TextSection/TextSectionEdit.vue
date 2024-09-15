@@ -287,7 +287,7 @@ onMounted(async()=>{
     setTopbar = injectSetTopbar();
     setTopbar(false);
     footNoteJumpCallBack.value = (top)=>{
-        previewArea.value?.scrollTo({top: top, behavior: 'smooth'})
+        previewArea.value?.scrollTo({top: top-150, behavior: 'smooth'})
     };
     listenFootNoteJump();
     saveShortcut = new ShortcutListener(replaceContent, "s", true);
