@@ -19,6 +19,9 @@ import { useRouter } from 'vue-router';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut'
 import { HeartbeatSenderForWholeWiki } from '@/models/etc/heartbeat';
 import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
+import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
+import { storeToRefs } from 'pinia';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const props = defineProps<{
     urlPathName: string
@@ -38,6 +41,9 @@ const paras = ref<WikiParaDisplayEdit[]>();
 const selectedPara = ref(0);
 const ready = ref(false);
 const paraMode = ref(false);
+const heartbeatReleaseStore = useHeartbeatReleaseStore()
+const { registerHeartbeatRelease } = heartbeatReleaseStore
+const { heartbeatReleaseAction } = storeToRefs(heartbeatReleaseStore)
 async function load(){
     info.value = await api.wiki.wikiItem.edit(props.urlPathName);
     if(info.value){
@@ -57,6 +63,9 @@ async function load(){
                 heartbeat = new HeartbeatSenderForWholeWiki(api, info.value.Id);
                 heartbeat.start();
             }
+
+            heartbeatReleaseAction.value = preleaveAction
+            registerHeartbeatRelease()
         }
     }
 }
@@ -206,11 +215,10 @@ async function saveAll():Promise<boolean> {
     const changedParasAfter = paras.value?.filter(x=>x.changed) || [];
     return changedParasAfter.length == 0
 }
-function leave(){
+function preleaveAction(){
     heartbeat?.stop();
     if(info.value?.Id)
         api.etc.heartbeat.releaseRangeForWiki(info.value.Id);
-    router.back();
 }
 const titleContainEdit = ref<InstanceType<typeof SideBar>>()
 const titleContainEditing = ref<{type:WikiTitleContainType, objId:number, getContent:()=>string}>()
@@ -258,6 +266,7 @@ ctrlS.startListen();
 let heartbeat:HeartbeatSenderForWholeWiki|undefined = undefined;
 onMounted(async()=>{
     setTopbar(false);
+    setTitleTo('词条编辑器');
     await load();
     await nextTick();
     imgClickJump = new ImageClickJump(src=>{
@@ -266,6 +275,7 @@ onMounted(async()=>{
     imgClickJump.listen(parasDiv.value);
 })
 onUnmounted(()=>{
+    recoverTitle()
     ctrlZ?.dispose();
     ctrlShiftZ?.dispose();
     ctrlS?.dispose();
@@ -282,7 +292,7 @@ onUnmounted(()=>{
         <div class="btns">
             <button class="off" @click="paraMode = !paraMode" :class="{paraMode}">增删</button>
             <button v-if="preventingLeaving" @click="saveAll">保存</button>
-            <button v-else @click="leave" class="ok">离开</button>
+            <button v-else @click="router.go(-1)" class="ok">离开</button>
         </div>
         <div class="preventingLeaving" v-show="preventingLeaving"></div>
     </div>

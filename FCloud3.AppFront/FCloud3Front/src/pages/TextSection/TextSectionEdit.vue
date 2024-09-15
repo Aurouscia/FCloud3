@@ -21,6 +21,8 @@ import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useRouter } from 'vue-router';
 import { TextSectionLocalConfig, readLocalConfig, saveLocalConfig, textSectionConfigDefault } from '@/utils/localConfig';
+import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
+import { storeToRefs } from 'pinia';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -186,13 +188,15 @@ async function replaceContent() {
         initialContent = data.value.Content || "";
     }
 }
-function leave(){
+function preleaveAction(){
     heartbeatSender?.stop();
     api.etc.heartbeat.release({objType: HeartbeatObjType.TextSection, objId: textSecId});
-    router.back();
 }
 
 let initialContent:string = "";
+const heartbeatReleaseStore = useHeartbeatReleaseStore()
+const { registerHeartbeatRelease } = heartbeatReleaseStore
+const { heartbeatReleaseAction } = storeToRefs(heartbeatReleaseStore)
 async function init(){
     const resp = await api.textSection.textSection.edit(textSecId);
     if(resp){
@@ -211,6 +215,9 @@ async function init(){
             heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.TextSection, textSecId);
             heartbeatSender.start();
         }
+
+        heartbeatReleaseAction.value = preleaveAction
+        registerHeartbeatRelease()
     }
 }
 
@@ -405,7 +412,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
         <button v-if="preventingLeaving" @click="replaceContent">
             保存
         </button>
-        <button v-else @click="leave" class="ok">
+        <button v-else @click="router.go(-1)" class="ok">
             退出
         </button>
     </div>

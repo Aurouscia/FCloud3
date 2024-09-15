@@ -16,6 +16,8 @@ import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import leaveImg from '@/assets/leave.svg';
 import { useRouter } from 'vue-router';
+import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     id:string
@@ -35,6 +37,9 @@ async function load(){
             heartbeatSender = new HeartbeatSender(api, HeartbeatObjType.FreeTable, id);
             heartbeatSender.start();
         }
+
+        heartbeatReleaseAction.value = preleaveAction
+        registerHeartbeatRelease()
     }
 }
 async function editName() {
@@ -55,10 +60,9 @@ function getContent() {
     if(!tableData.value){return;}
     return join(tableData.value.cells.map(row=>join(row, ',')), ',')
 }
-function leave(){
+function preleaveAction(){
     heartbeatSender?.stop();
     api.etc.heartbeat.release({objType: HeartbeatObjType.FreeTable, objId: parseInt(props.id)});
-    router.back();
 }
 
 let api:Api;
@@ -66,6 +70,9 @@ let setTopBar: SetTopbarFunc|undefined;
 const loadComplete = ref<boolean>(false);
 const titleContainSidebar = ref<InstanceType<typeof SideBar>>();
 let heartbeatSender:HeartbeatSender|undefined;
+const heartbeatReleaseStore = useHeartbeatReleaseStore()
+const { registerHeartbeatRelease } = heartbeatReleaseStore
+const { heartbeatReleaseAction } = storeToRefs(heartbeatReleaseStore)
 onMounted(async()=>{
     setTitleTo('表格编辑器')
     api = injectApi();
@@ -88,7 +95,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
 <div v-if="tableInfo && loadComplete" class="freeTableEditPage">
     <AuTableEditor v-if="tableData" :table-data="tableData" @save="editContent" @changed="preventLeaving">
     </AuTableEditor>
-    <img class="leaveBtn" v-if="!preventingLeaving" :src="leaveImg" @click="leave"/>
+    <img class="leaveBtn" v-if="!preventingLeaving" :src="leaveImg" @click="router.go(-1)"/>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
     <div class="additional">
         <button class="titleContainBtn minor" @click="titleContainSidebar?.extend">链</button>
