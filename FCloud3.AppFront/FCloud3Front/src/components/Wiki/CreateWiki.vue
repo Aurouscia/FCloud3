@@ -3,13 +3,19 @@ import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump'
 import { injectApi } from '@/provides';
 import Notice from '../Notice.vue';
 import { useUrlPathNameConverter } from '@/utils/urlPathName';
+import { useGuideInfoStore } from '@/utils/globalStores/guideInfo';
+import { onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
 const props = defineProps<{
     inDirId?:number,
     noH1?:boolean
 }>();
-const {jumpToViewWiki} = useWikiParsingRoutesJump();
+const {jumpToViewWiki, jumpToViewWikiRoute} = useWikiParsingRoutesJump();
 const {name:creatingWikiTitle, converted:creatingWikiUrlPathName, run:runForWiki} = useUrlPathNameConverter();
+const { getGuideOf } = useGuideInfoStore()
+const guideText = ref<string|null|undefined>();
+const regulationPathName = ref<string|null|undefined>();
 
 const api = injectApi();
 async function createWiki() {
@@ -26,6 +32,10 @@ async function createWiki() {
         }
     }
 }
+onMounted(async()=>{
+    guideText.value = await getGuideOf('createWiki')
+    regulationPathName.value = await getGuideOf('regulation')
+})
 </script>
 
 <template>
@@ -50,7 +60,22 @@ async function createWiki() {
             </td>
         </tr>
     </table>
-    <Notice type="warn">
+    <div v-if="regulationPathName" class="reguLink">
+        <RouterLink :to="jumpToViewWikiRoute(regulationPathName)" target="_blank">查看使用规定</RouterLink>
+    </div>
+    <Notice v-if="guideText" type="warn">
+        {{ guideText }}
+    </Notice>
+    <Notice type="info">
         请谨慎设置链接名称，每次修改将导致旧链接失效
     </Notice>
 </template>
+
+<style lang="scss" scoped>
+    .reguLink{
+        text-align: center;
+        font-size: 18px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+</style>

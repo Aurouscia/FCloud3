@@ -32,6 +32,7 @@ import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
 import { FooterLinks } from '@/models/etc/footerLinks';
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
+import { GuideInfoResponse } from '@/models/etc/guideInfo';
 
 
 export class Api{
@@ -1289,6 +1290,32 @@ export class Api{
                 if(resp.success){
                     return resp.data as MyWikisOverallResp
                 }
+            }
+        },
+        guideInfo:{
+            createWiki:async()=>{
+                const res = await this.httpClient.request(
+                    "/api/GuideInfo/CreateWiki",
+                    "get"
+                )
+                if(res.success)
+                    return res.data as GuideInfoResponse
+            },
+            siteIntro:async()=>{
+                const res = await this.httpClient.request(
+                    "/api/GuideInfo/SiteIntro",
+                    "get"
+                )
+                if(res.success)
+                    return res.data as GuideInfoResponse
+            },
+            siteRegulations:async()=>{
+                const res = await this.httpClient.request(
+                    "/api/GuideInfo/SiteRegulations",
+                    "get"
+                )
+                if(res.success)
+                    return res.data as GuideInfoResponse
             }
         }
     }
