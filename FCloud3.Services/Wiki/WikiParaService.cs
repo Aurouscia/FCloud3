@@ -1,9 +1,13 @@
-﻿using FCloud3.Entities.Wiki;
+﻿using Aurouscia.TableEditor.Core.Excel;
+using FCloud3.DbContexts;
+using FCloud3.Entities.Table;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
+using FCloud3.Services.Files.Storage.Abstractions;
 
 namespace FCloud3.Services.Wiki
 {
@@ -13,7 +17,9 @@ namespace FCloud3.Services.Wiki
         WikiItemRepo wikiItemRepo,
         WikiItemCaching wikiItemCaching,
         TextSectionRepo textSectionRepo,
-        FreeTableRepo freeTableRepo) 
+        FreeTableRepo freeTableRepo,
+        DbTransactionService dbTransactionService,
+        IStorage storage) 
     {
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
@@ -21,6 +27,8 @@ namespace FCloud3.Services.Wiki
         private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
+        private readonly DbTransactionService _dbTransactionService = dbTransactionService;
+        private readonly IStorage _storage = storage;
 
         public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
         {
@@ -96,6 +104,61 @@ namespace FCloud3.Services.Wiki
             };
         }
 
+        public bool ConvertXlsxToAuTable(int paraId, out string? errmsg)
+        {
+            var p = _wikiParaRepo.GetById(paraId);
+            if (p is null)
+            {
+                errmsg = "找不到指定段落";
+                return false;
+            }
+            if (p.Type != WikiParaType.File)
+            {
+                errmsg = "段落类型异常";
+                return false;
+            }
+            var file = _fileItemRepo.GetById(p.ObjectId);
+            if (file is null || file.StorePathName is null)
+            {
+                errmsg = "段落无文件";
+                return false;
+            }
+            if (!file.StorePathName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                errmsg = "文件必须为xlsx格式";
+                return false;
+            }
+            var stream = _storage.Read(file.StorePathName);
+            if (stream is not null)
+            {
+                var tableData = AuTableExcelConverter.FromXlsx(stream, out errmsg);
+                if (tableData is null || errmsg is { })
+                {
+                    errmsg ??= "文件解析失败";
+                    return false;
+                }
+                string? name = p.NameOverride;
+                if (string.IsNullOrWhiteSpace(name))
+                    name = file.DisplayName;
+                if (string.IsNullOrWhiteSpace(name))
+                    name = "新导入表格";
+                var createdTableId = _freeTableRepo.TryCreateWithContent(tableData, name, out errmsg);
+                if (createdTableId > 0)
+                {
+                    p.Type = WikiParaType.Table;
+                    p.ObjectId = createdTableId;
+                    _wikiParaRepo.TryEdit(p, out errmsg);
+                }
+                else
+                {
+                    errmsg ??= "创建表格失败";
+                    return false;
+                }
+                return true;
+            }
+            errmsg = "文件读取失败";
+            return false;
+        }
         private int BelongToWikiId(int paraId)
         {
             var q =

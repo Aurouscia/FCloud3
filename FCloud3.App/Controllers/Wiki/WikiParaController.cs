@@ -51,5 +51,16 @@ namespace FCloud3.App.Controllers.Wiki
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
         }
+
+        [Authorize]
+        [UserTypeRestricted]
+        [AuthGranted(nameof(paraId))]
+        public IActionResult ConvertXlsxToAuTable(int paraId)
+        {
+            var success = _wikiParaService.ConvertXlsxToAuTable(paraId, out string? errmsg);
+            if (errmsg is not null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
     }
 }

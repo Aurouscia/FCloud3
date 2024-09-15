@@ -73,6 +73,10 @@ async function startEditingInfo(p:WikiParaDisplay){
     wikiParaInfo.value?.comeout();
 }
 async function startEditingFilePara(p:WikiParaDisplay) {
+    if(preventingLeaving.value){
+        pop.value.show("请先保存更改",'failed')
+        return;
+    }
     editingPara.value = p;
     await nextTick();
     wikiFileParaEdit.value?.extend();
@@ -219,6 +223,24 @@ function editTitleContains(p:WikiParaDisplay){
     titleContainEdit.value?.extend();
 }
 
+function isXlsxFile(p:WikiParaDisplay){
+    return p.Type == WikiParaType.File && p.Title?.toLowerCase().endsWith(".xlsx")
+}
+async function convertXlsx(paraId:number){
+    if(preventingLeaving.value){
+        pop.value.show('请先保存更改', 'failed');
+    }
+    else{
+        if(!window.confirm("将该文件转换为可编辑表格（功能受限）")){
+            return;
+        }
+        const resp = await api.wiki.wikiPara.convertXlsxToAuTable(paraId);
+        if(resp){
+            await load()
+        }
+    }
+}
+
 let imgClickJump:ImageClickJump;
 const focusImg = ref<string>();
 const parasDiv = ref<HTMLDivElement>();
@@ -275,6 +297,7 @@ onUnmounted(()=>{
                 <div class="ops">
                     <button class="lite" @click="editTitleContains(p)">{{ p.TitleContainCount || '' }}链</button>
                     <button v-if="p.Type == WikiParaType.File" class="lite" @click="startEditingFilePara(p)">编辑</button>
+                    <button v-if="isXlsxFile(p)" class="lite" @click="convertXlsx(p.ParaId)">转表格</button>
                     <button class="lite" @click="startEditingInfo(p)">设置</button>
                     <button v-show="paraMode" class="lite rmPara" @click="removePara(idx)">移除</button>
                 </div>

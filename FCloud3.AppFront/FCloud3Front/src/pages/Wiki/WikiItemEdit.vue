@@ -164,7 +164,7 @@ async function EnterEdit(paraId:number)
 async function RemovePara(paraId:number){
     const target = paras.value.find(x=>x.ParaId == paraId);
     if(!target || !info.value){return;}
-    if(window.confirm(`确定要将[${target.Title}]从本词条移除`)){
+    if(window.confirm(`确定要将[${target.NameOverride || target.Title || '未命名段落'}]从本词条移除`)){
         const resp = await api.wiki.wikiItem.removePara({
             id:info.value.Id,
             paraId:paraId,
@@ -198,6 +198,19 @@ function editTitleContains(p:WikiParaDisplay){
         objId: p.UnderlyingId
     }
     titleContainEdit.value?.extend();
+}
+
+function isXlsxFile(p:WikiParaDisplay){
+    return p.Type == WikiParaType.File && p.Title?.toLowerCase().endsWith(".xlsx")
+}
+async function convertXlsx(paraId:number){
+    if(!window.confirm("将该文件转换为可编辑表格（功能受限）")){
+        return;
+    }
+    const resp = await api.wiki.wikiPara.convertXlsxToAuTable(paraId);
+    if(resp){
+        await Load(false, true)
+    }
 }
 
 const loadComplete = ref<boolean>(false)
@@ -342,6 +355,7 @@ onUnmounted(()=>{
                 <button v-if="p.TitleContainCount" @click="editTitleContains(p)">
                     {{ p.TitleContainCount }}链
                 </button>
+                <button v-if="isXlsxFile(p)" @click="convertXlsx(p.ParaId)">转表格</button>
                 <button @click="EnterEdit(p.ParaId)">编辑</button>
                 <button @click="StartEditInfo(p)">设置</button>
                 <button @click="RemovePara(p.ParaId)">移除</button>

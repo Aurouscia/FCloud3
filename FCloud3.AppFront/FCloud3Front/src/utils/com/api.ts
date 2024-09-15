@@ -502,6 +502,16 @@ export class Api{
                 if(resp.success){
                     return resp.data as WikiParaRawContentRes
                 }
+            },
+            convertXlsxToAuTable:async(paraId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiPara/ConvertXlsxToAuTable",
+                    "postForm",
+                    {paraId},
+                    "转换成功",
+                    true
+                )
+                return resp.success;
             }
         },
         wikiTitleContain:{

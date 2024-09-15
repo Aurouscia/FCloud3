@@ -63,6 +63,17 @@ namespace FCloud3.Repos.Table
             errmsg = null;
             return true;
         }
+
+        public int TryCreateWithContent(AuTable data, string name, out string? errmsg)
+        {
+            var brief = Brief(data.Cells);
+            string briefJson = brief.ToJsonStr();
+            var model = new FreeTable();
+            model.Name = name;
+            model.Brief = briefJson;
+            model.Data = FreeTableDataConvert.Serialize(data);
+            return base.TryAddAndGetId(model, out errmsg);
+        }
         private FreeTableBrief Brief(List<List<string?>?>? cells)
         {
             FreeTableBrief brief = new();
@@ -172,6 +183,10 @@ namespace FCloud3.Repos.Table
             if (string.IsNullOrWhiteSpace(data))
                 return new();
             return JsonConvert.DeserializeObject<AuTable>(data, jsonSettings) ?? new();
+        }
+        public static string Serialize(AuTable table)
+        {
+            return JsonConvert.SerializeObject(table, jsonSettings);
         }
         public static AuTable GetData(this FreeTable table) 
         {
