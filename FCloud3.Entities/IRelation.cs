@@ -17,17 +17,17 @@ namespace FCloud3.Entities
 
     public static class RelationListExtensions
     {
-        public static void EnsureOrderDense<T>(this List<T> items) where T:IRelation
+        public static void EnsureOrderDense<T>(this List<T> items) where T:class, IRelation
         {
             items.Sort((x, y) => x.Order - y.Order);
             items.ResetOrder();
         }
-        public static void ResetOrder<T>(this List<T> items) where T:IRelation
+        public static void ResetOrder<T>(this List<T> items) where T:class, IRelation
         {
             for (int i = 0; i < items.Count; i++)
                 items[i].Order = i;
         }
-        public static void ResetOrder<T>(this List<T> items, List<int> ids) where T : IRelation
+        public static void ResetOrder<T>(this List<T> items, List<int> ids) where T :class, IRelation
         {
             items.Sort((x, y) =>
             {

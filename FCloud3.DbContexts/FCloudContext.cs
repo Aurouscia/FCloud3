@@ -36,6 +36,7 @@ namespace FCloud3.DbContexts
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OpRecord> OpRecords { get; set; }
+        public DbSet<WikiSelected> WikiSelecteds { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations
