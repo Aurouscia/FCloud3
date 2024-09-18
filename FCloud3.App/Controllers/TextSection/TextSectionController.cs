@@ -83,18 +83,7 @@ namespace FCloud3.App.Controllers.TextSection
         [UserTypeRestricted]
         public IActionResult Preview(int id, string content)
         {
-            string cacheKey = $"tse_{id}";
-            List<WikiTitleContain> contains = _titleContainService.GetByTypeAndObjId(WikiTitleContainType.TextSection, id);
-            var parser = _genParser.Get(cacheKey, null, builder =>
-            {
-                builder.UseLocatorHash(_locatorHash);
-                builder.ClearUsageInfoOnCall();
-            },
-            contains,
-            false,
-            () => _wikiParaService.WikiContainingIt(WikiParaType.Text, id).ToArray()
-            );
-            var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
+            var res = _textSectionService.Preview(id, content);
             return this.ApiResp(res);
         }
 
@@ -112,27 +101,6 @@ namespace FCloud3.App.Controllers.TextSection
                 Id = original.Id;
                 Title = original.Title;
                 Content = original.Content;
-            }
-        }
-        public class TextSectionPreviewResponse
-        {
-            public string HtmlSource { get; }
-            public string PreScripts { get; }
-            public string PostScripts { get; }
-            public string Styles { get; }
-            public TextSectionPreviewResponse(string htmlSource)
-            {
-                HtmlSource = htmlSource;
-                PreScripts = "";
-                PostScripts = "";
-                Styles = "";
-            }
-            public TextSectionPreviewResponse(ParserResult parserResult)
-            {
-                HtmlSource = parserResult.Content + parserResult.FootNotes;
-                PreScripts = parserResult.PreScript;
-                PostScripts = parserResult.PostScript;
-                Styles = parserResult.Style;
             }
         }
     }

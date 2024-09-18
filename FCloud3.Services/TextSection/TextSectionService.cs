@@ -9,54 +9,33 @@ using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Services.WikiParsing.Support;
+using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Util;
 
 namespace FCloud3.Services.TextSec
 {
-    public class TextSectionService
+    public class TextSectionService(
+        IOperatingUserIdProvider userIdProvider,
+        WikiItemRepo wikiItemRepo,
+        WikiParaRepo wikiParaRepo,
+        WikiTitleContainRepo wikiTitleContainRepo,
+        TextSectionRepo textSectionRepo,
+        WikiToDirRepo wikiToDirRepo,
+        FileDirRepo fileDirRepo,
+        DiffContentService contentDiffService,
+        DbTransactionService dbTransactionService,
+        ContentEditLockService contentEditLockService,
+        WikiItemCaching wikiItemCaching,
+        WikiParserProviderService wikiParserProviderService,
+        ILocatorHash locatorHash, 
+        ILogger<TextSectionService> logger)
     {
-        private readonly WikiParaRepo _paraRepo;
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly TextSectionRepo _textSectionRepo;
-        private readonly WikiToDirRepo _wikiToDirRepo;
-        private readonly FileDirRepo _fileDirRepo;
-        private readonly int _userId;
-        private readonly DiffContentService _contentDiffService;
-        private readonly DbTransactionService _dbTransactionService;
-        private readonly ContentEditLockService _contentEditLockService;
-        private readonly WikiItemCaching _wikiItemCaching;
-        private readonly ILogger<TextSectionService> _logger;
-
-        public TextSectionService(
-            IOperatingUserIdProvider userIdProvider,
-            WikiItemRepo wikiItemRepo,
-            WikiParaRepo paraRepo,
-            TextSectionRepo textsectionRepo,
-            WikiToDirRepo wikiToDirRepo,
-            FileDirRepo fileDirRepo,
-            DiffContentService contentDiffService,
-            DbTransactionService dbTransactionService,
-            ContentEditLockService contentEditLockService,
-            WikiItemCaching wikiItemCaching,
-            ILogger<TextSectionService> logger)
-        {
-            _paraRepo = paraRepo;
-            _wikiItemRepo = wikiItemRepo;
-            _textSectionRepo = textsectionRepo;
-            _wikiToDirRepo = wikiToDirRepo;
-            _fileDirRepo = fileDirRepo;
-            _userId = userIdProvider.Get();
-            _contentDiffService = contentDiffService;
-            _dbTransactionService = dbTransactionService;
-            _contentEditLockService = contentEditLockService;
-            _wikiItemCaching = wikiItemCaching;
-            _logger = logger;
-        }
-
         public TextSection? GetForEditing(int id, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, true, out errmsg))
+            if (!contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, true, out errmsg))
                 return null;
-            var textSection = _textSectionRepo.GetById(id);
+            var textSection = textSectionRepo.GetById(id);
             if (textSection is null)
             {
                 errmsg = "找不到指定文本段落";
@@ -67,7 +46,7 @@ namespace FCloud3.Services.TextSec
 
         public TextSectionMeta? GetMeta(int id)
         {
-            return _textSectionRepo.GetqById(id).GetMeta().FirstOrDefault();
+            return textSectionRepo.GetqById(id).GetMeta().FirstOrDefault();
         }
         
         /// <summary>
@@ -81,9 +60,9 @@ namespace FCloud3.Services.TextSec
                 Title = "",
                 Content = "",
                 ContentBrief = "",
-                CreatorUserId = _userId
+                CreatorUserId = userIdProvider.Get()
             };
-            if (!_textSectionRepo.TryAdd(newSection, out errmsg))
+            if (!textSectionRepo.TryAdd(newSection, out errmsg))
                 return 0;
             return newSection.Id;
         }
@@ -93,7 +72,7 @@ namespace FCloud3.Services.TextSec
         /// <returns>新建的文本段Id</returns>
         public int TryAddAndAttach(int paraId, out string? errmsg)
         {
-            var para = _paraRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
+            var para = wikiParaRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
             if (para.Type != WikiParaType.Text)
             {
                 errmsg = "段落类型检查出错";
@@ -103,7 +82,7 @@ namespace FCloud3.Services.TextSec
             if (createdTextId <= 0)
                 return 0;
             para.ObjectId = createdTextId;
-            if (!_paraRepo.TryEdit(para, out errmsg))
+            if (!wikiParaRepo.TryEdit(para, out errmsg))
                 return 0;
             return createdTextId;
         }
@@ -124,14 +103,14 @@ namespace FCloud3.Services.TextSec
             }
             if (title is not null)
             {
-                if (!_textSectionRepo.TryChangeTitle(id, title, out errmsg))
+                if (!textSectionRepo.TryChangeTitle(id, title, out errmsg))
                     return false;
             }
             if (content is not null)
             {
-                if (!_contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
+                if (!contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
                     return false;
-                var original = _textSectionRepo.GetById(id);
+                var original = textSectionRepo.GetById(id);
                 if (original is null)
                 {
                     errmsg = "找不到指定文本段";
@@ -142,35 +121,73 @@ namespace FCloud3.Services.TextSec
                     errmsg = null;
                     return true;
                 }
-                using var t = _dbTransactionService.BeginTransaction();
-                var updateSuccess = _textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
-                var diffSuccess = _contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
+                using var t = dbTransactionService.BeginTransaction();
+                var updateSuccess = textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
+                var diffSuccess = contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
                 if (updateSuccess && diffSuccess)
                 {
-                    _dbTransactionService.CommitTransaction(t);
-                    _logger.LogInformation("更新[{id}]号文本段成功", id);
+                    dbTransactionService.CommitTransaction(t);
+                    logger.LogInformation("更新[{id}]号文本段成功", id);
                 }
                 else
                 {
-                    _dbTransactionService.RollbackTransaction(t);
+                    dbTransactionService.RollbackTransaction(t);
                     errmsg = updateErrmsg + diffErrmsg;
-                    _logger.LogError("更新[{id}]号文本段失败，\"{msg}\"", id, errmsg);
+                    logger.LogError("更新[{id}]号文本段失败，\"{msg}\"", id, errmsg);
                     return false;
                 }
             }
 
             if(title is not null || content is not null)
             {
-                var affectedWikiIds = _paraRepo.WikiContainingIt(WikiParaType.Text, id);
-                var affectedCount = _wikiItemRepo.UpdateTime(affectedWikiIds);
+                var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Text, id);
+                var affectedCount = wikiItemRepo.UpdateTime(affectedWikiIds);
                 if (affectedCount > 0)
                 {
-                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
-                    _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
+                    var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
+                    fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
             }
             errmsg = null;
             return true;
+        }
+
+        public TextSectionPreviewResponse Preview(int id, string content)
+        {
+            string cacheKey = $"tse_{id}";
+            List<WikiTitleContain> contains = wikiTitleContainRepo.GetByTypeAndObjId(WikiTitleContainType.TextSection, id);
+            var parser = wikiParserProviderService.Get(cacheKey, null, builder =>
+                {
+                    builder.UseLocatorHash(locatorHash);
+                    builder.ClearUsageInfoOnCall();
+                },
+                contains,
+                false,
+                () => wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToArray()
+            );
+            var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
+            return res;
+        }
+        public class TextSectionPreviewResponse
+        {
+            public string HtmlSource { get; }
+            public string PreScripts { get; }
+            public string PostScripts { get; }
+            public string Styles { get; }
+            public TextSectionPreviewResponse(string htmlSource)
+            {
+                HtmlSource = htmlSource;
+                PreScripts = "";
+                PostScripts = "";
+                Styles = "";
+            }
+            public TextSectionPreviewResponse(ParserResult parserResult)
+            {
+                HtmlSource = parserResult.Content + parserResult.FootNotes;
+                PreScripts = parserResult.PreScript;
+                PostScripts = parserResult.PostScript;
+                Styles = parserResult.Style;
+            }
         }
     }
 }
