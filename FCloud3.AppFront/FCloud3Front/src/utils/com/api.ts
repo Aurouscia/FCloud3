@@ -33,6 +33,7 @@ import { FooterLinks } from '@/models/etc/footerLinks';
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { GuideInfoResponse } from '@/models/etc/guideInfo';
+import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 
 
 export class Api{
@@ -545,6 +546,46 @@ export class Api{
                     return res.data as WikiTitleContainAutoFillResult
                 }
             }
+        },
+        wikiSelected: {
+            getList: async()=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiSelected/GetList",
+                    "get"
+                )
+                if(res.success)
+                    return res.data as WikiSelectedDto[]
+            },
+            insert: async(ws:WikiSelectedDto)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiSelected/Insert",
+                    "postForm",
+                    ws,
+                    "新建成功",
+                    true
+                )
+                return res.success
+            },
+            edit: async(ws:WikiSelectedDto)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiSelected/Edit",
+                    "postForm",
+                    ws,
+                    "编辑成功",
+                    true
+                )
+                return res.success
+            },
+            remove: async(id:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/WikiSelected/Remove",
+                    "postForm",
+                    {id},
+                    "移除成功",
+                    true
+                )
+                return res.success
+            },
         }
     }
     wikiParsing={

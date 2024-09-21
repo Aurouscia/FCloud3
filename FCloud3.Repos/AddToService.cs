@@ -31,6 +31,7 @@ namespace FCloud3.Repos
             services.AddScoped<WikiTitleContainRepo>();
 
             services.AddScoped<WikiTemplateRepo>();
+            services.AddScoped<WikiSelectedRepo>();
 
             services.AddScoped<TextSectionRepo>();
             services.AddScoped<FreeTableRepo>();

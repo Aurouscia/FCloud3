@@ -35,6 +35,7 @@ namespace FCloud3.Services
             services.AddScoped<FileDirService>();
             services.AddScoped<MaterialService>();
             services.AddScoped<DiffContentService>();
+            services.AddScoped<WikiSelectedService>();
 
             services.AddScoped<WikiParserProviderService>();
             services.AddScoped<WikiParsingRulesProviderService>();

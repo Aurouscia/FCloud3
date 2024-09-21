@@ -21,7 +21,7 @@ namespace FCloud3.Repos.Wiki
             });
         
         public bool Insert(int beforeOrder,
-            int wikiItemId, string intro, int dropAfterHr, out string? errmsg)
+            int wikiItemId, string? intro, int dropAfterHr, out string? errmsg)
         {
             var all = Existing.ToList();
             var model = new WikiSelected()
@@ -42,22 +42,28 @@ namespace FCloud3.Repos.Wiki
             if (ordered.Count > MaxCount)
             {
                 int exceeded = ordered.Count - MaxCount;
-                List<WikiSelected> removeList = [];
+                List<(double overHr, WikiSelected item)> removeList = [];
                 var now = DateTime.Now;
                 foreach(var w in ordered)
                 {
                     var lasted = (now - w.Created).TotalHours;
                     if (lasted > w.DropAfterHr)
                     {
-                        removeList.Add(w);
+                        double overHr = lasted - w.DropAfterHr;
+                        removeList.Add((overHr, w));
                         if (removeList.Count >= exceeded)
                             break;
                     }
                 }
+                var removeItems = removeList
+                    .OrderByDescending(x => x.overHr)
+                    .Select(x => x.item)
+                    .Take(exceeded)
+                    .ToList();
                 if (removeList.Count > 0)
                 {
-                    ordered.RemoveAll(removeList.Contains);
-                    removeList.ForEach(w =>
+                    ordered.RemoveAll(removeItems.Contains);
+                    removeItems.ForEach(w =>
                     {
                         w.Deleted = true;
                         _context.Update(w);
@@ -73,7 +79,7 @@ namespace FCloud3.Repos.Wiki
             return true;
         }
 
-        public bool Edit(int id, string intro, int dropAfterHr, out string? errmsg)
+        public bool Edit(int id, string? intro, int dropAfterHr, out string? errmsg)
         {
             var model = GetById(id);
             if (model is null)
