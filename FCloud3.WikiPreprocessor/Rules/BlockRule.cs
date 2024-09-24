@@ -407,8 +407,8 @@ namespace FCloud3.WikiPreprocessor.Rules
                 if (colorParser.TryParseColor(colorStr, out var c))
                 {
                     string textColor;
-                    var br = 0.3f * c.R + 0.59f * c.G + 0.11f * c.B;
-                    if (br > 160)
+                    var isLightColor = ColorUtil.IsLightColor(c);
+                    if (isLightColor)
                         textColor = "black";
                     else
                         textColor = "white";
