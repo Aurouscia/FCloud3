@@ -48,6 +48,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
                 _ruleUsageContext.UsedRulesLog.Remove(x.rule);
                 _inlineParsingOptions.InlineRules.Remove(x.rule);
             });
+            ActiveReplaces.Clear();
         }
         
         /// <summary>
