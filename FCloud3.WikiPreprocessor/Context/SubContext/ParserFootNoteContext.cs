@@ -2,6 +2,10 @@
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
+    /// <summary>
+    /// “脚注”上下文<br/>
+    /// 用于收集解析中找到的脚注本体
+    /// </summary>
     public class ParserFootNoteContext
     {
         public List<IHtmlable> FootNoteBodys { get; }

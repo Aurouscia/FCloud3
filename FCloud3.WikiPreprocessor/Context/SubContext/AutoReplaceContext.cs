@@ -3,6 +3,12 @@ using FCloud3.WikiPreprocessor.Rules;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
+    /// <summary>
+    /// “自动替换”上下文<br/>
+    /// 自动替换会被转换为字面量行内规则(LiteralInlineRule)<br/>
+    /// 本类负责追踪自动替换目标与对应的LiteralInlineRule，在不再需要时将它们移除<br/>
+    /// 可更换或补充自动替换目标
+    /// </summary>
     public class AutoReplaceContext
     {
         private readonly InlineParsingOptions _inlineParsingOptions;

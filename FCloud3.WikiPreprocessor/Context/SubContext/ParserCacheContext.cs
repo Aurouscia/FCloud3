@@ -8,6 +8,12 @@ using System.Text;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
+    /// <summary>
+    /// “缓存”上下文<br/>
+    /// 在预览等需要频繁解析同一段文本（只有少数改动）时，可通过设置传入的CacheOptions启用缓存<br/>
+    /// 相同的文本片段会在这里找到结果，直接返回，避免重复解析<br/>
+    /// 在需要“一次性规则”的场合下不可启用缓存
+    /// </summary>
     public class ParserCacheContext
     {
         public int CacheReadCount { get; private set; }
