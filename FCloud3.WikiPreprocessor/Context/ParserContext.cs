@@ -9,7 +9,7 @@ namespace FCloud3.WikiPreprocessor.Context
     /// <summary>
     /// Html生成器上下文，在单次解析中唯一
     /// </summary>
-    public class ParserContext : IDisposable
+    public class ParserContext
     {
         public ParserOptions Options { get; }
         public TemplateSlotInfo TemplateSlotInfo { get; }
@@ -62,15 +62,6 @@ namespace FCloud3.WikiPreprocessor.Context
         public string DebugInfo()
         {
             return Caches.DebugInfo() + RuleUsage.DebugInfo();
-        }
-        ~ParserContext()
-        {
-            Dispose();
-        }
-        public void Dispose()
-        {
-            Caches.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 }

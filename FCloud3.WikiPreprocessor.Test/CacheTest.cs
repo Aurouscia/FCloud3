@@ -1,12 +1,7 @@
 ﻿using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -23,7 +18,9 @@ namespace FCloud3.WikiPreprocessor.Test
             string input2, int count2,
             string input3, int count3)
         {
-            var builder = new ParserBuilder();
+            var builder = new ParserBuilder()
+                .Cache.UseCacheInstance(CacheInstance.Get())
+                .Cache.EnableCache();
             var options = builder.GetCurrentOptions();
             var ctx = new ParserContext(options);
             var parser = new Parser(ctx);

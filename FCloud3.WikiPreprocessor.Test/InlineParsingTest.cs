@@ -2,12 +2,7 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -18,7 +13,9 @@ namespace FCloud3.WikiPreprocessor.Test
 
         public InlineParsingTest()
         {
-            var options = new ParserBuilder().GetCurrentOptions();
+            var options = new ParserBuilder()
+                    .Cache.UseCacheInstance(CacheInstance.Get())
+                    .GetCurrentOptions();
             _ctx = new(options);
         }
 

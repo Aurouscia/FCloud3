@@ -67,7 +67,7 @@ namespace FCloud3.App.Controllers.WikiParsing
 
             string cacheKey = $"tplte_{wikiTemplate.Id}";
             var parser = _wikiParserProviderService.GetParser(cacheKey, 
-                x=>x.Cache.DisableCache());
+                x=>x);
 
             Template t = new(wikiTemplate.Name, wikiTemplate.Source, wikiTemplate.Styles, wikiTemplate.PreScripts, wikiTemplate.PostScripts);
             parser.Context.Options.TemplateParsingOptions.ClearTemplates();

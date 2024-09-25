@@ -160,6 +160,7 @@ namespace FCloud3.Services.TextSec
                 {
                     builder.UseLocatorHash(locatorHash);
                     builder.ClearUsageInfoOnCall();
+                    builder.Cache.EnableCache();
                 },
                 contains,
                 false,

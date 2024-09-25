@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -26,7 +27,8 @@ namespace FCloud3.WikiPreprocessor.Test
                 {
                     new Template("打招呼","<div class=\"hello\">[[__内容__]]</div>",".hello{font-size:large}"),
                     new Template("哼唧","<div class=\"hj\">[[__内容__]]</div>",".hj{color:gray}","console.log('哼唧')")
-                });
+                })
+                .Cache.UseCacheInstance(CacheInstance.Get());;
             _parser = parserBuilder.BuildParser();
         }
 

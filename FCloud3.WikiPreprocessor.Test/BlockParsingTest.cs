@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -18,9 +19,11 @@ namespace FCloud3.WikiPreprocessor.Test
 
         public BlockParsingTest()
         {
-            var parserBuilder = new ParserBuilder().Block.AddMoreRule(
-                new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
-                );
+            var parserBuilder = new ParserBuilder()
+                .Block.AddMoreRule(
+                    new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
+                )
+                .Cache.UseCacheInstance(CacheInstance.Get());;
             _parser = parserBuilder.BuildParser();
         }
 

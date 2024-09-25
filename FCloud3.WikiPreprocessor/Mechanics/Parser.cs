@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FCloud3.WikiPreprocessor.Mechanics
 {
-    public class Parser:IDisposable
+    public class Parser
     {
         private readonly ParserContext _ctx;
         private readonly BlockParser _blockParser;
@@ -180,15 +180,6 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 x.WriteHtml(sb);
             });
             sb.Append("</div>");
-        }
-        ~Parser()
-        {
-            Dispose();
-        }
-        public void Dispose()
-        {
-            _ctx.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 

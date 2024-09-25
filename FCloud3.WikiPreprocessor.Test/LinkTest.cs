@@ -1,6 +1,7 @@
 using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -15,6 +16,7 @@ namespace FCloud3.WikiPreprocessor.Test
             var options1 = new ParserBuilder()
                 .Link.AddLinkItem("武汉市", "wuhan")
                 .Link.AddLinkItem("热干面","hot-dry-noodles")
+                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxDefault = new(options1);
             var options2 = new ParserBuilder()
@@ -26,6 +28,7 @@ namespace FCloud3.WikiPreprocessor.Test
                         return $"<a pathName=\"{l.Url}\">{mustUseName}</a>";
                     return $"<a pathName=\"{l.Url}\">{l.Text}</a>";
                 })
+                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxWithConvertFn = new(options2);
         }

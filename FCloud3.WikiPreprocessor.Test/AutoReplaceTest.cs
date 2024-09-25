@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -12,6 +14,7 @@ namespace FCloud3.WikiPreprocessor.Test
     public class AutoReplaceTest
     {
         private readonly Parser _parser;
+        private readonly Parser _parserWithCache;
         private readonly Dictionary<string,int> wikis_1 = new()
         {
             {  "3C教育体系大纲",6 },
@@ -38,8 +41,18 @@ namespace FCloud3.WikiPreprocessor.Test
                 .AutoReplace.AddReplacing(
                     wikis_1.Select(x => x.Key).ToList(),
                     MakeUrlForWiki
-                );
+                );//默认加入的是仅单次使用
+            //“单次使用”与“缓存”不可能同时实现，这里不启用缓存机制
             _parser = optionsBuilder.BuildParser();
+            
+            var optionsBuilder2 = new ParserBuilder()
+                .AutoReplace.AddReplacing(
+                    wikis_1.Select(x => x.Key).ToList(),
+                    MakeUrlForWiki
+                );//默认加入的是仅单次使用
+            optionsBuilder2.Cache.UseCacheInstance(CacheInstance.Get());
+            optionsBuilder2.Cache.EnableCache();
+            _parserWithCache = optionsBuilder2.BuildParser();
         }
 
         [TestMethod]
@@ -65,31 +78,34 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
-            string res2 = _parser.RunToPlain(input);
-            Assert.AreEqual(answer, res2);
-            string res3 = _parser.RunToPlain(input);
-            Assert.AreEqual(answer, res3);
         }
 
         [TestMethod]
         [DataRow(
             "更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见3C教育体系大纲等词条</p>", true)]
+            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
+            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
+            true)]
         [DataRow(
             "更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条</p>", false)]
+            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条</p>",
+            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
+            false)]
         [DataRow(
             "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
-            "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>", true)]
-        public void ChangeTargets(string input, string answer, bool clear)
+            "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
+            "<p>夜莺是人类伴生种，夜莺会吃城市里的其他小鸟</p>", true)]
+        public void ChangeTargets(string input, string answerFirst, string answerSecond, bool clear)
         {
-            _parser.Context.AutoReplace.Register(wikis_2.Keys.ToList(), true, clear);
+            //更换目标，可选择是否去除旧目标
+            List<string?> targets = wikis_2.Keys.ToList().ConvertAll(x => (string?)x);
+            _parser.Context.AutoReplace.Register(targets, true, clear);
             string res = _parser.RunToPlain(input);
-            Assert.AreEqual(answer, res);
+            Assert.AreEqual(answerFirst, res);
             string res2 = _parser.RunToPlain(input);
-            Assert.AreEqual(answer, res2);
+            Assert.AreEqual(answerSecond, res2);
             string res3 = _parser.RunToPlain(input);
-            Assert.AreEqual(answer, res3);
+            Assert.AreEqual(answerSecond, res3);
         }
         
         [TestMethod]
@@ -98,12 +114,13 @@ namespace FCloud3.WikiPreprocessor.Test
             "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，<a href=\"/w/5\">夜莺</a>会吃城市里的其他小鸟</p>")]
         public void NoSingleUse(string input, string answer)
         {
-            _parser.Context.AutoReplace.Register(wikis_2.Keys.ToList(), false, true);
-            string res = _parser.RunToPlain(input);
+            List<string?> targets = wikis_2.Keys.ToList().ConvertAll(x => (string?)x);
+            _parserWithCache.Context.AutoReplace.Register(targets, false, true);
+            string res = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res);
-            string res2 = _parser.RunToPlain(input);
+            string res2 = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res2);
-            string res3 = _parser.RunToPlain(input);
+            string res3 = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res3);
         }
     }

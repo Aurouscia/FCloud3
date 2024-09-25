@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -26,7 +27,9 @@ namespace FCloud3.WikiPreprocessor.Test
             "*;\\bd")]
         public void Inline(string input,string answerStr)
         {
-            var parser = new ParserBuilder().BuildParser();
+            var parser = new ParserBuilder()
+                .Cache.UseCacheInstance(CacheInstance.Get())
+                .BuildParser();
             var element = parser.RunToObject(input);
             var rules = element.ContainRules()??new();
             var inlineRules = rules.ConvertAll(x=>

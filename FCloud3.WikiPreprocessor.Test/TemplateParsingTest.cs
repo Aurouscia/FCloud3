@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -40,6 +41,7 @@ namespace FCloud3.WikiPreprocessor.Test
             _options = new ParserBuilder()
                 .Template.AddTemplates(templates)
                 .Implant.AddImplantsHandler(GenLinkForWiki)
+                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctx = new(_options);
         }

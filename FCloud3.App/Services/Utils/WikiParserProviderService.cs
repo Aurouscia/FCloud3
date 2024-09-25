@@ -25,12 +25,8 @@ namespace FCloud3.App.Services.Utils
             var entryOption = new MemoryCacheEntryOptions()
             {
                 SlidingExpiration = TimeSpan.FromMinutes(5),
+                Priority = CacheItemPriority.Normal
             };
-            entryOption.RegisterPostEvictionCallback((key, value, reason, state) =>
-            {
-                if (value is Parser parser)
-                    parser.Dispose();
-            });
             _cache.Set(Key(cacheKey), p, entryOption);
             return p;
         }

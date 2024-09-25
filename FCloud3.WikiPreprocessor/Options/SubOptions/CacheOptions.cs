@@ -19,14 +19,14 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
 
         public CacheOptions(ParserBuilder master)
         {
-            UseCache = true;
+            UseCache = false;
             SlideExpirationMins = 1;
             _master = master;
             NoCacheRules = new List<string>();
         }
-        public ParserBuilder DisableCache()
+        public ParserBuilder EnableCache()
         {
-            UseCache = false;
+            UseCache = true;
             return _master;
         }
         public ParserBuilder SetSlideExpirationMins(float mins)

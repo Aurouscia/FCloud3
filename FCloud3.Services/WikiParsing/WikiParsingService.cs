@@ -191,7 +191,7 @@ namespace FCloud3.Services.WikiParsing
             var allWikis = _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
             var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
                 allWikis,
-                configure: builder => builder.Cache.DisableCache(),//片段缓存必须关闭
+                (b)=>{},
                 contains,
                 true,
                 () => [wiki.Id]);
@@ -211,7 +211,7 @@ namespace FCloud3.Services.WikiParsing
             }
             paras.ForEach(p =>
             {
-                //更换为该段的自动替换目标
+                //更换为该段的自动替换目标，段内单次使用，清除旧目标（每个段最多一次，两个段可同时有）
                 var containType = WikiTitleContainType.Unknown;
                 if (p.Type == WikiParaType.Text)
                     containType = WikiTitleContainType.TextSection;

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -16,6 +17,7 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             ParserBuilder builder = new();
             builder.TitleGathering.Enable();
+            builder.Cache.UseCacheInstance(CacheInstance.Get());
             Parser p = builder.BuildParser();
             string input = "#1 \n xxx \n ##1-1 \n xxx \n #2\n xx \n#";
 

@@ -2,6 +2,7 @@
 using FCloud3.WikiPreprocessor.Util;
 using System.Security.Cryptography;
 using System.Text;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -24,7 +25,10 @@ namespace FCloud3.WikiPreprocessor.Test
         public void Paragraph(string input,string answer)
         {
             var shouldAppear = answer.Split(';');
-            var parser = new ParserBuilder().UseLocatorHash(new LocatorHash()).BuildParser();
+            var parser = new ParserBuilder()
+                .Cache.UseCacheInstance(CacheInstance.Get())
+                .UseLocatorHash(new LocatorHash())
+                .BuildParser();
             var res = parser.RunToPlain(input);
             Assert.IsTrue( shouldAppear.All(x=>res.Contains(x)));
         }
@@ -36,7 +40,10 @@ namespace FCloud3.WikiPreprocessor.Test
         public void Title(string input,string answer)
         {
             var shouldAppear = answer.Split(';');
-            var parser = new ParserBuilder().UseLocatorHash(new LocatorHash()).BuildParser();
+            var parser = new ParserBuilder()
+                .Cache.UseCacheInstance(CacheInstance.Get())
+                .UseLocatorHash(new LocatorHash())
+                .BuildParser();
             var res = parser.RunToPlain(input);
             Assert.IsTrue(shouldAppear.All(x => res.Contains(x)));
         }
