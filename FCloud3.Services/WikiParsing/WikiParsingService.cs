@@ -194,6 +194,7 @@ namespace FCloud3.Services.WikiParsing
                 (b)=>{},
                 contains,
                 true,
+                true,
                 () => [wiki.Id]);
             parser.Context.Reset(true);
 

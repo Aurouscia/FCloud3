@@ -28,7 +28,7 @@ namespace FCloud3.Services.WikiParsing.Support
 
         public Parser Get(string cacheKey, List<WikiItemCachingModel>? allWikis = null,
             Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null,
-            bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
+            bool linkSingle = true, bool autoreplaceOnlyFunc = false, Func<int[]>? getTitleContainExpiringWikiIds = null)
         {
             if (_cache.Get(cacheKey) is not Parser p)
             {
@@ -47,7 +47,7 @@ namespace FCloud3.Services.WikiParsing.Support
                     b.Cache.SetExpireToken(token);
                 };
                 var changeToken = new CancellationChangeToken(token);
-                p = Get(allWikis, configureAndToken, containInfos, linkSingle);
+                p = Get(allWikis, configureAndToken, containInfos, linkSingle, autoreplaceOnlyFunc);
                 _logger.LogInformation("词条解析器[{cacheKey}]已创建", cacheKey);
                 var options = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromMinutes(5))
@@ -60,7 +60,12 @@ namespace FCloud3.Services.WikiParsing.Support
             }
             return p;
         }
-        private Parser Get(List<WikiItemCachingModel>? allWikis = null, Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null, bool linkSingle = true)
+        private Parser Get(
+            List<WikiItemCachingModel>? allWikis = null, 
+            Action<ParserBuilder>? configure = null, 
+            List<WikiTitleContain>? containInfos = null, 
+            bool linkSingle = true,
+            bool autoreplaceOnlyFunc = false)
         {
             var pb = DefaultConfigureBuilder();
             allWikis ??= _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
@@ -77,7 +82,13 @@ namespace FCloud3.Services.WikiParsing.Support
                         return WikiReplacement(w.UrlPathName, w.Title);
                     return title;
                 };
-                pb.AutoReplace.AddReplacing([], func, linkSingle);
+                List<string?> targets = [];
+                if (!autoreplaceOnlyFunc)
+                {
+                    targets = wikis.Select(x => x.Title).ToList();
+                    targets.RemoveAll(x => x is null);
+                }
+                pb.AutoReplace.AddReplacing(targets!, func, linkSingle);
             }
             pb.Implant.AddImplantsHandler(x =>
             {

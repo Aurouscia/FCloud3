@@ -155,14 +155,15 @@ namespace FCloud3.Services.TextSec
         public TextSectionPreviewResponse Preview(int id, string content)
         {
             string cacheKey = $"tse_{id}";
-            List<WikiTitleContain> contains = wikiTitleContainRepo.GetByTypeAndObjId(WikiTitleContainType.TextSection, id);
             var parser = wikiParserProviderService.Get(cacheKey, null, builder =>
                 {
                     builder.UseLocatorHash(locatorHash);
                     builder.ClearUsageInfoOnCall();
                     builder.Cache.EnableCache();
+                    builder.EnableDebugInfo();
                 },
-                contains,
+                [],
+                false,
                 false,
                 () => wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToArray()
             );
