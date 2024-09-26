@@ -6,7 +6,6 @@ import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useFeVersionChecker } from '@/utils/feVersionCheck';
-import Swiper from '@/components/Swiper/Swiper.vue';
 import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
 
 const api = injectApi();
