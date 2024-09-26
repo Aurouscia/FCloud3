@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WikiSelectedSwiperContainer from '../Wiki/WikiSelectedSwiperContainer.vue';
+import WikiSelectedSwiperContainer from '@/components/Swiper/WikiSelectedSwiperContainer.vue';
 
 </script>
 
