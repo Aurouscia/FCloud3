@@ -197,7 +197,7 @@ onUnmounted(()=>{
             :style="{width:widthStyle, height:heightStyle}">
             <img :src="i.imgUrl"/>
             <div class="swiperText">
-                <div class="swiperTextTitle">{{ i.title }}</div>
+                <div class="swiperTextTitle"><a :href="i.link" target="_blank">{{ i.title }}</a></div>
                 <div>{{ i.desc }}</div>
             </div>
         </div>
@@ -253,9 +253,13 @@ onUnmounted(()=>{
     div{
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .swiperTextTitle{
         font-size: 20px;
+    }
+    a{
+        color: white;
     }
 }
 .swiperDots{

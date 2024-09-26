@@ -123,6 +123,8 @@ namespace FCloud3.Repos.Wiki
 
         public string? ModelCheck(WikiSelected model)
         {
+            if (model.WikiItemId == 0)
+                return "请选择词条";
             if (string.IsNullOrWhiteSpace(model.Intro))
                 return "简介不能为空";
             if (model.Intro.Length > WikiSelected.introMaxLength)

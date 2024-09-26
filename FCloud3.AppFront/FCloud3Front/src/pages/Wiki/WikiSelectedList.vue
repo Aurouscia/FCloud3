@@ -104,7 +104,7 @@ onMounted(async()=>{
             </div>
         </td>
         <td>
-            <img :src="w.CoverUrl">
+            <img :src="w.CoverUrl||'/fcloud.svg'">
         </td>
         <td>
             <div class="setter">

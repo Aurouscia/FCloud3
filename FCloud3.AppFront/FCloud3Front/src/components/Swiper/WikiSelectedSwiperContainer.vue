@@ -1,35 +1,47 @@
 <script setup lang="ts">
 import Swiper from '@/components/Swiper/Swiper.vue';
 import { SwiperData } from '@/components/Swiper/swiperData';
+import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
+import { injectApi } from '@/provides';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const data:SwiperData = {
+const props = defineProps<{
+    width?:number
+    height?:number
+}>()
+const data = ref<SwiperData>({
     items:[
-        {
-            imgUrl: 'http://static.wiki.jowei19.com/wikiFile/404252700.PNG',
-            title: '笃初人民共和国',
-            desc: '架空国家设定典范佳作',
-            link: 'http://wiki.jowei19.com/#/w/xin-zhong-hai-jie-dao'
-        },
-        {
-            imgUrl: 'http://static.wiki.jowei19.com/wikiFile/lex25n0e.jpg',
-            title: '新中海街道',
-            desc: '架空街道区划设定典范佳作',
-            link: 'http://wiki.jowei19.com/#/w/xin-zhong-hai-jie-dao'
-        },
-        {
-            imgUrl: 'http://static.wiki.jowei19.com/wikiFile/615844825.png',
-            title: '十里国际机场',
-            desc: '架空机场设定典范佳作',
-            link: 'http://wiki.jowei19.com/#/w/xin-zhong-hai-jie-dao'
-        }
     ],
-    width: 500,
-    height: 200
+    width: props.width,
+    height: props.height
+})
+
+const api = injectApi()
+const router = useRouter()
+const { jumpToViewWikiFromIdRoute } = useWikiParsingRoutesJump()
+async function load(){
+    const res = await api.wiki.wikiSelected.getList()
+    if(res){
+        data.value.items = res.map(ws=>{
+            const linkRoute = jumpToViewWikiFromIdRoute(ws.WikiItemId)
+            const link = router.resolve(linkRoute).href
+            return{
+                title:ws.WikiTitle||' ',
+                link:link,
+                imgUrl:ws.CoverUrl||'/fcloud.svg',
+                desc:ws.Intro||' '
+            }
+        })
+    }
 }
+onMounted(async()=>{
+    await load()
+})
 </script>
 
 <template>
-<Swiper :data="data" class="swiperOuter"></Swiper>
+<Swiper v-if="data && data.items.length>0" :data="data" class="swiperOuter"></Swiper>
 </template>
 
 <style scoped lang="scss">
