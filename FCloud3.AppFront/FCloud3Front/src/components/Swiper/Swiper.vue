@@ -33,7 +33,7 @@ function userInputHandler(type:'start'|'move'|'end', e:MouseEvent|TouchEvent){
         if(!dragging.value){
             return
         }
-        e.preventDefault()
+        //e.preventDefault() 会影响页面浏览
         let time = new Date().getTime()
         intv = time - lastMoveHandle
         if(intv < moveHandleMinMs)
@@ -84,7 +84,7 @@ function cycleAction(){
         if(Math.abs(speed)<0.002)
             speed -= Math.sign(speed)*0.0001
         else
-            speed *= 0.96
+            speed *= 0.93
     }
     else{
         const diff = movedUnits.value - focusUnitIdx.value

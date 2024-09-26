@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import WikiSelectedSwiperContainer from '@/components/Swiper/WikiSelectedSwiperContainer.vue';
 
 </script>
 
@@ -13,7 +12,6 @@ import WikiSelectedSwiperContainer from '@/components/Swiper/WikiSelectedSwiperC
             <div class="cat">内容管理系统</div>
         </div>
     </div>
-    <WikiSelectedSwiperContainer></WikiSelectedSwiperContainer>
     <div>
         本项目以<a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">Apache-2.0</a>开源协议提供<br/>
         任何人有权下载、使用、修改、再分发本项目的源代码和可执行文件，且无需保持开源。
