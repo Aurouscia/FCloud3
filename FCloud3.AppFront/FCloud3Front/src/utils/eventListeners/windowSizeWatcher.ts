@@ -1,6 +1,10 @@
-export function watchWindowWidth(callBack:(width:number)=>void):()=>void{
+export function watchWindowWidth(callBack:(width:number)=>void, afterStopMs?:number):()=>void{
+    let timer = 0;
     const doSth = ()=>{
-        callBack(window.innerWidth);
+        window.clearTimeout(timer)
+        timer = window.setTimeout(()=>{
+            callBack(window.innerWidth);
+        }, afterStopMs||0)
     };
     window.addEventListener('resize',doSth)
     return ()=>{
