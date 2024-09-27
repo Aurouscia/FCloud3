@@ -11,6 +11,7 @@ namespace FCloud3.App.Controllers.Wiki
         WikiSelectedService wikiSelectedService
         ) : Controller
     {
+        [AllowAnonymous]
         public IActionResult GetList()
         {
             var res = wikiSelectedService.GetList();
