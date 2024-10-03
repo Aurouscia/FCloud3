@@ -157,7 +157,7 @@ namespace FCloud3.Services.Files
         //仅压缩jpg格式图片，压缩png有爆内存风险
         private readonly List<string> needCompressExts = [".jpg", ".jpeg"];
         private const int compressLowerThrs = 512 * 1024;
-        private const int compressUpperThrs = 5 * 1024 * 1024;
+        private const int compressUpperThrs = 10 * 1024 * 1024;
         public bool ShouldCompress(string fileName, int byteCount)
         {
             if (byteCount > compressLowerThrs && byteCount < compressUpperThrs)
