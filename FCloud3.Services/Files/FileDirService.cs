@@ -167,10 +167,10 @@ namespace FCloud3.Services.Files
 
             var subDirList = _fileDirRepo.GetRangeByIdsOrdered(
                 ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.Dir).Select(x => x.Id),
-                converter: FileDirIndexResult.FileDirSubDir.Converter);
+                converter: x => FileDirIndexResult.FileDirSubDir.Converter(x, getUserName));
             var wikiList = _wikiItemRepo.GetRangeByIdsOrdered(
                 ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.WikiItem).Select(x => x.Id),
-                converter: FileDirIndexResult.FileDirWiki.Converter);
+                converter: x => FileDirIndexResult.FileDirWiki.Converter(x, getUserName));
             var fileList = _fileItemRepo.GetRangeByIdsOrdered(
                 ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id),
                 converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl, getUserName));
@@ -302,7 +302,7 @@ namespace FCloud3.Services.Files
             if(!bypassAuth)
                 fileItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.FileItem, x));
             if (originalCount > fileItemIds.Count)
-                failMsg = "无权移动该文件";
+                failMsg = "无权移动该文件，请咨询管理员";
             if (distDirId < 0)
             {
                 errmsg = "请刷新后重试(未找到指定路径的文件夹)";
@@ -342,7 +342,7 @@ namespace FCloud3.Services.Files
             if(!bypassAuth)
                 fileDirIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.Dir, x));
             if (originalCount > fileDirIds.Count)
-                failMsg = "无权移动该目录";
+                failMsg = "无权移动该目录，请咨询管理员";
 
             if (fileDirIds.Count == 0)
             {
@@ -393,7 +393,7 @@ namespace FCloud3.Services.Files
             if(!bypassAuth)
                 wikiItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.WikiItem, x));
             if (originalCount > wikiItemIds.Count)
-                failMsg = "无权移动该词条";
+                failMsg = "无权移动该词条，请咨询管理员";
             if (wikiItemIds.Count > 0)
             {
                 if (!_wikiToDirRepo.AddWikisToDir(wikiItemIds, distDirId, out errmsg))
@@ -579,19 +579,24 @@ namespace FCloud3.Services.Files
         public string? OwnerName { get; set; }
         public List<string>? FriendlyPath { get; set; }
 
-        public class FileDirSubDir(int id, string? name, string? urlPathName, DateTime updated)
+        public class FileDirSubDir(int id, string? name, string? urlPathName, DateTime updated, string ownerName)
         {
             public int Id { get; set; } = id;
             public string? Name { get; set; } = name;
             public string? UrlPathName { get; set; } = urlPathName;
-            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
-            public string? OwnerName { get; set; } = "";
+            public string? Updated { get; set; } = updated.ToString("yy-MM-dd HH:mm");
+            public string? OwnerName { get; set; } = ownerName;
             public int ByteCount { get; set; } = 0;
             public int FileNumber { get; set; } = 0;
 
-            public static Dictionary<int, FileDirSubDir> Converter(IQueryable<FileDir> fileDirs)
+            public static Dictionary<int, FileDirSubDir> Converter(
+                IQueryable<FileDir> fileDirs, Func<int, string> getUserName)
             {
-                var data = fileDirs.Select(x => new FileDirSubDir(x.Id, x.Name, x.UrlPathName, x.Updated)).ToList();
+                var data = fileDirs.Select(x 
+                    => new { x.Id, x.Name, x.UrlPathName, x.Updated, x.CreatorUserId })
+                    .ToList()
+                    .ConvertAll(x
+                        =>new FileDirSubDir(x.Id, x.Name,x.UrlPathName,x.Updated,getUserName(x.CreatorUserId)));
                 return data.ToDictionary(x => x.Id, x => x);
             }
         }
@@ -599,12 +604,13 @@ namespace FCloud3.Services.Files
         {
             public int Id { get; set; } = id;
             public string? Name { get; set; } = name;
-            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
+            public string? Updated { get; set; } = updated.ToString("yy-MM-dd HH:mm");
             public string? OwnerName { get; set; } = ownerName;
             public int ByteCount { get; set; } = byteCount;
             public string? Url { get; set; } = url;
 
-            public static Dictionary<int, FileDirItem> Converter(IQueryable<FileItem> files, Func<string, string> url, Func<int, string> getUserName)
+            public static Dictionary<int, FileDirItem> Converter(
+                IQueryable<FileItem> files, Func<string, string> url, Func<int, string> getUserName)
             {
                 var data = files.Select(x 
                     => new{
@@ -625,16 +631,21 @@ namespace FCloud3.Services.Files
                 return data.ToDictionary(x => x.Id, x => x);
             }
         }
-        public class FileDirWiki(int id, string? name, string? urlPathName, DateTime updated)
+        public class FileDirWiki(int id, string? name, string? urlPathName, DateTime updated, string ownerName)
         {
             public int Id { get; set; } = id;
             public string? Name { get; set; } = name;
             public string? UrlPathName { get; set; } = urlPathName;
-            public string? Updated { get; set; } = updated.ToString("yyyy-MM-dd HH:mm");
-            public string? OwnerName { get; set; } = "";
-            public static Dictionary<int, FileDirWiki> Converter(IQueryable<WikiItem> wikis)
+            public string? Updated { get; set; } = updated.ToString("yy-MM-dd HH:mm");
+            public string? OwnerName { get; set; } = ownerName;
+            public static Dictionary<int, FileDirWiki> Converter(
+                IQueryable<WikiItem> wikis, Func<int, string> getUserName)
             {
-                var data = wikis.Select(x => new FileDirWiki(x.Id, x.Title, x.UrlPathName, x.Updated)).ToList();
+                var data = wikis.Select(x 
+                    => new {x.Id, x.Title, x.UrlPathName, x.Updated, x.OwnerUserId})
+                    .ToList()
+                    .ConvertAll(x 
+                        => new FileDirWiki(x.Id, x.Title, x.UrlPathName, x.Updated, getUserName(x.OwnerUserId)));
                 return data.ToDictionary(x => x.Id, x => x);
             }
         }

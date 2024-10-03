@@ -28,6 +28,8 @@ import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import Footer from '@/components/Footer.vue';
 import Search from '@/components/Search.vue';
 import { useFilesRoutesJump } from './routes/routesJump';
+import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
+import { storeToRefs } from 'pinia';
 
 
 const props = defineProps<{
@@ -258,11 +260,13 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         index.value?.reloadData();
     }
 }
+
+const { infoType } = storeToRefs(useDirInfoTypeStore())
 </script>
 
 <template>
     <div class="fileDir">
-        <div>
+        <div style="position: relative;">
             <div class="ancestors">
                 <div>
                     <span @click="jumpToAncestor(-1)">根目录</span>/
@@ -283,6 +287,13 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
             <div v-else-if="thisDirId==0" class="thisName">
                 根目录
                 <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
+            </div>
+            <div class="dirInfoTypeSelector">
+                <select v-model="infoType">
+                    <option :value="'ownerName'">所有者</option>
+                    <option :value="'lastUpdate'">更新</option>
+                    <option :value="'size'">尺寸</option>
+                </select>
             </div>
         </div>
         <div v-if="thisDirId>0" class="owner">
@@ -306,8 +317,8 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
                             </Functions>
                         </div>
-                        <div class="date">
-                            {{ item.Updated }}
+                        <div class="dirSysInfo">
+                            {{ infoType=='ownerName' ? item.OwnerName : (infoType=='lastUpdate' ? item.Updated : '') }}
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
@@ -352,13 +363,12 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 <style scoped lang="scss">
 @import '@/styles/globalValues';
 
-.date{
-    font-size: 15px;
-    color: #666
-}
-@media screen and (max-width: 500px){
-    .date{
-        display: none !important;
+.dirInfoTypeSelector{
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    select{
+        font-size: 16px;
     }
 }
 .owner{

@@ -101,7 +101,7 @@ namespace FCloud3.App.Services.Filters
 
                 if (!_authGrantService.Test(OnType, id))
                 {
-                    var resp = new ApiResponse(null, false, "无权限");
+                    var resp = new ApiResponse(null, false, "无权限，请咨询管理员");
                     context.Result = resp.BuildResult();
                 }
                 else

@@ -10,6 +10,8 @@ import { useRouter } from 'vue-router';
 import _ from 'lodash';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { fileDownloadLink } from '@/utils/com/api';
+import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
+import { storeToRefs } from 'pinia';
 
 const props = defineProps<{
     dirId:number,
@@ -71,6 +73,8 @@ const emit = defineEmits<{
     (e:'needRefresh'):void,
     (e:'beforeJumpToWiki'):void
 }>()
+
+const { infoType } = storeToRefs(useDirInfoTypeStore())
 </script>
 
 <template>
@@ -87,7 +91,8 @@ const emit = defineEmits<{
                 <button class="confirm" @click="jumpToWikiEdit(wiki.UrlPathName)">编辑</button>
             </Functions>
         </div>
-        <div class="size">
+        <div class="dirSysInfo">
+            {{ infoType=='ownerName' ? wiki.OwnerName : (infoType=='lastUpdate' ? wiki.Updated : '') }}
         </div>
     </div>
     <div class="item" v-for="item in props.items" :key="item.Id">
@@ -102,18 +107,17 @@ const emit = defineEmits<{
                 <a :href="fileDownloadLink(item.Id)" download target="_blank" class="downloadBtn">下载</a>
             </Functions>
         </div>
-        <div class="size">
-            {{ fileSizeStr(item.ByteCount) }}
+        <div class="dirSysInfo">
+            {{ 
+                infoType=='ownerName' ? item.OwnerName : 
+                (infoType=='lastUpdate' ? item.Updated : fileSizeStr(item.ByteCount)) 
+            }}
         </div>
     </div>
 </div>
 </template>
 
 <style scoped lang="scss">
-.size{
-    font-size: 15px;
-    color: #666
-}
 .downloadBtn{
     display: block;
     background-color: green;
@@ -170,6 +174,7 @@ const emit = defineEmits<{
     gap:5px;
     flex-grow: 1;
     height: 100%;
+    white-space: nowrap;
 }
 .name{
     flex-grow: 0;
