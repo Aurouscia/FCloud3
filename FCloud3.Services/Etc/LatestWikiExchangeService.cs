@@ -19,22 +19,26 @@ namespace FCloud3.Services.Etc
         }
 
         public List<ExchangeItem> Items { get; set; } = [];
-        public HashSet<string> InitedDomains { get; set; } = [];
+        public bool Inited { get; set; }
         public DateTime MyLatestWikiUpdate { get; set; }
         public bool Enabled => _config.Enabled;
 
-        public List<ExchangeItem> Get()
+        public List<ExchangeItem> GetItems()
         {
+            if (Inited)
+                return Items;
             if (_config.MyCode is null || _config.Targets is null)
             {
-                _logger.LogDebug("词条交换：配置异常，未运行");
+                _logger.LogDebug("词条交换：配置异常，未能运行");
                 return [];
             }
             RestClient rc = new();
-            var domains = _config.Targets.Select(x => x.Domain?.Trim());
+            var domains = _config.Targets
+                .Where(x => CanBeUpstream(x))
+                .Select(x => x.Domain);
             foreach(var domain in domains)
             {
-                if (domain is { } && !InitedDomains.Contains(domain))
+                if (domain is { })
                 {
                     List<ExchangeItem>? items = null;
                     RestRequest rr = new($"{domain}{route}");
@@ -43,30 +47,44 @@ namespace FCloud3.Services.Etc
                     {
                         var resp = rc.Get(rr);
                         if (resp.IsSuccessful && resp.Content is { })
+                        {
                             items = JsonConvert.DeserializeObject<List<ExchangeItem>>(resp.Content);
-                        _logger.LogDebug("词条交换：主动同步成功：{domain}", domain);
+                            _logger.LogDebug(activeSuccess + "{domain}", domain);
+                        }
+                        else
+                            _logger.LogDebug(activeErr + "{respCode}", resp.StatusCode);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogDebug("词条交换：主动同步失败：{domain} {errmsg}", domain, ex.Message);
+                        _logger.LogDebug(activeErr + "{domain} {errmsg}", domain, ex.Message);
                     }
                     if(items is { })
                         Items.AddRange(items);
-                    InitedDomains.Add(domain);
                 }
             }
             TidyItems();
+            Inited = true;
             return Items;
         }
 
-        public void Set(ExchangePushDto data)
+        public void Push(ExchangePushDto data)
         {
             if (data.PusherCode is null || data.PusherDomain is null)
-                _logger.LogDebug("词条交换：被动同步失败：接收参数异常");
+                _logger.LogDebug(passiveErr + "推送参数异常");
             var target = _config.Targets?
                 .FirstOrDefault(x => x.Domain == data.PusherDomain && x.Code == data.PusherCode);
-            if (target is { } && data.Items is { })
-                Items.AddRange(data.Items);
+            if (target is { })
+            {
+                if (CanBeUpstream(target))
+                {
+                    Items.AddRange(data.Items ?? []);
+                    _logger.LogDebug(passiveSuccess + "{domain}", data.PusherDomain);
+                }
+                else
+                    _logger.LogDebug(passiveErr + "不允许的推送");
+            }
+            else
+                _logger.LogDebug(passiveErr + "未授权的推送");
             TidyItems();
         }
 
@@ -79,6 +97,16 @@ namespace FCloud3.Services.Etc
                 Items.RemoveRange(itemsMaxCount, exceed);
             }
         }
+
+        private const string activeErr = "词条交换：主动同步失败：";
+        private const string activeSuccess = "词条交换：主动同步成功：";
+        private const string passiveErr = "词条交换：被动同步失败：";
+        private const string passiveSuccess = "词条交换：被动同步成功：";
+
+        private bool CanBeUpstream(ExchangeTarget target)
+            => (target.Role & ExchangeTargetRole.Upstream) == ExchangeTargetRole.Upstream;
+        private bool CanBeDownstream(ExchangeTarget target)
+            => (target.Role & ExchangeTargetRole.Downstream) == ExchangeTargetRole.Downstream;
     }
 
     public class ExchangeConfig
@@ -95,6 +123,7 @@ namespace FCloud3.Services.Etc
         public ExchangeTargetRole Role { get; set; }
     }
 
+    [Flags]
     public enum ExchangeTargetRole : byte
     {
         Disabled = 0,
