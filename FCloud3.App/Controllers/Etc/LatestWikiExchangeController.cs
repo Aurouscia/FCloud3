@@ -7,8 +7,8 @@ namespace FCloud3.App.Controllers.Etc
         LatestWikiExchangeService latestWikiExchangeService) 
         : Controller
     {
-        [Route(LatestWikiExchangeService.route)]
-        public IActionResult Test()
+        [Route(LatestWikiExchangeService.pushRoute)]
+        public IActionResult Push()
         {
             return Ok("OK");
         }
