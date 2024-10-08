@@ -44,15 +44,17 @@ namespace FCloud3.App.Controllers.Files
             var data = _fileDirService.GetById(id);
             if(data is null)
                 return BadRequest();
+            var isAdminOrHigher = _httpUserInfoService.IsAdmin;
             bool authGranted = _authGrantService.Test(AuthGrantOn.Dir, id);
+            var canEdit = isAdminOrHigher || authGranted;
             FileDirComModel resp = new()
             {
                 Id = data.Id,
                 Name = data.Name,
                 UrlPathName = data.UrlPathName,
-                CanEditInfo = authGranted,
-                CanPutThings = authGranted,
-                CanCreateSub = authGranted
+                CanEditInfo = canEdit,
+                CanPutThings = canEdit,
+                CanCreateSub = canEdit
             };
             return this.ApiResp(resp);
         }
