@@ -14,13 +14,14 @@ namespace FCloud3.Services.Etc
     {
         public const string pullRoute = "/api/LatestWikiExchange/Pull";
         public const string pushRoute = "/api/LatestWikiExchange/Push";
+        public const string configSectionName = "LatestWikiExchange";
         public const int itemsMaxCount = 8;
-        public const int pushCooldownSecs = 120;
+        public const int pushCooldownSecs = 60;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly UserRepo _userRepo;
         private readonly MaterialRepo _materialRepo;
         private readonly IStorage _storage;
-        private readonly ExchangeConfig _config;
+        private readonly IConfiguration _config;
         private readonly ILogger<LatestWikiExchangeService> _logger;
         public LatestWikiExchangeService(
             WikiItemRepo wikiItemRepo,
@@ -34,16 +35,29 @@ namespace FCloud3.Services.Etc
             _userRepo = userRepo;
             _materialRepo = materialRepo;
             _storage = storage;
-            _config = new();
+            _config = config;
             _logger = logger;
-            config.GetSection("LatestWikiExchange").Bind(_config);
         }
-
-        public List<ExchangeItem> Items { get; set; } = [];
-        public bool Inited { get; set; }
-        public DateTime MyPushedLatest { get; private set; }
-        public DateTime MyLastPush { get; private set; }
-        public bool Enabled => _config.Enabled;
+        
+        private static ExchangeConfig? _exConfig;
+        private ExchangeConfig ExConfig
+        {
+            get
+            {
+                if (_exConfig is null)
+                {
+                    _exConfig = new();
+                    _config.GetSection(configSectionName).Bind(_exConfig);
+                }
+                return _exConfig;
+            }
+        }
+        public static List<ExchangeItem> Items { get; set; } = [];
+        private static readonly object itemsListLockObj = new();
+        public static bool Inited { get; set; }
+        public static DateTime MyPushedLatest { get; private set; }
+        public static DateTime MyLastPush { get; private set; }
+        public bool Enabled => ExConfig.Enabled;
 
         /// <summary>
         /// 本实例显示词条时，在此处获取其他实例的词条
@@ -69,21 +83,25 @@ namespace FCloud3.Services.Etc
         {
             if (data.PusherCode is null || data.PusherDomain is null)
                 _logger.LogDebug(bePushedErr + "推送参数异常");
-            var target = _config.Targets?
+            var target = ExConfig.Targets?
                 .FirstOrDefault(x => x.Domain == data.PusherDomain && x.Code == data.PusherCode);
             if (target is { })
             {
                 if (CanBeUpstream(target))
                 {
-                    Items.AddRange(data.Items ?? []);
+                    lock (itemsListLockObj)
+                    {
+                        Items.AddRange(data.Items ?? []);
+                    }
                     _logger.LogDebug(bePushedSuccess + "{domain}", data.PusherDomain);
                 }
                 else
-                    _logger.LogDebug(bePushedErr + "不允许的推送");
+                    _logger.LogDebug(bePushedErr + "{domain}" + "不允许的推送", data.PusherDomain);
             }
             else
-                _logger.LogDebug(bePushedErr + "未授权的推送");
+                _logger.LogDebug(bePushedErr + "{domain}" + "未授权的推送", data.PusherDomain);
             TidyItems();
+            LogStatus();
         }
 
         /// <summary>
@@ -95,7 +113,7 @@ namespace FCloud3.Services.Etc
         {
             if (data.PullerCode is null || data.PullerDomain is null)
                 _logger.LogDebug(bePulledErr + "拉取参数异常");
-            var target = _config.Targets?
+            var target = ExConfig.Targets?
                 .FirstOrDefault(x => x.Domain == data.PullerDomain && x.Code == data.PullerCode);
             if (target is { })
             {
@@ -106,10 +124,10 @@ namespace FCloud3.Services.Etc
                     return res;
                 }
                 else
-                    _logger.LogDebug(bePulledErr + "不允许的推送");
+                    _logger.LogDebug(bePulledErr + "{domain}" + "不允许的推送", data.PullerDomain);
             }
             else
-                _logger.LogDebug(bePulledErr + "未授权的推送");
+                _logger.LogDebug(bePulledErr + "{domain}" + "未授权的推送", data.PullerDomain);
             return null;
         }
         
@@ -119,7 +137,7 @@ namespace FCloud3.Services.Etc
         /// </summary>
         public void Push()
         {
-            DateTime now = DateTime.Now;;
+            DateTime now = DateTime.Now;
             //冷却时间
             if ((now - MyLastPush).TotalSeconds < pushCooldownSecs)
                 return;
@@ -129,13 +147,13 @@ namespace FCloud3.Services.Etc
                 return;
             MyPushedLatest = needPush.Select(x => x.Time).Max();
             
-            if (_config.MyCode is null || _config.Targets is null)
+            if (ExConfig.MyCode is null || ExConfig.Targets is null)
             {
                 _logger.LogDebug(pushErr + "：配置异常，未能运行");
                 return;
             }
             RestClient rc = new();
-            var domains = _config.Targets
+            var domains = ExConfig.Targets
                 .Where(x => CanBeDownstream(x))
                 .Select(x => x.Domain);
             foreach (var domain in domains)
@@ -145,8 +163,8 @@ namespace FCloud3.Services.Etc
                     RestRequest rr = new($"{domain}{pushRoute}");
                     var reqObj = new ExchangePushRequest()
                     {
-                        PusherCode = _config.MyCode,
-                        PusherDomain = _config.MyDomain,
+                        PusherCode = ExConfig.MyCode,
+                        PusherDomain = ExConfig.MyDomain,
                         Items = needPush
                     };
                     rr.AddJsonBody(reqObj);
@@ -173,47 +191,51 @@ namespace FCloud3.Services.Etc
         /// </summary>
         private void Pull()
         {
-            if (_config.MyCode is null || _config.Targets is null)
+            if (ExConfig.MyCode is null || ExConfig.Targets is null)
             {
                 _logger.LogDebug(pullErr + "：配置异常，未能运行");
                 return;
             }
             RestClient rc = new();
-            var domains = _config.Targets
+            var domains = ExConfig.Targets
                 .Where(x => CanBeUpstream(x))
                 .Select(x => x.Domain);
-            foreach (var domain in domains)
+            lock (itemsListLockObj)
             {
-                if (domain is { })
+                foreach (var domain in domains)
                 {
-                    List<ExchangeItem>? items = null;
-                    RestRequest rr = new($"{domain}{pullRoute}");
-                    var reqObj = new ExchangePullRequest()
+                    if (domain is { })
                     {
-                        PullerCode = _config.MyCode,
-                        PullerDomain = _config.MyDomain
-                    };
-                    rr.AddJsonBody(reqObj);
-                    try
-                    {
-                        var resp = rc.Post(rr);
-                        if (resp.IsSuccessful && resp.Content is { })
+                        List<ExchangeItem>? items = null;
+                        RestRequest rr = new($"{domain}{pullRoute}");
+                        var reqObj = new ExchangePullRequest()
                         {
-                            items = JsonConvert.DeserializeObject<List<ExchangeItem>>(resp.Content);
-                            _logger.LogDebug(pullSuccess + "{domain}", domain);
+                            PullerCode = ExConfig.MyCode,
+                            PullerDomain = ExConfig.MyDomain
+                        };
+                        rr.AddJsonBody(reqObj);
+                        try
+                        {
+                            var resp = rc.Post(rr);
+                            if (resp.IsSuccessful && resp.Content is { })
+                            {
+                                items = JsonConvert.DeserializeObject<List<ExchangeItem>>(resp.Content);
+                                _logger.LogDebug(pullSuccess + "{domain}", domain);
+                            }
+                            else
+                                _logger.LogDebug(pullErr + "{respCode}", resp.StatusCode);
                         }
-                        else
-                            _logger.LogDebug(pullErr + "{respCode}", resp.StatusCode);
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(pullErr + "{domain} {errmsg}", domain, ex.Message);
+                        }
+                        if (items is { })
+                            Items.AddRange(items);
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug(pullErr + "{domain} {errmsg}", domain, ex.Message);
-                    }
-                    if (items is { })
-                        Items.AddRange(items);
                 }
             }
             TidyItems();
+            LogStatus();
         }
         
         private List<ExchangeItem> MyLatestWikis(DateTime? after = null)
@@ -261,12 +283,30 @@ namespace FCloud3.Services.Etc
         
         private void TidyItems()
         {
-            Items.Sort((x, y) => DateTime.Compare(y.Time, x.Time));
-            if (Items.Count > itemsMaxCount)
+            lock (itemsListLockObj)
             {
-                int exceed = Items.Count - itemsMaxCount;
-                Items.RemoveRange(itemsMaxCount, exceed);
+                Items.Sort((x, y) => DateTime.Compare(y.Time, x.Time));
+                if (Items.Count > itemsMaxCount)
+                {
+                    int exceed = Items.Count - itemsMaxCount;
+                    Items.RemoveRange(itemsMaxCount, exceed);
+                }
             }
+        }
+
+        private void LogStatus()
+        {
+            var titles = 
+                string.Join('|', Items.Select(x =>
+                {
+                    if (string.IsNullOrWhiteSpace(x.Text))
+                        return "<>";
+                    if (x.Text.Length == 1)
+                        return x.Text.Substring(0, 1);
+                    else
+                        return x.Text.Substring(0, 2);
+                }));
+            _logger.LogDebug("词条交换：当前{count}个外来物{titles}：", Items.Count, titles);
         }
 
         private const string pullErr = "词条交换：拉取失败：";
@@ -283,7 +323,7 @@ namespace FCloud3.Services.Etc
         private bool CanBeDownstream(ExchangeTarget target)
             => (target.Role & ExchangeTargetRole.Downstream) == ExchangeTargetRole.Downstream;
         private string WikiUrl(string urlPathName) 
-            => _config.MyDomain + "/#/w/" + urlPathName;
+            => ExConfig.MyDomain + "/#/w/" + urlPathName;
     }
 
     public class ExchangeConfig
