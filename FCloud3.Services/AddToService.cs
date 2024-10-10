@@ -11,6 +11,7 @@ using FCloud3.Services.WikiParsing;
 using FCloud3.Services.WikiParsing.Support;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Diff;
+using FCloud3.Services.Etc.Split;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Messages;
@@ -55,6 +56,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiContentSearchService>();
             services.AddScoped<MyWikisService>();
             services.AddScoped<LatestWikiExchangeService>();
+            services.AddScoped<SplitService>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")
