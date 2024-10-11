@@ -213,8 +213,7 @@ async function init(){
         textNode().textContent = data.value.Content || "\n";//结尾必须有个换行符（不算入内容里）
         writeArea.value.addEventListener("keydown", enterKeyHandler);
         writeArea.value.addEventListener("keydown", backspaceKeyHandler);
-        writeArea.value.addEventListener("mouseup", distinguishGrammar);
-        writeArea.value.addEventListener("touchend", distinguishGrammar);
+        document.addEventListener("selectionchange", distinguishGrammar);
         await contentInput();
         releasePreventLeaving()
 
@@ -317,6 +316,7 @@ onUnmounted(()=>{
     releasePreventLeaving();
     saveShortcut?.dispose();
     heartbeatSender?.stop();
+    document.removeEventListener("selectionchange", distinguishGrammar);
 })
 function saveLocalConfigClick(){
     saveLocalConfig(localConfig.value);
