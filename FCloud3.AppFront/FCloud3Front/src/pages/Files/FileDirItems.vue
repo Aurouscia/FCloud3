@@ -6,12 +6,13 @@ import { Ref, inject, onMounted } from 'vue';
 import FileItemEdit from './FileItemEdit.vue';
 import Functions from '@/components/Functions.vue';
 import { Api } from '@/utils/com/api';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import _ from 'lodash';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { fileDownloadLink } from '@/utils/com/api';
 import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
 import { storeToRefs } from 'pinia';
+import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 
 const props = defineProps<{
     dirId:number,
@@ -21,6 +22,7 @@ const props = defineProps<{
 }>()
 const router = useRouter();
 const wantViewWikiStore = useWantViewWikiStore();
+const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 
 var clipBoard:Ref<InstanceType<typeof ClipBoard>>
 var api:Api;
@@ -83,7 +85,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
         <div class="iconName">
             <div class="wikiIcon">W</div>
             <div class="name">
-                <a @click="jumpToWiki(wiki.UrlPathName)">{{ wiki.Name }}</a> 
+                <RouterLink @click="(e:Event)=>{e.preventDefault(); jumpToWiki(wiki.UrlPathName)}" :to="jumpToViewWikiRoute(wiki.UrlPathName)">{{ wiki.Name }}</RouterLink> 
             </div>
             <Functions x-align="left" y-align="up" :entry-size="20">
                 <button class="cancel" @click="removeWiki(wiki.Id)">移出</button>
