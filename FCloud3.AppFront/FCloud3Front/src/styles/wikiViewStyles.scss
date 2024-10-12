@@ -132,6 +132,29 @@
         border-bottom: 1px #ddd solid;
     }
 
+    .titledList{
+        background-color: #eee;
+        width: fit-content;
+        padding: 5px;
+        margin: 5px;
+        border-radius: 10px;
+        border: 2px solid cornflowerblue;
+        ul{
+            margin-top: 8px;
+            margin-bottom: 0px;
+            margin-right: 5px;
+        }
+        li{
+            border-color: #ccc;
+        }
+        .titledListTitle{
+            font-size: 110%;
+            font-weight: bold;
+            margin: 0.2rem;
+            margin-left: 16px;
+        }
+    }
+
     img.wikiInlineImg {
         object-fit: contain;
         display: inline;
