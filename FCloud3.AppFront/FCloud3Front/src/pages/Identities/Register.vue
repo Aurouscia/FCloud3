@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { Ref, onMounted, ref } from 'vue';
+import { Ref, onMounted, onUnmounted, ref } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import Pop from '@/components/Pop.vue';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import Notice from '@/components/Notice.vue';
+import { RouterLink } from 'vue-router';
+import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 
 const { jumpToLogin } = useIdentityRoutesJump();
 const userName = ref<string>("");
@@ -34,10 +36,12 @@ let api:Api;
 let pop:Ref<InstanceType<typeof Pop>>;
 let applyWay = ref<string>("");
 onMounted(async()=>{
+    setTitleTo('注册新用户')
     api = injectApi();
     pop = injectPop();
     applyWay.value = await api.etc.utils.applyBeingMember() || "暂不开放申请"
 })
+onUnmounted(()=>{recoverTitle()})
 </script>
 
 <template>
@@ -70,6 +74,9 @@ onMounted(async()=>{
         </div>
         <div class="notice">
             <Notice :type="'info'" :max-width="'300px'">
+                首次使用？注册前请先查看<RouterLink :to="'/Help'" target="_blank">平台使用帮助</RouterLink>
+            </Notice>
+            <Notice :type="'warn'" :max-width="'300px'">
                 为了确保内容合法合规，本平台为邀请制，新注册的账号为“游客”，不能进行编辑性质操作。
                 编辑内容需要“正式成员”身份。<br/><br/>
                 {{ applyWay }}
@@ -78,7 +85,7 @@ onMounted(async()=>{
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 table{
     margin:auto;
     background-color: transparent;
@@ -96,6 +103,11 @@ input{
     justify-content: center;
 }
 .notice{
-    margin-top: 100px;
+    margin-top: 50px;
+    a{
+        text-decoration: underline;
+        font-weight: bold;
+        color: white;
+    }
 }
 </style>

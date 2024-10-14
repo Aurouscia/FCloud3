@@ -3,6 +3,7 @@ import { addToRouter } from "@/utils/routerAdd";
 import HomePage from "../HomePage.vue"
 import About from "../About.vue"
 import GrammarHelp from "../GrammarHelp.vue";
+import Help from "../Help.vue";
 
 export function addHomePage(r:Router){
     addToRouter(r,routes);
@@ -24,5 +25,9 @@ const routes = [
     {
         path:"/GrammarHelp",
         component:GrammarHelp
+    },
+    {
+        path:"/Help",
+        component:Help
     }
 ]
