@@ -15,7 +15,7 @@ namespace FCloud3.Services.Etc
         {
             var myAllWs = wikiItemRepo.Existing
                 .Where(x => x.OwnerUserId == uid)
-                .Select(x => new {x.Id, x.Title, x.UrlPathName})
+                .Select(x => new {x.Id, x.Title, x.UrlPathName, x.Sealed})
                 .ToList();
             var allWIds = myAllWs.Select(x => x.Id).ToHashSet();
             var wikiToDirs = wikiToDirRepo.Existing
@@ -25,10 +25,13 @@ namespace FCloud3.Services.Etc
             var allDirs = fileDirCaching.GetAll();
             List<MyWikisInDir> flatCollection = [];
             List<string?[]> homelessWikis = [];
+            List<string?[]> sealedWikis = [];
             
             //找到所有该用户词条所在的目录，无归属的统一放起来
             foreach (var w in myAllWs)
             {
+                if(w.Sealed)
+                    sealedWikis.Add([w.Title, w.UrlPathName]);
                 var relas = wikiToDirs.FindAll(x => x.WikiId == w.Id);
                 if(relas.Count == 0)
                     homelessWikis.Add([w.Title, w.UrlPathName]);
@@ -57,10 +60,11 @@ namespace FCloud3.Services.Etc
             
             //树状找到所有祖宗目录
             Stack<MyWikisInDir> addingParent = new(flatCollection);
-            while (true)
+            int safety = allDirs.Count;//死循环安全措施
+            while (addingParent.Count > 0 && safety >= 0)
             {
-                if(addingParent.Count == 0)
-                    break;
+                safety--;//死循环安全措施
+                
                 var target = addingParent.Pop();
                 if(target.ParentId > 0 && !flatCollection.Any(mw => mw.Id == target.ParentId))
                 {
@@ -110,6 +114,7 @@ namespace FCloud3.Services.Etc
             return new MyWikisOverallResp()
             {
                 HomelessWikis = homelessWikis,
+                SealedWikis = sealedWikis,
                 TreeView = treeView
             };
         }
@@ -118,6 +123,7 @@ namespace FCloud3.Services.Etc
         {
             public MyWikisInDir? TreeView { get; set; }
             public List<string?[]>? HomelessWikis { get; set; }
+            public List<string?[]>? SealedWikis { get; set; }
         }
         public class MyWikisInDir
         {

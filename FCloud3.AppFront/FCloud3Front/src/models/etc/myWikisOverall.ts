@@ -3,6 +3,7 @@ export interface MyWikisOverallResp
 {
     TreeView:MyWikisInDir
     HomelessWikis: MyWikisWikiNamePath[]
+    SealedWikis?: MyWikisWikiNamePath[]
 }
 export interface MyWikisInDir
 {
