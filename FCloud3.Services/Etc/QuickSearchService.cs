@@ -12,6 +12,7 @@ namespace FCloud3.Services.Etc
         FileItemRepo fileItemRepo,
         MaterialRepo materialRepo,
         FileDirRepo fileDirRepo,
+        IOperatingUserIdProvider userIdProvider,
         IStorage storage)
     {
         private const int maxCount = 8;
@@ -21,11 +22,13 @@ namespace FCloud3.Services.Etc
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly MaterialRepo _materialRepo = materialRepo;
         private readonly FileDirRepo _fileDirRepo = fileDirRepo;
+        private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly IStorage _storage = storage;
 
         public QuickSearchResult SearchWikiItem(string str, bool isAdmin)
         {
-            var q = _wikiItemRepo.QuickSearch(str, isAdmin);
+            var uid = _userIdProvider.Get();
+            var q = _wikiItemRepo.QuickSearch(str, isAdmin, uid);
             var items = q.Select(x => new { x.Title, x.UrlPathName, x.Id }).Take(maxCount).ToList();
             QuickSearchResult res = new();
             items.ForEach(x =>
