@@ -15,9 +15,10 @@ export default defineConfig({
       output:{
         manualChunks:{
           'auTableEditor':['@aurouscia/au-table-editor'],
-          'lodash':['lodash'],
-          'vue':['vue'],
-          'axios':['axios']
+          'libs':[
+            'lodash','axios','md5','pinia','vue-router',
+            '@aurouscia/keyboard-shortcut'],
+          'vue':['vue']
         }
       }
     }

@@ -33,8 +33,8 @@ async function createWiki() {
     }
 }
 onMounted(async()=>{
-    guideText.value = await getGuideOf('createWiki')
-    regulationPathName.value = await getGuideOf('regulation')
+    guideText.value = await getGuideOf('createWiki', api)
+    regulationPathName.value = await getGuideOf('regulation', api)
 })
 </script>
 

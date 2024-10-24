@@ -25,7 +25,7 @@ function toggleSidebar(){
 const { getGuideOf } = useGuideInfoStore();
 const introPathName = ref<string|null|undefined>();
 onMounted(async()=>{
-    introPathName.value = await getGuideOf('intro')
+    introPathName.value = await getGuideOf('intro', api)
 })
 </script>
 
