@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { AuTableEditor, AuTableData } from '@aurouscia/au-table-editor'
-import '@aurouscia/au-table-editor/style.css'
 import Loading from '@/components/Loading.vue';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { SetTopbarFunc, injectApi, injectSetTopbar } from '@/provides';

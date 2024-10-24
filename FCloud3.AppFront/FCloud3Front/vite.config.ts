@@ -10,7 +10,17 @@ export default defineConfig({
   },
   build:{
     outDir:"../../FCloud3.App/wwwroot",
-    emptyOutDir:true
+    emptyOutDir:true,
+    rollupOptions:{
+      output:{
+        manualChunks:{
+          'auTableEditor':['@aurouscia/au-table-editor'],
+          'lodash':['lodash'],
+          'vue':['vue'],
+          'axios':['axios']
+        }
+      }
+    }
   },
   resolve:{
     alias:{
