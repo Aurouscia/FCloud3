@@ -103,11 +103,11 @@ const pathThisName = ref<string>("");
 const pathThis = ref<string[]>([]);
 const isRoot = ref<boolean>(false);
 function setPathData(){
-    if(typeof props.path==='string' || props.path.length==0){
+    if(typeof props.path==='string'){
         pathAncestors.value = [];
-        pathThisName.value = '';
-        pathThis.value = [];
-        isRoot.value = true;
+        pathThisName.value = props.path;
+        pathThis.value = [props.path];
+        isRoot.value = false;
     }else{
         pathThis.value = _.filter(props.path, x=>!!x)
         pathAncestors.value = _.take(pathThis.value,pathThis.value.length-1)
