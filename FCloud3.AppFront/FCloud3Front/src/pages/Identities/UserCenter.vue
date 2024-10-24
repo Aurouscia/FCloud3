@@ -112,7 +112,7 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .info .settings{
     margin-top: 20px;
@@ -148,7 +148,7 @@ onUnmounted(()=>{
     align-items: start;
     padding-top: 20px;
     box-sizing: border-box;
-    height: $body-height;
+    height: globalValues.$body-height;
     overflow-y: scroll;
 }
 .user>*{

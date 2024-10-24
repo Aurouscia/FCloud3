@@ -59,8 +59,8 @@ async function deleteFile() {
 defineExpose({
     startEditingFile
 })
-const emit = defineEmits<{
-    (e:'needRefresh'):void
+defineEmits<{
+    (e:'needRefresh'):void //貌似并没有用到
 }>()
 let api:Api;
 onMounted(()=>{

@@ -12,21 +12,21 @@
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.5.5",
     "@aurouscia/keyboard-shortcut": "^0.0.3",
-    "axios": "^1.7.2",
+    "axios": "^1.7.7",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
-    "pinia": "^2.1.7",
-    "vue": "^3.4.33",
-    "vue-router": "^4.4.0"
+    "pinia": "^2.2.4",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.7",
+    "@types/lodash": "^4.17.12",
     "@types/md5": "^2.3.5",
-    "@types/node": "^20.14.11",
-    "@vitejs/plugin-vue": "^5.0.5",
-    "sass": "^1.77.8",
-    "typescript": "^5.5.3",
-    "vite": "^5.3.4",
-    "vue-tsc": "^2.0.26"
+    "@types/node": "^22.7.9",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "sass": "^1.80.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vue-tsc": "^2.1.6"
   }
 }

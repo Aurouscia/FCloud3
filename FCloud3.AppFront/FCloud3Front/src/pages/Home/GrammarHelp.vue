@@ -28,7 +28,7 @@ import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSour
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .welcome{
     margin: 10px 0px 10px 0px;
@@ -37,7 +37,7 @@ import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSour
 }
 .choose{
     padding-top: 20px;
-    height: calc(100vh - $topbar-height - 110px);
+    height: calc(100vh - globalValues.$topbar-height - 110px);
     overflow-y: scroll;
 }
 .title{

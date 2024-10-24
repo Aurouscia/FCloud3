@@ -431,7 +431,7 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 h1{
     display: flex;
@@ -484,7 +484,7 @@ h1{
 .paras {
     min-width: 100%;
     max-width: 600px;
-    max-height: calc($body-height - 230px);
+    max-height: calc(globalValues.$body-height - 230px);
     overflow-y: auto;
     padding-bottom: 100px;
     position: relative;

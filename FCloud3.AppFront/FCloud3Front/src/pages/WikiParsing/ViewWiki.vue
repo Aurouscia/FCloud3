@@ -367,7 +367,8 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
+
 .groupLabels{
     display: flex;
     flex-wrap: wrap;
@@ -387,7 +388,7 @@ onUnmounted(()=>{
     }
 }
 .wikiViewFrame{
-    height: $body-height;
+    height: globalValues.$body-height;
     display: flex;
     gap:20px;
 }
@@ -491,7 +492,7 @@ onUnmounted(()=>{
         right: 0px;
         bottom: 0px;
         height: unset;
-        top: $topbar-height;
+        top: globalValues.$topbar-height;
         border-top: 1px solid #ddd;
         padding-top: 20px;
         box-shadow: 0px 0px 12px 0px black;

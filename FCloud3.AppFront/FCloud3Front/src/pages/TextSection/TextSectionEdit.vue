@@ -482,7 +482,6 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </template>
 
 <style scoped lang="scss">
-    @import "@/utils/wikiSource/wikiSourceHighlight";
     $te-topbar-height: 70px;
     $te-content-height: 60px;
 

@@ -83,7 +83,7 @@ let swl: SwipeListener|undefined
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 $topbar-body-vert-width: 180px;
 .notifExists{
@@ -101,7 +101,7 @@ $topbar-body-vert-width: 180px;
     box-shadow: 0px 0px 12px 0px black;
     background-color: white;
     z-index: 960;
-    padding-top: $topbar-height;
+    padding-top: globalValues.$topbar-height;
     display: flex;
     flex-direction: column;
     user-select: none;

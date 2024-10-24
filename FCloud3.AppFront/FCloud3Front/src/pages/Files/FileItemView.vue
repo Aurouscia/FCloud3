@@ -52,7 +52,7 @@ function jumpToLocation(){
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .fileItemView{
     text-align: center;
@@ -74,7 +74,7 @@ function jumpToLocation(){
 }
 img{
     max-width: 70vw;
-    max-height: calc(70vh - $topbar-height);
+    max-height: calc(70vh - globalValues.$topbar-height);
     object-fit: contain;
     border-radius: 5px;
 }

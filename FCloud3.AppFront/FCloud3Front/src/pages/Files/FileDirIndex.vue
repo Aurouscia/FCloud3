@@ -365,7 +365,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .ownerAndInfoType{
     display: flex;
