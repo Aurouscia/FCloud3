@@ -288,6 +288,11 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                 根目录
                 <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
+        </div>
+        <div v-if="thisDirId>0" class="ownerAndInfoType">
+            <div class="owner">
+                目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
+            </div>
             <div class="dirInfoTypeSelector">
                 <select v-model="infoType">
                     <option :value="'ownerName'">所有者</option>
@@ -296,12 +301,11 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                 </select>
             </div>
         </div>
-        <div v-if="thisDirId>0" class="owner">
-            目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
-        </div>
-        <div v-else class="owner searchEntry">
-            <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
-            <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
+        <div v-else class="ownerAndInfoType searchEntry">
+            <div class="owner">
+                <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
+                <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
+            </div>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
             :hide-page="false" :hide-fn="hideFn" :no-load-on-mounted="true">
@@ -363,24 +367,32 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 <style scoped lang="scss">
 @import '@/styles/globalValues';
 
-.dirInfoTypeSelector{
-    position: absolute;
-    right: 0px;
-    bottom: 0px;
-    select{
-        font-size: 16px;
+.ownerAndInfoType{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 28px;
+    .dirInfoTypeSelector{
+        select{
+            margin: 2px;
+            padding: 2px;
+            font-size: 15px;
+        }
     }
-}
-.owner{
-    color: #999;
-    margin-bottom: 2px;
-}
-.owner span{
-    font-weight: bold;
-    cursor: pointer;
-}
-.owner span:hover{
-    text-decoration: underline;
+    .owner{
+        color: #999;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .owner span{
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .owner span:hover{
+        text-decoration: underline;
+    }
 }
 .searchEntry button{
     text-decoration: underline;
