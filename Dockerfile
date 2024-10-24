@@ -5,6 +5,7 @@ FROM atomhub.openatom.cn/amd64/node:18-buster-slim AS febuild
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/package-lock.json" "./package-lock.json"
+RUN npm config set registry https://registry.npmmirror.com
 RUN npm ci
 COPY "./FCloud3.AppFront/FCloud3Front" "."
 RUN npm run build-here
