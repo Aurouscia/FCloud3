@@ -7,9 +7,9 @@ namespace FCloud3.Repos
 {
     public abstract class RepoBaseCache<T, TCache>(
         FCloudContext context,
-        ICommitingUserIdProvider userIdProvider) 
-        : RepoBase<T>(context, userIdProvider) 
-        where T : class, IDbModel 
+        ICommitingUserIdProvider userIdProvider)
+        : RepoBase<T>(context, userIdProvider)
+        where T : class, IDbModel
         where TCache : CacheModelBase<T>
     {
         /// <summary>
@@ -17,7 +17,14 @@ namespace FCloud3.Repos
         /// </summary>
         private static ConcurrentDictionary<int, TCache> CacheDict = [];
         private static DateTime LatestUpdated
-            => CacheDict.Values.Select(x => x.Updated).Max();
+        {
+            get
+            {
+                if (CacheDict.IsEmpty)
+                    return DateTime.MinValue;
+                return CacheDict.Values.Select(x => x.Updated).Max();
+            }
+        }
         /// <summary>
         /// Repo对象应该是Scoped服务，每个Scope第一次调用时同步一次即可，此处记录是否同步过
         /// </summary>
