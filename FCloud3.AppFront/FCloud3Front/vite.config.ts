@@ -10,12 +10,30 @@ export default defineConfig({
   },
   build:{
     outDir:"../../FCloud3.App/wwwroot",
-    emptyOutDir:true
+    emptyOutDir:true,
+    rollupOptions:{
+      output:{
+        manualChunks:{
+          'auTableEditor':['@aurouscia/au-table-editor'],
+          'libs':[
+            'lodash','axios','md5','pinia','vue-router',
+            '@aurouscia/keyboard-shortcut'],
+          'vue':['vue']
+        }
+      }
+    }
   },
   resolve:{
     alias:{
       '@': resolve(__dirname, './src'),
       '~': resolve('')
     }
-  }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler'
+      },
+    },
+  },
 })

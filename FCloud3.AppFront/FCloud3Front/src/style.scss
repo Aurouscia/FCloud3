@@ -1,6 +1,8 @@
-@import './styles/wikiViewStyles.scss';
-@import './styles/paraListItem.scss';
-@import './styles/globalValues';
+@use './styles/wikiViewStyles.scss';
+@use './styles/paraListItem.scss';
+@use './styles/globalValues';
+@use './styles/fileDir.scss';
+@use "./utils/wikiSource/wikiSourceHighlight";
 
 *{
   margin: 0px;
@@ -20,8 +22,8 @@ body{
   overflow-y: auto;
 }
 .main.mainDivMarginTop{
-  margin-top: $topbar-height;
-  height: calc(100vh - $topbar-height);
+  margin-top: globalValues.$topbar-height;
+  height: calc(100vh - globalValues.$topbar-height);
 }
 .main>* {
   overflow: auto;

@@ -43,6 +43,8 @@ namespace FCloud3.WikiPreprocessor.Models
         public int TitleId { get; }
         private readonly string? _rawLineHash;
         
+        public const string titledListClassName = "titledList";
+        public const string titledListTitleClassName = "titledListTitle";
         public TitledBlockElement(IHtmlable title,string titleOriginal, string? rawLineHash, int level, IHtmlable content, int titleId = 0):base(content)
         {
             Title = title;
@@ -51,16 +53,31 @@ namespace FCloud3.WikiPreprocessor.Models
             _rawLineHash = rawLineHash;
             TitleId = titleId;
         }
-
+        
         public override string ToHtml()
+        {
+            if (IsTitledListBlock())
+                return HtmlTitledListBlock();
+            return HtmlRegular();
+        }
+
+        public override void WriteHtml(StringBuilder sb)
+        {
+            if(IsTitledListBlock())
+                WriteTitledListBlock(sb);
+            else
+                WriteRegular(sb);
+        }
+
+        private string HtmlRegular()
         {
             string body = $"<div class=\"indent\">{Content.ToHtml()}</div>";
             if (_rawLineHash is null)
                 return $"<h{Level}>{Title.ToHtml()}</h{Level}>{body}";
             else
-                return $"{HtmlLabel.Custom(Title.ToHtml(), $"h{Level}", Consts.locatorAttrName, _rawLineHash)}{body}";
+                return $"{HtmlLabel.Custom(Title.ToHtml(), $"h{Level}", Consts.locatorAttrName, _rawLineHash)}{body}";            
         }
-        public override void WriteHtml(StringBuilder sb)
+        private void WriteRegular(StringBuilder sb)
         {
             sb.Append("<h"); 
             sb.Append(Level);
@@ -80,6 +97,34 @@ namespace FCloud3.WikiPreprocessor.Models
             Title.WriteHtml(sb);
             sb.Append("</h"); sb.Append(Level); sb.Append('>');
             sb.Append("<div class=\"indent\">");
+            Content.WriteHtml(sb);
+            sb.Append("</div>");
+        }
+
+        private bool IsTitledListBlock()
+        {
+            if (Content is RuledBlockElement block
+                && block.GenByRule is ListBlockRule)
+            {
+                return true;
+            }
+            return false;
+        }
+        private string HtmlTitledListBlock()
+        {
+            return $"<div class=\"{titledListClassName}\">" +
+                        $"<div class=\"{titledListTitleClassName}\">" +
+                            $"{Title.ToHtml()}" +
+                        $"</div>" +
+                        $"{Content.ToHtml()}" +
+                   $"</div>";
+        }
+        private void WriteTitledListBlock(StringBuilder sb)
+        {
+            sb.Append($"<div class=\"{titledListClassName}\">" +
+                      $"<div class=\"{titledListTitleClassName}\">");
+            Title.WriteHtml(sb);
+            sb.Append("</div>");
             Content.WriteHtml(sb);
             sb.Append("</div>");
         }

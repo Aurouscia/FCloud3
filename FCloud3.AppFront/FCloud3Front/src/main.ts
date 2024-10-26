@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import './style.scss'
+import '@aurouscia/au-table-editor/style.css'
 import App from './App.vue'
 import { createPinia } from 'pinia';
 import { createRouter, createWebHashHistory } from 'vue-router';

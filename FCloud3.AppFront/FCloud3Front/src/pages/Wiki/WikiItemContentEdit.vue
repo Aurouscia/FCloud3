@@ -365,12 +365,12 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .topbar{
     position: fixed;
     top:0px;left: 0px;right: 0px;
-    height: $topbar-height;
+    height: globalValues.$topbar-height;
     box-shadow: 0px 0px 5px 0px black;
     z-index: 1000;
     display: flex;
@@ -509,7 +509,7 @@ onUnmounted(()=>{
 }
 
 .paraInsert.blank {
-    top: calc(20px + $topbar-height);
+    top: calc(20px + globalValues.$topbar-height);
 }
 .para.selected{
     background-color: #ccc;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 </script>
 
 <template>
@@ -54,7 +55,7 @@ img{
     justify-content: center;
     align-items: center;
     gap:20px;
-    *{
+    &>*{
         text-align: center;
     }
 }

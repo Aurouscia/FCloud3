@@ -125,13 +125,13 @@ onUnmounted(async()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 .diffContentHistory{
     display: flex;
     flex-direction: row;
     gap: 10px;
-    height: $body-height;
+    height: globalValues.$body-height;
     box-sizing: border-box;
     padding: 10px 0px 10px 0px;
 }

@@ -1,9 +1,11 @@
 import { sleep } from '@/utils/sleep';
 import { ref } from "vue";
+import { getTopRelativeToClass } from '../recursivePos';
 
 const clickableTagName = "A";
 const refIdStarts = "ref_";
 const refentryIdStarts = "refentry_";
+const topRelClassName = 'wikiView'
 
 export function useFootNoteJump(){
     function listenFootNoteJump(){
@@ -30,7 +32,8 @@ export function useFootNoteJump(){
         }
         const target = document.querySelector("#"+search) as HTMLElement;
         if(target && target.offsetTop){
-            footNoteJumpCallBack.value(target.offsetTop);
+            const topToFrameTop = getTopRelativeToClass(target, topRelClassName)
+            footNoteJumpCallBack.value(topToFrameTop);
             window.setTimeout(async()=>{
                 target.style.transition = "0s";
                 for(const _a in [1,2,3]){

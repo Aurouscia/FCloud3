@@ -159,8 +159,8 @@ onUnmounted(()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
-$user-group-items-height: calc($body-height - 80px);
+@use '@/styles/globalValues';
+$user-group-items-height: calc(globalValues.$body-height - 80px);
 
 h1{
     display: flex;

@@ -6,6 +6,7 @@ import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useFeVersionChecker } from '@/utils/feVersionCheck';
+import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
 
 const api = injectApi();
 const model = ref<WikiCenteredHomePage>();
@@ -45,7 +46,8 @@ onMounted(async()=>{
                 <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
-    </div>    
+    </div>
+    <WikiSelectedSwiperContainer></WikiSelectedSwiperContainer>
     <div class="lower">
         <div class="list">
             <div class="twinListRow">

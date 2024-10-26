@@ -10,6 +10,8 @@ import Loading from '@/components/Loading.vue';
 import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '@/models/files/fileDir';
 import { IndexQuery, indexQueryDefault } from '@/components/Index';
 import { Api } from '@/utils/com/api';
+import { storeToRefs } from 'pinia';
+import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
 
 const router = useRouter();
 
@@ -80,6 +82,8 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
         type:type
     },e)
 }
+
+const { infoType } = storeToRefs(useDirInfoTypeStore())
 </script>
 
 <template>
@@ -97,8 +101,8 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
                         <button class="minor" @click="toClipBoard($event,subdir.Id,subdir.Name,'fileDir')">移动</button>
                     </Functions>
                 </div>
-                <div class="date">
-                    {{ subdir.Updated }}
+                <div class="dirSysInfo">
+                    {{ infoType=='ownerName' ? subdir.OwnerName : (infoType=='lastUpdate' ? subdir.Updated : '') }}
                 </div>
             </div>
             <div class="detail" v-if="subdir.showChildren">
@@ -116,16 +120,6 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
 </template>
 
 <style scoped>
-.date{
-    font-size: 15px;
-    color: #666
-}
-@media screen and (max-width: 500px){
-    .date{
-        display: none !important;
-    }
-}
-
 .subdirName{
     font-weight: bold;
 }

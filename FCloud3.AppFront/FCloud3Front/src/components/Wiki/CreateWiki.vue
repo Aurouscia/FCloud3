@@ -33,8 +33,8 @@ async function createWiki() {
     }
 }
 onMounted(async()=>{
-    guideText.value = await getGuideOf('createWiki')
-    regulationPathName.value = await getGuideOf('regulation')
+    guideText.value = await getGuideOf('createWiki', api)
+    regulationPathName.value = await getGuideOf('regulation', api)
 })
 </script>
 
@@ -61,7 +61,7 @@ onMounted(async()=>{
         </tr>
     </table>
     <div v-if="regulationPathName" class="reguLink">
-        <RouterLink :to="jumpToViewWikiRoute(regulationPathName)" target="_blank">查看使用规定</RouterLink>
+        <RouterLink :to="jumpToViewWikiRoute(regulationPathName)" target="_blank">查看系统使用规定</RouterLink>
     </div>
     <Notice v-if="guideText" type="warn">
         {{ guideText }}
@@ -74,8 +74,14 @@ onMounted(async()=>{
 <style lang="scss" scoped>
     .reguLink{
         text-align: center;
-        font-size: 18px;
+        font-size: 16px;
         margin-top: 20px;
         margin-bottom: 20px;
+        a{
+            color: green;
+            &:hover{
+                color: darkgreen;
+            }
+        }
     }
 </style>

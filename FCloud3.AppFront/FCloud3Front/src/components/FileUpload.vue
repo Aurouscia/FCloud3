@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, nextTick, onMounted, ref } from 'vue';
 import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt } from '../utils/fileUtils';
-import { StagingFile, FileUploadDist} from '../models/files/fileItem';
+import { StagingFile, FileUploadDist, fileUploadMaxSize} from '../models/files/fileItem';
 import md5 from 'md5'
 import _ from 'lodash'
 import Pop from './Pop.vue';
@@ -59,7 +59,7 @@ const fileList = ref<StagingFile[]>([]);
 async function commit(idx:number){
     const target = fileList.value[idx];
     if(!target){return;}
-    if(target.file.size>10*1000*1000){
+    if(target.file.size > fileUploadMaxSize){
         pop.value.show("文件过大，请压缩或改为放网盘链接","failed")
         return;
     }
@@ -113,7 +113,7 @@ onMounted(()=>{
                 <div class="fileBody">
                     <div class="itemName" @click="startEditingName(f)">{{ f.displayName }}</div>
                     <div class="itemControl">
-                        <div class="fileSize" :style="{backgroundColor:f.file.size>10*1000*1000?'red':''}">{{ fileSizeStr(f.file.size)}}</div>
+                        <div class="fileSize" :style="{backgroundColor:f.file.size>fileUploadMaxSize?'red':''}">{{ fileSizeStr(f.file.size)}}</div>
                         <button class="ok" @click="commit(i)">上传</button>
                         <button class="cancel" @click="delFile(i)">取消</button>
                     </div>

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FCloud3.App.Controllers.Diff
 {
-    [Authorize]
     public class DiffContentController(
         DiffContentService diffContentService,
         HttpUserInfoService httpUserInfoService) : Controller
@@ -41,6 +40,7 @@ namespace FCloud3.App.Controllers.Diff
             return this.ApiResp(res);
         }
 
+        [Authorize]
         [UserTypeRestricted(UserType.Admin)]
         public IActionResult SetHidden(int diffId, bool hidden)
         {

@@ -28,6 +28,8 @@ import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import Footer from '@/components/Footer.vue';
 import Search from '@/components/Search.vue';
 import { useFilesRoutesJump } from './routes/routesJump';
+import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
+import { storeToRefs } from 'pinia';
 
 
 const props = defineProps<{
@@ -101,11 +103,11 @@ const pathThisName = ref<string>("");
 const pathThis = ref<string[]>([]);
 const isRoot = ref<boolean>(false);
 function setPathData(){
-    if(typeof props.path==='string' || props.path.length==0){
+    if(typeof props.path==='string'){
         pathAncestors.value = [];
-        pathThisName.value = '';
-        pathThis.value = [];
-        isRoot.value = true;
+        pathThisName.value = props.path;
+        pathThis.value = [props.path];
+        isRoot.value = false;
     }else{
         pathThis.value = _.filter(props.path, x=>!!x)
         pathAncestors.value = _.take(pathThis.value,pathThis.value.length-1)
@@ -258,11 +260,13 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         index.value?.reloadData();
     }
 }
+
+const { infoType } = storeToRefs(useDirInfoTypeStore())
 </script>
 
 <template>
     <div class="fileDir">
-        <div>
+        <div style="position: relative;">
             <div class="ancestors">
                 <div>
                     <span @click="jumpToAncestor(-1)">根目录</span>/
@@ -285,12 +289,23 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                 <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
         </div>
-        <div v-if="thisDirId>0" class="owner">
-            目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
+        <div v-if="thisDirId>0" class="ownerAndInfoType">
+            <div class="owner">
+                目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
+            </div>
+            <div class="dirInfoTypeSelector">
+                <select v-model="infoType">
+                    <option :value="'ownerName'">所有者</option>
+                    <option :value="'lastUpdate'">更新</option>
+                    <option :value="'size'">尺寸</option>
+                </select>
+            </div>
         </div>
-        <div v-else class="owner searchEntry">
-            <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
-            <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
+        <div v-else class="ownerAndInfoType searchEntry">
+            <div class="owner">
+                <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
+                <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
+            </div>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
             :hide-page="false" :hide-fn="hideFn" :no-load-on-mounted="true">
@@ -306,8 +321,8 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
                                 <button class="minor" @click="toClipBoard($event,item.Id,item.Name,'fileDir')">移动</button>
                             </Functions>
                         </div>
-                        <div class="date">
-                            {{ item.Updated }}
+                        <div class="dirSysInfo">
+                            {{ infoType=='ownerName' ? item.OwnerName : (infoType=='lastUpdate' ? item.Updated : '') }}
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
@@ -350,27 +365,34 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
-.date{
-    font-size: 15px;
-    color: #666
-}
-@media screen and (max-width: 500px){
-    .date{
-        display: none !important;
+.ownerAndInfoType{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 28px;
+    .dirInfoTypeSelector{
+        select{
+            margin: 2px;
+            padding: 2px;
+            font-size: 15px;
+        }
     }
-}
-.owner{
-    color: #999;
-    margin-bottom: 2px;
-}
-.owner span{
-    font-weight: bold;
-    cursor: pointer;
-}
-.owner span:hover{
-    text-decoration: underline;
+    .owner{
+        color: #999;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .owner span{
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .owner span:hover{
+        text-decoration: underline;
+    }
 }
 .searchEntry button{
     text-decoration: underline;

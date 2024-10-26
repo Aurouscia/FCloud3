@@ -1,13 +1,12 @@
-import { injectApi } from "@/provides";
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { Api } from "../com/api";
 
 export const useGuideInfoStore = defineStore('guideInfo',()=>{
-    const api = injectApi()
     const createWikiGuide = ref<string|null|undefined>()
     const introPathName = ref<string|null|undefined>()
     const regulationPathName = ref<string|null|undefined>()
-    async function getGuideOf(type:'intro'|'regulation'|'createWiki') {
+    async function getGuideOf(type:'intro'|'regulation'|'createWiki', api:Api) {
         if(type=='createWiki'){
             if(createWikiGuide.value === undefined){
                 createWikiGuide.value = (await api.etc.guideInfo.createWiki())?.Text

@@ -31,3 +31,5 @@ export interface FileUploadRequest
     StoreName:string,
     Hash:string
 }
+
+export const fileUploadMaxSize = 10*1024*1024

@@ -23,6 +23,8 @@ import { useRouter } from 'vue-router';
 import { TextSectionLocalConfig, readLocalConfig, saveLocalConfig, textSectionConfigDefault } from '@/utils/localConfig';
 import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
 import { storeToRefs } from 'pinia';
+import GrammarBtn from '@/components/Editor/GrammarBtn.vue';
+import { useGrammarBtnStore } from '@/utils/globalStores/grammarBtn';  
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -197,6 +199,7 @@ let initialContent:string = "";
 const heartbeatReleaseStore = useHeartbeatReleaseStore()
 const { registerHeartbeatRelease } = heartbeatReleaseStore
 const { heartbeatReleaseAction } = storeToRefs(heartbeatReleaseStore)
+const { setGrammarBtnTarget, setEditedCallback, distinguishGrammar} = useGrammarBtnStore()
 async function init(){
     const resp = await api.textSection.textSection.edit(textSecId);
     if(resp){
@@ -205,9 +208,12 @@ async function init(){
         loadComplete.value = true;
         await nextTick();
         if(!writeArea.value){return}
+        setGrammarBtnTarget(writeArea.value)
+        setEditedCallback(contentInput)
         textNode().textContent = data.value.Content || "\n";//结尾必须有个换行符（不算入内容里）
         writeArea.value.addEventListener("keydown", enterKeyHandler);
         writeArea.value.addEventListener("keydown", backspaceKeyHandler);
+        document.addEventListener("selectionchange", distinguishGrammar);
         await contentInput();
         releasePreventLeaving()
 
@@ -310,6 +316,7 @@ onUnmounted(()=>{
     releasePreventLeaving();
     saveShortcut?.dispose();
     heartbeatSender?.stop();
+    document.removeEventListener("selectionchange", distinguishGrammar);
 })
 function saveLocalConfigClick(){
     saveLocalConfig(localConfig.value);
@@ -381,7 +388,7 @@ function rightToLeft(e:MouseEvent){
     target.style.backgroundColor="yellow";
     window.setTimeout(()=>{
         target.style.backgroundColor="";
-    },1000)
+    },500)
 }
 let lastRightToLeftHash:string = "";
 let lastRightToLeftHashFadeTimer = 0;
@@ -393,15 +400,12 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </script>
 
 <template>
-<div class="topbar">
-    <div>
-        <button @click="togglePreview" :class="{off:!previewOn}">
-            预览
-        </button>
-        <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle" class="paraTitle"/>
-    </div>
-    <div>
+<div class="topbar" v-if="loadComplete">
+    <div class="opsAndTitle">
         <div class="ops">
+            <button @click="togglePreview" :class="{off:!previewOn}">
+                预览
+            </button>
             <button class="minor" @click="localConfigSidebar?.extend">
                 设置
             </button>
@@ -409,12 +413,20 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
                 链接
             </button>
         </div>
-        <button v-if="preventingLeaving" @click="replaceContent">
-            保存
-        </button>
-        <button v-else @click="router.go(-1)" class="ok">
-            退出
-        </button>
+        <input v-model="data.Title" placeholder="请输入段落标题" @blur="replaceTitle" class="paraTitle"/>
+    </div>
+    <div class="grammarAndLeave">
+        <div class="grammar">
+            <GrammarBtn></GrammarBtn>
+        </div>
+        <div class="leave">
+            <button v-if="preventingLeaving" @click="replaceContent">
+                保存
+            </button>
+            <button v-else @click="router.go(-1)" class="ok">
+                完成
+            </button>
+        </div>
     </div>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
 </div>
@@ -470,11 +482,13 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </template>
 
 <style scoped lang="scss">
-    @import "@/utils/wikiSource/wikiSourceHighlight";
+    $te-topbar-height: 70px;
+    $te-content-height: 60px;
+
     .preventingLeaving{
         position: fixed;
-        right: 5px;
-        top: 7px;
+        right: 4px;
+        top: 4px;
         width: 10px;
         height: 10px;
         background-color: red;
@@ -483,7 +497,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
     .background{
         position: fixed;
         width: 100vw;
-        top: 50px;
+        top: $te-topbar-height;
         left: 0px;
         bottom: 0px;
 
@@ -544,25 +558,61 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
         top:0px;
         left:0px;
         right: 0px;
-        height: 50px;
-        background-color: #ccc;
+        height: $te-topbar-height;
+        background-color: #ddd;
         padding: 0px 5px 0px 5px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
+    }
+    .opsAndTitle{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        width: 155px;
+        background-color: white;
+        border-radius: 5px;
+        height: $te-content-height;
+        box-sizing: border-box;
+        padding: 2px;
+        input{
+            margin: 0px;
+            width: 100%;
+        }
+        button{
+            padding: 3px;
+            font-size: 15px;
+            flex-grow: 1;
+        }
+        button.minor{
+            padding: 1px;
+        }
         .ops{
+            width: 100%;
             display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
+            justify-content: space-between;
+            gap: 2px;
         }
     }
-    .paraTitle{
-        width: 130px;
-    }
-    .topbar > div{
+    .grammarAndLeave{
         display: flex;
         align-items: center;
+        gap: 5px;
+        .grammar{
+            background-color: white;
+            width: calc(100vw - 220px);
+            height: $te-content-height;
+            border-radius: 5px;
+            overflow: hidden
+        }
+        .leave{
+            button{
+                height: $te-content-height;
+            }
+        }
     }
     .topbar button{
         white-space: nowrap;

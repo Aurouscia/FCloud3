@@ -64,7 +64,29 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow(
             "内容1\n#一级*标*题\t\n 内容2\r\n ##二级**标**题1\n内容3\n##二级标题2",
             "<p>内容1</p><h1>一级<i>标</i>题</h1><div class=\"indent\"><p>内容2</p><h2>二级<b>标</b>题1</h2><div class=\"indent\"><p>内容3</p></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
-        public void ParseTest(string content, string answer)
+        public void TitledBlockTest(string content, string answer)
+        {
+            string html = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html);
+            string html2 = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html2);
+            string html3 = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html3);
+        }
+        
+        /// <summary>
+        /// 当一个标题的势力范围仅有一个列表(ul)元素，则特殊处理，不输出为hx
+        /// </summary>
+        [TestMethod]
+        [DataRow(
+            "# 恭喜\n ## 中奖名单\n- 小张\n -小王",
+            "<h1>恭喜</h1><div class=\"indent\">" +
+                "<div class=\"titledList\">" +
+                    "<div class=\"titledListTitle\">中奖名单</div>" +
+                    "<ul><li>小张</li><li>小王</li></ul>" +
+                "</div>" +
+            "</div>")]
+        public void TitledListBlockTest(string content, string answer)
         {
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);

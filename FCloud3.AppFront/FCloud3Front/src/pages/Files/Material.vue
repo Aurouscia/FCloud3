@@ -243,13 +243,13 @@ watch(onlyMine, async()=>{
 </template>
 
 <style scoped lang="scss">
-@import '@/styles/globalValues';
+@use '@/styles/globalValues';
 
 tr{
     cursor: pointer;
 }
 .matTable{
-    height: calc(100vh - $topbar-height - 70px);
+    height: calc(100vh - globalValues.$topbar-height - 70px);
 }
 .materialContent{
     display: flex;
