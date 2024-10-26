@@ -2,19 +2,17 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
-using FCloud3.Repos.Etc.Caching;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Wiki
 {
-    public class WikiItemRepo : RepoBaseWithCaching<WikiItem, WikiItemCachingModel>
+    public class WikiItemRepo : RepoBaseCache<WikiItem, WikiItemCacheModel>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         public WikiItemRepo(
             FCloudContext context,
-            ICommitingUserIdProvider userIdProvider,
-            WikiItemCaching wikiItemCaching) 
-            : base(context, userIdProvider, wikiItemCaching)
+            ICommitingUserIdProvider userIdProvider) 
+            : base(context, userIdProvider)
         {
         }
 
@@ -129,22 +127,21 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.OwnerUserId == uid);
         }
 
-        public override void UpdateTime(int id)
+        protected override IQueryable<WikiItemCacheModel> ConvertToCacheModel(IQueryable<WikiItem> q)
         {
-            base.UpdateTime(id);
-            _caching.Update(id, x=>x.Update=DateTime.Now);
+            return q.Select(x => new WikiItemCacheModel(
+                x.Id, x.Updated, x.Sealed, x.OwnerUserId, x.Title, x.UrlPathName));
         }
-        public override void UpdateTime(List<int> ids)
-        {
-            base.UpdateTime(ids);
-            _caching.UpdateRange(ids, x=>x.Update=DateTime.Now);
-        }
-        public override int UpdateTime(IQueryable<int> ids)
-        {
-            var idList = ids.ToList();
-            var count = base.UpdateTime(ids);
-            _caching.UpdateRange(idList, x=>x.Update=DateTime.Now);
-            return count;
-        }
+    }
+
+    public class WikiItemCacheModel(
+        int id, DateTime updated,
+        bool @sealed, int ownerId, string? title, string? urlPathName)
+        : CacheModelBase<WikiItem>(id, updated)
+    {
+        public int OwnerId { get; } = ownerId;
+        public bool Sealed { get; } = @sealed;
+        public string? Title { get; } = title;
+        public string? UrlPathName { get; } = urlPathName;
     }
 }
