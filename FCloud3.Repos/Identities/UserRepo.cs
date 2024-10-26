@@ -79,8 +79,8 @@ namespace FCloud3.Repos.Identities
         int avatarMaterialId, UserType type)
         : CacheModelBase<User>(id, updated)
     {
-        public UserType Type { get; set; } = type;
-        public string? Name { get; set; } = name;
-        public int AvatarMaterialId { get; set; } = avatarMaterialId;
+        public UserType Type { get; } = type;
+        public string? Name { get; } = name;
+        public int AvatarMaterialId { get; } = avatarMaterialId;
     }
 }
