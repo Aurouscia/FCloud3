@@ -1,8 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
-using FCloud3.Repos.Etc.Caching.Abstraction;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Identities

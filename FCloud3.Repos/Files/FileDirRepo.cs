@@ -1,7 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Repos.Files

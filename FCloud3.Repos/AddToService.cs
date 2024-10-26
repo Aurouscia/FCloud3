@@ -10,7 +10,6 @@ using FCloud3.Repos.WikiParsing;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Repos
 {
@@ -47,12 +46,6 @@ namespace FCloud3.Repos
             services.AddScoped<DiffContentRepo>();
 
             services.AddScoped<CreatorIdGetter>();
-
-            services.AddScoped<UserCaching>();
-            services.AddScoped<MaterialCaching>();
-            services.AddScoped<FileDirCaching>();
-            services.AddScoped<WikiItemCaching>();
-            services.AddScoped<AuthGrantCaching>();
 
             return services;
         }

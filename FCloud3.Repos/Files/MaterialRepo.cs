@@ -1,8 +1,6 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
-using FCloud3.Repos.Etc.Caching.Abstraction;
 
 namespace FCloud3.Repos.Files
 {
