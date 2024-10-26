@@ -1,0 +1,63 @@
+using FCloud3.DbContexts;
+using FCloud3.Entities;
+using FCloud3.Repos.Etc;
+using System.Collections.Concurrent;
+
+namespace FCloud3.Repos
+{
+    public abstract class RepoBaseCache<T, TCache>(
+        FCloudContext context,
+        ICommitingUserIdProvider userIdProvider) 
+        : RepoBase<T>(context, userIdProvider) 
+        where T : class, IDbModel 
+        where TCache : CacheModelBase<T>
+    {
+        /// <summary>
+        /// 存储Cache对象列表的线程安全字典，key为Id
+        /// </summary>
+        private static ConcurrentDictionary<int, TCache> CacheDict = [];
+        private static DateTime LatestUpdated
+            => CacheDict.Values.Select(x => x.Updated).Max();
+        /// <summary>
+        /// Repo对象应该是Scoped服务，每个Scope第一次调用时同步一次即可，此处记录是否同步过
+        /// </summary>
+        private bool Synchronized { get; set; } = false;
+        /// <summary>
+        /// 从数据库模型IQueryable映射为Cache模型IQueryable
+        /// </summary>
+        /// <param name="q">数据库查询对象</param>
+        /// <returns>Select转换后的</returns>
+        protected abstract IQueryable<TCache> ConvertToCacheModel(IQueryable<T> q);
+        public IEnumerable<TCache> AllCachedItems()
+        {
+            SynchronizeDictIfNecessary();
+            return CacheDict.Values;
+        }
+        public TCache? CachedItemById(int id)
+        {
+            SynchronizeDictIfNecessary();
+            CacheDict.TryGetValue(id, out var item);
+            return item;
+        }
+        private void SynchronizeDictIfNecessary()
+        {
+            if (!Synchronized)
+            {
+                var latestUpdated = LatestUpdated;
+                var q = Existing.Where(x => x.Updated > latestUpdated);
+                var fetched = ConvertToCacheModel(q).ToList();
+                fetched.ForEach(item =>
+                {
+                    CacheDict.AddOrUpdate(item.Id, item, (id, oldVal) => item);
+                });
+                Synchronized = true;
+            }
+        }
+    }
+
+    public abstract class CacheModelBase<T> where T : IDbModel
+    {
+        public int Id { get; set; }
+        public DateTime Updated { get; set; }
+    }
+}
