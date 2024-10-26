@@ -43,6 +43,18 @@ namespace FCloud3.Repos
             CacheDict.TryGetValue(id, out var item);
             return item;
         }
+        public List<TCache> CachedItemsByIds(List<int> ids)
+        {
+            SynchronizeDictIfNecessary();
+            List<TCache> res = new(ids.Count);
+            foreach (var id in ids)
+            {
+                CacheDict.TryGetValue(id, out var item);
+                if(item is { })
+                    res.Add(item);
+            }
+            return res;
+        }
         public IEnumerable<TCache> CachedItemsByPred(Func<TCache, bool> pred)
         {
             SynchronizeDictIfNecessary();
@@ -53,6 +65,8 @@ namespace FCloud3.Repos
             SynchronizeDictIfNecessary();
             return CacheDict.Values.Where(pred).FirstOrDefault();
         }
+        public int CachedItemsCount()
+            => CacheDict.Count;
         private void SynchronizeDictIfNecessary()
         {
             if (!Synchronized)

@@ -4,7 +4,6 @@ using FCloud3.Entities.Table;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
 using FCloud3.Services.Files.Storage.Abstractions;
@@ -15,7 +14,6 @@ namespace FCloud3.Services.Wiki
         WikiParaRepo wikiParaRepo,
         FileItemRepo fileItemRepo,
         WikiItemRepo wikiItemRepo,
-        WikiItemCaching wikiItemCaching,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
         DbTransactionService dbTransactionService,
@@ -24,7 +22,6 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;

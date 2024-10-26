@@ -18,7 +18,6 @@ using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.WikiParsing.Support;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Identities;
 using Microsoft.Extensions.Configuration;
@@ -27,16 +26,15 @@ namespace FCloud3.Services.WikiParsing
 {
     public class WikiParsingService(
         WikiItemRepo wikiItemRepo,
-        WikiItemCaching wikiItemCaching,
         WikiParaRepo wikiParaRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
         FileItemRepo fileItemRepo,
+        MaterialRepo materialRepo,
         UserRepo userRepo,
         UserGroupRepo userGroupRepo,
         UserToGroupRepo userToGroupRepo,
-        MaterialCaching materialCaching,
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         AuthGrantService authGrantService,
@@ -45,30 +43,13 @@ namespace FCloud3.Services.WikiParsing
         ILogger<WikiParsingService> logger,
         IConfiguration config)
     {
-        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
-        private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
-        private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
-        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
-        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly FileItemRepo _fileItemRepo = fileItemRepo;
-        private readonly UserRepo _userRepo = userRepo;
-        private readonly UserGroupRepo _userGroupRepo = userGroupRepo;
-        private readonly UserToGroupRepo _userToGroupRepo = userToGroupRepo;
-        private readonly MaterialCaching _materialCaching = materialCaching;
-        private readonly WikiParserProviderService _wikiParserProvider = wikiParserProvider;
-        private readonly WikiParsedResultService _wikiParsedResult = wikiParsedResult;
-        private readonly AuthGrantService _authGrantService = authGrantService;
-        private readonly IStorage _storage = storage;
-        private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
-        private readonly ILogger<WikiParsingService> _logger = logger;
         private readonly bool debug = config["Debug"] == "on";
 
         public WikiDisplayInfo? GetWikiDisplayInfo(string pathName, bool defaultAccess = false)
         {
             var info = (
-                from w in _wikiItemRepo.Existing
-                from u in _userRepo.All
+                from w in wikiItemRepo.Existing
+                from u in userRepo.All
                 where w.UrlPathName == pathName
                 where w.OwnerUserId == u.Id
                 select new
@@ -84,16 +65,16 @@ namespace FCloud3.Services.WikiParsing
 
             var access = defaultAccess;
             if(!access) 
-                access = _authGrantService.Test(AuthGrantOn.WikiItem, info.WikiId);
+                access = authGrantService.Test(AuthGrantOn.WikiItem, info.WikiId);
             
             var groupLabels = (
-                from ug in _userGroupRepo.Existing
-                from utg in _userToGroupRepo.ExistingAndShowLabel
+                from ug in userGroupRepo.Existing
+                from utg in userToGroupRepo.ExistingAndShowLabel
                 where utg.UserId == info.UserId
                 where utg.GroupId == ug.Id
                 select new { ug.Id, ug.Name, ug.OwnerUserId }
                 ).ToList();
-            var uid = _userIdProvider.Get();
+            var uid = userIdProvider.Get();
             groupLabels.Sort((x, y) =>
             {
                 int xOwned = x.OwnerUserId == uid ? 1 : 0;
@@ -105,10 +86,10 @@ namespace FCloud3.Services.WikiParsing
             string? avtSrc = null;
             if (info.UserAvtId > 0)
             {
-                avtSrc = _materialCaching.Get(info.UserAvtId)?.PathName;
+                avtSrc = materialRepo.CachedItemById(info.UserAvtId)?.PathName;
                 if (avtSrc is not null)
                 {
-                    avtSrc = _storage.FullUrl(avtSrc);
+                    avtSrc = storage.FullUrl(avtSrc);
                 }
             }
             var resp = new WikiDisplayInfo(
@@ -122,12 +103,12 @@ namespace FCloud3.Services.WikiParsing
         
         public Stream? GetParsedWikiStream(string pathName, bool bypassSeal = false)
         {
-            var w = _wikiItemCaching.Get(pathName);
+            var w = wikiItemRepo.CachedItemsByPred(x=>x.UrlPathName == pathName).FirstOrDefault();
             if (w is null)
                 return null;
-            if (w.Sealed && _userIdProvider.Get() != w.OwnerId && !bypassSeal)
+            if (w.Sealed && userIdProvider.Get() != w.OwnerId && !bypassSeal)
                 return null;//对于隐藏的词条，又不是拥有者又不是管理，就当不存在的
-            return GetParsedWikiStream(w.Id, w.Update);
+            return GetParsedWikiStream(w.Id, w.Updated);
         }
         public Stream GetParsedWikiStream(int id, DateTime update)
         {
@@ -135,16 +116,16 @@ namespace FCloud3.Services.WikiParsing
             {
                 Stream? stream = null;
                 if(!debug)
-                    stream = _wikiParsedResult.Read(id, update);
+                    stream = wikiParsedResult.Read(id, update);
                 if (stream is not null)
                 {
-                    _logger.LogInformation("提供[{id}]号词条，缓存命中", id);
+                    logger.LogInformation("提供[{id}]号词条，缓存命中", id);
                     return stream;
                 }
-                _logger.LogInformation("提供[{id}]号词条，缓存未命中", id);
+                logger.LogInformation("提供[{id}]号词条，缓存未命中", id);
                 var res = GetParsedWiki(id);
 
-                using (var resultFileStream = _wikiParsedResult.Save(id, update))
+                using (var resultFileStream = wikiParsedResult.Save(id, update))
                 {
                     using var streamWriter = new StreamWriter(resultFileStream);
                     using var jsonWriter = new JsonTextWriter(streamWriter);
@@ -152,44 +133,44 @@ namespace FCloud3.Services.WikiParsing
                     serializer.Serialize(jsonWriter, res);
                     jsonWriter.Flush();
                 }
-                _logger.LogInformation("提供[{id}]号词条，解析和储存完成", id);
-                return _wikiParsedResult.Read(id, update) ?? throw new Exception("结果文件写入失败");
+                logger.LogInformation("提供[{id}]号词条，解析和储存完成", id);
+                return wikiParsedResult.Read(id, update) ?? throw new Exception("结果文件写入失败");
             }
         }
         
         public WikiParsingResult GetParsedWiki(string pathName)
         {
-            var w =  _wikiItemRepo.GetByUrlPathName(pathName).FirstOrDefault();
+            var w =  wikiItemRepo.GetByUrlPathName(pathName).FirstOrDefault();
             if (w is null)
                 return WikiParsingResult.FallToInstance;
             return GetParsedWiki(w);
         }
         public WikiParsingResult GetParsedWiki(int wikiId)
         {
-            var w = _wikiItemRepo.GetById(wikiId);
+            var w = wikiItemRepo.GetById(wikiId);
             if (w is null)
                 return WikiParsingResult.FallToInstance;
             return GetParsedWiki(w);
         }
         private WikiParsingResult GetParsedWiki(WikiItem wiki)
         {
-            var paras = _wikiParaRepo.Existing
+            var paras = wikiParaRepo.Existing
                 .Where(x => x.WikiItemId == wiki.Id)
                 .OrderBy(x => x.Order)
                 .ToList();
 
             List<int> textIds = paras.Where(x => x.Type == WikiParaType.Text).Select(x => x.ObjectId).ToList();
-            List<TextSection> textParaObjs = _textSectionRepo.GetRangeByIds(textIds).ToList();
+            List<TextSection> textParaObjs = textSectionRepo.GetRangeByIds(textIds).ToList();
             List<int> fileIds = paras.Where(x => x.Type == WikiParaType.File).Select(x => x.ObjectId).ToList();
-            List<FileItem> fileParaObjs = _fileItemRepo.GetRangeByIds(fileIds).ToList();
+            List<FileItem> fileParaObjs = fileItemRepo.GetRangeByIds(fileIds).ToList();
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
-            List<FreeTable> tableParaObjs = _freeTableRepo.GetRangeByIds(tableIds).ToList();
-            List<WikiTitleContain> textContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.TextSection, textIds);
-            List<WikiTitleContain> tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.FreeTable, tableIds);
+            List<FreeTable> tableParaObjs = freeTableRepo.GetRangeByIds(tableIds).ToList();
+            List<WikiTitleContain> textContains = wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.TextSection, textIds);
+            List<WikiTitleContain> tableContains = wikiTitleContainRepo.GetByTypeAndObjIds(WikiTitleContainType.FreeTable, tableIds);
 
             var contains = textContains.Union(tableContains).ToList();
-            var allWikis = _wikiItemCaching.GetAll().FindAll(x => !x.Sealed);
-            var parser = _wikiParserProvider.Get($"w_{wiki.Id}", 
+            var allWikis = wikiItemRepo.CachedItemsByPred(x => !x.Sealed).ToList();
+            var parser = wikiParserProvider.Get($"w_{wiki.Id}", 
                 allWikis,
                 (b)=>{},
                 contains,
@@ -262,7 +243,7 @@ namespace FCloud3.Services.WikiParsing
                     if (model.StorePathName is not null &&
                         model.StorePathName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
                     {
-                        var stream = _storage.Read(model.StorePathName);
+                        var stream = storage.Read(model.StorePathName);
                         string? errmsg = "解析失败";
                         if (stream is not null)
                         {
@@ -294,7 +275,7 @@ namespace FCloud3.Services.WikiParsing
                     {
                         var realTitle = getTitle(p.NameOverride, model.DisplayName, false);
                         result.Paras.Add(new(
-                            realTitle, 0, _storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type,
+                            realTitle, 0, storage.FullUrl(model.StorePathName ?? "??"), p.Id, p.Type,
                             p.ObjectId, model.ByteCount, false, false));
                     }
                 }

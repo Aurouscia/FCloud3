@@ -10,8 +10,6 @@ using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
-using Microsoft.EntityFrameworkCore;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Files
 {
@@ -20,13 +18,11 @@ namespace FCloud3.Services.Files
         private readonly UserRepo _userRepo;
         private readonly int _userId;
         private readonly FileDirRepo _fileDirRepo;
-        private readonly FileDirCaching _fileDirCaching;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
         private readonly AuthGrantService _authGrantService;
-        private readonly UserCaching _userCaching;
         private readonly IStorage _storage;
         private readonly DbTransactionService _dbTransactionService;
 
@@ -34,26 +30,22 @@ namespace FCloud3.Services.Files
             UserRepo userRepo,
             IOperatingUserIdProvider userIdProvider,
             FileDirRepo fileDirRepo,
-            FileDirCaching fileDirCaching,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
-            UserCaching userCaching,
             IStorage storage,
             DbTransactionService dbTransactionService)
         {
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
             _fileDirRepo = fileDirRepo;
-            _fileDirCaching = fileDirCaching;
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
             _opRecordRepo = opRecordRepo;
             _authGrantService = authGrantService;
-            _userCaching = userCaching;
             _storage = storage;
             _dbTransactionService = dbTransactionService;
         }
@@ -103,7 +95,7 @@ namespace FCloud3.Services.Files
 
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
             var ownerName = "";
-            Func<int, string> getUserName = x => _userCaching.Get(x)?.Name ?? "??";
+            Func<int, string> getUserName = x => _userRepo.CachedItemById(x)?.Name ?? "??";
             if (ownerId > 0)
                 ownerName = getUserName(ownerId);
 
@@ -206,9 +198,7 @@ namespace FCloud3.Services.Files
                 userName = path[1];
             var userId = 0;
             if (!string.IsNullOrEmpty(userName))
-            {
-                userId = _userCaching.GetByName(userName)?.Id ?? 0;
-            }
+                userId = _userRepo.CachedItemByPred(x=>x.Name == userName)?.Id ?? 0;
             if (userId == 0) 
             {
                 userId = _userId;
@@ -372,9 +362,8 @@ namespace FCloud3.Services.Files
             }
             catch
             {
-                //发生任何错误，回滚数据库事务并清空缓存，避免数据不一致
+                //发生任何错误，回滚数据库事务，避免数据不一致
                 transaction.Rollback();
-                _fileDirCaching.Clear();
                 return [];
             }
             //没有错误 提交事务

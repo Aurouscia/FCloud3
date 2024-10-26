@@ -12,7 +12,6 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
-using FCloud3.Repos.Etc.Caching;
 using System.Text;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
@@ -24,7 +23,6 @@ namespace FCloud3.Services.Wiki
     public class WikiItemService(
         DbTransactionService transaction,
         WikiItemRepo wikiRepo,
-        WikiItemCaching wikiCaching,
         WikiToDirRepo wikiToDirRepo,
         WikiParaRepo paraRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
@@ -41,7 +39,6 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction = transaction;
         private readonly WikiItemRepo _wikiRepo = wikiRepo;
-        private readonly WikiItemCaching _wikiCaching = wikiCaching;
         private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo = paraRepo;
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
@@ -60,9 +57,9 @@ namespace FCloud3.Services.Wiki
         {
             return _wikiRepo.GetById(id);
         }
-        public WikiItemCachingModel? GetInfoById(int id)
+        public WikiItemCacheModel? GetInfoById(int id)
         {
-            return _wikiCaching.Get(id);
+            return _wikiRepo.CachedItemById(id);
         }
         public IndexResult<WikiItemIndexItem> Index(IndexQuery query)
         {
@@ -251,7 +248,7 @@ namespace FCloud3.Services.Wiki
             if (success)
             {
                 SetWikiUpdated(wikiId);
-                var w = _wikiCaching.Get(wikiId);
+                var w = wikiRepo.CachedItemById(wikiId);
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, newlyCreatedParaId,
                     $"为 {w?.Title} ({w?.UrlPathName}) 在第 {afterOrder+1} 段后 插入了新 {WikiParaTypes.Readable(type)} 段落");
                 return newlyCreatedParaId;
@@ -286,7 +283,7 @@ namespace FCloud3.Services.Wiki
                 return false;
 
             SetWikiUpdated(wikiId);
-            var name = _wikiCaching.Get(wikiId)?.Title;
+            var name = wikiRepo.CachedItemById(wikiId)?.Title;
             var orderRecordStr = string.Join('-', orderRecord);
             _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, 0,
                 $"为 {name} 调整段落顺序为 {orderRecordStr}");
@@ -320,7 +317,7 @@ namespace FCloud3.Services.Wiki
             if (success)
             {
                 SetWikiUpdated(id);
-                var name = _wikiCaching.Get(id)?.Title;
+                var name = wikiRepo.CachedItemById(id)?.Title;
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, paraId,
                     $"从 {name} 移除了第 {target.Order+1} 个段落({WikiParaTypes.Readable(target.Type)})");
             }
@@ -352,7 +349,7 @@ namespace FCloud3.Services.Wiki
             StringBuilder sb = new();
             chains.ForEach(x => model.Locations.Add(new(x.id, x.nameChain, sb)));
 
-            var wiki = _wikiCaching.Get(urlPathName);
+            var wiki = _wikiRepo.CachedItemByPred(x=>x.UrlPathName == urlPathName);
             if (wiki is not null)
             {
                 model.WikiId = wiki.Id;
@@ -411,7 +408,7 @@ namespace FCloud3.Services.Wiki
             }
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
-                var w = _wikiCaching.Get(wikiId);
+                var w = _wikiRepo.CachedItemById(wikiId);
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, dirId, wikiId,
                     $"从 {dir.Name} ({dir.Id}) 移除词条 {w?.Title} ({w?.UrlPathName})");
                 return true;

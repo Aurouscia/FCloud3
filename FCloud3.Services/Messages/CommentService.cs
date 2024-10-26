@@ -1,40 +1,33 @@
 ﻿using FCloud3.Entities.Messages;
 using FCloud3.Repos.Messages;
 using FCloud3.Services.Identities;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Wiki;
+using FCloud3.Repos.Identities;
+using FCloud3.Repos.Files;
 
 namespace FCloud3.Services.Messages
 {
     public class CommentService(
         CommentRepo commentRepo,
-        WikiItemRepo wikiItemRepo,
+        UserRepo userRepo,
+        MaterialRepo materialRepo,
         UserService userService,
-        UserCaching userCaching,
-        MaterialCaching materialCaching,
         NotificationService notificationService,
         IOperatingUserIdProvider userIdProvider)
     {
-        private readonly CommentRepo _commentRepo = commentRepo;
-        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly UserService _userService = userService;
-        private readonly UserCaching _userCaching = userCaching;
-        private readonly MaterialCaching _materialCaching = materialCaching;
-        private readonly NotificationService _notificationService = notificationService;
-        private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
 
         public bool Create(Comment comment, out string? errmsg)
         {
-            var createdId = _commentRepo.TryAddAndGetId(comment, out errmsg);
+            var createdId = commentRepo.TryAddAndGetId(comment, out errmsg);
             bool success = createdId > 0;
             if(success)
             {
                 if (comment.TargetType == CommentTargetType.Wiki)
                 {
                     if(comment.ReplyingTo == 0)
-                        _notificationService.CommentWiki(comment.TargetObjId, createdId);
+                        notificationService.CommentWiki(comment.TargetObjId, createdId);
                     else
-                        _notificationService.CommentWikiReply(comment.TargetObjId, createdId, comment.ReplyingTo);
+                        notificationService.CommentWikiReply(comment.TargetObjId, createdId, comment.ReplyingTo);
                 }
             }
             return success;
@@ -42,8 +35,8 @@ namespace FCloud3.Services.Messages
 
         public bool HideComment(int id, bool noAuthCheck, out string? errmsg)
         {
-            var uid = _userIdProvider.Get();
-            var cmt = _commentRepo.GetById(id);
+            var uid = userIdProvider.Get();
+            var cmt = commentRepo.GetById(id);
             if (cmt is null)
             {
                 errmsg = "找不到指定评论";
@@ -57,23 +50,23 @@ namespace FCloud3.Services.Messages
                 errmsg = "无权删除该评论";
                 return false;
             }
-            return _commentRepo.HideComment(cmt, out errmsg);
+            return commentRepo.HideComment(cmt, out errmsg);
         }
 
         public List<CommentViewResult> View(CommentTargetType type, int objId)
         {
-            var all = _commentRepo.GetComments(type, objId).OrderBy(x => x.Created).ToList();
+            var all = commentRepo.GetComments(type, objId).OrderBy(x => x.Created).ToList();
             if (all.Count == 0)
                 return [];
             var relatedUsers = all.Select(x => x.CreatorUserId).ToList();
             var hider = all.Select(x => x.HiddenByUser).ToList();
             relatedUsers.AddRange(hider);
             relatedUsers = relatedUsers.Distinct().ToList();
-            var users = _userCaching.GetRange(relatedUsers);
+            var users = userRepo.CachedItemsByIds(relatedUsers);
             var relatedMaterials = users.Select(x => x.AvatarMaterialId).Distinct().ToList();
-            var materials = _materialCaching.GetRange(relatedMaterials);
+            var materials = materialRepo.CachedItemsByIds(relatedMaterials);
             var root = new CommentViewResult() { Id = 0 };
-            root.PopulateReplies(all, users, materials, _userService.AvatarFullUrl, 0);
+            root.PopulateReplies(all, users, materials, userService.AvatarFullUrl, 0);
             root.Replies.Reverse();
             return root.Replies;
         }
@@ -99,8 +92,8 @@ namespace FCloud3.Services.Messages
             public List<CommentViewResult> Replies { get; set; } = [];
             public void PopulateReplies(
                 List<Comment> allc,
-                List<UserCachingModel> allu,
-                List<MaterialCachingModel> allm,
+                List<UserCacheModel> allu,
+                List<MaterialCacheModel> allm,
                 Func<string?, string> avtSrc,
                 int layer)
             {

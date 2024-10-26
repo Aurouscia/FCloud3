@@ -8,7 +8,6 @@ using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Repos.Files;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Services.WikiParsing.Support;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Util;
@@ -19,14 +18,12 @@ namespace FCloud3.Services.TextSec
         IOperatingUserIdProvider userIdProvider,
         WikiItemRepo wikiItemRepo,
         WikiParaRepo wikiParaRepo,
-        WikiTitleContainRepo wikiTitleContainRepo,
         TextSectionRepo textSectionRepo,
         WikiToDirRepo wikiToDirRepo,
         FileDirRepo fileDirRepo,
         DiffContentService contentDiffService,
         DbTransactionService dbTransactionService,
         ContentEditLockService contentEditLockService,
-        WikiItemCaching wikiItemCaching,
         WikiParserProviderService wikiParserProviderService,
         ILocatorHash locatorHash, 
         ILogger<TextSectionService> logger)

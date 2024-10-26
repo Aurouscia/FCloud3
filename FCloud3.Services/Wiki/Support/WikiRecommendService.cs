@@ -1,38 +1,32 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Wiki.Support
 {
     public class WikiRecommendService(
         WikiToDirRepo wikiToDirRepo,
         WikiItemRepo wikiItemRepo,
-        FileDirRepo fileDirRepo,
-        WikiItemCaching wikiItemCaching)
+        FileDirRepo fileDirRepo)
     {
-        private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
-        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly FileDirRepo _fileDirRepo = fileDirRepo;
-        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly Random _random = new();
         public WikiRecommendModel Get(string pathName)
         {
             var res = new WikiRecommendModel();
             var dirs = (
-                from d in _fileDirRepo.Existing
-                from w in _wikiItemRepo.Existing
-                from wd in _wikiToDirRepo.Existing
+                from d in fileDirRepo.Existing
+                from w in wikiItemRepo.Existing
+                from wd in wikiToDirRepo.Existing
                 where w.UrlPathName == pathName
                 where wd.WikiId == w.Id
                 where d.Id == wd.DirId
                 select new WikiRecommendModel.Dir(d.Id, d.Name)).ToList();
             res.Dirs.AddRange(RandomSelect(dirs, 4));
             var dirIds = res.Dirs.ConvertAll(x => x.Id);
-            var neighborIds = _wikiToDirRepo.GetWikiIdsByDirs(dirIds);
+            var neighborIds = wikiToDirRepo.GetWikiIdsByDirs(dirIds);
 
-            var thisId = _wikiItemCaching.Get(pathName)?.Id ?? 0;
+            var thisId = wikiItemRepo.CachedItemByPred(x=>x.UrlPathName == pathName)?.Id ?? 0;
             neighborIds.Remove(thisId);
-            var neighbors = _wikiItemCaching.GetRange(neighborIds)
+            var neighbors = wikiItemRepo.CachedItemsByIds(neighborIds)
                 .ConvertAll(x=>new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
             res.Wikis.AddRange(RandomSelect(neighbors, 8));
             return res;
