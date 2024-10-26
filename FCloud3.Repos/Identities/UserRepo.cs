@@ -2,19 +2,18 @@
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Etc.Caching.Abstraction;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Identities
 {
-    public class UserRepo : RepoBaseWithCaching<User, UserCachingModel>
+    public class UserRepo : RepoBaseCache<User, UserCacheModel>
     {
         public UserRepo(
             FCloudContext context,
-            ICommitingUserIdProvider userIdProvider,
-            UserCaching userCaching) 
-            : base(context, userIdProvider, userCaching)
+            ICommitingUserIdProvider userIdProvider) 
+            : base(context, userIdProvider)
         {
-
         }
         public IQueryable<User> GetByName(string name)
         {
@@ -28,10 +27,6 @@ namespace FCloud3.Repos.Identities
             if (name.Length > lengthLimit)
                 return name.Substring(0, lengthLimit - 1) + "...";
             return name;
-        }
-        public UserType GetTypeById(int id)
-        {
-            return Existing.Where(x => x.Id == id).Select(x=>x.Type).FirstOrDefault();
         }
         public override bool TryAddCheck(User item, out string? errmsg)
         {
@@ -72,5 +67,20 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Name!.Length)
                 .ThenByDescending(x => x.Updated);
         }
+
+        protected override IQueryable<UserCacheModel> ConvertToCacheModel(IQueryable<User> q)
+        {
+            return q.Select(x => new UserCacheModel(x.Id, x.Updated, x.Name, x.AvatarMaterialId, x.Type));
+        }
+    }
+
+    public class UserCacheModel(
+        int id, DateTime updated, string? name,
+        int avatarMaterialId, UserType type)
+        : CacheModelBase<User>(id, updated)
+    {
+        public UserType Type { get; set; } = type;
+        public string? Name { get; set; } = name;
+        public int AvatarMaterialId { get; set; } = avatarMaterialId;
     }
 }
