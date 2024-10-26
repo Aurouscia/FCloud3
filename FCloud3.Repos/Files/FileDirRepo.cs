@@ -301,19 +301,17 @@ namespace FCloud3.Repos.Files
 
         protected override IQueryable<FileDirCacheModel> ConvertToCacheModel(IQueryable<FileDir> q)
         {
-            return q.Select(x => new FileDirCacheModel()
-            {
-                ParentDir = x.ParentDir,
-                RootDir = x.RootDir,
-                Depth = x.Depth
-            });
+            return q.Select(x => 
+                new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, x.RootDir, x.Depth));
         }
     }
 
-    public class FileDirCacheModel: CacheModelBase<FileDir>
+    public class FileDirCacheModel(
+        int id, DateTime updated, int parentDir, int rootDir, int depth)
+        : CacheModelBase<FileDir>(id, updated)
     {
-        public int ParentDir { get; set; }
-        public int RootDir { get; set; }
-        public int Depth { get; set; }
+        public int ParentDir { get; set; } = parentDir;
+        public int RootDir { get; set; } = rootDir;
+        public int Depth { get; set; } = depth;
     }
 }

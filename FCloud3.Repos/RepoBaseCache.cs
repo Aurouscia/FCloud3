@@ -55,9 +55,12 @@ namespace FCloud3.Repos
         }
     }
 
-    public abstract class CacheModelBase<T> where T : IDbModel
+    public abstract class CacheModelBase<T>(int id, DateTime updated) where T : IDbModel
     {
-        public int Id { get; set; }
-        public DateTime Updated { get; set; }
+        public int Id { get; } = id;
+        /// <summary>
+        /// TODO: 数据库的Updated字段必须每次更新数据都设为当时时间，不能不设，否则会造成缓存不同步
+        /// </summary>
+        public DateTime Updated { get; } = updated;
     }
 }

@@ -2,16 +2,16 @@
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Etc.Caching;
+using FCloud3.Repos.Etc.Caching.Abstraction;
 
 namespace FCloud3.Repos.Files
 {
-    public class MaterialRepo : RepoBaseWithCaching<Material, MaterialCachingModel>
+    public class MaterialRepo : RepoBaseCache<Material, MaterialCacheModel>
     {
         public MaterialRepo(
             FCloudContext context,
-            ICommitingUserIdProvider userIdProvider,
-            MaterialCaching materialCaching) 
-            : base(context, userIdProvider, materialCaching)
+            ICommitingUserIdProvider userIdProvider) 
+            : base(context, userIdProvider)
         { }
 
         public IQueryable<Material> QuickSearch(string str)
@@ -21,5 +21,17 @@ namespace FCloud3.Repos.Files
                 .OrderBy(x => x.Name!.Length)
                 .ThenByDescending(x => x.Updated);
         }
+
+        protected override IQueryable<MaterialCacheModel> ConvertToCacheModel(IQueryable<Material> q)
+        {
+            return q.Select(x => new MaterialCacheModel(x.Id, x.Updated, x.Name, x.StorePathName));
+        }
+    }
+
+    public class MaterialCacheModel(int id, DateTime updated, string? name, string? pathName) 
+        : CacheModelBase<Material>(id, updated)
+    {
+        public string? Name { get; set; } = name;
+        public string? PathName { get; set; } = pathName;
     }
 }
