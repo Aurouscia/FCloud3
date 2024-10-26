@@ -28,6 +28,10 @@ namespace FCloud3.Repos
         /// <param name="q">数据库查询对象</param>
         /// <returns>Select转换后的</returns>
         protected abstract IQueryable<TCache> ConvertToCacheModel(IQueryable<T> q);
+        /// <summary>
+        /// 获取所有Cache对象（建议只遍历，不要ToList产生大量垃圾）
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<TCache> AllCachedItems()
         {
             SynchronizeDictIfNecessary();
@@ -38,6 +42,16 @@ namespace FCloud3.Repos
             SynchronizeDictIfNecessary();
             CacheDict.TryGetValue(id, out var item);
             return item;
+        }
+        public IEnumerable<TCache> CachedItemsByPred(Func<TCache, bool> pred)
+        {
+            SynchronizeDictIfNecessary();
+            return CacheDict.Values.Where(pred);
+        }
+        public TCache? CachedItemByPred(Func<TCache, bool> pred)
+        {
+            SynchronizeDictIfNecessary();
+            return CacheDict.Values.Where(pred).FirstOrDefault();
         }
         private void SynchronizeDictIfNecessary()
         {

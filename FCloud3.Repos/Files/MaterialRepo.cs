@@ -31,7 +31,7 @@ namespace FCloud3.Repos.Files
     public class MaterialCacheModel(int id, DateTime updated, string? name, string? pathName) 
         : CacheModelBase<Material>(id, updated)
     {
-        public string? Name { get; set; } = name;
-        public string? PathName { get; set; } = pathName;
+        public string? Name { get; } = name;
+        public string? PathName { get; } = pathName;
     }
 }
