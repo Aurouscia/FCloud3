@@ -236,8 +236,9 @@ namespace FCloud3.Services.Identities
             if (u.Type != targetType)
                 record = $"将 {u.Name} ({u.Id}) 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
-            if(_repo.TryEdit(u, out errmsg, false))
+            if(_repo.TryEdit(u, out errmsg))
             {
+                //TODO:用户的上次活跃时间与模型更新时间是两码事，必须做区分
                 if (record is not null)
                     _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, id, 0, record);
                 return true;

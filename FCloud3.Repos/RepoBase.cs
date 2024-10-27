@@ -260,7 +260,7 @@ namespace FCloud3.Repos
             errmsg = null;
             return true;
         }
-        public virtual bool TryEdit(T item, out string? errmsg, bool updateTime = true)
+        public virtual bool TryEdit(T item, out string? errmsg)
         {
             if (item is null)
             {
@@ -269,8 +269,7 @@ namespace FCloud3.Repos
             }
             if (!TryEditCheck(item, out errmsg))
                 return false;
-            if (updateTime)
-                item.Updated = DateTime.Now;
+            item.Updated = DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
             return true;

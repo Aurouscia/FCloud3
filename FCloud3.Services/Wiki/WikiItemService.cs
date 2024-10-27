@@ -495,8 +495,9 @@ namespace FCloud3.Services.Wiki
                 return false;
             }
             w.OwnerUserId = uid;
-            if (_wikiRepo.TryEdit(w, out errmsg, false))
+            if (_wikiRepo.TryEdit(w, out errmsg))
             {
+                //TODO:词条的上次更新时间与模型的更新时间是两码事，必须做区分
                 var recordStr = $"将 {w.Title} ({w.UrlPathName}) 转让给 {targetUser.Name} ({targetUser.Id})";
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, id, uid, recordStr);
                 return true;
@@ -512,8 +513,7 @@ namespace FCloud3.Services.Wiki
                 return false;
             }
             w.Sealed = @sealed;
-            //不应造成更新时间变化，否则会重新解析词条
-            var s = _wikiRepo.TryEdit(w, out errmsg, false);
+            var s = _wikiRepo.TryEdit(w, out errmsg);
             if (s)
             {
                 string opStr = @sealed ? "隐藏" : "解除隐藏";
