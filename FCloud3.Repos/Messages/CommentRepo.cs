@@ -16,10 +16,12 @@ namespace FCloud3.Repos.Messages
         public bool HideComment(Comment cmt, out string? errmsg)
         {
             cmt.HiddenByUser = _userIdProvider.Get();
-            return TryEdit(cmt, out errmsg);
+            base.Update(cmt);
+            errmsg = null;
+            return true;
         }
 
-        public override bool TryAddCheck(Comment item, out string? errmsg)
+        public bool TryAdd(Comment item, out string? errmsg)
         {
             if(string.IsNullOrWhiteSpace(item.Content))
             {
@@ -31,6 +33,7 @@ namespace FCloud3.Repos.Messages
                 errmsg = $"评论长度不应超过{Comment.contentMaxLength}字";
                 return false;
             }
+            base.Add(item);
             errmsg = null;
             return true;
         }

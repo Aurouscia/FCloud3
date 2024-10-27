@@ -88,6 +88,21 @@ namespace FCloud3.Repos
                 Synchronized = true;
             }
         }
+        /// <summary>
+        /// 清除缓存（仅在单元测试中使用（重置数据时），正常情况下不应使用）
+        /// </summary>
+        public void ClearCache()
+        {
+            CacheDict.Clear();
+        }
+
+        /// <summary>
+        /// 数据更改后，同一scope内的内存不再拥有一致性，如果需要读需要再次同步
+        /// </summary>
+        protected override void AfterDataChange()
+        {
+            Synchronized = false;
+        }
     }
 
     public abstract class CacheModelBase<T>(int id, DateTime updated) where T : IDbModel

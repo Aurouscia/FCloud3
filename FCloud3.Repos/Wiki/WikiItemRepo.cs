@@ -43,25 +43,22 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         }
 
-        public override bool TryAddCheck(WikiItem item, out string? errmsg)
+        public bool TryAdd(WikiItem item, out string? errmsg)
         {
-            return InfoCheck(item,false,out errmsg);
-        }
-        public override bool TryAdd(WikiItem item, out string? errmsg)
-        {
+            if (!InfoCheck(item, false, out errmsg))
+                return false;
             item.OwnerUserId = _userIdProvider.Get();
-            return base.TryAdd(item, out errmsg);
+            base.Add(item);
+            return true;
         }
-        public override int TryAddAndGetId(WikiItem item, out string? errmsg)
+        public bool TryUpdate(WikiItem item, out string? errmsg)
         {
-            item.OwnerUserId = _userIdProvider.Get();
-            return base.TryAddAndGetId(item, out errmsg);
+            if (!InfoCheck(item, true, out errmsg))
+                return false;
+            base.Update(item);
+            return true;
         }
-        public override bool TryEditCheck(WikiItem item, out string? errmsg)
-        {
-            return InfoCheck(item,true, out errmsg);
-        }
-        public override bool TryRemoveCheck(WikiItem item, out string? errmsg)
+        public bool TryRemove(WikiItem item, out string? errmsg)
         {
             var uid = _userIdProvider.Get();
             if(item.OwnerUserId != uid)
@@ -69,6 +66,7 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "只有所有者能删除词条";
                 return false;
             }
+            base.Remove(item);
             errmsg = null;
             return true;
         }

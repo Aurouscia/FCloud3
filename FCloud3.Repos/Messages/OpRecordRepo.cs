@@ -25,7 +25,7 @@ namespace FCloud3.Repos.Messages
                 ObjA = objA,
                 ObjB = objB
             };
-            _ = TryAdd(r, out _);
+            base.Add(r);
         }
 
         public IQueryable<OpRecord> TakeRange(int skip) 

@@ -38,6 +38,7 @@ namespace FCloud3.Repos.Wiki
             List<WikiSelected> ordered = [..lessOrder];
             ordered.Add(model);
             ordered.AddRange(biggerOrder);
+            var needUpdate = new List<WikiSelected>();
             
             if (ordered.Count > MaxCount)
             {
@@ -63,23 +64,18 @@ namespace FCloud3.Repos.Wiki
                 if (removeList.Count > 0)
                 {
                     ordered.RemoveAll(removeItems.Contains);
-                    removeItems.ForEach(w =>
-                    {
-                        w.Deleted = true;
-                        _context.Update(w);
-                    });
+                    base.RemoveRange(removeItems);
                 }
             }
             for (int i = 0; i < ordered.Count; i++)
             {
                 ordered[i].Order = i;
-                _context.Update(ordered[i]);
             }
-            _context.SaveChanges();
+            base.UpdateRange(ordered);
             return true;
         }
 
-        public bool Edit(int id, string? intro, int dropAfterHr, out string? errmsg)
+        public bool TryEdit(int id, string? intro, int dropAfterHr, out string? errmsg)
         {
             var model = GetById(id);
             if (model is null)
@@ -89,9 +85,13 @@ namespace FCloud3.Repos.Wiki
             }
             model.Intro = intro;
             model.DropAfterHr = dropAfterHr;
-            return TryEdit(model, out errmsg);
+            errmsg = ModelCheck(model);
+            if (errmsg is not null)
+                return false;
+            base.Update(model);
+            return true;
         }
-        public bool Remove(int id, out string? errmsg)
+        public bool TryRemove(int id, out string? errmsg)
         {
             var model = GetById(id);
             if (model is null)
@@ -99,10 +99,12 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "找不到指定数据";
                 return false;
             }
-            return TryRemove(model, out errmsg);
+            base.Remove(model);
+            errmsg = null;
+            return true;
         }
 
-        public override bool TryAddCheck(WikiSelected item, out string? errmsg)
+        public bool TryAdd(WikiSelected item, out string? errmsg)
         {
             errmsg = ModelCheck(item);
             if (errmsg is not null)
@@ -112,16 +114,11 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "已添加过该词条";
                 return false;
             }
+            base.Add(item);
             return true;
         }
 
-        public override bool TryEditCheck(WikiSelected item, out string? errmsg)
-        {
-            errmsg = ModelCheck(item);
-            return errmsg is null;
-        }
-
-        public string? ModelCheck(WikiSelected model)
+        private string? ModelCheck(WikiSelected model)
         {
             if (model.WikiItemId == 0)
                 return "请选择词条";

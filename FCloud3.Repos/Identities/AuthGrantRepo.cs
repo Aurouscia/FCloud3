@@ -58,7 +58,7 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Order)
                 .ToList();
         }
-        public override bool TryAdd(AuthGrant item, out string? errmsg)
+        public bool TryAdd(AuthGrant item, out string? errmsg)
         {
             var sameOn = GetByOnLocal(item.On, item.OnId);
             if (sameOn.Count >= AuthGrant.maxCountOnSameOn)
@@ -66,8 +66,7 @@ namespace FCloud3.Repos.Identities
             if (sameOn.Count != 0)
             {
                 sameOn.EnsureOrderDense();
-                if (!TryEditRange(sameOn, out errmsg))
-                    return false;
+                UpdateRange(sameOn);
                 var newOrder = sameOn.Select(x => x.Order).Max() + 1;
                 item.Order = newOrder;
             }
@@ -75,9 +74,11 @@ namespace FCloud3.Repos.Identities
             {
                 item.Order = 0;
             }
-            return base.TryAdd(item, out errmsg);
+            base.Add(item);
+            errmsg = null;
+            return true;
         }
-        public override bool TryRemove(AuthGrant item, out string? errmsg)
+        public bool TryRemove(AuthGrant item, out string? errmsg)
         {
             var sameOn = GetByOnLocal(item.On, item.OnId);
             if (!sameOn.Contains(item))
@@ -87,20 +88,11 @@ namespace FCloud3.Repos.Identities
             }
             sameOn.RemoveAll(x=>x.Id == item.Id);
             sameOn.EnsureOrderDense();
-            if (!TryEditRange(sameOn, out errmsg))
-                return false;
-            return base.TryRemovePermanent(item, out errmsg);
+            UpdateRange(sameOn);
+            base.Remove(item);
+            errmsg = null; 
+            return true;
         }
-        public override bool TryRemoveNoCheck(int id, out string? errmsg)
-            => TryRemove(GetByIdEnsure(id), out errmsg);
-        public override bool TryRemovePermanent(AuthGrant item, out string? errmsg)
-            => TryRemove(item, out errmsg);
-        public override bool TryRemovePermanentNoCheck(int id, out string? errmsg)
-            => TryRemoveNoCheck(id, out errmsg);
-        public override bool TryRemoveRange(List<AuthGrant> items, out string? errmsg)
-            => throw new InvalidOperationException();
-        public override bool TryRemoveRangePermanent(List<AuthGrant> items, out string? errmsg)
-            => throw new InvalidOperationException();
 
         protected override IQueryable<AuthGrantCacheModel> ConvertToCacheModel(IQueryable<AuthGrant> q)
         {

@@ -32,7 +32,9 @@ namespace FCloud3.Repos.Wiki
                 return false;
             }
             p.ObjectId = fileId;
-            return TryEdit(p, out errmsg);
+            base.Update(p);
+            errmsg = null;
+            return true;
         }
 
         public IQueryable<int> WikiContainingIt(WikiParaType type, int objId)

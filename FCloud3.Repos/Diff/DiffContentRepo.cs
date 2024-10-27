@@ -7,15 +7,16 @@ namespace FCloud3.Repos.Diff
 {
     public class DiffContentRepo : RepoBase<DiffContent>
     {
+        public DbSet<DiffSingle> DiffSingles { get; }
         public DiffContentRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
+            DiffSingles = context.Set<DiffSingle>(); //代管该模型
         }
 
         public bool AddRangeDiffSingle(List<DiffSingle> diffSingles, out string? errmsg)
         {
-            //DiffSingles实体并不实现IDbModel接口，情况特殊，需要直接操作_context
-            _context.DiffSingles.AddRange(diffSingles);
-            _context.SaveChanges();
+            DiffSingles.AddRange(diffSingles);
+            base.SaveChanges();
             errmsg = null;  
             return true;
         }
@@ -35,8 +36,6 @@ namespace FCloud3.Repos.Diff
             });
             return res;
         }
-        
-        public IQueryable<DiffSingle> DiffSingles => _context.Set<DiffSingle>();
 
         public bool SetHidden(int id, bool hidden, out string? errmsg)
         {

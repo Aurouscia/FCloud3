@@ -26,7 +26,7 @@ namespace FCloud3.Repos.Identities
                 return name.Substring(0, lengthLimit - 1) + "...";
             return name;
         }
-        public override bool TryAddCheck(User item, out string? errmsg)
+        public bool TryAdd(User item, out string? errmsg)
         {
             errmsg = null;
             if (Existing.Any(x => x.Name == item.Name))
@@ -34,9 +34,10 @@ namespace FCloud3.Repos.Identities
                 errmsg = "该用户名已经被占用";
                 return false;
             }
+            base.Add(item);
             return true;
         }
-        public override bool TryEditCheck(User item, out string? errmsg)
+        public bool TryUpdate(User item, out string? errmsg)
         {
             errmsg = null;
             if (Existing.Any(x => x.Id != item.Id && x.Name == item.Name))
@@ -44,19 +45,14 @@ namespace FCloud3.Repos.Identities
                 errmsg = "该用户名已经被占用";
                 return false;
             }
+            base.Update(item);
             return true;
         }
 
         public void SetLastUpdateToNow()
         {
             int uid = _userIdProvider.Get();
-            Existing.Where(x => x.Id == uid)
-                .ExecuteUpdate(call=>call.SetProperty(u => u.Updated, DateTime.Now));
-        }
-        public void SetUserType(int uid, UserType userType)
-        {
-            Existing.Where(x => x.Id == uid)
-                .ExecuteUpdate(call => call.SetProperty(u => u.Type, userType));
+            base.UpdateTime(uid);
         }
         public IQueryable<User> QuickSearch(string str)
         {

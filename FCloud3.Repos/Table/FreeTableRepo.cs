@@ -1,13 +1,10 @@
 ﻿using Aurouscia.TableEditor.Core;
-using Aurouscia.TableEditor.Core.Utils;
 using FCloud3.DbContexts;
 using FCloud3.Entities.Table;
-using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FCloud3.Repos.Table
 {
@@ -55,24 +52,24 @@ namespace FCloud3.Repos.Table
                 errmsg = "找不到指定表格";
                 return false;
             }
-            model.Updated = DateTime.Now;
             model.Brief = briefJson;
             model.Data = dataRaw;
-            _context.Update(model);
-            _context.SaveChanges();
+            base.Update(model);
             errmsg = null;
             return true;
         }
 
         public int TryCreateWithContent(AuTable data, string name, out string? errmsg)
         {
+            if (!NameCheck(name, out errmsg))
+                return 0;
             var brief = Brief(data.Cells);
             string briefJson = brief.ToJsonStr();
             var model = new FreeTable();
             model.Name = name;
             model.Brief = briefJson;
             model.Data = FreeTableDataConvert.Serialize(data);
-            return base.TryAddAndGetId(model, out errmsg);
+            return base.AddAndGetId(model);
         }
         private FreeTableBrief Brief(List<List<string?>?>? cells)
         {
@@ -114,7 +111,7 @@ namespace FCloud3.Repos.Table
                 };
         }
 
-        public override int TryCreateDefaultAndGetId(out string? errmsg)
+        public override FreeTable NewDefaultObject()
         {
             AuTable table = new()
             {
@@ -127,7 +124,7 @@ namespace FCloud3.Repos.Table
             creating.SetData(table);
             creating.SetBrief(brief);
             creating.Name = "";
-            return TryAddAndGetId(creating, out errmsg);
+            return creating;
         }
 
 

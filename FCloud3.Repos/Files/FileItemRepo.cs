@@ -26,7 +26,7 @@ namespace FCloud3.Repos.Files
         {
             return Existing.Where(x => x.InDir == dirId);
         }
-        public override bool TryAddCheck(FileItem item, out string? errmsg)
+        public bool TryAdd(FileItem item, out string? errmsg)
         {
             if (string.IsNullOrWhiteSpace(item.DisplayName))
             {
@@ -60,10 +60,12 @@ namespace FCloud3.Repos.Files
                 errmsg = $"已存在内容完全相同的文件({sameName})";
                 return false;
             }
+
+            base.Add(item);
             errmsg = null;
             return true;
         }
-        public override bool TryEditCheck(FileItem item, out string? errmsg)
+        public bool TryUpdate(FileItem item, out string? errmsg)
         {
             if (string.IsNullOrWhiteSpace(item.DisplayName))
             {
@@ -75,6 +77,7 @@ namespace FCloud3.Repos.Files
                 errmsg = $"文件显示名过长，请缩短";
                 return false;
             }
+            base.Update(item);
             errmsg = null;
             return true;
         }

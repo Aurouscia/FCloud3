@@ -1,12 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FCloud3.Repos.Identities
 {
@@ -26,13 +21,19 @@ namespace FCloud3.Repos.Identities
         }
         public override int GetOwnerIdById(int id)
             => Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
-        public override bool TryAddCheck(UserGroup item, out string? errmsg)
+        public bool TryAdd(UserGroup item, out string? errmsg)
         {
-            return InfoCheck(item, true, out errmsg);
+            if (!InfoCheck(item, true, out errmsg))
+                return false;
+            base.Add(item);
+            return true;
         }
-        public override bool TryEditCheck(UserGroup item, out string? errmsg)
+        public bool TryUpdate(UserGroup item, out string? errmsg)
         {
-            return InfoCheck(item, false ,out errmsg);
+            if (!InfoCheck(item, false, out errmsg))
+                return false;
+            base.Update(item);
+            return true;
         }
         public bool InfoCheck(UserGroup group, bool creating, out string? errmsg)
         {

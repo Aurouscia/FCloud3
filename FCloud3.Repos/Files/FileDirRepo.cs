@@ -58,7 +58,7 @@ namespace FCloud3.Repos.Files
                 chain.ForEach(i => relatedIds.Add(i));
                 chains.Add((id,chain));
             }
-            var names = GetRangeByIds(relatedIds)
+            var names = GetRangeByIds(relatedIds.ToList())
                 .Select(x => new {x.Id, x.Name}).ToList();
             foreach(var item in chains)
             {
@@ -150,9 +150,7 @@ namespace FCloud3.Repos.Files
         /// <returns></returns>
         public bool UpdateDescendantsInfoFor(List<int> masters, out string? errmsg)
         {
-            //更新所有子代的计算涉及到大量查询，移动到caching服务里计算，
-            //计算完成后的结果拿回来更新数据库
-            var changedData = UpdateDescendantsInfoFor(masters);
+            var changedData = UpdateDescendantsInfoFor(masters);//计算完成后的结果拿回来更新数据库
             var changedIds = changedData.ConvertAll(x => x.Id);
             var dbModelsNeedMutate = GetRangeByIds(changedIds).ToList();
             foreach(var m in dbModelsNeedMutate)
@@ -163,8 +161,7 @@ namespace FCloud3.Repos.Files
                 m.Depth = data.Depth;
                 m.RootDir = data.RootDir;
             }
-            if (!TryEditRange(dbModelsNeedMutate, out errmsg, false))
-                return false;
+            base.UpdateRange(dbModelsNeedMutate);
             errmsg = null; 
             return true;
         }
@@ -172,7 +169,8 @@ namespace FCloud3.Repos.Files
         {
             if (masters is null || masters.Count == 0)
                 return [];
-            var masterData = CachedItemsByPred(x => masters.Contains(x.Id)).ToList();
+            List<FileDirCacheModel> masterData = CachedItemsByIds(masters).ToList();
+            List<FileDirCacheModel> masterDataCorrect = new(masterData.Count);
             //用changing记录哪些文件夹发生变化
             List<FileDirCacheModel> changings = [];
 
@@ -184,8 +182,11 @@ namespace FCloud3.Repos.Files
                     var rootDir = x.Id;//顶级目录的rootDir应该是自己
                     var depth = 0;//顶级目录的depth应该是0
                     var changing = new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, rootDir, depth);
-                    changings.Add(x);
+                    changings.Add(changing);
+                    masterDataCorrect.Add(changing);
                 }
+                else
+                    masterDataCorrect.Add(x);
             }
 
             //从父代到子代计算depth
@@ -200,14 +201,18 @@ namespace FCloud3.Repos.Files
                     bool depthChanged = x.Depth != shouldBeDepth;
                     int shouldBeRoot = dir.RootDir;
                     bool rootChanged = x.RootDir != shouldBeRoot;
-                    setChildrenDepth(x, safety + 1);
                     if (depthChanged || rootChanged)
                     {
-                        changings.Add(new(x.Id, x.Updated, x.ParentDir, shouldBeRoot, shouldBeDepth));
+                        var correctX = new FileDirCacheModel(
+                            x.Id, x.Updated, x.ParentDir, shouldBeRoot, shouldBeDepth);
+                        changings.Add(correctX);
+                        setChildrenDepth(correctX, safety + 1);
                     }
+                    else
+                        setChildrenDepth(x, safety + 1);
                 };
             }
-            foreach(var m in masterData)
+            foreach(var m in masterDataCorrect)
                 setChildrenDepth(m, 0);
 
             //此时depth已经是正确值
@@ -226,15 +231,7 @@ namespace FCloud3.Repos.Files
             return UpdateDescendantsInfoFor(roots, out errmsg);
         }
 
-        public override bool TryAddCheck(FileDir item, out string? errmsg)
-        {
-            return InfoCheck(item, out errmsg);
-        }
-        public override bool TryEditCheck(FileDir item, out string? errmsg)
-        {
-            return InfoCheck(item, out errmsg);
-        }
-        public override bool TryRemoveCheck(FileDir item, out string? errmsg)
+        public bool TryRemove(FileDir item, out string? errmsg)
         {
             var userId = _userIdProvider.Get();
             if (userId != item.CreatorUserId)
@@ -242,6 +239,7 @@ namespace FCloud3.Repos.Files
                 errmsg = "只有所有者能删除";
                 return false;
             }
+            base.Remove(item);
             errmsg = null;
             return true;
         }

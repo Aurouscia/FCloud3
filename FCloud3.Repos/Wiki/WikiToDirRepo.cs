@@ -48,7 +48,9 @@ namespace FCloud3.Repos.Wiki
                 };
                 addingRelations.Add(relation);
             }
-            return TryAddRange(addingRelations, out errmsg);
+            base.AddRange(addingRelations);
+            errmsg = null;
+            return true;
         }
         public bool RemoveWikisFromDir(List<int> wikiIds,int dirId,out string? errmsg)
         {
