@@ -2,7 +2,6 @@
 using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Test.TestSupport;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +18,6 @@ namespace FCloud3.Repos.Test.Files
         //           aaa6
         #region 测试初始化
         private readonly FileDirRepo _repo;
-        private readonly FileDirCaching _caching;
         private readonly FCloudContext _context;
         public FileDirRepoTest() 
         {
@@ -31,19 +29,19 @@ namespace FCloud3.Repos.Test.Files
                 new() { Name = "user2", Type = UserType.Member }
             });
             _context.SaveChanges();
-            
-            var dir1 = new FileDir() { Name = "DIR_1", UrlPathName = "dir-1", Depth = 0, RootDir = 1};
-            var dir2 = new FileDir() { Name = "DIR_2", UrlPathName = "dir-2", Depth = 1, ParentDir = 1, RootDir = 1};
-            var dir3 = new FileDir() { Name = "DIR_3", UrlPathName = "dir-3", Depth = 1, ParentDir = 1, RootDir = 1 };
-            var dir4 = new FileDir() { Name = "DIR_4", UrlPathName = "dir-4", Depth = 2, ParentDir = 2, RootDir = 1 };
-            var aaa5 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 2, RootDir = 1 };
-            var aaa6 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 3, RootDir = 1 };
+
+            var someTime = new DateTime(2024, 1, 6);
+            var dir1 = new FileDir() { Name = "DIR_1", UrlPathName = "dir-1", Depth = 0, RootDir = 1, Updated = someTime };
+            var dir2 = new FileDir() { Name = "DIR_2", UrlPathName = "dir-2", Depth = 1, ParentDir = 1, RootDir = 1, Updated = someTime };
+            var dir3 = new FileDir() { Name = "DIR_3", UrlPathName = "dir-3", Depth = 1, ParentDir = 1, RootDir = 1, Updated = someTime };
+            var dir4 = new FileDir() { Name = "DIR_4", UrlPathName = "dir-4", Depth = 2, ParentDir = 2, RootDir = 1, Updated = someTime };
+            var aaa5 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 2, RootDir = 1, Updated = someTime };
+            var aaa6 = new FileDir() { Name = "AAA", UrlPathName = "aaa", Depth = 2, ParentDir = 3, RootDir = 1, Updated = someTime };
             _context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
             _context.SaveChanges();
 
-            _caching = new FileDirCaching(_context, new FakeLogger<FileDirCaching>());
-            _caching.Clear();//每次数据初始化时应该将缓存（是静态内存）清空
-            _repo = new(_context, new StubUserIdProvider(2), _caching);
+            _repo = new(_context, new StubUserIdProvider(2));
+            _repo.ClearCache();
         }
         #endregion
 
@@ -174,7 +172,9 @@ namespace FCloud3.Repos.Test.Files
                     moving.Depth = destination.Depth + 1;//深度设为目标深度+1
                     moving.RootDir = destination.RootDir;//root设为父级的root
                 }
-                _repo.TryEdit(moving, out _);
+                moving.Updated = DateTime.Now;
+                _context.Update(moving);
+                _context.SaveChanges();
 
                 //测试的方法：被移动的目录需要能将其子代作出相应的正确改动
                 _repo.UpdateDescendantsInfoFor([beMoved], out var errmsg);
@@ -211,6 +211,8 @@ namespace FCloud3.Repos.Test.Files
                 => c.SetProperty(x => x.RootDir, 100));
             _context.FileDirs.ExecuteUpdate(c 
                 => c.SetProperty(x => x.Depth, 100));
+            _context.FileDirs.ExecuteUpdate(c
+                => c.SetProperty(x => x.Updated, DateTime.Now));
             _context.FileDirs.Where(x => x.Id == moveDir).ExecuteUpdate(c
                 => c.SetProperty(x => x.ParentDir, to));
             _context.ChangeTracker.Clear();
