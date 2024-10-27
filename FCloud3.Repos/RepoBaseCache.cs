@@ -79,6 +79,17 @@ namespace FCloud3.Repos
             if (!Synchronized)
             {
                 var latestUpdated = LatestUpdated;
+                if(!CacheDict.IsEmpty)
+                {
+                    //如果已经有缓存，但还是需要进行同步，此时需要注意是否有新删掉的东西
+                    //如果没有缓存，就不需要做这一步，直接取所有Existing即可
+                    var delQ = Deleted.Where(x => x.Updated > latestUpdated);
+                    var delIds = delQ.Select(x => x.Id).ToList();
+                    delIds.ForEach(delId =>
+                    {
+                        CacheDict.TryRemove(delId, out _);
+                    });
+                }
                 var q = Existing.Where(x => x.Updated > latestUpdated);
                 var fetched = ConvertToCacheModel(q).ToList();
                 fetched.ForEach(item =>
