@@ -40,6 +40,7 @@ namespace FCloud3.Repos.Table
                     .SetProperty(t => t.Name, name)
                     .SetProperty(t => t.Updated, DateTime.Now)
                 );
+            AfterDataChange();
             return affected == 1;
         }
 

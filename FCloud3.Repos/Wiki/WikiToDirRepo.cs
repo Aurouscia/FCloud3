@@ -58,6 +58,7 @@ namespace FCloud3.Repos.Wiki
                 .Where(x => x.DirId == dirId)
                 .Where(x => wikiIds.Contains(x.WikiId))
                 .ExecuteDelete();
+            base.AfterDataChange();
             errmsg = null;
             return true;
         }

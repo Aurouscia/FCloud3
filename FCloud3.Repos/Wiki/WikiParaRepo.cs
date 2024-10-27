@@ -63,7 +63,10 @@ namespace FCloud3.Repos.Wiki
                 return false;
             }
             int affected = Existing.Where(x => x.Id == id)
-                .ExecuteUpdate(x => x.SetProperty(p => p.NameOverride, nameOverride));
+                .ExecuteUpdate(x => x
+                    .SetProperty(p => p.NameOverride, nameOverride)
+                    .SetProperty(p => p.Updated, DateTime.Now));
+            AfterDataChange();
             if (affected == 0)
             {
                 errmsg = "找不到指定段落";

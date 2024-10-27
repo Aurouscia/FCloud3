@@ -39,7 +39,10 @@ namespace FCloud3.Repos.TextSec
             }
             errmsg = null;
             int changed = Existing.Where(s => s.Id == id)
-                .ExecuteUpdate(s => s.SetProperty(x => x.Title, newTitle));
+                .ExecuteUpdate(s => s
+                    .SetProperty(x => x.Title, newTitle)
+                    .SetProperty(x => x.Updated, DateTime.Now));
+            AfterDataChange();
             if (changed == 1)
                 return true;
             else
@@ -56,7 +59,9 @@ namespace FCloud3.Repos.TextSec
             int changed = Existing.Where(s => s.Id == id)
                 .ExecuteUpdate(s => s
                     .SetProperty(x => x.Content, newContent)
-                    .SetProperty(x=>x.ContentBrief, brief));
+                    .SetProperty(x => x.ContentBrief, brief)
+                    .SetProperty(x => x.Updated, DateTime.Now));
+            AfterDataChange();
 
             if (changed == 1)
                 return true;

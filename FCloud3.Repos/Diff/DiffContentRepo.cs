@@ -41,7 +41,10 @@ namespace FCloud3.Repos.Diff
         {
             var affected = Existing
                 .Where(dc => dc.Id == id)
-                .ExecuteUpdate(spc => spc.SetProperty(dc => dc.Hidden, hidden));
+                .ExecuteUpdate(spc => 
+                    spc.SetProperty(dc => dc.Hidden, hidden)
+                    .SetProperty(dc=>dc.Updated, DateTime.Now));
+            AfterDataChange();
             if (affected == 0)
             {
                 errmsg = "找不到指定记录";

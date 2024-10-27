@@ -83,7 +83,11 @@ namespace FCloud3.Repos.Files
         }
         public bool SetInDirForRange(int distDirId, List<int> ids, out string? errmsg)
         {
-            int affected = base.GetRangeByIds(ids).ExecuteUpdate(x => x.SetProperty(f => f.InDir, distDirId));
+            int affected = base.GetRangeByIds(ids)
+                .ExecuteUpdate(x => x
+                    .SetProperty(f => f.InDir, distDirId)
+                    .SetProperty(f => f.Updated, DateTime.Now));
+            AfterDataChange();
             errmsg = null;
             return true;
         }
