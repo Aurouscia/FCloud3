@@ -22,14 +22,16 @@ namespace FCloud3.Repos.Identities
         /// <returns></returns>
         public List<AuthGrantCacheModel> GetByOn(AuthGrantOn on, int onId, int owner)
         {
+            var items = AllCachedItems();
             //要么直接在对象上，要么被所有者定义为“所有我的”的
-            Func<AuthGrantCacheModel, bool> pred = x =>
-                x.On == on && (x.OnId == onId || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner));
+            items = items.Where(x =>
+                x.On == on && (x.OnId == onId 
+                || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner)));
 
             //如果要的就是“所有我的”，那么只返回当前登录用户的，无视owner参数
             if (onId == AuthGrant.onIdForAll)
-                pred = x => pred(x) && (x.CreatorUserId == _userIdProvider.Get());
-            var res = CachedItemsByPred(pred).ToList();
+                items = items.Where(x => x.CreatorUserId == _userIdProvider.Get());
+            var res = items.ToList();
             res.Sort((x, y) =>
             {
                 var xIsAll = x.OnId == AuthGrant.onIdForAll ? 1 : 0;
