@@ -178,7 +178,7 @@ namespace FCloud3.Services.Identities
                 u.PwdEncrypted = _userPwdEncryption.Run(pwd);
             u.Desc = desc;
 
-            if (!_repo.TryEdit(u, out errmsg))
+            if (!_repo.TryUpdate(u, out errmsg))
                 return false;
             return true;
         }
@@ -193,7 +193,7 @@ namespace FCloud3.Services.Identities
             var encrypted = _userPwdEncryption.Run(pwd);
             var u = _repo.GetByIdEnsure(id);
             u.PwdEncrypted = encrypted;
-            var s = _repo.TryEdit(u, out errmsg);
+            var s = _repo.TryUpdate(u, out errmsg);
             if (s)
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, id, 0,
                     $"为 {u.Name}({u.Id}) 重置密码");
@@ -204,7 +204,7 @@ namespace FCloud3.Services.Identities
         {
             User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
             u.AvatarMaterialId = materialId;
-            if (!_repo.TryEdit(u, out errmsg))
+            if (!_repo.TryUpdate(u, out errmsg))
                 return false;
             return true;
         }
@@ -236,7 +236,7 @@ namespace FCloud3.Services.Identities
             if (u.Type != targetType)
                 record = $"将 {u.Name} ({u.Id}) 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
-            if(_repo.TryEdit(u, out errmsg))
+            if(_repo.TryUpdate(u, out errmsg))
             {
                 //TODO:用户的上次活跃时间与模型更新时间是两码事，必须做区分
                 if (record is not null)

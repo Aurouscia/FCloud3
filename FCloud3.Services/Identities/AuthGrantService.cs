@@ -323,10 +323,10 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             gs.ResetOrder(ids);
-            var s = _authGrantRepo.TryEditRange(gs, out errmsg);
-            if (s)
-                _cacheExpTokenService.AuthGrants.CancelAll();
-            return s;
+            _authGrantRepo.UpdateRangeWithoutCheck(gs);
+            _cacheExpTokenService.AuthGrants.CancelAll();
+            errmsg = null;
+            return true;
         }
 
         private bool CanEdit(AuthGrantOn on, int onId)

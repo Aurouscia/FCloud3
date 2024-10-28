@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
+using NPOI.SS.Formula.PTG;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,6 +134,20 @@ namespace FCloud3.Repos.Identities
             }
             Remove(existing);
             errmsg = null; 
+            return true;
+        }
+        
+        public bool SetShowLabel(int userId, int groupId, bool show, out string? errmsg)
+        {
+            var r = GetRelation(groupId, userId);
+            if (r is null)
+            {
+                errmsg = "不在该组中";
+                return false;
+            }
+            r.ShowLabel = show;
+            base.Update(r);
+            errmsg = null;
             return true;
         }
     }

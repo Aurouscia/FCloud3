@@ -21,12 +21,11 @@ namespace FCloud3.Repos.Identities
         }
         public override int GetOwnerIdById(int id)
             => Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
-        public bool TryAdd(UserGroup item, out string? errmsg)
+        public int TryAddAndGetId(UserGroup item, out string? errmsg)
         {
             if (!InfoCheck(item, true, out errmsg))
-                return false;
-            base.Add(item);
-            return true;
+                return 0;
+            return base.AddAndGetId(item);
         }
         public bool TryUpdate(UserGroup item, out string? errmsg)
         {
@@ -35,6 +34,7 @@ namespace FCloud3.Repos.Identities
             base.Update(item);
             return true;
         }
+        public new void Remove(UserGroup item) => base.Remove(item);
         public bool InfoCheck(UserGroup group, bool creating, out string? errmsg)
         {
             if (string.IsNullOrWhiteSpace(group.Name))

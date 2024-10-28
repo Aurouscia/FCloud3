@@ -95,6 +95,8 @@ namespace FCloud3.Repos.Identities
             errmsg = null; 
             return true;
         }
+        public void UpdateRangeWithoutCheck(List<AuthGrant> items)
+            => base.UpdateRange(items);
 
         protected override IQueryable<AuthGrantCacheModel> ConvertToCacheModel(IQueryable<AuthGrant> q)
         {

@@ -26,16 +26,16 @@ namespace FCloud3.Repos.Identities
                 return name.Substring(0, lengthLimit - 1) + "...";
             return name;
         }
-        public bool TryAdd(User item, out string? errmsg)
+        public int TryAddAndGetId(User item, out string? errmsg)
         {
             errmsg = null;
             if (Existing.Any(x => x.Name == item.Name))
             {
                 errmsg = "该用户名已经被占用";
-                return false;
+                return 0;
             }
             base.Add(item);
-            return true;
+            return item.Id;
         }
         public bool TryUpdate(User item, out string? errmsg)
         {
