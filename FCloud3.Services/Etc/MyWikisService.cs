@@ -11,9 +11,8 @@ namespace FCloud3.Services.Etc
     {
         public MyWikisOverallResp MyWikiOverall(int uid)
         {
-            var myAllWs = wikiItemRepo.Existing
-                .Where(x => x.OwnerUserId == uid)
-                .Select(x => new {x.Id, x.Title, x.UrlPathName, x.Sealed})
+            var myAllWs = wikiItemRepo
+                .CachedItemsByPred(x => x.OwnerId == uid)
                 .ToList();
             var allWIds = myAllWs.Select(x => x.Id).ToHashSet();
             var wikiToDirs = wikiToDirRepo.Existing
