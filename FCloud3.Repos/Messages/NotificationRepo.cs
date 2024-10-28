@@ -33,5 +33,7 @@ namespace FCloud3.Repos.Messages
 
         public IQueryable<Notification> Mine => Existing.Where(x => x.Receiver == _userIdProvider.Get());
         public IQueryable<Notification> MineUnread => Mine.Where(x => !x.Read);
+
+        public new void Add(Notification notification) => base.Add(notification);
     }
 }

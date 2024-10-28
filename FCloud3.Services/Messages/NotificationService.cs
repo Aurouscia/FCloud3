@@ -89,7 +89,7 @@ namespace FCloud3.Services.Messages
                 Param2 = commentId,
                 Read = false
             };
-            _ = notificationRepo.TryAdd(notif, out _);
+            notificationRepo.Add(notif);
         }
         public void CommentWikiReply(int wikiId, int commentId, int replyTo)
         {
@@ -106,7 +106,7 @@ namespace FCloud3.Services.Messages
                 Param2 = commentId,
                 Read = false
             };
-            _ = notificationRepo.TryAdd(notif, out _);
+            notificationRepo.Add(notif);
         }
         public void UserGroupInvite(int groupId, int invitedUser)
         {
@@ -120,7 +120,7 @@ namespace FCloud3.Services.Messages
                 Param2 = 0,
                 Read = false
             };
-            _ = notificationRepo.TryAdd(notif, out _);
+            notificationRepo.Add(notif);
         }
 
 
