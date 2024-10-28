@@ -175,7 +175,7 @@ watch(onlyMine, async()=>{
     <SideBar ref="createSideBar">
         <h1>新建素材</h1>
         <div>
-            <table>
+            <table><tbody>
                 <tr>
                     <td>简短<br/>名称</td>
                     <td><input v-model="creatingName"></td>
@@ -193,7 +193,7 @@ watch(onlyMine, async()=>{
                         <button @click="create">创建</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
         <Notice :type="'warn'">
             取名请谨慎，后续更改名称会造成词条内引用失效
@@ -202,7 +202,7 @@ watch(onlyMine, async()=>{
     <SideBar ref="detailSidebar">
         <h1>更改信息</h1>
         <div>
-            <table>
+            <table><tbody>
                 <tr>
                     <td>简短<br/>名称</td>
                     <td><input v-model="detailName"></td>
@@ -216,11 +216,11 @@ watch(onlyMine, async()=>{
                         <button @click="editInfo">更改信息</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
         <h1>更改文件</h1>
         <div>
-            <table>
+            <table><tbody>
                 <tr>
                     <td>文件</td>
                     <td><input @change="editingFileChange" ref="creatingFileInput" type="file" accept=".jpg, .jpeg, .png, .svg, .gif"/></td>
@@ -230,7 +230,7 @@ watch(onlyMine, async()=>{
                         <button @click="editContent">更改文件</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
         <Notice :type="'warn'" :title="'⚠已知缺陷'">
             修改素材名称将造成使用原名称的词条无法再显示该素材<br/><br/>

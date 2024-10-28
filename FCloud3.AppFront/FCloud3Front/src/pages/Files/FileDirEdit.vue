@@ -102,7 +102,7 @@ onMounted(async()=>{
                 </div>
                 <div>
                     <div v-if="data.CanEditInfo">
-                        <table>
+                        <table><tbody>
                             <tr>
                                 <td>目录<br/>名称</td>
                                 <td><input v-model="editingDirName"/></td>
@@ -119,7 +119,7 @@ onMounted(async()=>{
                                     <button class="confirm" @click="saveEdit">保存</button>
                                 </td>
                             </tr>
-                        </table>
+                        </tbody></table>
                         <div style="text-align: center;margin-top: 20px;">
                             <LongPress :reached="del">长按删除本目录</LongPress>
                         </div>

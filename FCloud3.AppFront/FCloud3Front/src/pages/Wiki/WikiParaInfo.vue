@@ -139,7 +139,7 @@ onMounted(async()=>{
 <template>
 <SideBar ref="sidebar" @fold="emits('close')">
     <h1>段落信息</h1>
-    <table>
+    <table><tbody>
         <tr>
             <td>
                 内容名称
@@ -190,7 +190,7 @@ onMounted(async()=>{
                 <button @click="save">保存</button>
             </td>
         </tr>
-    </table>
+    </tbody></table>
 </SideBar>
 </template>
 

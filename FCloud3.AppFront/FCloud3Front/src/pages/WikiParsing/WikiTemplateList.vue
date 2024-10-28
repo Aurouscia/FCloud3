@@ -47,7 +47,7 @@ onMounted(async()=>{
             <button @click="create">创建</button>
         </div>
     </div>
-    <table>
+    <table><tbody>
         <tr>
             <th class="nameTh">
                 名称
@@ -72,7 +72,7 @@ onMounted(async()=>{
                 {{ item.Updated }}
             </td>
         </tr>
-    </table>
+    </tbody></table>
 </div>
 </template>
 

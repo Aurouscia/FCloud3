@@ -94,7 +94,7 @@ onUnmounted(()=>{
         <h1>登录</h1>
     </div>
     <div>
-        <table>
+        <table><tbody>
             <tr>
                 <td>昵称</td>
                 <td>
@@ -107,7 +107,7 @@ onUnmounted(()=>{
                     <input v-model="password" type="password"/>
                 </td>
             </tr>
-        </table>
+        </tbody></table>
         <div class="login">
             <button @click="Login" class="confirm">登&nbsp;录</button>
         </div>

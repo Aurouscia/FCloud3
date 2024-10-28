@@ -84,7 +84,7 @@ onMounted(async()=>{
         <button @click="startCreating">添加</button>
     </div>
 </h1>
-<table>
+<table><tbody>
     <tr>
         <th style="width: 30px;"></th>
         <th style="min-width: 220px">标题</th>
@@ -119,10 +119,10 @@ onMounted(async()=>{
             <button class="minor" @click="startEditing(w)">编辑</button>
         </td>
     </tr>
-</table>
+</tbody></table>
 <SideBar ref="wsEditSidebar">
     <h1>编辑</h1>
-    <table v-if="editing">
+    <table v-if="editing"><tbody>
         <tr>
             <td>词条</td>
             <td v-if="isCreating">
@@ -152,7 +152,7 @@ onMounted(async()=>{
                 <button @click="editDone">确定</button>
             </td>
         </tr>
-    </table>
+    </tbody></table>
     <div v-if="editing && !isCreating" class="removal">
         <LongPress :reached="removeEditing">长按移除</LongPress>
     </div>

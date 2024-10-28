@@ -90,7 +90,7 @@ onUnmounted(async()=>{
 <template>
 <div class="diffContentHistory">
     <div class="historyList" :class="{grow:tooNarrow}">
-        <table v-if="history">
+        <table v-if="history"><tbody>
             <tr>
                 <th class="t">时间</th>
                 <th>操作者</th>
@@ -114,7 +114,7 @@ onUnmounted(async()=>{
                     ×
                 </td>
             </tr>
-        </table>
+        </tbody></table>
         <Loading v-else></Loading>
     </div>
     <SideBar v-if="tooNarrow" ref="detailSidebar">

@@ -86,7 +86,7 @@ onMounted(()=>{
         <button @click="adding = !adding" :class="{cancel:adding}">{{adding?'取消添加':'添加授权'}}</button>
         <button v-show="touchedOrder" @click="saveOrder" class="ok">保存顺序更改</button>
         <div class="addPanel" v-if="api" v-show="adding">
-            <table>
+            <table><tbody>
                 <tr>
                     <td>对象类型</td>
                     <td>
@@ -113,10 +113,10 @@ onMounted(()=>{
                         <button v-show="addingTo == AuthGrantTo.EveryOne" @click="toSearchDone('',0)">确认</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
     </div>
-    <table v-if="data">
+    <table v-if="data"><tbody>
         <tr v-for="ag in data.BuiltIn">
             <td class="creator">系统</td>
             <td>
@@ -162,7 +162,7 @@ onMounted(()=>{
                 下方的规则会覆盖上方的
             </td>
         </tr>
-    </table>
+    </tbody></table>
     <div v-if="props.onId != authGrantOnIdForAll && data?.Global && data.Global.length>0" class="defaultNote">
         "全局设置"请在个人中心调整
     </div>

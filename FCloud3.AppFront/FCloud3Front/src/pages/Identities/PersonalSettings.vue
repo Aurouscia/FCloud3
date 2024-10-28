@@ -88,7 +88,7 @@ onMounted(async()=>{
     <div v-if="user">
         <h1>编辑个人信息</h1>
         <div class="section">
-            <table>
+            <table><tbody>
                 <tr>
                     <td>昵称</td>
                     <td>
@@ -112,7 +112,7 @@ onMounted(async()=>{
                         <button @click="editUserInfo">保存</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
         <h1>设置头像</h1>
         <div class="section">

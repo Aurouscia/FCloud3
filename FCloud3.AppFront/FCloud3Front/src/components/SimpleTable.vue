@@ -34,11 +34,11 @@ function refresh(){
 </script>
 
 <template>
-<table class="simpleTable">
+<table class="simpleTable"><tbody>
     <tr v-for="r in cells">
         <td v-for="c in r">{{ c || '　'}}</td>
     </tr>
-</table>
+</tbody></table>
 </template>
 
 <style scoped>

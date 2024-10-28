@@ -66,7 +66,7 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
         title:"表格",
         desc:"用于展示结构化的数据，使用竖杠(|)分隔单元格表示表格",
         code:"| 姓名 | 张三 | 李四 |\n| 年龄 | 23 | 22 |",
-        demo:"<table><tr><td>姓名</td><td>张三</td><td>李四</td></tr><tr><td>年龄</td><td>23</td><td>22</td></tr></table>"
+        demo:"<table><tbody><tr><td>姓名</td><td>张三</td><td>李四</td></tr><tr><td>年龄</td><td>23</td><td>22</td></tr></tbody></table>"
     },
     {
         title:"脚注",
@@ -129,8 +129,8 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>\n"+
         "或使用六位16进制rgb，例如ff0000，或使用\"rgb(255,255,255)\"表示颜色",
         code:"| 一号线/-c-/cornflowerblue | 132km | \n| 二号线/-c-/rgb(255,200,200) | 180km |",
-        demo:"<table><tr><td style=\"background-color:cornflowerblue;color:white\">一号线</td><td>132km</td></tr>"+
-        "<tr><td style=\"background-color:rgb(255,200,200);color:black\">二号线</td><td>180km</td></tr></table>"
+        demo:"<table><tbody><tr><td style=\"background-color:cornflowerblue;color:white\">一号线</td><td>132km</td></tr>"+
+        "<tr><td style=\"background-color:rgb(255,200,200);color:black\">二号线</td><td>180km</td></tr></tbody></table>"
     },
     {
         title:"带边框文字",
