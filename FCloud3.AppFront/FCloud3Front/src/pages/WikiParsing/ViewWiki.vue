@@ -159,7 +159,7 @@ const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNot
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
-const { jumpToDiffContentHistory, jumpToDiffContentHistoryForWiki } = useDiffRoutesJump();
+const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
@@ -283,7 +283,7 @@ onUnmounted(()=>{
             </div>
             <div class="btns">
                 <div>
-                    <button @click="jumpToDiffContentHistoryForWiki(wikiPathName)" class="minor">历史</button>
+                    <RouterLink :to="jumpToDiffContentHistoryForWikiRoute(wikiPathName)" target="_blank"><button class="minor">历史</button></RouterLink>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiEdit(wikiPathName)">设置</button>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiContentEdit(wikiPathName)">编辑</button>
                 </div>
@@ -303,7 +303,7 @@ onUnmounted(()=>{
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
-                    <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
+                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
