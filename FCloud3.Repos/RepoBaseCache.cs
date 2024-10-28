@@ -96,6 +96,8 @@ namespace FCloud3.Repos
                 {
                     CacheDict.AddOrUpdate(item.Id, item, (id, oldVal) => item);
                 });
+                RepoCacheDictSyncFetchedRows += fetched.Count;
+                RepoCacheDictSyncTimes += 1;
                 Synchronized = true;
             }
         }
@@ -106,6 +108,9 @@ namespace FCloud3.Repos
         {
             CacheDict.Clear();
         }
+
+        public int RepoCacheDictSyncTimes { get; private set; }
+        public int RepoCacheDictSyncFetchedRows { get; private set; }
 
         /// <summary>
         /// 数据更改后，同一scope内的内存不再拥有一致性，如果需要读需要再次同步
