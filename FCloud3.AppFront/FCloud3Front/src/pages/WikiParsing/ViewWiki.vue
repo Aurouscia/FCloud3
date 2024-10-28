@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectContentMaxWidth, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
+import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
@@ -34,6 +34,7 @@ import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { RouteRenderer } from '@/utils/plugins/routeRenderer'
+import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -164,9 +165,9 @@ const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } =
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
-const contentMaxWidth = injectContentMaxWidth()
+const mainDivDisplayStore = useMainDivDisplayStore()
 onMounted(async()=>{
-    contentMaxWidth.value = false;
+    mainDivDisplayStore.restrictContentMaxWidth = false;
     await init();
 })
 
@@ -252,7 +253,7 @@ async function init(changedPathName?:boolean){
     }
 }
 onUnmounted(()=>{
-    contentMaxWidth.value = true
+    mainDivDisplayStore.resetToDefault()
     clickFold?.dispose();
     imgClickJump?.dispose();
     disposeFootNoteJump();

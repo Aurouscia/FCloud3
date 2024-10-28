@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { injectApi, injectContentMaxWidth, injectPop } from '@/provides';
+import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { DiffContentType, diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
 import { DiffContentHistoryResult, DiffContentHistoryResultItem } from '@/models/diff/diffContentHistories';
@@ -14,6 +14,8 @@ import _ from 'lodash'
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
+import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
+
 
 const props = defineProps<{
     type?: string
@@ -27,7 +29,7 @@ const history = ref<DiffContentHistoryResult>()
 const selectedHistoryIdx = ref<number>(-1)
 const { iden } = useIdentityInfoStore()
 const { jumpToUserCenterRoute } = useIdentityRoutesJump()
-const  contentMaxWidth = injectContentMaxWidth()
+const mainDivDisplayStore = useMainDivDisplayStore()
 
 let displays:DiffContentStepDisplay[] = []
 const displaying = ref<DiffContentStepDisplay>()
@@ -61,7 +63,7 @@ let disposeWidthWatch:undefined|(()=>void)
 const pop = injectPop();
 onMounted(async()=>{
     setTitleTo('编辑历史')
-    contentMaxWidth.value = false
+    mainDivDisplayStore.restrictContentMaxWidth = false;
     api = injectApi();
     if(props.type && props.objId){
         const type = diffContentTypeFromStr(props.type)
@@ -79,7 +81,7 @@ onMounted(async()=>{
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
-    contentMaxWidth.value = true
+    mainDivDisplayStore.resetToDefault()
     recoverTitle()
     disposeWidthWatch?.()
 })

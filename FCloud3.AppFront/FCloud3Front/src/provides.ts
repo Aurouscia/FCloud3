@@ -16,8 +16,6 @@ const apiKey = 'api';
 const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
 const notifCountKey = 'notifCount';
-const contentMaxWidthKey = 'contentMaxWidth';
-const mainDivMarginTopKey = 'mainDivMarginTop';
 const wikiViewScrollMemoryKey = 'wikiViewScrollMemory'
 
 export type SetTopbarFunc = (display:boolean)=>void
@@ -60,20 +58,15 @@ export function useProvidesSetup() {
     provide(setTopBarKey, (display:boolean) => { 
         displayTopbar.value = display;
     })
-    const mainDivMarginTop = ref<boolean>(true);
-    provide(mainDivMarginTopKey, mainDivMarginTop)
 
     const notifCountProvider = new NotifCountProvider(api, displayTopbar);
     setupNotifCountPollCycle(notifCountProvider);//启动时获取一次通知数量，并设置轮询循环
     provide(notifCountKey, notifCountProvider);
 
-    const contentMaxWidth = ref<boolean>(true);
-    provide(contentMaxWidthKey, contentMaxWidth);
-
     const wikiViewScrollMemory = new WikiViewScrollMemory();
     provide(wikiViewScrollMemoryKey, wikiViewScrollMemory);
 
-    return { pop, displayTopbar, needMemberWarning, wait, contentMaxWidth, mainDivMarginTop }
+    return { pop, displayTopbar, needMemberWarning, wait }
 }
 
 export function injectPop(){
@@ -93,12 +86,6 @@ export function injectSetTopbar(){
 }
 export function injectNotifCountProvider(){
     return inject(notifCountKey) as NotifCountProvider
-}
-export function injectContentMaxWidth(){
-    return inject(contentMaxWidthKey) as Ref<boolean>;
-}
-export function injectMainDivMarginTop(){
-    return inject(mainDivMarginTopKey) as Ref<boolean>
 }
 export function injectWikiViewScrollMemory(){
     return inject(wikiViewScrollMemoryKey) as WikiViewScrollMemory
