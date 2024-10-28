@@ -30,6 +30,7 @@ import Search from '@/components/Search.vue';
 import { useFilesRoutesJump } from './routes/routesJump';
 import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
 import { storeToRefs } from 'pinia';
+import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 
 
 const props = defineProps<{
@@ -189,13 +190,16 @@ function dirSearchDone(id:number){
 const index = ref<InstanceType<typeof IndexMini>>();
 let api:Api = injectApi();
 const iden = useIdentityInfoStore().iden
+const mainDivDisplayStore = useMainDivDisplayStore()
 onMounted(async()=>{
     setPathData();
     autoPageSize();
+    mainDivDisplayStore.enforceScrollY = true;
     window.addEventListener('resize', windowResizeHandler)
     await index.value?.reloadData()
 })
 onUnmounted(()=>{
+    mainDivDisplayStore.resetToDefault()
     window.removeEventListener('resize', windowResizeHandler)
     recoverTitle()
 })

@@ -8,7 +8,7 @@ import { useMainDivDisplayStore } from './utils/globalStores/mainDivDisplay';
 import { storeToRefs } from 'pinia';
 
 const { pop, displayTopbar, needMemberWarning, wait } = useProvidesSetup();
-const { restrictContentMaxWidth, displayMarginTop } = storeToRefs(useMainDivDisplayStore())
+const { restrictContentMaxWidth, displayMarginTop, enforceScrollY } = storeToRefs(useMainDivDisplayStore())
 </script>
 
 <template>
@@ -16,7 +16,7 @@ const { restrictContentMaxWidth, displayMarginTop } = storeToRefs(useMainDivDisp
   <Wait ref="wait"></Wait>
   <NeedMemberWarning ref="needMemberWarning"></NeedMemberWarning>
   <TopbarParent v-if="displayTopbar"></TopbarParent>
-  <div class="main" :class="{displayMarginTop}">
+  <div class="main" :class="{displayMarginTop, enforceScrollY}">
     <div class="mainInner" :class="{restrictContentMaxWidth}">
       <RouterView></RouterView>
     </div>
@@ -33,5 +33,8 @@ const { restrictContentMaxWidth, displayMarginTop } = storeToRefs(useMainDivDisp
 .restrictContentMaxWidth{
   padding: 0px 20px 0px 20px;
   max-width: 1200px;
+}
+.enforceScrollY{
+  overflow-y: scroll;
 }
 </style>
