@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Org.BouncyCastle.Crypto;
 
 namespace FCloud3.Repos
 {
@@ -269,11 +270,12 @@ namespace FCloud3.Repos
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
             AfterDataChange();
         }
-        public void UpdateTime(IQueryable<int> ids)
+        public int UpdateTime(IQueryable<int> ids)
         {
             var changedCount = Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
             AfterDataChange();
+            return changedCount;
         }
 
         protected void Remove(T item)
@@ -293,6 +295,14 @@ namespace FCloud3.Repos
                 _context.Update(item);
             });
             _context.SaveChanges();
+            AfterDataChange();
+        }
+        protected void Remove(int id)
+        {
+            Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x
+                    .SetProperty(m => m.Deleted, true)
+                    .SetProperty(m => m.Updated, DateTime.Now));
             AfterDataChange();
         }
 

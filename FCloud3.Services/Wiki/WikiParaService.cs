@@ -35,7 +35,7 @@ namespace FCloud3.Services.Wiki
                 errmsg = "找不到指定的文件";
                 return false;
             }
-            if(_wikiParaRepo.SetFileParaFileId(paraId, fileId, out errmsg))
+            if(_wikiParaRepo.SetParaObjId(paraId, WikiParaType.File, fileId, out errmsg))
             {
                 int affectedWikiId = BelongToWikiId(paraId);
                 if(affectedWikiId > 0)
@@ -144,7 +144,7 @@ namespace FCloud3.Services.Wiki
                 {
                     p.Type = WikiParaType.Table;
                     p.ObjectId = createdTableId;
-                    _wikiParaRepo.TryEdit(p, out errmsg);
+                    _wikiParaRepo.Update(p);
                 }
                 else
                 {

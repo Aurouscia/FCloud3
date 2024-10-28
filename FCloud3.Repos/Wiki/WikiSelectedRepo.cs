@@ -20,7 +20,7 @@ namespace FCloud3.Repos.Wiki
                 return 8;
             });
         
-        public bool Insert(int beforeOrder,
+        public bool TryInsert(int beforeOrder,
             int wikiItemId, string? intro, int dropAfterHr, out string? errmsg)
         {
             var all = Existing.ToList();

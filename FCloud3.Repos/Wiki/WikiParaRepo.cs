@@ -18,7 +18,12 @@ namespace FCloud3.Repos.Wiki
 
         public IQueryable<WikiPara> WithType(WikiParaType type) => Existing.Where(x => x.Type == type);
 
-        public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
+        public new int AddAndGetId(WikiPara para) => base.AddAndGetId(para);
+        public new void Update(WikiPara para) => base.Update(para);
+        public new void UpdateRange(List<WikiPara> paras) => base.UpdateRange(paras);
+        public new void Remove(WikiPara para) => base.Remove(para);
+
+        public bool SetParaObjId(int paraId, WikiParaType shouldBeType, int objId, out string? errmsg)
         {
             var p = Existing.Where(x => x.Id == paraId).FirstOrDefault();
             if (p is null)
@@ -26,12 +31,12 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "找不到指定段落";
                 return false;
             }
-            if (p.Type != WikiParaType.File)
+            if (p.Type != shouldBeType)
             {
-                errmsg = "段落类型异常(不是文件)";
+                errmsg = "未知错误，段落类型检查出错";
                 return false;
             }
-            p.ObjectId = fileId;
+            p.ObjectId = objId;
             base.Update(p);
             errmsg = null;
             return true;

@@ -43,13 +43,13 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         }
 
-        public bool TryAdd(WikiItem item, out string? errmsg)
+        public int TryAddAndGetId(WikiItem item, out string? errmsg)
         {
             if (!InfoCheck(item, false, out errmsg))
-                return false;
+                return 0;
             item.OwnerUserId = _userIdProvider.Get();
             base.Add(item);
-            return true;
+            return item.Id;
         }
         public bool TryUpdate(WikiItem item, out string? errmsg)
         {

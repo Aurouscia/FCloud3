@@ -72,6 +72,17 @@ namespace FCloud3.Repos.TextSec
             }
         }
 
+        public override TextSection? NewDefaultObject()
+        {
+            TextSection newSection = new()
+            {
+                Title = "",
+                Content = "",
+                ContentBrief = ""
+            };
+            return newSection;
+        }
+
         public static string TextSectionBrief(string content)
         {
             if (content.Length >= 30)

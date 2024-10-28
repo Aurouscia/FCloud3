@@ -57,13 +57,15 @@ namespace FCloud3.Services.WikiParsing
 
         public bool EditExe(WikiTemplate data, out string? errmsg)
         {
-            //仅超级管理员能加入脚本
-            return _wikiTemplateRepo.TryEdit(data, out errmsg);
+            //TODO:仅超级管理员能加入脚本
+            return _wikiTemplateRepo.TryUpdate(data, out errmsg);
         }
 
         public bool Remove(int id, out string? errmsg)
         {
-            return _wikiTemplateRepo.TryRemoveNoCheck(id, out errmsg);
+            _wikiTemplateRepo.Remove(id);
+            errmsg = null;
+            return true;
         }
 
         public class WikiTemplateListItem

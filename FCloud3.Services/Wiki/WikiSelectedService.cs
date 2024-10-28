@@ -83,19 +83,19 @@ namespace FCloud3.Services.Wiki
 
         public bool Insert(int beforeOrder, WikiSelectedDto model, out string? errmsg)
         {
-            return wikiSelectedRepo.Insert(
+            return wikiSelectedRepo.TryInsert(
                 beforeOrder, model.WikiItemId, model.Intro, model.DropAfterHr, out errmsg);
         }
 
         public bool Edit(WikiSelectedDto model, out string? errmsg)
         {
-            return wikiSelectedRepo.Edit(
+            return wikiSelectedRepo.TryEdit(
                 model.Id, model.Intro, model.DropAfterHr, out errmsg);
         }
 
         public bool Remove(int id, out string? errmsg)
         {
-            return wikiSelectedRepo.Remove(id, out errmsg);
+            return wikiSelectedRepo.TryRemove(id, out errmsg);
         }
 
         private static string[] coverExts = [".png", ".jpg", ".jpeg", ".svg"];

@@ -125,17 +125,13 @@ namespace FCloud3.Services.Table
 
         public int TryAddAndAttach(int paraId, out string? errmsg)
         {
-            var para = _wikiParaRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
-            if(para.Type!=WikiParaType.Table)
+            int createdTableId = _freeTableRepo.AddDefaultAndGetId();
+            if (createdTableId <= 0)
             {
-                errmsg = "段落类型检查出错";
+                errmsg = "未知错误，表格创建失败";
                 return 0;
             }
-            int createdTableId = _freeTableRepo.TryCreateDefaultAndGetId(out errmsg);
-            if (createdTableId <= 0)
-                return 0;
-            para.ObjectId = createdTableId;
-            if (!_wikiParaRepo.TryEdit(para, out errmsg))
+            if (!_wikiParaRepo.SetParaObjId(paraId, WikiParaType.Table, createdTableId, out errmsg))
                 return 0;
             return createdTableId;
         }
