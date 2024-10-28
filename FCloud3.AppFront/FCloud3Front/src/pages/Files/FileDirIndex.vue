@@ -289,9 +289,13 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                 <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
             </div>
         </div>
-        <div v-if="thisDirId>0" class="ownerAndInfoType">
-            <div class="owner">
+        <div class="ownerAndInfoType">
+            <div v-if="thisDirId>0" class="owner">
                 目录所有者 <span @click="jumpToUserCenter(thisOwnerName||'??')">{{ thisOwnerName }}</span>
+            </div>
+            <div v-else class="owner searchEntry">
+                <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
+                <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
             </div>
             <div class="dirInfoTypeSelector">
                 <select v-model="infoType">
@@ -299,12 +303,6 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                     <option :value="'lastUpdate'">更新</option>
                     <option :value="'size'">尺寸</option>
                 </select>
-            </div>
-        </div>
-        <div v-else class="ownerAndInfoType searchEntry">
-            <div class="owner">
-                <button class="lite" @click="fileSearchSidebar?.extend">搜索文件</button> 
-                <button class="lite" @click="dirSearchSidebar?.extend">搜索目录</button>
             </div>
         </div>
         <IndexMini ref="index" :fetch-index="fetchIndex" :columns="columns" :display-column-count="1"
