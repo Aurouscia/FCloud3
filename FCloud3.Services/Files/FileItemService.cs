@@ -61,7 +61,7 @@ namespace FCloud3.Services.Files
                 return false;
             }
             item.DisplayName = name;
-            return _fileItemRepo.TryEdit(item, out errmsg);
+            return _fileItemRepo.TryUpdate(item, out errmsg);
         }
         public bool Delete(int id, out string? errmsg)
         {
@@ -76,7 +76,9 @@ namespace FCloud3.Services.Files
                 if(!_storage.Delete(item.StorePathName, out errmsg))
                     return false;
             }
-            return _fileItemRepo.TryRemove(item, out errmsg);
+            _fileItemRepo.Remove(item);
+            errmsg = null;
+            return true;
         }
         public int Save(Stream stream, int byteCount, string displayName, string storePath, string? storeName, string? hash, out string? errmsg)
         {
@@ -102,7 +104,7 @@ namespace FCloud3.Services.Files
                 ByteCount = byteCount,
                 Hash = hash,
             };
-            if (!_fileItemRepo.TryAddCheck(f, out errmsg)) { return 0; }
+            if (!_fileItemRepo.InfoCheck(f, out errmsg)) { return 0; }
 
             if (ShouldCompress(storeName, byteCount))
             {

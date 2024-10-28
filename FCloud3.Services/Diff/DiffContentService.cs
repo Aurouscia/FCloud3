@@ -44,10 +44,7 @@ namespace FCloud3.Services.Diff
                 RemovedChars = removed,
                 AddedChars = added,
             };
-            var dcId = _contentDiffRepo.TryAddAndGetId(dc, out errmsg);
-            if (errmsg is not null)
-                return false;
-            
+            var dcId = _contentDiffRepo.AddAndGetId(dc);
             var dss = diffs.ConvertAll(x => new DiffSingle()
             {
                 DiffContentId = dcId,

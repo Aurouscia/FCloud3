@@ -62,13 +62,7 @@ async function uploadAvatar() {
     }
 }
 function avatarMaterialName(){
-    let uname = user.value?.Name;
-    if(!uname){return;}
-    if(uname.length > 5){
-        uname = uname.substring(0,5);
-    }
-    uname = uname + "_头像_" + random(10000,99999);
-    return uname;
+    return "头像_" + random(100000000,999999999);
 }
 
 async function setAvatarToSearchRes(_value:string, id:number) {

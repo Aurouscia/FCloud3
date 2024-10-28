@@ -224,7 +224,7 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             AfterDataChange();
         }
-        public int AddAndGetId(T item)
+        protected int AddAndGetId(T item)
         {
             Add(item);
             return item.Id;

@@ -37,6 +37,8 @@ namespace FCloud3.Repos.Diff
             return res;
         }
 
+        public new int AddAndGetId(DiffContent dc)
+            => base.AddAndGetId(dc);
         public bool SetHidden(int id, bool hidden, out string? errmsg)
         {
             var affected = Existing

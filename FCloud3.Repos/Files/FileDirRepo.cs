@@ -244,6 +244,48 @@ namespace FCloud3.Repos.Files
             return true;
         }
 
+        public bool TryUpdate(FileDir item, out string? errmsg)
+        {
+            if(!InfoCheck(item, out errmsg))
+                return false;
+            base.Update(item);
+            return true;
+        }
+
+        public bool TryUpdateParentForRange(int distDir, List<FileDir> items, out string? errmsg)
+        {
+            var existingHere = Existing
+                .Where(x => x.ParentDir == distDir)
+                .Select(x => new { x.UrlPathName, x.Name })
+                .ToList();
+            foreach (var i in items)
+            {
+                var conflict = existingHere.FirstOrDefault(x => x.UrlPathName == i.UrlPathName);
+                if (conflict is { })
+                {
+                    errmsg = $"冲突：路径名相同：【{i.Name}】与【{conflict.Name}】";
+                    return false;
+                }
+            }
+            base.UpdateRange(items);
+            errmsg = null;
+            return true;
+        }
+
+        public int TryAddAndGetId(FileDir item, out string? errmsg) 
+        { 
+            if(!InfoCheck(item, out errmsg))
+                return 0;
+            var id = base.AddAndGetId(item);
+            if (item.RootDir == 0)
+            {
+                //如果“根文件夹”为0说明自己就是根文件夹，应把RootDir设为自己的id
+                item.RootDir = id;
+                base.Update(item);
+            }
+            return id;
+        }
+
         public bool InfoCheck(FileDir item, out string? errmsg)
         {
             errmsg = null;
