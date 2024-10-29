@@ -4,7 +4,7 @@ import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollM
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
-import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
+import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import Loading from '@/components/Loading.vue';
@@ -89,10 +89,17 @@ function getIdFromElementId(ele:HTMLElement):number{
 }
 function moveToTitle(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
-    //console.log(title)
     if(title){
+        let top = title.offsetTop
+        if(title.classList.contains(hiddenSubClassName)){
+            pop.value.show("请展开其上级段落以查看",'warning')
+            const ances = findNearestUnhiddenAnces(title)
+            if(ances){
+                top = (ances as HTMLElement).offsetTop
+            }
+        }
         isActiveMoving = true;
-        wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
+        wikiViewArea.value?.scrollTo({top, behavior: 'smooth'})
         window.setTimeout(()=>{
             isActiveMoving = false;
         }, 1000)
@@ -118,6 +125,7 @@ function viewAreaScrollHandler(enforce?:boolean){
 
     lastScrollTime = Date.now();
     let currentTitleIdx = titlesInContent.findIndex(t=>
+        !t.classList.contains(hiddenSubClassName) &&
         t.offsetTop > st + 80);
     if(currentTitleIdx == -1){
         return

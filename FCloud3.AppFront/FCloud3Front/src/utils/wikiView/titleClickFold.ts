@@ -4,12 +4,18 @@ const clickables = ['H1','H2','H3','H4','H5','H6']
 const clickableFoldedClass = 'hFolded'
 const nextIdentifyClass = 'indent'
 const nextFoldedClass = 'indentFolded'
+export const hiddenSubClassName = 'hiddenSub'
 
 export class TitleClickFold{
+    clickHandlerBinded:(e:MouseEvent)=>void;
+    constructor(){
+        this.clickHandlerBinded = this.clickHandler.bind(this)
+    }
     listen(target?:HTMLDivElement){
-        window.addEventListener("click",this.clickHandler);
+        window.addEventListener("click",this.clickHandlerBinded);
         if(!target)return [];
         const titles:HTMLElement[] = [];
+        const needProcessDefaultFold:{h:Element, text:ChildNode}[] = []
         clickables.forEach(tag=>{
             const hs = target.getElementsByTagName(tag);
             for(const h of hs){
@@ -21,9 +27,7 @@ export class TitleClickFold{
                 img.classList.add(imgClickJumpExcludeClassName);
                 const textNode = h.childNodes[0];
                 if(textNode && isDefaultFolded(textNode.textContent || "")){
-                    h.classList.add(clickableFoldedClass);
-                    (h.nextSibling as Element).classList.add(nextFoldedClass);
-                    textNode.textContent = removeDefaultFoldedMark(textNode.textContent || "");
+                    needProcessDefaultFold.push({h, text:textNode})
                 }
                 if(h.tagName != 'H1'){
                     const span = document.createElement('span');
@@ -35,19 +39,38 @@ export class TitleClickFold{
             }
         })
         titles.sort((x,y)=>x.offsetTop - y.offsetTop)
+        needProcessDefaultFold.forEach(({h, text:textNode})=>{
+            this.tryToggleElement(h as HTMLElement)
+            textNode.textContent = removeDefaultFoldedMark(textNode.textContent || "");
+        })
         return titles;
     }
     dispose(){
-        window.removeEventListener("click",this.clickHandler)
+        window.removeEventListener("click",this.clickHandlerBinded)
     }
     clickHandler(e:MouseEvent){
         let ele = e.target as HTMLElement;
+        this.tryToggleElement(ele)
+    }
+    tryToggleElement(ele:HTMLElement) {
         if(ele.tagName == "IMG" || ele.tagName == "SPAN" || ele.tagName == "DIV"){
             ele = ele.parentElement as HTMLElement;
         }
         if(isClickableTitle(ele)){
-            (ele.nextSibling as Element).classList.toggle(nextFoldedClass);
-            ele.classList.toggle(clickableFoldedClass);
+            const currentStatus = ele.classList.contains(clickableFoldedClass);
+            const setToStatus = !currentStatus;
+            const next = ele.nextSibling as Element
+            next.classList.toggle(nextFoldedClass, setToStatus);
+            ele.classList.toggle(clickableFoldedClass, setToStatus);
+            recursiveSetHiddenSub(next, setToStatus)
+        }
+        function recursiveSetHiddenSub(ele:Element, hiddenSub:boolean){
+            for(const e of ele.children){
+                if(clickables.includes(e.tagName))
+                    e.classList.toggle(hiddenSubClassName, hiddenSub)
+                else
+                    recursiveSetHiddenSub(e, hiddenSub)
+            }
         }
     }
 }
@@ -73,4 +96,17 @@ export function removeDefaultFoldedMark(title:string):string{
         return title;
     }
     return title.slice(1);
+}
+
+export function findNearestUnhiddenAnces(ele:Element){
+    const parent = ele.parentElement
+    if(parent){
+        const parentPervSib = parent.previousElementSibling;
+        if(parentPervSib && clickables.includes(parentPervSib.tagName)){
+            if(!parentPervSib.classList.contains(hiddenSubClassName)){
+                return parentPervSib
+            }
+            return findNearestUnhiddenAnces(parentPervSib)
+        }
+    }
 }
