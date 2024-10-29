@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetColorParser" Version="2.0.0" />
-    <PackageReference Include="HtmlSanitizer" Version="8.0.865" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="HtmlSanitizer" Version="8.1.870" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
   </ItemGroup>
 
 </Project>
