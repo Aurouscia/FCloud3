@@ -95,7 +95,7 @@ function moveToTitle(titleId:number){
         if(title.classList.contains(hiddenSubClassName)){
             const ances = findNearestUnhiddenAnces(title)
             if(ances){
-                pop.value.show(`请展开“${ances.text}”段落以查看内容`,'info')
+                pop.value.show(`请展开“${ances.text}”以查看内容`,'info')
                 top = (ances.ances as HTMLElement).offsetTop
             }
         }
