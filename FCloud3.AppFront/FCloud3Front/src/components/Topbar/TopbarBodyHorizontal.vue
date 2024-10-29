@@ -5,7 +5,7 @@ import { useMessageRoutesJump } from '@/pages/Message/routes/routesJump';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 
-const { notifCount } = storeToRefs(useNotifCountStore())
+const { unreadNotifCount } = storeToRefs(useNotifCountStore())
 const { jumpToNotifs } = useMessageRoutesJump();
 const router = useRouter();
 defineProps<{
@@ -30,7 +30,7 @@ function clickHandler(item: TopbarModelItem){
     </div>
     <div class="topbarItem">
         <div class="topbarText" @click="jumpToNotifs">消息</div>
-        <div v-show="notifCount>0" class="notifExists"></div>
+        <div v-show="unreadNotifCount>0" class="notifExists"></div>
     </div>
 </div>
 </template>

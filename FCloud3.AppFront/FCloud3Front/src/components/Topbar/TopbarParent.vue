@@ -12,7 +12,7 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { useRouter } from 'vue-router';
 
 const topbarModel = ref<TopbarModel>();
-const { notifCount } = storeToRefs(useNotifCountStore())
+const { unreadNotifCount } = storeToRefs(useNotifCountStore())
 const { iden } = storeToRefs(useIdentityInfoStore())
 const { jumpToSelfUserCenter } = useIdentityRoutesJump();
 const router = useRouter();
@@ -48,7 +48,7 @@ function toggleFold(){
         </div>
         <div class="foldBtn">
             <img :src="itemsImg" @click="toggleFold"/>
-            <div v-show="notifCount>0" class="notifExists"></div>
+            <div v-show="unreadNotifCount>0" class="notifExists"></div>
         </div>
     </div>
 </div>

@@ -7,15 +7,14 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import NeedMemberWarning from './components/NeedMemberWarning.vue';
 import Wait from './components/Wait.vue';
 import { TimedLock } from './utils/timeStamp';
-import { NotifCountProvider, setupPollCycle as setupNotifCountPollCycle } from './utils/globalStores/notifCount';
 import { WikiViewScrollMemory } from './utils/wikiView/wikiViewScrollMemory'
+import { useNotifCountStore } from './utils/globalStores/notifCount';
 
 const popKey = 'pop';
 const httpKey = 'http';
 const apiKey = 'api';
 const IdentityInfoKey = 'userInfo';
 const setTopBarKey = 'setTopbar';
-const notifCountKey = 'notifCount';
 const wikiViewScrollMemoryKey = 'wikiViewScrollMemory'
 
 export type SetTopbarFunc = (display:boolean)=>void
@@ -59,9 +58,8 @@ export function useProvidesSetup() {
         displayTopbar.value = display;
     })
 
-    const notifCountProvider = new NotifCountProvider(api, displayTopbar);
-    setupNotifCountPollCycle(notifCountProvider);//启动时获取一次通知数量，并设置轮询循环
-    provide(notifCountKey, notifCountProvider);
+    const notifCountStore = useNotifCountStore()
+    notifCountStore.setupStore(api, displayTopbar)
 
     const wikiViewScrollMemory = new WikiViewScrollMemory();
     provide(wikiViewScrollMemoryKey, wikiViewScrollMemory);
@@ -83,9 +81,6 @@ export function injectIdentityInfoProvider(){
 }
 export function injectSetTopbar(){
     return inject(setTopBarKey) as SetTopbarFunc
-}
-export function injectNotifCountProvider(){
-    return inject(notifCountKey) as NotifCountProvider
 }
 export function injectWikiViewScrollMemory(){
     return inject(wikiViewScrollMemoryKey) as WikiViewScrollMemory

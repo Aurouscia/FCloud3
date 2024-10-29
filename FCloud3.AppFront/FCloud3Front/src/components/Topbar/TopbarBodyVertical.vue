@@ -9,7 +9,7 @@ import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter();
-const { notifCount } = storeToRefs(useNotifCountStore())
+const { unreadNotifCount } = storeToRefs(useNotifCountStore())
 const { jumpToNotifs } = useMessageRoutesJump();
 const props = defineProps<{
     data: TopbarModel
@@ -74,7 +74,7 @@ let swl: SwipeListener|undefined
     </div>
     <div class="topbarItem">
         <div class="topbarText" @click="jumpToNotifs">消息</div>
-        <div v-show="notifCount>0" class="notifExists"></div>
+        <div v-show="unreadNotifCount>0" class="notifExists"></div>
     </div>
 </div>
 <div class="cover" :class="{folded}" @click="toggleFold('fold')">
