@@ -108,7 +108,7 @@ namespace FCloud3.Repos.Test.Identities
             var actualRelation = _repo.GetRelation(groupId, userId)?.Type;
             Assert.AreEqual(expectedRelation, actualRelation);
             
-            var relationCount = _repo.All.Where(x => x.GroupId == groupId && x.UserId == userId).Count();
+            var relationCount = _repo.Existing.Where(x => x.GroupId == groupId && x.UserId == userId).Count();
             var expectedCount = expectedRelation is not null ? 1 : 0;
             Assert.AreEqual(expectedCount, relationCount);
         }

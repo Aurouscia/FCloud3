@@ -2,13 +2,10 @@ using FCloud3.DbContexts;
 using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos.Etc.Caching;
-using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Test.TestSupport;
-using FCloud3.Services.Wiki.Support;
 
 namespace FCloud3.Services.Test.Wiki.Support
 {
@@ -23,15 +20,12 @@ namespace FCloud3.Services.Test.Wiki.Support
             int uid = 0;
             var userIdProvider = new StubUserIdProvider(uid);
             _ctx = FCloudMemoryContext.Create();
-            WikiItemCaching wikiItemCaching = new(_ctx, new FakeLogger<CachingBase<WikiItemCachingModel, WikiItem>>());
-            WikiItemRepo wikiItemRepo = new(_ctx, userIdProvider, wikiItemCaching);
-            FileDirCaching fileDirCaching = new(_ctx, new FakeLogger<FileDirCaching>());
+            WikiItemRepo wikiItemRepo = new(_ctx, userIdProvider);
             WikiToDirRepo wikiToDirRepo = new(_ctx, userIdProvider);
-            FileDirRepo fileDirRepo = new(_ctx, userIdProvider, fileDirCaching);
-            wikiItemCaching.Clear();
-            fileDirCaching.Clear();
-            _myWikisService = new MyWikisService(wikiItemRepo, fileDirCaching, wikiToDirRepo, fileDirRepo);
-            
+            FileDirRepo fileDirRepo = new(_ctx, userIdProvider);
+            _myWikisService = new MyWikisService(wikiItemRepo, wikiToDirRepo, fileDirRepo);
+            var time = new DateTime(2024, 1, 6);
+
             // 1
             // 2-3-5
             //  \
@@ -46,58 +40,69 @@ namespace FCloud3.Services.Test.Wiki.Support
                 {
                     Name = "1号文件夹",
                     ParentDir = 0,
+                    Updated = time
                 },
                 new() //2
                 {
                     Name = "2号文件夹",
                     ParentDir = 0,
+                    Updated = time
                 },
                 new() //3
                 {
                     Name = "3号文件夹",
                     ParentDir = 2,
+                    Updated = time
                 },                
                 new() //4
                 {
                     Name = "4号文件夹",
                     ParentDir = 2,
+                    Updated = time
                 },
                 new() //5
                 {
                     Name = "5号文件夹",
                     ParentDir = 3,
+                    Updated = time
                 },
             });
             _ctx.WikiItems.AddRange(new List<WikiItem>(){
                 new() //1
                 {
                     Title = "1号词条",
-                    UrlPathName = "wiki-1"
+                    UrlPathName = "wiki-1",
+                    Updated = time
                 },
                 new() //2
                 {
                     Title = "2号词条",
-                    UrlPathName = "wiki-2"
+                    UrlPathName = "wiki-2",
+                    Updated = time
                 },
                 new() //3
                 {
                     Title = "3号词条",
-                    UrlPathName = "wiki-3"
+                    UrlPathName = "wiki-3",
+                    Updated = time
                 },
                 new() //4
                 {
                     Title = "4号词条",
-                    UrlPathName = "wiki-4"
+                    UrlPathName = "wiki-4",
+                    Updated = time
                 },
                 new() //5
                 {
                     Title = "5号词条",
-                    UrlPathName = "wiki-5"
+                    UrlPathName = "wiki-5",
+                    Updated = time
                 },
                 new() //6
                 {
                     Title = "6号词条",
-                    UrlPathName = "wiki-6"
+                    UrlPathName = "wiki-6",
+                    Updated = time
                 },
             });
             _ctx.WikiToDirs.AddRange(new List<WikiToDir>(){

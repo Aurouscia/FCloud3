@@ -1,23 +1,19 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Repos.Files
 {
-    public class FileDirRepo : RepoBaseWithCaching<FileDir, FileDirCachingModel>
+    public class FileDirRepo : RepoBaseCache<FileDir, FileDirCacheModel>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";
-        private readonly FileDirCaching _fileDirCaching;
         public FileDirRepo(
             FCloudContext context,
-            ICommitingUserIdProvider userIdProvider,
-            FileDirCaching fileDirCaching
-            ) : base(context, userIdProvider, fileDirCaching)
+            ICommitingUserIdProvider userIdProvider
+            ) : base(context, userIdProvider)
         {
-            _fileDirCaching = fileDirCaching;
         }
 
         public IQueryable<FileDir> QuickSearch(string str)
@@ -27,7 +23,7 @@ namespace FCloud3.Repos.Files
 
         public List<string>? GetPathById(int id)
         {
-            var chain = _fileDirCaching.GetChain(id);
+            var chain = GetChainIdsById(id);
             if (chain is null)
                 return null;
             return GetRangeByIdsOrdered<string>(chain, dirs =>
@@ -38,7 +34,7 @@ namespace FCloud3.Repos.Files
         }
         public List<string>? GetFriendlyPathById(int id)
         {
-            var chain = _fileDirCaching.GetChain(id);
+            var chain = GetChainIdsById(id);
             if (chain is null)
                 return null;
             return GetRangeByIdsOrdered<string>(chain, dirs =>
@@ -62,7 +58,7 @@ namespace FCloud3.Repos.Files
                 chain.ForEach(i => relatedIds.Add(i));
                 chains.Add((id,chain));
             }
-            var names = GetRangeByIds(relatedIds)
+            var names = GetRangeByIds(relatedIds.ToList())
                 .Select(x => new {x.Id, x.Name}).ToList();
             foreach(var item in chains)
             {
@@ -78,7 +74,23 @@ namespace FCloud3.Repos.Files
         }
 
         public List<int>? GetChainIdsById(int id)
-            => _fileDirCaching.GetChain(id);
+        {
+            if (id == 0)
+                return [];
+            List<int> res = new();
+            var targetId = id;
+            while (true)
+            {
+                var target = base.CachedItemById(targetId);
+                if (target is null)
+                    return null;
+                res.Insert(0, target.Id);
+                targetId = target.ParentDir;
+                if (targetId == 0)
+                    break;
+            }
+            return res;
+        }
         public List<int>? GetChainIdsByPath(string[] path)
             => Existing.GetChainIdsByPath(path);
         public List<FileDir>? GetChainByPath(string[] path)
@@ -92,7 +104,7 @@ namespace FCloud3.Repos.Files
         /// <returns></returns>
         public bool SetUpdateTimeAncestrally(int id, out string? errmsg)
         {
-            List<int>? chain = _fileDirCaching.GetChain(id);
+            List<int>? chain = GetChainIdsById(id);
             if (chain is null)
             {
                 errmsg = "更新文件夹时间出错：树状结构溯源失败";
@@ -113,7 +125,7 @@ namespace FCloud3.Repos.Files
             var needUpdateIds = new List<int>();
             foreach (var d in ids)
             {
-                List<int>? chain = _fileDirCaching.GetChain(d);
+                List<int>? chain = GetChainIdsById(d);
                 if (chain is null)
                 {
                     errmsg = "更新文件夹时间出错：树状结构溯源失败";
@@ -138,9 +150,7 @@ namespace FCloud3.Repos.Files
         /// <returns></returns>
         public bool UpdateDescendantsInfoFor(List<int> masters, out string? errmsg)
         {
-            //更新所有子代的计算涉及到大量查询，移动到caching服务里计算，
-            //计算完成后的结果拿回来更新数据库
-            var changedData = _fileDirCaching.UpdateDescendantsInfoFor(masters);
+            var changedData = UpdateDescendantsInfoFor(masters);//计算完成后的结果拿回来更新数据库
             var changedIds = changedData.ConvertAll(x => x.Id);
             var dbModelsNeedMutate = GetRangeByIds(changedIds).ToList();
             foreach(var m in dbModelsNeedMutate)
@@ -151,10 +161,63 @@ namespace FCloud3.Repos.Files
                 m.Depth = data.Depth;
                 m.RootDir = data.RootDir;
             }
-            if (!TryEditRange(dbModelsNeedMutate, out errmsg, false))
-                return false;
+            base.UpdateRange(dbModelsNeedMutate);
             errmsg = null; 
             return true;
+        }
+        private List<FileDirCacheModel> UpdateDescendantsInfoFor(List<int> masters)
+        {
+            if (masters is null || masters.Count == 0)
+                return [];
+            List<FileDirCacheModel> masterData = CachedItemsByIds(masters).ToList();
+            List<FileDirCacheModel> masterDataCorrect = new(masterData.Count);
+            //用changing记录哪些文件夹发生变化
+            List<FileDirCacheModel> changings = [];
+
+            //检查其中顶级目录的属性是否正确，如果不正确则修正并加入“已变化”列表
+            foreach(var x in masterData)
+            {
+                if (x.ParentDir == 0 && (x.RootDir != x.Id || x.Depth != 0))
+                {
+                    var rootDir = x.Id;//顶级目录的rootDir应该是自己
+                    var depth = 0;//顶级目录的depth应该是0
+                    var changing = new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, rootDir, depth);
+                    changings.Add(changing);
+                    masterDataCorrect.Add(changing);
+                }
+                else
+                    masterDataCorrect.Add(x);
+            }
+
+            //从父代到子代计算depth
+            void setChildrenDepth(FileDirCacheModel dir, int safety)
+            {
+                if (safety == 50)
+                    throw new Exception("未知错误：无穷递归");
+                var children = CachedItemsByPred(x => x.ParentDir == dir.Id);
+                foreach(var x in children)
+                {
+                    int shouldBeDepth = dir.Depth + 1;
+                    bool depthChanged = x.Depth != shouldBeDepth;
+                    int shouldBeRoot = dir.RootDir;
+                    bool rootChanged = x.RootDir != shouldBeRoot;
+                    if (depthChanged || rootChanged)
+                    {
+                        var correctX = new FileDirCacheModel(
+                            x.Id, x.Updated, x.ParentDir, shouldBeRoot, shouldBeDepth);
+                        changings.Add(correctX);
+                        setChildrenDepth(correctX, safety + 1);
+                    }
+                    else
+                        setChildrenDepth(x, safety + 1);
+                };
+            }
+            foreach(var m in masterDataCorrect)
+                setChildrenDepth(m, 0);
+
+            //此时depth已经是正确值
+            //可以再从子代到父代再算总字节数，内容数什么的
+            return changings;
         }
 
         /// <summary>
@@ -168,15 +231,7 @@ namespace FCloud3.Repos.Files
             return UpdateDescendantsInfoFor(roots, out errmsg);
         }
 
-        public override bool TryAddCheck(FileDir item, out string? errmsg)
-        {
-            return InfoCheck(item, out errmsg);
-        }
-        public override bool TryEditCheck(FileDir item, out string? errmsg)
-        {
-            return InfoCheck(item, out errmsg);
-        }
-        public override bool TryRemoveCheck(FileDir item, out string? errmsg)
+        public bool TryRemove(FileDir item, out string? errmsg)
         {
             var userId = _userIdProvider.Get();
             if (userId != item.CreatorUserId)
@@ -184,8 +239,51 @@ namespace FCloud3.Repos.Files
                 errmsg = "只有所有者能删除";
                 return false;
             }
+            base.Remove(item);
             errmsg = null;
             return true;
+        }
+
+        public bool TryUpdate(FileDir item, out string? errmsg)
+        {
+            if(!InfoCheck(item, out errmsg))
+                return false;
+            base.Update(item);
+            return true;
+        }
+
+        public bool TryUpdateParentForRange(int distDir, List<FileDir> items, out string? errmsg)
+        {
+            var existingHere = Existing
+                .Where(x => x.ParentDir == distDir)
+                .Select(x => new { x.UrlPathName, x.Name })
+                .ToList();
+            foreach (var i in items)
+            {
+                var conflict = existingHere.FirstOrDefault(x => x.UrlPathName == i.UrlPathName);
+                if (conflict is { })
+                {
+                    errmsg = $"冲突：路径名相同：【{i.Name}】与【{conflict.Name}】";
+                    return false;
+                }
+            }
+            base.UpdateRange(items);
+            errmsg = null;
+            return true;
+        }
+
+        public int TryAddAndGetId(FileDir item, out string? errmsg) 
+        { 
+            if(!InfoCheck(item, out errmsg))
+                return 0;
+            var id = base.AddAndGetId(item);
+            if (item.RootDir == 0)
+            {
+                //如果“根文件夹”为0说明自己就是根文件夹，应把RootDir设为自己的id
+                item.RootDir = id;
+                base.Update(item);
+            }
+            return id;
         }
 
         public bool InfoCheck(FileDir item, out string? errmsg)
@@ -240,5 +338,21 @@ namespace FCloud3.Repos.Files
                 return 0;
             return base.GetOwnerIdById(id);
         }
+
+
+        protected override IQueryable<FileDirCacheModel> ConvertToCacheModel(IQueryable<FileDir> q)
+        {
+            return q.Select(x => 
+                new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, x.RootDir, x.Depth));
+        }
+    }
+
+    public class FileDirCacheModel(
+        int id, DateTime updated, int parentDir, int rootDir, int depth)
+        : CacheModelBase<FileDir>(id, updated)
+    {
+        public int ParentDir { get; } = parentDir;
+        public int RootDir { get; } = rootDir;
+        public int Depth { get; } = depth;
     }
 }

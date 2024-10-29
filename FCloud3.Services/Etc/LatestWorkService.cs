@@ -1,30 +1,24 @@
 ﻿using FCloud3.Repos.Files;
+using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Etc
 {
     public class LatestWorkService(
         WikiItemRepo wikiItemRepo,
         FileItemRepo fileItemRepo,
-        UserCaching userCaching,
-        IStorage storage)
+        UserRepo userRepo)
     {
-        private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly FileItemRepo _fileItemRepo = fileItemRepo;
-        private readonly UserCaching _userCaching = userCaching;
-        private readonly IStorage _storage = storage;
 
         public List<LatestWorkViewItem> Get(int uid = -1)
         {
-            var wikis = _wikiItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Updated).Take(20).ToList();
-            var files = _fileItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Created).Take(20).ToList();
+            var wikis = wikiItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Updated).Take(20).ToList();
+            var files = fileItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Created).Take(20).ToList();
             var relatedUserIds =
                 wikis.ConvertAll(x => x.OwnerUserId)
-                .Union(files.ConvertAll(x => x.CreatorUserId)).ToList();
-            var users = _userCaching.GetRange(relatedUserIds);
-            string uname(int uid) => users.Find(x => x.Id == uid)?.Name ?? "??";
+                .Union(files.ConvertAll(x => x.CreatorUserId))
+                .ToList();
+            string uname(int uid) => userRepo.CachedItemById(uid)?.Name ?? "??";
 
             List<LatestWorkViewItem> res = [];
             wikis.ForEach(w =>

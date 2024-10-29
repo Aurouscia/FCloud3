@@ -15,13 +15,13 @@ convert()
 </script>
 
 <template>
-<table class="simpleTable">
+<table class="simpleTable"><tbody>
     <tr v-for="r in cells">
         <td v-for="c in r" :colspan="c.colspan" :rowspan="c.rowspan" :style="{color:c.textColor, backgroundColor:c.bgColor}">
             {{ c.content || '　'}}
         </td>
     </tr>
-</table>
+</tbody></table>
 </template>
 
 <style scoped lang="scss">

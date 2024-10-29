@@ -1,7 +1,6 @@
 ﻿using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Identities;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,13 +10,11 @@ namespace FCloud3.App.Controllers.Identities
     [Authorize]
     public class UserGroupController(
         UserGroupService userGroupService,
-        UserService userService,
-        UserCaching userCaching) 
+        UserService userService) 
         : Controller, IAuthGrantTypeProvidedController
     {
         private readonly UserGroupService _userGroupService = userGroupService;
         private readonly UserService _userService = userService;
-        private readonly UserCaching _userCaching = userCaching;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
 
         [UserTypeRestricted]

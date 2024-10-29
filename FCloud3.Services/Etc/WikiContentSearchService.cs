@@ -1,6 +1,5 @@
 using FCloud3.Diff.Display;
 using FCloud3.Entities.Wiki;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
@@ -11,19 +10,15 @@ namespace FCloud3.Services.Etc
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
         WikiParaRepo wikiParaRepo,
-        WikiItemCaching wikiItemCaching)
+        WikiItemRepo wikiItemRepo)
     {
-        private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
-        private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
-        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private const int maxMatchesInOnePara = 10;
         public WikiContentSearchResult Search(string str, bool includingSealed)
         {
             if (string.IsNullOrWhiteSpace(str))
                 return new();
-            var texts = _textSectionRepo.Search(str);
-            var freeTables = _freeTableRepo.Search(str);
+            var texts = textSectionRepo.Search(str);
+            var freeTables = freeTableRepo.Search(str);
             List<(WikiParaType type, int objId)> related = [];
             List<(WikiParaType type, int objId, string? title, string? content, List<int[]> matches)> extracted = [];
             texts.ForEach(t =>
@@ -38,18 +33,16 @@ namespace FCloud3.Services.Etc
                 extracted.Add((WikiParaType.Table, t.Id, t.Name, t.Data, founds));
                 related.Add((WikiParaType.Table, t.Id));
             });
-            var paras = _wikiParaRepo.ParaContainingThem(related);
+            var paras = wikiParaRepo.ParaContainingThem(related);
             var wikiIds = paras.Select(x => x.WikiItemId).Distinct();
-            var wikis = _wikiItemCaching.GetRange(wikiIds);
-
-            if (!includingSealed)
-            {
-                wikis.RemoveAll(x => x.Sealed);
-            }
             
             var res = new WikiContentSearchResult();
-            foreach (var w in wikis)
+            foreach (var wId in wikiIds)
             {
+                var w = wikiItemRepo.CachedItemById(wId);
+                if (w is null || (!includingSealed && w.Sealed))
+                    continue;
+
                 var item = new WikiContentSearchResult.WikiContentSearchResultWikiItem(w.UrlPathName, w.Title);
                 var itsParas = paras.FindAll(p => p.WikiItemId == w.Id);
                 foreach (var p in itsParas)

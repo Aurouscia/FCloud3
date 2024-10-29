@@ -104,7 +104,7 @@ watch(props,async ()=>{
                 <Search ref="inviteUserSearch" :source="api.etc.quickSearch.userName" :allow-free-input="false" 
                     :no-result-notice="'未找到该用户'" :placeholder="'邀请用户加入'" @done="inviteUser"></Search>
             </div>
-            <table>
+            <table><tbody>
                 <tr v-if="data.Inviting && data.Inviting.length>0">
                     <th :colspan="data.CanEdit?2:1">已邀请用户</th>
                 </tr>
@@ -121,8 +121,8 @@ watch(props,async ()=>{
                         <button class="lite" @click="removeUser(m.Id)">移出</button>
                     </td> 
                 </tr>
-            </table>
-            <table v-if="info && data.CanEdit">
+            </tbody></table>
+            <table v-if="info && data.CanEdit"><tbody>
                 <th colspan="2">编辑信息</th>
                 <tr>
                     <td>名称</td>
@@ -131,7 +131,7 @@ watch(props,async ()=>{
                 <tr>
                     <td colspan="2"><button @click="editInfo">保存</button></td>
                 </tr>
-            </table>
+            </tbody></table>
             <LongPress v-if="data.IsMember" :reached="leaveGroup" class="cancel">长按退出本组</LongPress>
             <div v-else class="joinHint">要加入用户组，请联系组长邀请你</div>
         </div>

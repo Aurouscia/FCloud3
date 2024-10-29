@@ -2,17 +2,15 @@
 using FCloud3.Entities;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Repos.Identities
 {
-    public class AuthGrantRepo : RepoBaseWithCaching<AuthGrant, AuthGrantCachingModel>
+    public class AuthGrantRepo : RepoBaseCache<AuthGrant, AuthGrantCacheModel>
     {
         public AuthGrantRepo(
             FCloudContext context, 
-            ICommitingUserIdProvider userIdProvider, 
-            AuthGrantCaching authGrantCaching) 
-            : base(context, userIdProvider, authGrantCaching)
+            ICommitingUserIdProvider userIdProvider) 
+            : base(context, userIdProvider)
         {
         }
         /// <summary>
@@ -22,52 +20,23 @@ namespace FCloud3.Repos.Identities
         /// <param name="onId">对象id</param>
         /// <param name="owner">对象拥有者</param>
         /// <returns></returns>
-        public List<AuthGrantCachingModel> GetByOnCached(AuthGrantOn on, int onId, int owner)
+        public List<AuthGrantCacheModel> GetByOn(AuthGrantOn on, int onId, int owner)
         {
+            var items = AllCachedItems();
             //要么直接在对象上，要么被所有者定义为“所有我的”的
-            var all = _caching.GetAll();
-            var q = all
-                .Where(x => x.On == on)
-                .Where(x => x.OnId == onId || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner));
-            
+            items = items.Where(x =>
+                x.On == on && (x.OnId == onId 
+                || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner)));
+
             //如果要的就是“所有我的”，那么只返回当前登录用户的，无视owner参数
             if (onId == AuthGrant.onIdForAll)
-                q = q.Where(x => x.CreatorUserId == _userIdProvider.Get());
-            var res = q.ToList();
+                items = items.Where(x => x.CreatorUserId == _userIdProvider.Get());
+            var res = items.ToList();
             res.Sort((x, y) =>
             {
                 var xIsAll = x.OnId == AuthGrant.onIdForAll ? 1 : 0;
                 var yIsAll = y.OnId == AuthGrant.onIdForAll ? 1 : 0;
-                if(xIsAll != yIsAll)
-                    return yIsAll - xIsAll;
-                return x.Order - y.Order;
-            });
-            return res;
-        }
-        
-        /// <summary>
-        /// 获取某对象的所有授权，本地和全局的/仅全局的，但不包括内置的
-        /// </summary>
-        /// <param name="on">对象类型</param>
-        /// <param name="onId">对象id</param>
-        /// <param name="owner">对象拥有者</param>
-        /// <returns></returns>
-        public List<AuthGrant> GetByOn(AuthGrantOn on, int onId, int owner)
-        {
-            //要么直接在对象上，要么被所有者定义为“所有我的”的
-            var q = Existing
-                .Where(x => x.On == on)
-                .Where(x => x.OnId == onId || (x.OnId == AuthGrant.onIdForAll && x.CreatorUserId == owner));
-            
-            //如果要的就是“所有我的”，那么只返回当前登录用户的，无视owner参数
-            if (onId == AuthGrant.onIdForAll)
-                q = q.Where(x => x.CreatorUserId == _userIdProvider.Get());
-            var res = q.ToList();
-            res.Sort((x, y) =>
-            {
-                var xIsAll = x.OnId == AuthGrant.onIdForAll ? 1 : 0;
-                var yIsAll = y.OnId == AuthGrant.onIdForAll ? 1 : 0;
-                if(xIsAll != yIsAll)
+                if (xIsAll != yIsAll)
                     return yIsAll - xIsAll;
                 return x.Order - y.Order;
             });
@@ -80,7 +49,7 @@ namespace FCloud3.Repos.Identities
         /// <param name="on"></param>
         /// <param name="onId"></param>
         /// <returns></returns>
-        public List<AuthGrant> GetByOnLocal(AuthGrantOn on, int onId)
+        private List<AuthGrant> GetByOnLocal(AuthGrantOn on, int onId)
         {
             var q = Existing
                 .Where(x => x.On == on)
@@ -91,7 +60,7 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Order)
                 .ToList();
         }
-        public override bool TryAdd(AuthGrant item, out string? errmsg)
+        public bool TryAdd(AuthGrant item, out string? errmsg)
         {
             var sameOn = GetByOnLocal(item.On, item.OnId);
             if (sameOn.Count >= AuthGrant.maxCountOnSameOn)
@@ -99,8 +68,7 @@ namespace FCloud3.Repos.Identities
             if (sameOn.Count != 0)
             {
                 sameOn.EnsureOrderDense();
-                if (!TryEditRange(sameOn, out errmsg))
-                    return false;
+                UpdateRange(sameOn);
                 var newOrder = sameOn.Select(x => x.Order).Max() + 1;
                 item.Order = newOrder;
             }
@@ -108,9 +76,11 @@ namespace FCloud3.Repos.Identities
             {
                 item.Order = 0;
             }
-            return base.TryAdd(item, out errmsg);
+            base.Add(item);
+            errmsg = null;
+            return true;
         }
-        public override bool TryRemove(AuthGrant item, out string? errmsg)
+        public bool TryRemove(AuthGrant item, out string? errmsg)
         {
             var sameOn = GetByOnLocal(item.On, item.OnId);
             if (!sameOn.Contains(item))
@@ -120,19 +90,36 @@ namespace FCloud3.Repos.Identities
             }
             sameOn.RemoveAll(x=>x.Id == item.Id);
             sameOn.EnsureOrderDense();
-            if (!TryEditRange(sameOn, out errmsg))
-                return false;
-            return base.TryRemovePermanent(item, out errmsg);
+            UpdateRange(sameOn);
+            base.Remove(item);
+            errmsg = null; 
+            return true;
         }
-        public override bool TryRemoveNoCheck(int id, out string? errmsg)
-            => TryRemove(GetByIdEnsure(id), out errmsg);
-        public override bool TryRemovePermanent(AuthGrant item, out string? errmsg)
-            => TryRemove(item, out errmsg);
-        public override bool TryRemovePermanentNoCheck(int id, out string? errmsg)
-            => TryRemoveNoCheck(id, out errmsg);
-        public override bool TryRemoveRange(List<AuthGrant> items, out string? errmsg)
-            => throw new InvalidOperationException();
-        public override bool TryRemoveRangePermanent(List<AuthGrant> items, out string? errmsg)
-            => throw new InvalidOperationException();
+        public void UpdateRangeWithoutCheck(List<AuthGrant> items)
+            => base.UpdateRange(items);
+
+        protected override IQueryable<AuthGrantCacheModel> ConvertToCacheModel(IQueryable<AuthGrant> q)
+        {
+            return q.Select(x => new AuthGrantCacheModel(
+                x.Id, x.Updated, x.Order, x.CreatorUserId,
+                x.OnId, x.On, x.ToId, x.To, x.IsReject));
+        }
+    }
+
+    public class AuthGrantCacheModel(
+        int id, DateTime updated,
+        int order, int creatorUserId,
+        int onId, AuthGrantOn on,
+        int toId, AuthGrantTo to,
+        bool isReject) 
+    : CacheModelBase<AuthGrant>(id, updated)
+    {
+        public int Order { get; } = order;
+        public int CreatorUserId { get; } = creatorUserId;
+        public AuthGrantOn On { get; set; } = on;
+        public int OnId { get; set; } = onId;
+        public AuthGrantTo To { get; set; } = to;
+        public int ToId { get; set; } = toId;
+        public bool IsReject { get; set; } = isReject;
     }
 }

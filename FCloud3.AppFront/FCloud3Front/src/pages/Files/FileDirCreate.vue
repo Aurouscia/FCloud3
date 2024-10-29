@@ -36,7 +36,7 @@ onMounted(()=>{
             <h1>新建文件夹</h1>
         </div>
         <div class="section">
-            <table>
+            <table><tbody>
                 <tr><td colspan="2" style="white-space: wrap;">在<b>{{ props.dirName || '根目录' }}</b>下新建文件夹</td></tr>
                 <tr>
                     <td>显示<br/>名称</td>
@@ -54,7 +54,7 @@ onMounted(()=>{
                         <button class="confirm" @click="create">确认</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
         </div>
     </div>
 </template>

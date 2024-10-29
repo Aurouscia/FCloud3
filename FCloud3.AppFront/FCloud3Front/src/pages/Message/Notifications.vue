@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { NotifViewItem, NotifType } from '@/models/messages/notification';
-import { injectApi, injectNotifCountProvider } from '@/provides';
+import { injectApi } from '@/provides';
 import Loading from '@/components/Loading.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
@@ -14,7 +14,6 @@ const notifs = ref<NotifViewItem[]>([])
 const loaded = ref(false);
 const totalCount = ref(0);
 const notifCountStore = useNotifCountStore();
-const notifCountProvider = injectNotifCountProvider();
 const {jumpToViewWikiCmt} = useWikiParsingRoutesJump();
 const {jumpToUserGroup} = useIdentityRoutesJump();
 const idenStore = useIdentityInfoStore();
@@ -27,10 +26,10 @@ async function load(){
         totalCount.value = res.TotalCount;
         notifs.value.push(...res.Items);
         const unreadCount = res.Items.filter(x=>!x.Read).length;
-        notifCountProvider.activeOverride(unreadCount);
+        notifCountStore.setCount(unreadCount);
     }
 }
-async function markRead(id:number|"all") {
+async function markRead(id:number|"all", then?:()=>void) {
     const res = await api.messages.notification.markRead(id);
     if(res){
         if(id == 'all')
@@ -44,6 +43,9 @@ async function markRead(id:number|"all") {
                 target.Read = true;
                 notifCountStore.readOne();
             }
+        }
+        if(then){
+            then()
         }
     }
 }
@@ -74,20 +76,20 @@ onUnmounted(()=>{
             <div v-if="n.Type == NotifType.CommentWiki">
                 <span class="s">{{ n.SName }}</span>
                 评论了你的词条
-                <span class="wikiTitle" @click="jumpToWiki(n.P1)">{{ n.P1T }}</span>
+                <span class="wikiTitle" @click="markRead(n.Id, ()=>jumpToWiki(n.P1))">{{ n.P1T }}</span>
                 <span class="cmt">"{{ n.P2T }}"</span>
             </div>
             <div v-else-if="n.Type == NotifType.CommentWikiReply">
                 <span class="s">{{ n.SName }}</span>
                 回复了你在
-                <span class="wikiTitle" @click="jumpToWiki(n.P1)">{{ n.P1T }}</span>
+                <span class="wikiTitle" @click="markRead(n.Id, ()=>jumpToWiki(n.P1))">{{ n.P1T }}</span>
                 下的评论
                 <span class="cmt">"{{ n.P2T }}"</span>
             </div>
             <div v-else-if="n.Type == NotifType.UserGroupInvite">
                 <span class="s">{{ n.SName }}</span>
                 邀请你加入用户组
-                <span class="wikiTitle" @click="jumpToUserGroup(n.P1)">{{ n.P1T }}</span>
+                <span class="wikiTitle" @click="markRead(n.Id, ()=>jumpToUserGroup(n.P1))">{{ n.P1T }}</span>
             </div>
             <div class="right">
                 {{ n.Time }}

@@ -22,7 +22,7 @@ async function load(){
 }
 const userId = useIdentityInfoStore().iden.Id
 
-const { jumpToDiffContentHistory } = useDiffRoutesJump()
+const { jumpToDiffContentHistoryRoute } = useDiffRoutesJump()
 
 onMounted(async()=>{
     setTitleTo('段落源码')
@@ -39,7 +39,9 @@ onUnmounted(()=>{
 <div v-if="data" class="viewParaRawContent" :class="{noCopy:userId!=data.OwnerId}">
     <div class="info">
         <b>上次编辑: {{ data.LastEdit }}</b>
-        <button class="lite" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(data.ParaType), data.ObjId)">查看编辑历史</button>
+        <RouterLink :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(data.ParaType), data.ObjId)" target="_blank">
+            <button class="lite">查看编辑历史</button>
+        </RouterLink>
     </div>
     <div v-if="data.ParaType==WikiParaType.Text" class="textContent">
         {{ data.Content }}

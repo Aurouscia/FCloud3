@@ -377,7 +377,7 @@ onUnmounted(()=>{
     </div>
     <div>
         <div class="wikiInfo" v-if="info">
-            <table>
+            <table><tbody>
                 <tr>
                     <td>词条标题</td>
                     <td>
@@ -396,7 +396,7 @@ onUnmounted(()=>{
                         <button class="confirm" @click="saveInfoEdit">确认</button>
                     </td>
                 </tr>
-            </table>
+            </tbody></table>
             <div :style="{maxWidth:'300px'}">
                 <Notice :type="'warn'" >
                     修改链接名称将导致文中已写下的链接名和分享的查看链接失效，请谨慎操作。<br/>

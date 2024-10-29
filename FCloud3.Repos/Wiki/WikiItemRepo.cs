@@ -2,19 +2,17 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
-using FCloud3.Repos.Etc.Caching;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Wiki
 {
-    public class WikiItemRepo : RepoBaseWithCaching<WikiItem, WikiItemCachingModel>
+    public class WikiItemRepo : RepoBaseCache<WikiItem, WikiItemCacheModel>
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         public WikiItemRepo(
             FCloudContext context,
-            ICommitingUserIdProvider userIdProvider,
-            WikiItemCaching wikiItemCaching) 
-            : base(context, userIdProvider, wikiItemCaching)
+            ICommitingUserIdProvider userIdProvider) 
+            : base(context, userIdProvider)
         {
         }
 
@@ -45,25 +43,22 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         }
 
-        public override bool TryAddCheck(WikiItem item, out string? errmsg)
+        public int TryAddAndGetId(WikiItem item, out string? errmsg)
         {
-            return InfoCheck(item,false,out errmsg);
-        }
-        public override bool TryAdd(WikiItem item, out string? errmsg)
-        {
+            if (!InfoCheck(item, false, out errmsg))
+                return 0;
             item.OwnerUserId = _userIdProvider.Get();
-            return base.TryAdd(item, out errmsg);
+            base.Add(item);
+            return item.Id;
         }
-        public override int TryAddAndGetId(WikiItem item, out string? errmsg)
+        public bool TryUpdate(WikiItem item, out string? errmsg)
         {
-            item.OwnerUserId = _userIdProvider.Get();
-            return base.TryAddAndGetId(item, out errmsg);
+            if (!InfoCheck(item, true, out errmsg))
+                return false;
+            base.Update(item);
+            return true;
         }
-        public override bool TryEditCheck(WikiItem item, out string? errmsg)
-        {
-            return InfoCheck(item,true, out errmsg);
-        }
-        public override bool TryRemoveCheck(WikiItem item, out string? errmsg)
+        public bool TryRemove(WikiItem item, out string? errmsg)
         {
             var uid = _userIdProvider.Get();
             if(item.OwnerUserId != uid)
@@ -71,6 +66,7 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "只有所有者能删除词条";
                 return false;
             }
+            base.Remove(item);
             errmsg = null;
             return true;
         }
@@ -129,22 +125,21 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.OwnerUserId == uid);
         }
 
-        public override void UpdateTime(int id)
+        protected override IQueryable<WikiItemCacheModel> ConvertToCacheModel(IQueryable<WikiItem> q)
         {
-            base.UpdateTime(id);
-            _caching.Update(id, x=>x.Update=DateTime.Now);
+            return q.Select(x => new WikiItemCacheModel(
+                x.Id, x.Updated, x.Sealed, x.OwnerUserId, x.Title, x.UrlPathName));
         }
-        public override void UpdateTime(List<int> ids)
-        {
-            base.UpdateTime(ids);
-            _caching.UpdateRange(ids, x=>x.Update=DateTime.Now);
-        }
-        public override int UpdateTime(IQueryable<int> ids)
-        {
-            var idList = ids.ToList();
-            var count = base.UpdateTime(ids);
-            _caching.UpdateRange(idList, x=>x.Update=DateTime.Now);
-            return count;
-        }
+    }
+
+    public class WikiItemCacheModel(
+        int id, DateTime updated,
+        bool @sealed, int ownerId, string? title, string? urlPathName)
+        : CacheModelBase<WikiItem>(id, updated)
+    {
+        public int OwnerId { get; } = ownerId;
+        public bool Sealed { get; } = @sealed;
+        public string? Title { get; } = title;
+        public string? UrlPathName { get; } = urlPathName;
     }
 }

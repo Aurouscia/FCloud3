@@ -2,7 +2,6 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
-using FCloud3.Repos.Etc.Caching;
 using System.Security.Cryptography;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
@@ -16,7 +15,6 @@ namespace FCloud3.Services.Wiki
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
-        WikiItemCaching wikiItemCaching,
         DbTransactionService dbTransactionService,
         CacheExpTokenService cacheExpTokenService)
     {
@@ -26,7 +24,6 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly WikiItemCaching _wikiItemCaching = wikiItemCaching;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;
         private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
 
@@ -49,7 +46,7 @@ namespace FCloud3.Services.Wiki
             IQueryable<int> containingSelf = _wikiParaRepo.WikiContainingIt(
                 _wikiTitleContainRepo.ContainType2ParaType(containType), objId);
 
-            var wikis = _wikiItemCaching.GetAll()
+            var wikis = _wikiItemRepo.AllCachedItems()
                 .Where(x => x.Title != null && content.Contains(x.Title))
                 .Where(x => !excludeWikiIds.Contains(x.Id))
                 .Where(x => !containingSelf.Contains(x.Id))
@@ -73,7 +70,7 @@ namespace FCloud3.Services.Wiki
         {
             var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
             var wikiIds = list.ConvertAll(x => x.WikiId);
-            var wikis = _wikiItemCaching.GetRange(wikiIds);
+            var wikis = _wikiItemRepo.CachedItemsByIds(wikiIds);
             WikiTitleContainListModel model = new();
             list.ForEach(c =>
             {
@@ -99,8 +96,8 @@ namespace FCloud3.Services.Wiki
                 .GetByTypeAndObjIds(WikiTitleContainType.TextSection, allTextIds);
             contains.AddRange(_wikiTitleContainRepo
                 .GetByTypeAndObjIds(WikiTitleContainType.FreeTable, allTableIds));
-            var relatedWikiIds = contains.ConvertAll(x => x.WikiId).Distinct();
-            var relatedWikis = _wikiItemCaching.GetRange(relatedWikiIds);
+            var relatedWikiIds = contains.ConvertAll(x => x.WikiId).Distinct().ToList();
+            var relatedWikis = _wikiItemRepo.CachedItemsByIds(relatedWikiIds);
             WikiTitleContainForWikiResult res = new();
             paras.ForEach(p =>
             {

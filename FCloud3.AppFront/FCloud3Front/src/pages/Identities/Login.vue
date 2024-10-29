@@ -5,13 +5,14 @@ import { IdentityInfoProvider, useIdentityInfoStore } from '@/utils/globalStores
 import { userTypeText } from '@/models/identities/user';
 import Pop from '@/components/Pop.vue'
 import { Api } from '@/utils/com/api';
-import { injectNotifCountProvider, injectIdentityInfoProvider } from '@/provides';
+import { injectIdentityInfoProvider } from '@/provides';
 import { useRouter } from 'vue-router';
 import { useIdentityRoutesJump } from './routes/routesJump';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
 import Footer from '@/components/Footer.vue';
 import { saveLocalConfig, readLocalConfig, AuthLocalConfig, authConfigDefault } from '@/utils/localConfig';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -27,9 +28,9 @@ const {iden} = storeToRefs(useIdentityInfoStore())
 var httpClient:HttpClient;
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
-const notifProvider = injectNotifCountProvider();
 const router = useRouter();
 const { jumpToRegister } = useIdentityRoutesJump();
+const notifCountStore = useNotifCountStore()
 
 async function Login(){
     authLocalConfig.expireHours = needExpire.value;
@@ -43,8 +44,7 @@ async function Login(){
         httpClient.setToken(token);
         identityInfoProvider.clearCache();
         await identityInfoProvider.getIdentityInfo(true);
-        notifProvider.clear();//立即清除消息个数缓存，重新获取消息个数
-        notifProvider.get();
+        notifCountStore.enforceRefresh();//立即重新获取消息个数
         if (props.backAfterSuccess) {
             router.back()
         } else {
@@ -59,7 +59,7 @@ async function Logout() {
     httpClient.clearToken();
     identityInfoProvider.clearCache();
     pop.value.show("已经成功退出登录","success");
-    notifProvider.clear();
+    notifCountStore.enforceRefresh()
 }
 
 const leftTimeDisplay = computed<string>(()=>{
@@ -94,7 +94,7 @@ onUnmounted(()=>{
         <h1>登录</h1>
     </div>
     <div>
-        <table>
+        <table><tbody>
             <tr>
                 <td>昵称</td>
                 <td>
@@ -107,7 +107,7 @@ onUnmounted(()=>{
                     <input v-model="password" type="password"/>
                 </td>
             </tr>
-        </table>
+        </tbody></table>
         <div class="login">
             <button @click="Login" class="confirm">登&nbsp;录</button>
         </div>

@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Etc;
+using NPOI.SS.Formula.PTG;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,7 +85,9 @@ namespace FCloud3.Repos.Identities
                 GroupId = groupId,
                 Type = t
             };
-            return TryAdd(newRelation, out errmsg);
+            base.Add(newRelation);
+            errmsg = null;
+            return true;
         }
         public bool AcceptInvitaion(int userId, int groupId, out string? errmsg)
         {
@@ -100,7 +103,9 @@ namespace FCloud3.Repos.Identities
                 return false;
             }
             existing.Type = UserToGroupType.Member;
-            return TryEdit(existing, out errmsg);
+            base.Update(existing);
+            errmsg = null;
+            return true;
         }
         public bool RejectInvitaion(int userId, int groupId, out string? errmsg)
         {
@@ -115,7 +120,9 @@ namespace FCloud3.Repos.Identities
                 errmsg = "未知错误：邀请状态异常";
                 return false;
             }
-            return TryRemovePermanent(existing, out errmsg);
+            base.Remove(existing);
+            errmsg = null;
+            return true;
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
@@ -125,7 +132,23 @@ namespace FCloud3.Repos.Identities
                 errmsg = "未知错误：未找到群组关系";
                 return false;
             }
-            return TryRemovePermanent(existing, out errmsg);
+            Remove(existing);
+            errmsg = null; 
+            return true;
+        }
+        
+        public bool SetShowLabel(int userId, int groupId, bool show, out string? errmsg)
+        {
+            var r = GetRelation(groupId, userId);
+            if (r is null)
+            {
+                errmsg = "不在该组中";
+                return false;
+            }
+            r.ShowLabel = show;
+            base.Update(r);
+            errmsg = null;
+            return true;
         }
     }
 }

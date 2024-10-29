@@ -3,9 +3,10 @@ using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
+using NPOI.SS.Formula.Functions;
+using NPOI.SS.Formula.PTG;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Files
 {
@@ -47,27 +48,17 @@ namespace FCloud3.Services.Files
         {
             lock (materialNamingLock)
             {
-                using MemoryStream compressed = new();
-                if (string.IsNullOrWhiteSpace(name))
+                Material m = new()
                 {
-                    errmsg = "素材名称不能为空";
+                    Name = name,
+                    StorePathName = null,
+                    Desc = desc
+                };
+                //进行名称检查
+                if (!_materialRepo.ModelCheck(m, out errmsg))
                     return 0;
-                }
-                if (name.Length < 2)
-                {
-                    errmsg = "素材名称最少两个字符";
-                    return 0;
-                }
-                if (name.Length > Material.displayNameMaxLength)
-                    name = name[..Material.displayNameMaxLength];
-                if (desc is not null && desc.Length > Material.descMaxLength)
-                    desc = desc[..Material.descMaxLength];
-                if (_materialRepo.Existing.Any(x => x.Name == name))
-                {
-                    errmsg = "已存在同名素材";
-                    return 0;
-                }
 
+                using MemoryStream compressed = new();
                 string ext;
                 if (CanCompress(formFileName))
                 {
@@ -97,17 +88,11 @@ namespace FCloud3.Services.Files
                 string storePathName = StorePathName(path, storeName);
                 if (!_storage.Save(compressed, storePathName, out errmsg))
                     return 0;
-                Material m = new()
-                {
-                    Name = name,
-                    StorePathName = storePathName,
-                    Desc = desc
-                };
+
+                //写入存储名
+                m.StorePathName = storePathName;
                 var createdId = _materialRepo.TryAddAndGetId(m, out errmsg);
-                if (errmsg is null)
-                {
-                    _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                }
+                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
                 return createdId;
             }
         }
@@ -155,52 +140,32 @@ namespace FCloud3.Services.Files
             if (oldPathName != null)
                 _storage.Delete(oldPathName, out _);
             m.StorePathName = storePathName;
-            var success = _materialRepo.TryEdit(m, out errmsg);
-            if (success)
-            {
-                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-            }
-            return success;
+            _materialRepo.UpdateInfoWithoutCheck(m);
+            _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
+            return true;
         }
 
         public bool UpdateInfo(int id, string name, string? desc, out string? errmsg)
         {
             lock (materialNamingLock)
             {
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    errmsg = "素材名称不能为空";
-                    return false;
-                }
-                if (name.Length < 2)
-                {
-                    errmsg = "素材名称最少两个字符";
-                    return false;
-                }
                 var m = _materialRepo.GetById(id);
-                if (m is null)
+                if(m is null)
                 {
                     errmsg = "找不到指定素材";
-                    return false;
-                }
-                if (name.Length > Material.displayNameMaxLength)
-                    name = name[..Material.displayNameMaxLength];
-                if (desc is not null && desc.Length > Material.descMaxLength)
-                    desc = desc[..Material.descMaxLength];
-                if (_materialRepo.ExistingExceptId(id).Any(x => x.Name == name))
-                {
-                    errmsg = "已存在同名素材";
                     return false;
                 }
                 bool nameChanged = m.Name != name;
                 m.Name = name;
                 m.Desc = desc;
-                var success = _materialRepo.TryEdit(m, out errmsg);
-                if(success && nameChanged)
+                if (!_materialRepo.TryUpdateInfo(m, out errmsg))
+                    return false;
+                if(nameChanged)
                 {
                     _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
                 }
-                return success;
+                errmsg = null;
+                return true;
             }
         }
 
@@ -215,12 +180,9 @@ namespace FCloud3.Services.Files
             string? oldPathName = m.StorePathName;
             if (oldPathName != null)
                 _storage.Delete(oldPathName, out _);
-            var success = _materialRepo.TryRemove(m, out errmsg);
-            if (success)
-            {
-                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-            }
-            return success;
+            _materialRepo.Remove(m);
+            errmsg = null;
+            return true;
         }
 
 

@@ -157,19 +157,11 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             g.Name = name;
-            return _userGroupRepo.TryEdit(g, out errmsg);
+            return _userGroupRepo.TryUpdate(g, out errmsg);
         }
         public bool SetShowLabel(int id, bool showLabel, out string? errmsg) 
         {
-            var r = _userToGroupRepo.GetRelation(id, _userId);
-            if(r is null)
-            {
-                errmsg = "不在该组中";
-                return false;
-            }
-            r.ShowLabel = showLabel;
-            return _userToGroupRepo.TryEdit(r, out errmsg);
-
+            return _userToGroupRepo.SetShowLabel(_userId, id, showLabel, out errmsg);
         }
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
@@ -214,7 +206,9 @@ namespace FCloud3.Services.Identities
                 errmsg = "找不到指定群组";
                 return false;
             }
-            return _userGroupRepo.TryRemove(g, out errmsg);
+            _userGroupRepo.Remove(g);
+            errmsg = null;
+            return true;
         }
         public class UserGroupListResult
         {

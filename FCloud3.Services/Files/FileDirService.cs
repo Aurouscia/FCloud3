@@ -10,8 +10,6 @@ using FCloud3.Repos.Messages;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
-using Microsoft.EntityFrameworkCore;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Files
 {
@@ -20,13 +18,11 @@ namespace FCloud3.Services.Files
         private readonly UserRepo _userRepo;
         private readonly int _userId;
         private readonly FileDirRepo _fileDirRepo;
-        private readonly FileDirCaching _fileDirCaching;
         private readonly FileItemRepo _fileItemRepo;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly OpRecordRepo _opRecordRepo;
         private readonly AuthGrantService _authGrantService;
-        private readonly UserCaching _userCaching;
         private readonly IStorage _storage;
         private readonly DbTransactionService _dbTransactionService;
 
@@ -34,26 +30,22 @@ namespace FCloud3.Services.Files
             UserRepo userRepo,
             IOperatingUserIdProvider userIdProvider,
             FileDirRepo fileDirRepo,
-            FileDirCaching fileDirCaching,
             FileItemRepo fileItemRepo,
             WikiItemRepo wikiItemRepo,
             WikiToDirRepo wikiToDirRepo,
             OpRecordRepo opRecordRepo,
             AuthGrantService authGrantService,
-            UserCaching userCaching,
             IStorage storage,
             DbTransactionService dbTransactionService)
         {
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
             _fileDirRepo = fileDirRepo;
-            _fileDirCaching = fileDirCaching;
             _fileItemRepo = fileItemRepo;
             _wikiItemRepo = wikiItemRepo;
             _wikiToDirRepo = wikiToDirRepo;
             _opRecordRepo = opRecordRepo;
             _authGrantService = authGrantService;
-            _userCaching = userCaching;
             _storage = storage;
             _dbTransactionService = dbTransactionService;
         }
@@ -103,7 +95,7 @@ namespace FCloud3.Services.Files
 
             var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
             var ownerName = "";
-            Func<int, string> getUserName = x => _userCaching.Get(x)?.Name ?? "??";
+            Func<int, string> getUserName = x => _userRepo.CachedItemById(x)?.Name ?? "??";
             if (ownerId > 0)
                 ownerName = getUserName(ownerId);
 
@@ -166,13 +158,13 @@ namespace FCloud3.Services.Files
             var itemsPaged = contents.AsQueryable().TakePage(q, out int totalCount, out int pageIdx, out int pageCount).ToList();
 
             var subDirList = _fileDirRepo.GetRangeByIdsOrdered(
-                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.Dir).Select(x => x.Id),
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.Dir).Select(x => x.Id).ToList(),
                 converter: x => FileDirIndexResult.FileDirSubDir.Converter(x, getUserName));
             var wikiList = _wikiItemRepo.GetRangeByIdsOrdered(
-                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.WikiItem).Select(x => x.Id),
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.WikiItem).Select(x => x.Id).ToList(),
                 converter: x => FileDirIndexResult.FileDirWiki.Converter(x, getUserName));
             var fileList = _fileItemRepo.GetRangeByIdsOrdered(
-                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id),
+                ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id).ToList(),
                 converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl, getUserName));
 
             var subDirData = new IndexResult<FileDirIndexResult.FileDirSubDir>(subDirList, 0, 0, 0);
@@ -206,9 +198,7 @@ namespace FCloud3.Services.Files
                 userName = path[1];
             var userId = 0;
             if (!string.IsNullOrEmpty(userName))
-            {
-                userId = _userCaching.GetByName(userName)?.Id ?? 0;
-            }
+                userId = _userRepo.CachedItemByPred(x=>x.Name == userName)?.Id ?? 0;
             if (userId == 0) 
             {
                 userId = _userId;
@@ -282,7 +272,7 @@ namespace FCloud3.Services.Files
             target.Name = name;
             target.UrlPathName = urlPathName;
 
-            if(!_fileDirRepo.TryEdit(target, out errmsg))
+            if(!_fileDirRepo.TryUpdate(target, out errmsg))
                 return false;
 
             if (!string.IsNullOrEmpty(record))
@@ -352,6 +342,12 @@ namespace FCloud3.Services.Files
 
             errmsg = null;
             var ds = _fileDirRepo.GetRangeByIds(fileDirIds).ToList();
+            var pathNames = ds.Select(x => x.UrlPathName).ToList();
+            if(pathNames.Distinct().Count() < pathNames.Count)
+            {
+                errmsg = $"试图移入多个路径名相同的目录";
+                return null;
+            }
 
             var setDepth = dist is null ? 0 : dist.Depth+1; //如果父目录是0，那么深度设为0，否则设为父目录深度+1
             int? setRoot = dist is null ? null : dist.RootDir; //如果父目录是0，那么root设为自己的id，否则设为父目录的root
@@ -365,16 +361,15 @@ namespace FCloud3.Services.Files
                     x.ParentDir = distDirId;
                     x.RootDir = setRoot ?? x.Id;
                 });
-                if (!_fileDirRepo.TryEditRange(ds, out errmsg))
+                if (!_fileDirRepo.TryUpdateParentForRange(distDirId, ds, out errmsg))
                     throw new Exception(errmsg);
                 if (!_fileDirRepo.UpdateDescendantsInfoFor(fileDirIds, out errmsg))
                     throw new Exception(errmsg);
             }
             catch
             {
-                //发生任何错误，回滚数据库事务并清空缓存，避免数据不一致
+                //发生任何错误，回滚数据库事务，避免数据不一致
                 transaction.Rollback();
-                _fileDirCaching.Clear();
                 return [];
             }
             //没有错误 提交事务
@@ -502,12 +497,6 @@ namespace FCloud3.Services.Files
             int created = _fileDirRepo.TryAddAndGetId(newDir, out errmsg);
             if (created > 0)
             {
-                if (newDir.RootDir == 0)
-                {
-                    //如果“根文件夹”为0说明自己就是根文件夹，应把RootDir设为自己的id
-                    newDir.RootDir = created;
-                    _fileDirRepo.TryEdit(newDir, out _);
-                }
                 string parentName = parent?.Name ?? "根目录";
                 _fileDirRepo.SetUpdateTimeAncestrally(parentDir, out errmsg);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.FileDir, created, parentDir,

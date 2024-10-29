@@ -12,7 +12,6 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
-using FCloud3.Repos.Etc.Caching;
 using System.Text;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
@@ -24,7 +23,6 @@ namespace FCloud3.Services.Wiki
     public class WikiItemService(
         DbTransactionService transaction,
         WikiItemRepo wikiRepo,
-        WikiItemCaching wikiCaching,
         WikiToDirRepo wikiToDirRepo,
         WikiParaRepo paraRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
@@ -41,7 +39,6 @@ namespace FCloud3.Services.Wiki
     {
         private readonly DbTransactionService _transaction = transaction;
         private readonly WikiItemRepo _wikiRepo = wikiRepo;
-        private readonly WikiItemCaching _wikiCaching = wikiCaching;
         private readonly WikiToDirRepo _wikiToDirRepo = wikiToDirRepo;
         private readonly WikiParaRepo _paraRepo = paraRepo;
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
@@ -60,9 +57,9 @@ namespace FCloud3.Services.Wiki
         {
             return _wikiRepo.GetById(id);
         }
-        public WikiItemCachingModel? GetInfoById(int id)
+        public WikiItemCacheModel? GetInfoById(int id)
         {
-            return _wikiCaching.Get(id);
+            return _wikiRepo.CachedItemById(id);
         }
         public IndexResult<WikiItemIndexItem> Index(IndexQuery query)
         {
@@ -225,12 +222,11 @@ namespace FCloud3.Services.Wiki
                 var underlyingId = 0;
                 if (type == WikiParaType.Text)
                 {
-                    var text = new TextSection();
-                    underlyingId = _textSectionRepo.TryAddAndGetId(text, out msg);
+                    underlyingId = _textSectionRepo.AddDefaultAndGetId();
                 }
                 else if (type == WikiParaType.Table)
                 {
-                    underlyingId = _freeTableRepo.TryCreateDefaultAndGetId(out msg);
+                    underlyingId = _freeTableRepo.AddDefaultAndGetId();
                 }
                 WikiPara p = new()
                 {
@@ -239,19 +235,20 @@ namespace FCloud3.Services.Wiki
                     Type = type,
                     ObjectId = underlyingId
                 };
-                newlyCreatedParaId = _paraRepo.TryAddAndGetId(p, out msg);
-                if(newlyCreatedParaId <= 0)
+                newlyCreatedParaId = _paraRepo.AddAndGetId(p);
+                if (newlyCreatedParaId <= 0)
+                {
+                    msg = "未知错误，段落创建失败";
                     return false;
-
-                if (!_paraRepo.TryEditRange(itsParas, out msg))
-                    return false;
+                }
+                _paraRepo.UpdateRange(itsParas);
                 return true;
             });
             errmsg = msg;
             if (success)
             {
                 SetWikiUpdated(wikiId);
-                var w = _wikiCaching.Get(wikiId);
+                var w = _wikiRepo.CachedItemById(wikiId);
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, newlyCreatedParaId,
                     $"为 {w?.Title} ({w?.UrlPathName}) 在第 {afterOrder+1} 段后 插入了新 {WikiParaTypes.Readable(type)} 段落");
                 return newlyCreatedParaId;
@@ -282,14 +279,14 @@ namespace FCloud3.Services.Wiki
                 orderRecord.Add(p.Order + 1);
             }
             orderedParas.ResetOrder();
-            if (!_paraRepo.TryEditRange(orderedParas, out errmsg))
-                return false;
+            _paraRepo.UpdateRange(orderedParas);
 
             SetWikiUpdated(wikiId);
-            var name = _wikiCaching.Get(wikiId)?.Title;
+            var name = _wikiRepo.CachedItemById(wikiId)?.Title;
             var orderRecordStr = string.Join('-', orderRecord);
             _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, wikiId, 0,
                 $"为 {name} 调整段落顺序为 {orderRecordStr}");
+            errmsg = null;
             return true;
         }
         public bool RemovePara(int id, int paraId, out string? errmsg)
@@ -303,28 +300,18 @@ namespace FCloud3.Services.Wiki
             }
             paras.Remove(target);
             paras.EnsureOrderDense();
-            string? msg = null;
+
             using var t = _transaction.BeginTransaction();
+            _paraRepo.Remove(target);
+            _paraRepo.UpdateRange(paras);
+            t.Commit();
 
-            var editParasSuccess = _paraRepo.TryEditRange(paras, out msg);
-            var removeParaSuccess = false;
-            if (editParasSuccess)
-                removeParaSuccess = _paraRepo.TryRemove(target, out msg);
-
-            var success = removeParaSuccess && editParasSuccess;
-            if (success)
-                t.Commit();
-            else
-                t.Rollback();
-            errmsg = msg;
-            if (success)
-            {
-                SetWikiUpdated(id);
-                var name = _wikiCaching.Get(id)?.Title;
-                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, paraId,
-                    $"从 {name} 移除了第 {target.Order+1} 个段落({WikiParaTypes.Readable(target.Type)})");
-            }
-            return success;
+            SetWikiUpdated(id);
+            var name = _wikiRepo.CachedItemById(id)?.Title;
+            _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, paraId,
+                $"从 {name} 移除了第 {target.Order+1} 个段落({WikiParaTypes.Readable(target.Type)})");
+            errmsg = null;
+            return true;
         }
 
         public WikiInDirLocationView ViewDirLocations(string urlPathName)
@@ -352,7 +339,7 @@ namespace FCloud3.Services.Wiki
             StringBuilder sb = new();
             chains.ForEach(x => model.Locations.Add(new(x.id, x.nameChain, sb)));
 
-            var wiki = _wikiCaching.Get(urlPathName);
+            var wiki = _wikiRepo.CachedItemByPred(x=>x.UrlPathName == urlPathName);
             if (wiki is not null)
             {
                 model.WikiId = wiki.Id;
@@ -411,7 +398,7 @@ namespace FCloud3.Services.Wiki
             }
             if(_wikiToDirRepo.RemoveWikisFromDir(new() { wikiId }, dirId, out errmsg))
             {
-                var w = _wikiCaching.Get(wikiId);
+                var w = _wikiRepo.CachedItemById(wikiId);
                 _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileDir, dirId, wikiId,
                     $"从 {dir.Name} ({dir.Id}) 移除词条 {w?.Title} ({w?.UrlPathName})");
                 return true;
@@ -463,7 +450,7 @@ namespace FCloud3.Services.Wiki
             target.UrlPathName = urlPathName;
             if (changed)
             {
-                if (_wikiRepo.TryEdit(target, out errmsg))
+                if (_wikiRepo.TryUpdate(target, out errmsg))
                 {
                     _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
                     if(record.Length>0)
@@ -498,8 +485,9 @@ namespace FCloud3.Services.Wiki
                 return false;
             }
             w.OwnerUserId = uid;
-            if (_wikiRepo.TryEdit(w, out errmsg, false))
+            if (_wikiRepo.TryUpdate(w, out errmsg))
             {
+                //TODO:词条的上次更新时间与模型的更新时间是两码事，必须做区分
                 var recordStr = $"将 {w.Title} ({w.UrlPathName}) 转让给 {targetUser.Name} ({targetUser.Id})";
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem, id, uid, recordStr);
                 return true;
@@ -515,8 +503,7 @@ namespace FCloud3.Services.Wiki
                 return false;
             }
             w.Sealed = @sealed;
-            //不应造成更新时间变化，否则会重新解析词条
-            var s = _wikiRepo.TryEdit(w, out errmsg, false);
+            var s = _wikiRepo.TryUpdate(w, out errmsg);
             if (s)
             {
                 string opStr = @sealed ? "隐藏" : "解除隐藏";

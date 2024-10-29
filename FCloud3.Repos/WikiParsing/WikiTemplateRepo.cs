@@ -16,7 +16,8 @@ namespace FCloud3.Repos.WikiParsing
             return Existing.Where(x => x.Name != null && x.Name.Contains(s))
                 .OrderBy(x => x.Updated);
         }
-        public override bool TryAddCheck(WikiTemplate item, out string? errmsg)
+        public new void Remove(int id) => base.Remove(id);
+        public bool TryAdd(WikiTemplate item, out string? errmsg)
         {
             if (!NameCheck(item.Name, out errmsg))
                 return false;
@@ -25,10 +26,10 @@ namespace FCloud3.Repos.WikiParsing
                 errmsg = "已存在同名模板";
                 return false;
             }
-            errmsg = null;
+            base.Add(item);
             return true;
         }
-        public override bool TryEditCheck(WikiTemplate item, out string? errmsg)
+        public bool TryUpdate(WikiTemplate item, out string? errmsg)
         {
             if (!NameCheck(item.Name, out errmsg))
                 return false;
@@ -37,7 +38,7 @@ namespace FCloud3.Repos.WikiParsing
                 errmsg = "已存在其他同名模板";
                 return false;
             }
-            errmsg = null;
+            base.Update(item);
             return true;
         }
         private static bool NameCheck(string? name, out string? errmsg)

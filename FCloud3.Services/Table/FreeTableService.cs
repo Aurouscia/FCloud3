@@ -9,7 +9,6 @@ using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Repos.Files;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Table
 {
@@ -18,7 +17,6 @@ namespace FCloud3.Services.Table
         private readonly FreeTableRepo _freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiItemCaching _wikiItemCaching;
         private readonly WikiToDirRepo _wikiToDirRepo;
         private readonly FileDirRepo _fileDirRepo;
         private readonly DiffContentService _diffContentService;
@@ -30,7 +28,6 @@ namespace FCloud3.Services.Table
             FreeTableRepo freeTableRepo,
             WikiParaRepo wikiParaRepo,
             WikiItemRepo wikiItemRepo,
-            WikiItemCaching wikiItemCaching,
             WikiToDirRepo wikiToDirRepo,
             FileDirRepo fileDirRepo,
             DiffContentService diffContentService,
@@ -41,7 +38,6 @@ namespace FCloud3.Services.Table
             _freeTableRepo = freeTableRepo;
             _wikiParaRepo = wikiParaRepo;
             _wikiItemRepo = wikiItemRepo;
-            _wikiItemCaching = wikiItemCaching;
             _wikiToDirRepo = wikiToDirRepo;
             _fileDirRepo = fileDirRepo;
             _diffContentService = diffContentService;
@@ -129,17 +125,13 @@ namespace FCloud3.Services.Table
 
         public int TryAddAndAttach(int paraId, out string? errmsg)
         {
-            var para = _wikiParaRepo.GetById(paraId) ?? throw new Exception("找不到指定Id的段落");
-            if(para.Type!=WikiParaType.Table)
+            int createdTableId = _freeTableRepo.AddDefaultAndGetId();
+            if (createdTableId <= 0)
             {
-                errmsg = "段落类型检查出错";
+                errmsg = "未知错误，表格创建失败";
                 return 0;
             }
-            int createdTableId = _freeTableRepo.TryCreateDefaultAndGetId(out errmsg);
-            if (createdTableId <= 0)
-                return 0;
-            para.ObjectId = createdTableId;
-            if (!_wikiParaRepo.TryEdit(para, out errmsg))
+            if (!_wikiParaRepo.SetParaObjId(paraId, WikiParaType.Table, createdTableId, out errmsg))
                 return 0;
             return createdTableId;
         }

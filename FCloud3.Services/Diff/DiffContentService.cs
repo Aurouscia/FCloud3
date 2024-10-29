@@ -5,7 +5,6 @@ using FCloud3.Diff.String;
 using FCloud3.Entities.Diff;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Diff;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
@@ -16,7 +15,6 @@ namespace FCloud3.Services.Diff
     public class DiffContentService(
         DiffContentRepo contentDiffRepo,
         UserRepo userRepo,
-        UserCaching userCaching,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
         WikiParaRepo wikiParaRepo,
@@ -24,7 +22,6 @@ namespace FCloud3.Services.Diff
     {
         private readonly DiffContentRepo _contentDiffRepo = contentDiffRepo;
         private readonly UserRepo _userRepo = userRepo;
-        private readonly UserCaching _userCaching = userCaching;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
@@ -47,10 +44,7 @@ namespace FCloud3.Services.Diff
                 RemovedChars = removed,
                 AddedChars = added,
             };
-            var dcId = _contentDiffRepo.TryAddAndGetId(dc, out errmsg);
-            if (errmsg is not null)
-                return false;
-            
+            var dcId = _contentDiffRepo.AddAndGetId(dc);
             var dss = diffs.ConvertAll(x => new DiffSingle()
             {
                 DiffContentId = dcId,
@@ -108,7 +102,7 @@ namespace FCloud3.Services.Diff
         public DiffContentHistoryResult? DiffHistoryForRange(List<(DiffContentType type, int objId)> targets, out string? errmsg)
         {
             var diffs = _contentDiffRepo.GetDiffsForRange(targets);
-            var users = _userCaching.GetAll();
+            var users = _userRepo.AllCachedItems();
             var list = (
                 from diff in diffs
                 from user in users

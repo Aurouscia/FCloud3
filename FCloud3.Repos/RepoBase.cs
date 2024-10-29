@@ -7,12 +7,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Org.BouncyCastle.Crypto;
 
 namespace FCloud3.Repos
 {
     public abstract class RepoBase<T> where T : class,IDbModel
     {
-        protected readonly FCloudContext _context;
+        private readonly FCloudContext _context;
         protected readonly ICommitingUserIdProvider _userIdProvider;
 
         public RepoBase(FCloudContext context, ICommitingUserIdProvider userIdProvider)
@@ -27,6 +28,7 @@ namespace FCloud3.Repos
         public IQueryable<T> ExistingExceptId(int id) => Existing.Where(x => x.Id != id);
         public int ExistingCount => Existing.Count();
         public ChangeTracker ChangeTracker => _context.ChangeTracker;
+        public void SaveChanges() => _context.SaveChanges();
         public virtual IQueryable<T> OwnedByUser(int uid = -1)
         {
             if (uid == -1)
@@ -34,15 +36,15 @@ namespace FCloud3.Repos
             return Existing.Where(x => x.CreatorUserId == uid);
         }
 
-        public virtual IQueryable<T> IndexFilterOrder(IndexQuery query)
+        public IQueryable<T> IndexFilterOrder(IndexQuery query)
         {
             return IndexFilterOrder(Existing, query);
         }
-        public virtual IQueryable<T> IndexFilterOrder(IndexQuery query, Func<string, string> keyReplace)
+        public IQueryable<T> IndexFilterOrder(IndexQuery query, Func<string, string> keyReplace)
         {
             return IndexFilterOrder(Existing, query, keyReplace);
         }
-        public virtual IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query, Func<string,string>? keyReplace = null)
+        public IQueryable<T> IndexFilterOrder(IQueryable<T> from, IndexQuery query, Func<string,string>? keyReplace = null)
         {
             var q = from;
             var parsedSearch = query.ParsedSearch();
@@ -60,11 +62,11 @@ namespace FCloud3.Repos
                 q = q.OrderByDescending(x => x.Updated);
             return q;
         }
-        public virtual IndexResult<T> Index(IndexQuery query)
+        public IndexResult<T> Index(IndexQuery query)
         {
             return  IndexFilterOrder(query).TakePageAndConvertOneByOne(query,x=>x);
         }
-        public virtual IQueryable<T> Filter(IQueryable<T> q, SearchDict dict)
+        public IQueryable<T> Filter(IQueryable<T> q, SearchDict dict)
         {
             if (dict.Count==0)
                 return q;
@@ -118,7 +120,7 @@ namespace FCloud3.Repos
             }
             return q;
         }
-        public virtual IQueryable<T> Order(IQueryable<T> q, string? orderBy, bool rev)
+        public IQueryable<T> Order(IQueryable<T> q, string? orderBy, bool rev)
         {
             if (string.IsNullOrEmpty(orderBy))
                 return q;
@@ -152,25 +154,29 @@ namespace FCloud3.Repos
             return q;
         }
 
-        public virtual T? GetById(int id)
+        public T? GetById(int id)
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault();
         }
-        public virtual T GetByIdEnsure(int id)
+        public T GetByIdEnsure(int id)
         {
             return Existing.Where(x => x.Id == id).FirstOrDefault() ?? throw new Exception("找不到目标");
         }
-        public virtual IQueryable<T> GetRangeByIds(IEnumerable<int> ids)
+        public IQueryable<T> GetqById(int id)
         {
-            if (ids.Count() == 0) 
+            return Existing.Where(x => x.Id == id);
+        }
+        public IQueryable<T> GetRangeByIds(List<int> ids)
+        {
+            if (ids.Count == 0) 
                 return new List<T>().AsQueryable();
             return Existing.Where(x => ids.Contains(x.Id));
         }
-        public virtual IQueryable<T> GetRangeByIds(IQueryable<int> ids)
+        public IQueryable<T> GetRangeByIds(IQueryable<int> ids)
         {
             return Existing.Where(x => ids.Contains(x.Id));
         }
-        public virtual List<T2> GetRangeByIdsOrdered<T2>(IEnumerable<int> ids, Func<IQueryable<T>, Dictionary<int, T2>> converter)
+        public List<T2> GetRangeByIdsOrdered<T2>(List<int> ids, Func<IQueryable<T>, Dictionary<int, T2>> converter)
         {
             var vals = converter(GetRangeByIds(ids));
             if(vals.Count == 0) 
@@ -186,30 +192,13 @@ namespace FCloud3.Repos
             }
             return res;
         }
-        public virtual IQueryable<T> GetqById(int id)
-        {
-            return Existing.Where(x => x.Id == id);
-        }
-
         public virtual int GetOwnerIdById(int id)
         {
             return Existing.Where(x => x.Id == id).Select(x => x.CreatorUserId).FirstOrDefault();
         }
 
-        public virtual bool TryAddCheck(T item, out string? errmsg)
+        protected void Add(T item)
         {
-            errmsg = null;
-            return true;
-        }
-        public virtual bool TryAdd(T item,out string? errmsg)
-        {
-            if(item is null)
-            {
-                errmsg = $"试图向数据库加入空{nameof(T)}对象";
-                return false;
-            }
-            if(!TryAddCheck(item, out errmsg))
-                return false;
             item.CreatorUserId = _userIdProvider.Get();
             //仅获取一次当前时间才能确保完全一致，
             //可通过判断创建时间==更新时间来判断该对象是否新建
@@ -218,212 +207,105 @@ namespace FCloud3.Repos
             item.Updated = now;
             _context.Add(item);
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
         }
-        public virtual bool TryAddRange(List<T> items, out string? errmsg)
+        protected void AddRange(List<T> items)
         {
-            errmsg = null;
+            int uid = _userIdProvider.Get();
             foreach(var item in items)
             {
-                if (item is null)
-                {
-                    errmsg = $"试图向数据库加入空{nameof(T)}对象";
-                    return false;
-                }
-                if (!TryAddCheck(item, out errmsg))
-                    return false;
                 //仅获取一次当前时间才能确保完全一致，
                 //可通过判断创建时间==更新时间来判断该对象是否新建
                 DateTime now = DateTime.Now;
                 item.Created = now;
                 item.Updated = now;
-                item.CreatorUserId = _userIdProvider.Get();
+                item.CreatorUserId = uid;
                 _context.Add(item);
             }
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
         }
-        public virtual int TryAddAndGetId(T item, out string? errmsg)
+        protected int AddAndGetId(T item)
         {
-            var success = TryAdd(item, out errmsg);
-            if(success)
-                return item.Id;
-            return 0;
+            Add(item);
+            return item.Id;
         }
-        public virtual int TryCreateDefaultAndGetId(out string? errmsg)
+        public int AddDefaultAndGetId()
         {
-            throw new NotImplementedException();
+            var item = NewDefaultObject() ?? throw new NotImplementedException();
+            return AddAndGetId(item);
+        }
+        public virtual T? NewDefaultObject() 
+        { 
+            return null; 
         }
 
-        public virtual bool TryEditCheck(T item, out string? errmsg)
+        protected void Update(T item)
         {
-            errmsg = null;
-            return true;
-        }
-        public virtual bool TryEdit(T item, out string? errmsg, bool updateTime = true)
-        {
-            if (item is null)
-            {
-                errmsg = $"试图向数据库更新空{nameof(T)}对象";
-                return false;
-            }
-            if (!TryEditCheck(item, out errmsg))
-                return false;
-            if (updateTime)
-                item.Updated = DateTime.Now;
+            item.Updated = DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
         }
-        public virtual bool TryEditRange(List<T> items,out string? errmsg, bool updateTime = true)
+        protected void UpdateRange(List<T> items)
         {
-            errmsg = null;
             foreach(var item in items)
             {
-                if (item is null)
-                {
-                    errmsg = $"试图向数据库更新空{nameof(T)}对象";
-                    return false;
-                }
-                if (!TryEditCheck(item, out errmsg))
-                    return false;
-                if (updateTime)
-                    item.Updated = DateTime.Now;
+                item.Updated = DateTime.Now;
                 _context.Update(item);
             }
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
         }
         
-        public virtual void UpdateTime(int id)
+        public void UpdateTime(int id)
         {
             Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+            AfterDataChange();
         }
-        public virtual void UpdateTime(List<int> ids)
+        public void UpdateTime(List<int> ids)
         {
             Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+            AfterDataChange();
         }
-        public virtual int UpdateTime(IQueryable<int> ids)
+        public int UpdateTime(IQueryable<int> ids)
         {
-            return Existing.Where(x => ids.Contains(x.Id))
+            var changedCount = Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+            AfterDataChange();
+            return changedCount;
         }
 
-        public virtual bool TryRemoveCheck(T item, out string? errmsg)
+        protected void Remove(T item)
         {
-            errmsg = null;
-            return true;
-        }
-        public virtual bool TryRemove(T item, out string? errmsg)
-        {
-            if (item is null)
-            {
-                errmsg = $"试图向数据库删除空{nameof(T)}对象";
-                return false;
-            }
-            if (!TryRemoveCheck(item, out errmsg))
-                return false;
             item.Deleted = true;
             item.Updated = DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
         }
-        public virtual bool TryRemoveNoCheck(int id, out string? errmsg)
+        protected void RemoveRange(List<T> items)
         {
-            var deleted = Existing.Where(x => x.Id == id)
-                .ExecuteUpdate(x => x
-                .SetProperty(t => t.Deleted, true)
-                .SetProperty(t => t.Updated, DateTime.Now));
-            if (deleted > 0)
+            items.ForEach(item =>
             {
-                errmsg = null;
-                return true;
-            }
-            else
-            {
-                errmsg = "删除失败(可能未找到指定id)";
-                return false;
-            }
-        }
-        public virtual bool TryRemoveRange(List<T> items, out string? errmsg)
-        {
-            errmsg = null;
-            foreach (var item in items)
-            {
-                if (item is null)
-                {
-                    errmsg = $"试图向数据库删除空{nameof(T)}对象";
-                    return false;
-                }
-                if (!TryRemoveCheck(item, out errmsg))
-                    return false;
                 item.Deleted = true;
                 item.Updated = DateTime.Now;
                 _context.Update(item);
-            }
+            });
             _context.SaveChanges();
-            return true;
+            AfterDataChange();
+        }
+        protected void Remove(int id)
+        {
+            Existing.Where(x => x.Id == id)
+                .ExecuteUpdate(x => x
+                    .SetProperty(m => m.Deleted, true)
+                    .SetProperty(m => m.Updated, DateTime.Now));
+            AfterDataChange();
         }
 
-        public virtual bool TryRecover(T item, out string? errmsg)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual bool TryRecover(int id, out string? errmsg)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual bool TryRecoverRange(List<T> items, out string? errmsg)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual bool TryRemovePermanent(T item, out string? errmsg) 
-        {
-            if (item is null)
-            {
-                errmsg = $"试图向数据库删除空{nameof(T)}对象";
-                return false;
-            }
-            if (!TryRemoveCheck(item, out errmsg))
-                return false;
-            _context.Remove(item);
-            _context.SaveChanges();
-            return true;
-        }
-        public virtual bool TryRemovePermanentNoCheck(int id, out string? errmsg)
-        {
-            var deleted = Existing.Where(x => x.Id == id).ExecuteDelete();
-            if (deleted > 0)
-            {
-                errmsg = null;
-                return true;
-            }
-            else
-            {
-                errmsg = "删除失败(可能未找到指定id)";
-                return false;
-            }
-        }
-        public virtual bool TryRemoveRangePermanent(List<T> items, out string? errmsg)
-        {
-            errmsg = null;
-            foreach (var item in items)
-            {
-                if (item is null)
-                {
-                    errmsg = $"试图向数据库删除空{nameof(T)}对象";
-                    return false;
-                }
-                if (!TryRemoveCheck(item, out errmsg))
-                    return false;
-                _context.Remove(item);
-            }
-            _context.SaveChanges();
-            return true;
-        }
+        protected virtual void AfterDataChange() { }
     }
 }

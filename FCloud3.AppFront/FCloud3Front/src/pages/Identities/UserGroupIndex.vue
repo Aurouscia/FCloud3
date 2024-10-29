@@ -142,7 +142,7 @@ onUnmounted(()=>{
     </div>
     <SideBar ref="createSideber">
         <h1>新建用户组</h1>
-        <table>
+        <table><tbody>
             <tr>
                 <td>名称</td>
                 <td>
@@ -154,7 +154,7 @@ onUnmounted(()=>{
                     <button @click="create">新建</button>
                 </td>
             </tr>
-        </table>
+        </tbody></table>
     </SideBar>
 </template>
 

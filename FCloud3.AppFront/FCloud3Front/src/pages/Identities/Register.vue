@@ -49,7 +49,7 @@ onUnmounted(()=>{recoverTitle()})
         <h1>注册</h1>
     </div>
     <div>
-        <table>
+        <table><tbody>
             <tr>
                 <td>昵称</td>
                 <td>
@@ -68,7 +68,7 @@ onUnmounted(()=>{recoverTitle()})
                     <input v-model="passwordRepeat" type="password"/>
                 </td>
             </tr>
-        </table>
+        </tbody></table>
         <div class="reg">
             <button @click="register" class="confirm">注&nbsp;册</button>
         </div>

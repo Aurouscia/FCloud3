@@ -6,24 +6,19 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Services.Files.Storage.Abstractions;
 using System.Text.RegularExpressions;
-using FCloud3.Repos.Etc.Caching;
 
 namespace FCloud3.Services.Identities
 {
     public partial class UserService(
         UserRepo repo,
-        UserCaching userCaching,
         MaterialRepo materialRepo,
-        MaterialCaching materialCaching,
         OpRecordRepo opRecordRepo,
         IUserPwdEncryption userPwdEncryption,
         IStorage storage,
         IOperatingUserIdProvider operatingUserIdProvider)
     {
         private readonly UserRepo _repo = repo;
-        private readonly UserCaching _userCaching = userCaching;
         private readonly MaterialRepo _materialRepo = materialRepo;
-        private readonly MaterialCaching _materialCaching = materialCaching;
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
         private readonly IUserPwdEncryption _userPwdEncryption = userPwdEncryption;
         private readonly IStorage _storage = storage;
@@ -44,7 +39,7 @@ namespace FCloud3.Services.Identities
                 return null;
             string? avtStoreName = null;
             if(u.AvatarMaterialId > 0)
-                avtStoreName = _materialCaching.Get(u.AvatarMaterialId)?.PathName;
+                avtStoreName = _materialRepo.CachedItemById(u.AvatarMaterialId)?.PathName;
             string avatarUrl = AvatarFullUrl(avtStoreName);
             return new UserComModel()
             {
@@ -65,7 +60,7 @@ namespace FCloud3.Services.Identities
                 return null;
             string? avtStoreName = null;
             if (u.AvatarMaterialId > 0)
-                avtStoreName = _materialCaching.Get(u.AvatarMaterialId)?.PathName;
+                avtStoreName = _materialRepo.CachedItemById(u.AvatarMaterialId)?.PathName;
             string avatarUrl = AvatarFullUrl(avtStoreName);
             return new UserComModel()
             {
@@ -183,7 +178,7 @@ namespace FCloud3.Services.Identities
                 u.PwdEncrypted = _userPwdEncryption.Run(pwd);
             u.Desc = desc;
 
-            if (!_repo.TryEdit(u, out errmsg))
+            if (!_repo.TryUpdate(u, out errmsg))
                 return false;
             return true;
         }
@@ -198,7 +193,7 @@ namespace FCloud3.Services.Identities
             var encrypted = _userPwdEncryption.Run(pwd);
             var u = _repo.GetByIdEnsure(id);
             u.PwdEncrypted = encrypted;
-            var s = _repo.TryEdit(u, out errmsg);
+            var s = _repo.TryUpdate(u, out errmsg);
             if (s)
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, id, 0,
                     $"为 {u.Name}({u.Id}) 重置密码");
@@ -209,7 +204,7 @@ namespace FCloud3.Services.Identities
         {
             User? u = _repo.GetById(id) ?? throw new Exception("找不到指定ID的用户");
             u.AvatarMaterialId = materialId;
-            if (!_repo.TryEdit(u, out errmsg))
+            if (!_repo.TryUpdate(u, out errmsg))
                 return false;
             return true;
         }
@@ -241,8 +236,9 @@ namespace FCloud3.Services.Identities
             if (u.Type != targetType)
                 record = $"将 {u.Name} ({u.Id}) 的身份由 {UserTypes.Readable(u.Type)} 改为 {UserTypes.Readable(targetType)}";
             u.Type = targetType;
-            if(_repo.TryEdit(u, out errmsg, false))
+            if(_repo.TryUpdate(u, out errmsg))
             {
+                //TODO:用户的上次活跃时间与模型更新时间是两码事，必须做区分
                 if (record is not null)
                     _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.User, id, 0, record);
                 return true;
@@ -253,9 +249,7 @@ namespace FCloud3.Services.Identities
         public UserType GetCurrentUserType()
         {
             var uid = _operatingUserIdProvider.Get();
-            if(_userCaching.Get(uid) is { } data)
-                return data.Type;
-            return UserType.Tourist;
+            return _repo.CachedItemById(uid)?.Type ?? UserType.Tourist;
         }
 
         public string UserTypeText(UserType type)

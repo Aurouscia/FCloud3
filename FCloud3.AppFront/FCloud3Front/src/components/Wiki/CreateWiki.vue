@@ -40,7 +40,7 @@ onMounted(async()=>{
 
 <template>
     <h1 v-if="!noH1">新建词条</h1>
-    <table>
+    <table><tbody>
         <tr>
             <td>词条<br />标题</td>
             <td><input v-model="creatingWikiTitle" placeholder="必填" /></td>
@@ -59,7 +59,7 @@ onMounted(async()=>{
                 <button class="confirm" @click="createWiki">确认</button>
             </td>
         </tr>
-    </table>
+    </tbody></table>
     <div v-if="regulationPathName" class="reguLink">
         <RouterLink :to="jumpToViewWikiRoute(regulationPathName)" target="_blank">查看系统使用规定</RouterLink>
     </div>

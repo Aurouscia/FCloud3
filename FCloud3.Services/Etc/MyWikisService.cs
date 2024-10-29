@@ -1,4 +1,3 @@
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using Newtonsoft.Json;
@@ -7,22 +6,19 @@ namespace FCloud3.Services.Etc
 {
     public class MyWikisService(
         WikiItemRepo wikiItemRepo,
-        FileDirCaching fileDirCaching,
         WikiToDirRepo wikiToDirRepo,
         FileDirRepo fileDirRepo)
     {
         public MyWikisOverallResp MyWikiOverall(int uid)
         {
-            var myAllWs = wikiItemRepo.Existing
-                .Where(x => x.OwnerUserId == uid)
-                .Select(x => new {x.Id, x.Title, x.UrlPathName, x.Sealed})
+            var myAllWs = wikiItemRepo
+                .CachedItemsByPred(x => x.OwnerId == uid)
                 .ToList();
             var allWIds = myAllWs.Select(x => x.Id).ToHashSet();
             var wikiToDirs = wikiToDirRepo.Existing
                 .Select(x => new {x.WikiId, x.DirId})
                 .ToList();
             wikiToDirs.RemoveAll(x => !allWIds.Contains(x.WikiId));
-            var allDirs = fileDirCaching.GetAll();
             List<MyWikisInDir> flatCollection = [];
             List<string?[]> homelessWikis = [];
             List<string?[]> sealedWikis = [];
@@ -40,7 +36,7 @@ namespace FCloud3.Services.Etc
                     var dirExisting = flatCollection.Find(x => x.Id == r.DirId);
                     if (dirExisting is null)
                     {
-                        var dir = allDirs.Find(x => x.Id == r.DirId);
+                        var dir = fileDirRepo.CachedItemById(r.DirId);
                         if (dir is null)
                             continue;
                         var dirNew = new MyWikisInDir()
@@ -60,7 +56,7 @@ namespace FCloud3.Services.Etc
             
             //树状找到所有祖宗目录
             Stack<MyWikisInDir> addingParent = new(flatCollection);
-            int safety = allDirs.Count;//死循环安全措施
+            int safety = fileDirRepo.CachedItemsCount();//死循环安全措施
             while (addingParent.Count > 0 && safety >= 0)
             {
                 safety--;//死循环安全措施
@@ -68,7 +64,7 @@ namespace FCloud3.Services.Etc
                 var target = addingParent.Pop();
                 if(target.ParentId > 0 && !flatCollection.Any(mw => mw.Id == target.ParentId))
                 {
-                    var parent = allDirs.Find(fd => fd.Id == target.ParentId);
+                    var parent = fileDirRepo.CachedItemById(target.ParentId);
                     if (parent is { })
                     {
                         var adding = new MyWikisInDir()

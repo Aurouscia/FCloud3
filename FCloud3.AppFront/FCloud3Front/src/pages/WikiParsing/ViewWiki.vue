@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { injectApi, injectContentMaxWidth, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
+import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
-import { TitleClickFold } from '@/utils/wikiView/titleClickFold';
+import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import Loading from '@/components/Loading.vue';
@@ -34,6 +34,8 @@ import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { RouteRenderer } from '@/utils/plugins/routeRenderer'
+import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
+import _ from 'lodash';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -88,10 +90,17 @@ function getIdFromElementId(ele:HTMLElement):number{
 }
 function moveToTitle(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
-    //console.log(title)
     if(title){
+        let top = title.offsetTop
+        if(title.classList.contains(hiddenSubClassName)){
+            const ances = findNearestUnhiddenAnces(title)
+            if(ances){
+                pop.value.show(`请展开“${ances.text}”以查看内容`,'info')
+                top = (ances.ances as HTMLElement).offsetTop
+            }
+        }
         isActiveMoving = true;
-        wikiViewArea.value?.scrollTo({top: title.offsetTop, behavior: 'smooth'})
+        wikiViewArea.value?.scrollTo({top:top - 10, behavior: 'smooth'})
         window.setTimeout(()=>{
             isActiveMoving = false;
         }, 1000)
@@ -116,13 +125,11 @@ function viewAreaScrollHandler(enforce?:boolean){
     }
 
     lastScrollTime = Date.now();
-    let currentTitleIdx = titlesInContent.findIndex(t=>
-        t.offsetTop > st + 80);
-    if(currentTitleIdx == -1){
+    let currentTitleIdx = _.findLastIndex(titlesInContent, t=>
+        !t.classList.contains(hiddenSubClassName) &&
+        t.offsetTop < st + 30); //50是玄学数字，未搞清楚作用机理
+    if(currentTitleIdx == -1){5
         return
-    }
-    if(currentTitleIdx != 0){
-        currentTitleIdx -= 1;
     }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));
@@ -159,14 +166,14 @@ const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNot
 const wikiViewArea = ref<HTMLDivElement>();
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
-const { jumpToDiffContentHistory, jumpToDiffContentHistoryForWiki } = useDiffRoutesJump();
+const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } = useWikiRoutesJump();
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
-const contentMaxWidth = injectContentMaxWidth()
+const mainDivDisplayStore = useMainDivDisplayStore()
 onMounted(async()=>{
-    contentMaxWidth.value = false;
+    mainDivDisplayStore.restrictContentMaxWidth = false;
     await init();
 })
 
@@ -252,7 +259,7 @@ async function init(changedPathName?:boolean){
     }
 }
 onUnmounted(()=>{
-    contentMaxWidth.value = true
+    mainDivDisplayStore.resetToDefault()
     clickFold?.dispose();
     imgClickJump?.dispose();
     disposeFootNoteJump();
@@ -283,7 +290,7 @@ onUnmounted(()=>{
             </div>
             <div class="btns">
                 <div>
-                    <button @click="jumpToDiffContentHistoryForWiki(wikiPathName)" class="minor">历史</button>
+                    <RouterLink :to="jumpToDiffContentHistoryForWikiRoute(wikiPathName)" target="_blank"><button class="minor">历史</button></RouterLink>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiEdit(wikiPathName)">设置</button>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiContentEdit(wikiPathName)">编辑</button>
                 </div>
@@ -303,7 +310,7 @@ onUnmounted(()=>{
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
-                    <div v-if="p.HistoryViewable" class="editBtn" @click="jumpToDiffContentHistory(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)">历史</div>
+                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">

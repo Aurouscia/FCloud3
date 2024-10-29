@@ -437,7 +437,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </SideBar>
 <SideBar ref="localConfigSidebar">
     <h1>编辑器设置</h1>
-    <table style="margin: auto;">
+    <table style="margin: auto;"><tbody>
         <tr>
             <td>黑色背景</td>
             <td><input type="checkbox" v-model="localConfig.blackBg"/></td>
@@ -453,7 +453,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
         <tr>
             <td class="noBg" colspan="2"><button @click="saveLocalConfigClick">保存</button><br/></td>
         </tr>
-    </table>
+    </tbody></table>
     <div style="font-size: 14px; color: #aaa;text-align: center;">仅会保存在本浏览器内<br/>后续更新可能需重新设置</div>
 </SideBar>
 <div v-if="loadComplete" class="background">

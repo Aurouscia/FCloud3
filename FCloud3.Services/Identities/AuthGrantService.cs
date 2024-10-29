@@ -5,7 +5,6 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
-using FCloud3.Repos.Etc.Caching;
 using FCloud3.Services.Etc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -14,10 +13,9 @@ namespace FCloud3.Services.Identities
     public class AuthGrantService
     {
         private readonly AuthGrantRepo _authGrantRepo;
-        private readonly AuthGrantCaching _authGrantCaching;
+        private readonly UserRepo _userRepo;
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserGroupRepo _userGroupRepo;
-        private readonly UserCaching _userCaching;
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly CreatorIdGetter _creatorIdGetter;
@@ -26,10 +24,9 @@ namespace FCloud3.Services.Identities
         
         public AuthGrantService(
             AuthGrantRepo authGrantRepo,
-            AuthGrantCaching authGrantCaching,
+            UserRepo userRepo,
             UserToGroupRepo userToGroupRepo,
             UserGroupRepo userGroupRepo,
-            UserCaching userCaching,
             WikiParaRepo wikiParaRepo,
             IOperatingUserIdProvider userIdProvider,
             CreatorIdGetter creatorIdGetter,
@@ -37,10 +34,9 @@ namespace FCloud3.Services.Identities
             CacheExpTokenService cacheExpTokenService)
         {
             _authGrantRepo = authGrantRepo;
-            _authGrantCaching = authGrantCaching;
+            _userRepo = userRepo;
             _userToGroupRepo = userToGroupRepo;
             _userGroupRepo = userGroupRepo;
-            _userCaching = userCaching;
             _wikiParaRepo = wikiParaRepo;
             _userIdProvider = userIdProvider;
             _creatorIdGetter = creatorIdGetter;
@@ -81,11 +77,11 @@ namespace FCloud3.Services.Identities
                     return false;//如果所有者不是访问者，但是该类型只允许所有者访问，直接拒绝
             }
 
-            var gs = _authGrantRepo.GetByOnCached(on, onId, ownerId);
+            var gs = _authGrantRepo.GetByOn(on, onId, ownerId);
             gs.Reverse();//下面覆盖上面，所以先检验
 
-            if(GetBuiltInOf(on) is List<AuthGrant> baseAuths){
-                gs.AddRange(baseAuths.ConvertAll(_authGrantCaching.Convert));//添加该类型的系统默认权限在队尾
+            if(GetBuiltInOfInCacheModel(on) is List<AuthGrantCacheModel> baseAuths){
+                gs.AddRange(baseAuths);//添加该类型的系统默认权限在队尾
             }
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
@@ -190,17 +186,25 @@ namespace FCloud3.Services.Identities
                 }];
             return null;
         }
+        public List<AuthGrantCacheModel>? GetBuiltInOfInCacheModel(AuthGrantOn on)
+        {
+            var builtins = GetBuiltInOf(on);
+            if (builtins is null)
+                return null;
+            return builtins.ConvertAll(x => new AuthGrantCacheModel(x.Id, x.Updated,
+                    x.Order, x.CreatorUserId, x.OnId, x.On, x.ToId, x.To, x.IsReject));
+        }
 
 
         public AuthGrantViewModel GetList(AuthGrantOn on, int onId)
         {
-            var list = new List<AuthGrant>();
-            var builtIn = GetBuiltInOf(on) ?? [];
+            var list = new List<AuthGrantCacheModel>();
+            var builtIn = GetBuiltInOfInCacheModel(on) ?? [];
             list.AddRange(builtIn);
             int owner = GetOwnerId(on, onId);
             var userDefined = _authGrantRepo.GetByOn(on, onId, owner);
-            var globalDefined = new List<AuthGrant>();
-            var localDefined = new List<AuthGrant>();
+            var globalDefined = new List<AuthGrantCacheModel>();
+            var localDefined = new List<AuthGrantCacheModel>();
             if (onId != AuthGrant.onIdForAll)
             {
                 userDefined.ForEach(x =>
@@ -223,20 +227,19 @@ namespace FCloud3.Services.Identities
             userIds = userIds.Union(creatorIds).ToList();
             userIds.RemoveAll(x => x == 0);
             var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id, x.Name}).ToList();
-            var userNames = _userCaching.GetRange(userIds).Select(x => new { x.Id, x.Name }).ToList();
-            Func<AuthGrant, AuthGrantViewModelItem> convert = x =>
+            Func<AuthGrantCacheModel, AuthGrantViewModelItem> convert = x =>
             {
                 string? toName = null;
                 if (x.To == AuthGrantTo.UserGroup)
                     toName = groupNames.FirstOrDefault(g => g.Id == x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.User)
-                    toName = userNames.FirstOrDefault(u => u.Id == x.ToId)?.Name;
+                    toName = _userRepo.CachedItemById(x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.EveryOne)
                     toName = "所有人";
                 else if (x.To == AuthGrantTo.SameGroup)
                     toName = "同组用户";
                 toName ??= "N/A";
-                string creatorName = userNames.FirstOrDefault(u=>u.Id==x.CreatorUserId)?.Name ?? "N/A";
+                string creatorName = _userRepo.CachedItemById(x.CreatorUserId)?.Name ?? "N/A";
                 return new AuthGrantViewModelItem(x, toName, creatorName);
             };
 
@@ -320,10 +323,10 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             gs.ResetOrder(ids);
-            var s = _authGrantRepo.TryEditRange(gs, out errmsg);
-            if (s)
-                _cacheExpTokenService.AuthGrants.CancelAll();
-            return s;
+            _authGrantRepo.UpdateRangeWithoutCheck(gs);
+            _cacheExpTokenService.AuthGrants.CancelAll();
+            errmsg = null;
+            return true;
         }
 
         private bool CanEdit(AuthGrantOn on, int onId)
@@ -408,7 +411,7 @@ namespace FCloud3.Services.Identities
         {
             public string ToName { get; }
             public string CreatorName { get; }
-            public AuthGrantViewModelItem(AuthGrant authGrant, string toName, string creatorName)
+            public AuthGrantViewModelItem(AuthGrantCacheModel authGrant, string toName, string creatorName)
             {
                 this.Id = authGrant.Id;
                 this.ToId = authGrant.ToId;

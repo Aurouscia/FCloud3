@@ -21,10 +21,12 @@ namespace FCloud3.Repos.Wiki
         {
             intoBlackList.ForEach(x => x.BlackListed = true);
             outOfBlackList.ForEach(x => x.BlackListed = false);
-            _context.UpdateRange(intoBlackList);
-            _context.UpdateRange(outOfBlackList);
-            _context.AddRange(newObjs);
-            _context.SaveChanges();
+            var needUpdate = new List<WikiTitleContain>(
+                intoBlackList.Count + outOfBlackList.Count);
+            needUpdate.AddRange(intoBlackList);
+            needUpdate.AddRange(outOfBlackList);
+            base.UpdateRange(intoBlackList);
+            base.AddRange(newObjs);
             errmsg = null;
             return true;
         }
@@ -52,8 +54,7 @@ namespace FCloud3.Repos.Wiki
             if (distincted.Count == list.Count)
                 return distincted;
             var redundancy = list.Except(distincted).ToList();
-            _context.RemoveRange(redundancy);
-            _context.SaveChanges();
+            base.RemoveRange(redundancy);
             return distincted;
         }
         

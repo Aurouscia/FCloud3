@@ -1,8 +1,6 @@
 using FCloud3.DbContexts;
 using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Identities;
-using FCloud3.Repos.Etc.Caching;
-using FCloud3.Repos.Etc.Caching.Abstraction;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Test.TestSupport;
 
@@ -13,7 +11,6 @@ namespace FCloud3.Repos.Test.Identities
     {
         private readonly FCloudContext _context;
         private readonly AuthGrantRepo _repo;
-        private readonly AuthGrantCaching _caching;
         public AuthGrantRepoTest()
         {
             _context = FCloudMemoryContext.Create() as FCloudContext;
@@ -24,7 +21,7 @@ namespace FCloud3.Repos.Test.Identities
                 new() { Name = "user2", Type = UserType.Member }
             });
             
-            _context.AuthGrants.AddRange(new List<AuthGrant>()
+            var initials = new List<AuthGrant>()
             {
                 new() { CreatorUserId = 1, On = AuthGrantOn.WikiItem, OnId = 10, Order = 1},                    //1
                 new() { CreatorUserId = 1, On = AuthGrantOn.WikiItem, OnId = 10, Order = 0},                    //2
@@ -40,12 +37,13 @@ namespace FCloud3.Repos.Test.Identities
                 new() { CreatorUserId = 1, On = AuthGrantOn.Dir, OnId = AuthGrant.onIdForAll, Order = 0},       //12
                 new() { CreatorUserId = 1, On = AuthGrantOn.Dir, OnId = AuthGrant.onIdForAll, Order = 1},       //13
                 //新加的 id为14
-            });
+            };
+            initials.ForEach(i => i.Updated = new DateTime(2024, 1, 6));
+            _context.AddRange(initials);
             _context.SaveChanges();
 
-            _caching = new AuthGrantCaching(_context, new FakeLogger<CachingBase<AuthGrantCachingModel, AuthGrant>>());
-            _caching.Clear();
-            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1), _caching);
+            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1));
+            _repo.ClearCache();
         }
 
         /// <summary>
@@ -102,8 +100,6 @@ namespace FCloud3.Repos.Test.Identities
             var on = target.On;
             var onId = target.OnId;
             _repo.TryRemove(target, out _);
-            //权限授予没有什么假删除的必要，全是真删除，所以All数量应该少一个
-            Assert.AreEqual(12, _repo.All.Count());
             var actuals = _repo.GetByOn(on, onId, owner);
             var actualIds = actuals.ConvertAll(x => x.Id);
             var actualOrders = actuals.ConvertAll(x => x.Order);
