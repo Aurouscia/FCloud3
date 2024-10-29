@@ -98,10 +98,10 @@ defineExpose({ show })
     background-color: #cc2222;
 }
 .info{
-    background-color: #cccccc;
+    background-color: #666666;
 }
 .warning{
-    background-color: orange;
+    background-color: rgb(255, 132, 0);
     color:black;
 }
 </style>
