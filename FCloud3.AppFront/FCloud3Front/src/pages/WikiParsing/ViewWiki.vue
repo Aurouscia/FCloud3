@@ -35,6 +35,7 @@ import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { RouteRenderer } from '@/utils/plugins/routeRenderer'
 import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
+import _ from 'lodash';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -92,14 +93,14 @@ function moveToTitle(titleId:number){
     if(title){
         let top = title.offsetTop
         if(title.classList.contains(hiddenSubClassName)){
-            pop.value.show("请展开其上级段落以查看",'warning')
             const ances = findNearestUnhiddenAnces(title)
             if(ances){
-                top = (ances as HTMLElement).offsetTop
+                pop.value.show(`请展开“${ances.text}”段落以查看内容`,'info')
+                top = (ances.ances as HTMLElement).offsetTop
             }
         }
         isActiveMoving = true;
-        wikiViewArea.value?.scrollTo({top, behavior: 'smooth'})
+        wikiViewArea.value?.scrollTo({top:top - 10, behavior: 'smooth'})
         window.setTimeout(()=>{
             isActiveMoving = false;
         }, 1000)
@@ -124,14 +125,11 @@ function viewAreaScrollHandler(enforce?:boolean){
     }
 
     lastScrollTime = Date.now();
-    let currentTitleIdx = titlesInContent.findIndex(t=>
+    let currentTitleIdx = _.findLastIndex(titlesInContent, t=>
         !t.classList.contains(hiddenSubClassName) &&
-        t.offsetTop > st + 80);
-    if(currentTitleIdx == -1){
+        t.offsetTop < st + 30); //50是玄学数字，未搞清楚作用机理
+    if(currentTitleIdx == -1){5
         return
-    }
-    if(currentTitleIdx != 0){
-        currentTitleIdx -= 1;
     }
     let currentTitle = titlesInContent[currentTitleIdx];
     const titleInCatalogOffsetTop = titles.value?.highlight(getIdFromElementId(currentTitle));

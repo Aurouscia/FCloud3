@@ -98,13 +98,23 @@ export function removeDefaultFoldedMark(title:string):string{
     return title.slice(1);
 }
 
-export function findNearestUnhiddenAnces(ele:Element){
+export function findNearestUnhiddenAnces(ele:Element):{ances:Element, text:string}|undefined{
     const parent = ele.parentElement
     if(parent){
         const parentPervSib = parent.previousElementSibling;
         if(parentPervSib && clickables.includes(parentPervSib.tagName)){
             if(!parentPervSib.classList.contains(hiddenSubClassName)){
-                return parentPervSib
+                let hText = "上级段落"
+                for(const c of parentPervSib.children){
+                    if(c.tagName == "SPAN"){
+                        const t = (c as HTMLElement).innerText
+                        if(t){
+                            hText = t
+                            break
+                        }
+                    }
+                }
+                return {ances: parentPervSib, text:hText}
             }
             return findNearestUnhiddenAnces(parentPervSib)
         }
