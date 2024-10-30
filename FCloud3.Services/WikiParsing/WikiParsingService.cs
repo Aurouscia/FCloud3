@@ -177,7 +177,7 @@ namespace FCloud3.Services.WikiParsing
                 true,
                 true,
                 () => [wiki.Id]);
-            parser.Context.Reset(true);
+            parser.Context.BeforeParsing(true);
 
             WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
             string? getTitle(string? nameoverride, string? title, bool parse = true)

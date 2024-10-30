@@ -180,10 +180,10 @@ namespace FCloud3.WikiPreprocessor.Test
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             string output2 = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output2);
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             string output3 = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output3);
         }

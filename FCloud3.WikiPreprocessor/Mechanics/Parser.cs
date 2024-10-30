@@ -3,12 +3,7 @@ using FCloud3.WikiPreprocessor.Context.SubContext;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
-using FCloud3.WikiPreprocessor.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FCloud3.WikiPreprocessor.Mechanics
 {
@@ -30,7 +25,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         }
         public string RunToPlain(string? input,bool putCommon = false)
         {
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
@@ -53,11 +48,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 PostScripts(resSb);
                 FootNotes(resSb);
             }
+            _ctx.AfterParsing();
             return resSb.ToString();
         }
         public ParserResult RunToParserResult(string? input)
         {
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
@@ -79,11 +75,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             string footNotes = resSb.ToString();
 
             ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
+            _ctx.AfterParsing();
             return result;
         }
         public ParserResultRaw RunToParserResultRaw(string? input, bool enforceBlock = true)
         {
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             _ctx.SetInitialFrameCount();
             if (string.IsNullOrWhiteSpace(input))
                 return new();
@@ -100,17 +97,19 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 usedRules: _ctx.RuleUsage.GetUsedRules(),
                 footNotes: _ctx.FootNote.AllToString(),
                 titles: htmlable.ContainTitleNodes());
+            _ctx.AfterParsing();
             return result;
         }
         public IHtmlable RunToObject(string? input, bool enforceBlock = true)
         {
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             _ctx.SetInitialFrameCount();
             if(input is null)
                 return new EmptyElement();
             if (input.Length > maxInputLength)
                 return new TextElement(input);
             IHtmlable htmlable = _blockParser.Run(input, enforceBlock, true);
+            _ctx.AfterParsing();
             return htmlable;
         }
 

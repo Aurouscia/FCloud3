@@ -176,7 +176,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             var trimmedSpan = span.Trim();
             if (!UrlUtil.IsUrl(trimmedSpan))
             {
-                var link = context.Options.Link.LinkItems.Find(x => x.Text == trimmedSpan || x.Url == trimmedSpan);
+                var link = context.DataSource?.Link(trimmedSpan);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
@@ -222,7 +222,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             var trimmedPart2 = parts[1].Trim();
             if (!UrlUtil.IsUrl(trimmedPart2))
             {
-                var link = context.Options.Link.LinkItems.Find(x => x.Url == trimmedPart2);
+                var link = context.DataSource?.Link(trimmedPart2);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
