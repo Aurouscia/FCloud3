@@ -23,7 +23,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             _inlineParsingOptions = inlineOptions;
             _ruleUsageContext = ruleUsageContext;
             _ctx = ctx;
-            Register(autoReplaceOptions.Detects);//初次传入的替换目标立即注册
+            Register(autoReplaceOptions.Detects.ToList());//初次传入的替换目标立即注册
         }
         public List<(ReplaceTarget target, LiteralInlineRule rule)> ActiveReplaces = [];
         
