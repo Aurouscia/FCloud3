@@ -82,30 +82,26 @@ namespace FCloud3.WikiPreprocessor.Test
 
         [TestMethod]
         [DataRow(
-            "更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
-            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
+            "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
+            "<p>更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条</p>",
             true)]
         [DataRow(
-            "更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条</p>",
-            "<p>更多有趣内容见3C教育体系大纲等词条</p>",
+            "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
+            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条，更多有趣内容见3C教育体系大纲等词条</p>",
             false)]
         [DataRow(
             "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
             "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
-            "<p>夜莺是人类伴生种，夜莺会吃城市里的其他小鸟</p>", true)]
-        public void ChangeTargets(string input, string answerFirst, string answerSecond, bool clear)
+            true)]
+        public void ChangeTargets(string input, string answer, bool clear)
         {
             //更换目标，可选择是否去除旧目标
             List<string?> targets = wikis_2.Keys.ToList().ConvertAll(x => (string?)x);
             _parser.Context.AutoReplace.Register(targets, true, clear);
             string res = _parser.RunToPlain(input);
-            Assert.AreEqual(answerFirst, res);
+            Assert.AreEqual(answer, res);
             string res2 = _parser.RunToPlain(input);
-            Assert.AreEqual(answerSecond, res2);
-            string res3 = _parser.RunToPlain(input);
-            Assert.AreEqual(answerSecond, res3);
+            Assert.AreEqual(answer, res);
         }
         
         [TestMethod]

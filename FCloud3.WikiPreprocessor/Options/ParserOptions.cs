@@ -29,7 +29,6 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGatheringOptions { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; }
-        public bool ClearRuleUsageOnCall { get; }
         public IColorParser ColorParser { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
@@ -41,7 +40,7 @@ namespace FCloud3.WikiPreprocessor.Options
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
             LinkOptions link,
-            bool debug, bool clearRuleUsageOnCall,
+            bool debug,
             IColorParser colorParser, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
@@ -53,7 +52,6 @@ namespace FCloud3.WikiPreprocessor.Options
             TitleGatheringOptions = titleGathering;
             Link = link;
             Debug = debug;
-            ClearRuleUsageOnCall = clearRuleUsageOnCall;
             ColorParser = colorParser;
             LocatorHash = locatorHash;
         }
@@ -114,7 +112,7 @@ namespace FCloud3.WikiPreprocessor.Options
             ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
-                Debug, ClearRuleUsageOnCall, ColorParser, LocatorHash);
+                Debug, ColorParser, LocatorHash);
             return options;
         }
 

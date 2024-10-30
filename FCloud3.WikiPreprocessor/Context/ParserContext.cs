@@ -53,11 +53,10 @@ namespace FCloud3.WikiPreprocessor.Context
         /// <summary>
         /// 在Parser对象运行之间，将一些参数设回初始值
         /// </summary>
-        public void BeforeParsing(bool enforce = false)
+        public void BeforeParsing()
         {
             UniqueSlotIncre = 0;
-            if( Options.ClearRuleUsageOnCall || enforce)
-                RuleUsage.Reset();
+            RuleUsage.Reset();
             Caches.Reset();
             FootNote.Clear();
         }
