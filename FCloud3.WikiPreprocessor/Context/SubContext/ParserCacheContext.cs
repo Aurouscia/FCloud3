@@ -17,7 +17,11 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
     public class ParserCacheContext
     {
         public int CacheReadCount { get; private set; }
+        public int CacheEntryCount => _cacheDict.Count;
+
         private readonly Dictionary<int, CacheItem> _cacheDict;
+        private readonly HashSet<int> _cacheReadInScope;
+        private readonly HashSet<int> _cacheWroteInScope;
         private readonly CacheOptions _options;
         private readonly ParserContext _ctx;
         private readonly StringBuilder _tempSb;
@@ -26,13 +30,32 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             _options = options;
             _ctx = ctx;
             _tempSb = new();
-            _cacheDict = new();
+            _cacheDict = [];
+            _cacheReadInScope = [];
+            _cacheWroteInScope = [];
         }
         
-        public void Reset()
+        public void BeforeParsing()
         {
             CacheReadCount = 0;
             ParsedSavedScanChar = 0;
+            _cacheReadInScope.Clear();
+            _cacheWroteInScope.Clear();
+        }
+        public void AfterParsing()
+        {
+            List<int> removals = []; 
+            foreach(var key in _cacheDict.Keys)
+            {
+                var wrote = _cacheWroteInScope.Contains(key);
+                var read = _cacheReadInScope.Contains(key);
+                if (!read && !wrote)
+                {
+                    //本scope内没有读该缓存，也不是刚刚写的，可以丢弃之
+                    removals.Add(key);
+                }
+            }
+            removals.ForEach(key => _cacheDict.Remove(key));
         }
 
         public int ParsedSavedScanChar { get; private set; }
@@ -44,7 +67,9 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             if (string.IsNullOrEmpty(input))
                 return;
             var cache = new CacheItem(output, usedRules, footNotes, titleNodes);
-            _cacheDict[CacheKey(input)] = cache;
+            int key = CacheKey(input);
+            _cacheDict[key] = cache;
+            _cacheWroteInScope.Add(key);
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
@@ -65,6 +90,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             {
                 CacheReadCount++;
                 ParsedSavedScanChar += input.Length;
+                _cacheReadInScope.Add(CacheKey(input));
             }
             return cacheItem;
         }

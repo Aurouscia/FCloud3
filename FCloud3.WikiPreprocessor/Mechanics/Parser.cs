@@ -32,9 +32,10 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             if (input.Length > maxInputLength)
                 return input;
             IHtmlable result = _blockParser.Run(input, true, true);
+            _ctx.AfterParsing();
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
-                    resSb.AppendLine(_ctx.DebugInfo());
+                resSb.AppendLine(_ctx.DebugInfo());
             if (!putCommon)
             {
                 result.WriteHtml(resSb);
@@ -48,7 +49,6 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 PostScripts(resSb);
                 FootNotes(resSb);
             }
-            _ctx.AfterParsing();
             return resSb.ToString();
         }
         public ParserResult RunToParserResult(string? input)
@@ -60,6 +60,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             if (input.Length > maxInputLength)
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input, true, true);
+            _ctx.AfterParsing();
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
@@ -75,7 +76,6 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             string footNotes = resSb.ToString();
 
             ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
-            _ctx.AfterParsing();
             return result;
         }
         public ParserResultRaw RunToParserResultRaw(string? input, bool enforceBlock = true)
@@ -87,6 +87,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             if (input.Length > maxInputLength)
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input, enforceBlock, true);
+            _ctx.AfterParsing();
             StringBuilder resSb = new();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
@@ -97,7 +98,6 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 usedRules: _ctx.RuleUsage.GetUsedRules(),
                 footNotes: _ctx.FootNote.AllToString(),
                 titles: htmlable.ContainTitleNodes());
-            _ctx.AfterParsing();
             return result;
         }
         public IHtmlable RunToObject(string? input, bool enforceBlock = true)

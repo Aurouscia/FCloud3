@@ -51,13 +51,13 @@ namespace FCloud3.WikiPreprocessor.Context
         }
 
         /// <summary>
-        /// 在Parser对象运行之间，将一些参数设回初始值
+        /// 在Parser对象运行之前，将一些参数设回初始值
         /// </summary>
         public void BeforeParsing()
         {
             UniqueSlotIncre = 0;
             RuleUsage.Reset();
-            Caches.Reset();
+            Caches.BeforeParsing();
             FootNote.Clear();
         }
         /// <summary>
@@ -65,6 +65,7 @@ namespace FCloud3.WikiPreprocessor.Context
         /// </summary>
         public void AfterParsing()
         {
+            Caches.AfterParsing();
             DataSource = null;
         }
         public void SetDataSource(IScopedDataSource dataSource)
