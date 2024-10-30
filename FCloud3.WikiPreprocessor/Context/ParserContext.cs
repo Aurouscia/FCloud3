@@ -19,7 +19,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserFootNoteContext FootNote { get; }
         public ParserTitleGatheringContext TitleGathering { get; }
         public AutoReplaceContext AutoReplace { get; }
-        public IScopedDataSource? DataSource { get; private set; }
+        public IScopedDataSource? DataSource { get; set; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次

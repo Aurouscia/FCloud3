@@ -86,31 +86,6 @@ namespace FCloud3.WikiPreprocessor.Test
         }
 
         [TestMethod]
-        public void BuildImplant()
-        {
-            Func<string, string?> implant1 = x =>
-            {
-                if (x == "abc" || x == "iop")
-                    return x.ToUpper()+"1";
-                return null;
-            };
-            Func<string, string?> implant2 = x =>
-            {
-                if (x == "abc" || x == "qwe")
-                    return x.ToUpper()+"2";
-                return null;
-            };
-            ParserBuilder builder = new();
-            builder.Implant.AddImplantsHandler(implant1);
-            builder.Implant.AddImplantsHandler(implant2);
-            var options = builder.GetCurrentOptions();
-
-            Assert.AreEqual(options.ImplantsHandleOptions.HandleImplant("abc"),"ABC2");
-            Assert.AreEqual(options.ImplantsHandleOptions.HandleImplant("qwe"), "QWE2");
-            Assert.AreEqual(options.ImplantsHandleOptions.HandleImplant("iop"), "IOP1");
-        }
-
-        [TestMethod]
         public void BuildAutoReplace()
         {
             List<string> detect1 = new(){ "abc", "iop" };

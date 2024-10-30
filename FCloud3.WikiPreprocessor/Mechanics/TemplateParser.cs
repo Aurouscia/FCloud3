@@ -40,9 +40,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     if(detected is not null)
                         _ctx.RuleUsage.ReportUsage(detected);
                 }
-                else if(f.Type==SplittedByCalls.FragTypes.Implant)
+                else if(f.Type == SplittedByCalls.FragTypes.Implant)
                 {
-                    string? implantRes = _ctx.Options.ImplantsHandleOptions.HandleImplant(f.PureContent);
+                    string? implantRes = _ctx.DataSource?.Implant(f.PureContent);
                     if (implantRes is null || implantRes == f.PureContent)
                         res.Add(new TextElement(f.Content));//对于未能匹配的Implant，应该仍保留俩括号"{}"，因为它们可能是style标签里的
                     else

@@ -1,5 +1,4 @@
 using FCloud3.WikiPreprocessor.Context;
-using FCloud3.WikiPreprocessor.DataSource;
 using FCloud3.WikiPreprocessor.DataSource.Models;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
@@ -7,13 +6,13 @@ using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    public class ScopedDataSourceWithLink : IScopedDataSource
+    internal class ScopedDataSourceWithLink : DataSourceBase
     {
         private readonly static List<LinkItem> LinkSource = [
             new LinkItem("武汉市", "wuhan"),
             new LinkItem("热干面","hot-dry-noodles")
         ];
-        public LinkItem? Link(string linkSpan)
+        public override LinkItem? Link(string linkSpan)
         {
             return LinkSource.FirstOrDefault(x => 
                 x.Text == linkSpan || x.Url == linkSpan);

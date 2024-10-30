@@ -18,5 +18,12 @@ namespace FCloud3.WikiPreprocessor.DataSource
         /// <param name="linkSpan">xxx</param>
         /// <returns>链接信息</returns>
         public LinkItem? Link(string linkSpan);
+
+        /// <summary>
+        /// 试图将{xxx}转化为对应的嵌入物
+        /// </summary>
+        /// <param name="implantSpan">xxx</param>
+        /// <returns>嵌入物</returns>
+        public string? Implant(string implantSpan);
     }
 }
