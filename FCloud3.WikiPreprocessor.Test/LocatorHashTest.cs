@@ -26,7 +26,6 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             var shouldAppear = answer.Split(';');
             var parser = new ParserBuilder()
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .UseLocatorHash(new LocatorHash())
                 .BuildParser();
             var res = parser.RunToPlain(input);
@@ -41,7 +40,6 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             var shouldAppear = answer.Split(';');
             var parser = new ParserBuilder()
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .UseLocatorHash(new LocatorHash())
                 .BuildParser();
             var res = parser.RunToPlain(input);

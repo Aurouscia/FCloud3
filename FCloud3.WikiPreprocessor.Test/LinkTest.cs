@@ -30,7 +30,6 @@ namespace FCloud3.WikiPreprocessor.Test
             var dataSource = new ScopedDataSourceWithLink();
 
             var options1 = new ParserBuilder()
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxDefault = new(options1);
             _ctxDefault.SetDataSource(dataSource);
@@ -42,7 +41,6 @@ namespace FCloud3.WikiPreprocessor.Test
                         return $"<a pathName=\"{l.Url}\">{mustUseName}</a>";
                     return $"<a pathName=\"{l.Url}\">{l.Text}</a>";
                 })
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxWithConvertFn = new(options2);
             _ctxWithConvertFn.SetDataSource(dataSource);

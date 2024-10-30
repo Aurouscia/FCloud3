@@ -19,7 +19,6 @@ namespace FCloud3.WikiPreprocessor.Test
             string input3, int count3)
         {
             var builder = new ParserBuilder()
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .Cache.EnableCache();
             var options = builder.GetCurrentOptions();
             var ctx = new ParserContext(options);

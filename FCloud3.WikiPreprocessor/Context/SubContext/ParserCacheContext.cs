@@ -17,7 +17,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
     public class ParserCacheContext
     {
         public int CacheReadCount { get; private set; }
-        private readonly IMemoryCache? _cache;
+        private readonly Dictionary<int, CacheItem> _cacheDict;
         private readonly CacheOptions _options;
         private readonly ParserContext _ctx;
         private readonly StringBuilder _tempSb;
@@ -26,9 +26,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             _options = options;
             _ctx = ctx;
             _tempSb = new();
-            if (options.CacheInstance is null && options.UseCache)
-                throw new InvalidOperationException("未提供缓存实例");
-            _cache = options.CacheInstance;
+            _cacheDict = new();
         }
         
         public void Reset()
@@ -39,21 +37,14 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
 
         public int ParsedSavedScanChar { get; private set; }
 
-        private int CacheKey(string input) => GetHashCode() + input.GetHashCode();
+        private static int CacheKey(string input) => input.GetHashCode();
         private void SaveParseResult(string input, string output, 
             List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
         {
-            if (string.IsNullOrEmpty(input) || _cache is null)
+            if (string.IsNullOrEmpty(input))
                 return;
-            var cache = new CacheValue(output, usedRules, footNotes, titleNodes);
-
-            var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(_options.ExpToken);
-            var token = new CancellationChangeToken(tokenSource.Token);
-            var options = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(_options.SlideExpirationMins))
-                .SetPriority(CacheItemPriority.Low)
-                .AddExpirationToken(token);
-            _cache.Set(CacheKey(input), cache, options);
+            var cache = new CacheItem(output, usedRules, footNotes, titleNodes);
+            _cacheDict[CacheKey(input)] = cache;
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
@@ -64,22 +55,18 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
             List<ParserTitleTreeNode>? titleNodes = _ctx.Options.TitleGatheringOptions.Enabled ? resElement.ContainTitleNodes() : null;
-            
             var element = new CachedElement(content, usedRules, footNotes, titleNodes);
-            if (usedRules is not null && usedRules.Any(r => _options.NoCacheRules.Contains(r.UniqueName)))
-                return element;
             SaveParseResult(input, content, usedRules, footNotes, titleNodes);
             return element;
         }
-        private CacheValue? ReadParseResult(string input)
+        private CacheItem? ReadParseResult(string input)
         {
-            var cache = _cache?.Get<CacheValue>(CacheKey(input));
-            if (cache is not null)
+            if(_cacheDict.TryGetValue(CacheKey(input), out var cacheItem))
             {
                 CacheReadCount++;
                 ParsedSavedScanChar += input.Length;
             }
-            return cache;
+            return cacheItem;
         }
         public CachedElement? ReadParsedElement(string input)
         {
@@ -95,13 +82,13 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             return null;
         }
 
-        public class CacheValue
+        public class CacheItem
         {
             public string Content { get; }
             public List<IRule>? UsedRules { get; }
             public List<IHtmlable>? FootNotes { get; }
             public List<ParserTitleTreeNode>? TitleNodes { get; }
-            public CacheValue(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
+            public CacheItem(string content, List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
             {
                 Content = content;
                 UsedRules = usedRules;
@@ -116,11 +103,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             if (_options.UseCache)
             {
                 info += $"缓存被读取{CacheReadCount}次，避免{ParsedSavedScanChar}字符被重新解析";
-                var s = _cache?.GetCurrentStatistics();
-                if (s is not null)
-                {
-                    info += $"<br/> EntryCount：{s.CurrentEntryCount}";
-                }
+                info += $"<br/> EntryCount：{_cacheDict.Count}";
             }
             else
             {

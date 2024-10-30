@@ -17,7 +17,6 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             ParserBuilder builder = new();
             builder.TitleGathering.Enable();
-            builder.Cache.UseCacheInstance(CacheInstance.Get());
             Parser p = builder.BuildParser();
             string input = "#1 \n xxx \n ##1-1 \n xxx \n #2\n xx \n#";
 

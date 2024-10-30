@@ -50,7 +50,6 @@ namespace FCloud3.WikiPreprocessor.Test
                     wikis_1.Select(x => x.Key).ToList(),
                     MakeUrlForWiki
                 );//默认加入的是仅单次使用
-            optionsBuilder2.Cache.UseCacheInstance(CacheInstance.Get());
             optionsBuilder2.Cache.EnableCache();
             _parserWithCache = optionsBuilder2.BuildParser();
         }

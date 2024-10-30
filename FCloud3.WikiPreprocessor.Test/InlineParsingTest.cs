@@ -14,7 +14,6 @@ namespace FCloud3.WikiPreprocessor.Test
         public InlineParsingTest()
         {
             var options = new ParserBuilder()
-                    .Cache.UseCacheInstance(CacheInstance.Get())
                     .GetCurrentOptions();
             _ctx = new(options);
         }

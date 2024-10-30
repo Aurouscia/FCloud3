@@ -49,7 +49,6 @@ namespace FCloud3.WikiPreprocessor.Test
                 };
             _options = new ParserBuilder()
                 .Template.AddTemplates(templates)
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctx = new(_options);
             _ctx.DataSource = new ScopedDataSourceWithImplant();
