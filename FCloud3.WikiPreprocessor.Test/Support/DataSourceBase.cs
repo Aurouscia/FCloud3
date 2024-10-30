@@ -19,5 +19,10 @@ namespace FCloud3.WikiPreprocessor.Test.Support
         {
             throw new NotImplementedException();
         }
+
+        public virtual string? Replace(string replaceTarget)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

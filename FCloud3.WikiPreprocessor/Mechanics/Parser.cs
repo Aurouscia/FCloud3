@@ -1,5 +1,6 @@
 ﻿using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Context.SubContext;
+using FCloud3.WikiPreprocessor.DataSource;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
@@ -180,6 +181,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             });
             sb.Append("</div>");
         }
+
+        public void SetDataSource(IScopedDataSource dataSource)
+            => _ctx.SetDataSource(dataSource);
     }
 
     public class ParserResult

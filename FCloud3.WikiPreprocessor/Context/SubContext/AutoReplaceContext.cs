@@ -12,16 +12,17 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
     public class AutoReplaceContext
     {
         private readonly InlineParsingOptions _inlineParsingOptions;
-        private readonly AutoReplaceOptions _autoReplaceOptions;
         private readonly ParserRuleUsageContext _ruleUsageContext;
+        private readonly ParserContext _ctx;
         public AutoReplaceContext(
             InlineParsingOptions inlineOptions,
             AutoReplaceOptions autoReplaceOptions,
-            ParserRuleUsageContext ruleUsageContext)
+            ParserRuleUsageContext ruleUsageContext,
+            ParserContext ctx)
         {
             _inlineParsingOptions = inlineOptions;
-            _autoReplaceOptions = autoReplaceOptions;
             _ruleUsageContext = ruleUsageContext;
+            _ctx = ctx;
             Register(autoReplaceOptions.Detects);//初次传入的替换目标立即注册
         }
         public List<(ReplaceTarget target, LiteralInlineRule rule)> ActiveReplaces = [];
@@ -73,7 +74,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
                 {
                     var rule = new LiteralInlineRule(
                         target: x.Text,
-                        getReplacement: () => _autoReplaceOptions.Replace(x.Text),
+                        getReplacement: () => _ctx.DataSource?.Replace(x.Text),
                         isSingle: x.IsSingleUse
                     );
                     res.Add((x, rule));

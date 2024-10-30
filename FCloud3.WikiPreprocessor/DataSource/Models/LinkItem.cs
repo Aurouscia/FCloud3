@@ -8,7 +8,7 @@ namespace FCloud3.WikiPreprocessor.DataSource.Models
 {
     public class LinkItem(string text, string url)
     {
-        public string Text { get; set; } = text;
-        public string Url { get; set; } = url;
+        public string Text { get; } = text;
+        public string Url { get; } = url;
     }
 }

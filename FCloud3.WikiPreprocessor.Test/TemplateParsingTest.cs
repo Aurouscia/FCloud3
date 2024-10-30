@@ -51,7 +51,7 @@ namespace FCloud3.WikiPreprocessor.Test
                 .Template.AddTemplates(templates)
                 .GetCurrentOptions();
             _ctx = new(_options);
-            _ctx.DataSource = new ScopedDataSourceWithImplant();
+            _ctx.SetDataSource(new ScopedDataSourceWithImplant());
         }
         [TestMethod]
         [DataRow(

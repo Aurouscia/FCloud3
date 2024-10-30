@@ -25,5 +25,12 @@ namespace FCloud3.WikiPreprocessor.DataSource
         /// <param name="implantSpan">xxx</param>
         /// <returns>嵌入物</returns>
         public string? Implant(string implantSpan);
+
+        /// <summary>
+        /// 试图将自动替换目标转换为对应的值
+        /// </summary>
+        /// <param name="replaceTarget">自动替换目标</param>
+        /// <returns>对应的值</returns>
+        public string? Replace(string replaceTarget);
     }
 }

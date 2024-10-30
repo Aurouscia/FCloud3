@@ -84,39 +84,5 @@ namespace FCloud3.WikiPreprocessor.Test
                 answer.Where(x => x is PrefixBlockRule).Select(x => (x as PrefixBlockRule)?.PutLeft).ToList()
                 );
         }
-
-        [TestMethod]
-        public void BuildAutoReplace()
-        {
-            List<string> detect1 = new(){ "abc", "iop" };
-            Func<string, string> replace1 = x =>
-            {
-                if (x == "abc" || x == "iop")
-                    return x.ToUpper() + "1";
-                return x;
-            };
-            List<string> detect2 = new() { "abc", "qwe" };
-            Func<string, string> replace2 = x =>
-            {
-                if (x == "abc" || x == "qwe")
-                    return x.ToUpper() + "2";
-                return x;
-            };
-            var builder = new ParserBuilder();
-            builder.AutoReplace.AddReplacing(detect1, replace1);
-            builder.AutoReplace.AddReplacing(detect2, replace2);
-            
-            var options1 = builder.GetCurrentOptions();
-            CollectionAssert.AreEquivalent(options1.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
-            Assert.AreEqual(options1.AutoReplaceOptions.Replace("abc"), "ABC2");
-            Assert.AreEqual(options1.AutoReplaceOptions.Replace("qwe"), "QWE2");
-            Assert.AreEqual(options1.AutoReplaceOptions.Replace("iop"), "IOP1");
-            
-            var options2 = builder.GetCurrentOptions();
-            CollectionAssert.AreEquivalent(options2.AutoReplaceOptions.Detects.ConvertAll(x=>x.Text),new List<string>() { "abc","iop","qwe" });
-            Assert.AreEqual(options2.AutoReplaceOptions.Replace("abc"), "ABC2");
-            Assert.AreEqual(options2.AutoReplaceOptions.Replace("qwe"), "QWE2");
-            Assert.AreEqual(options2.AutoReplaceOptions.Replace("iop"), "IOP1");
-        }
     }
 }

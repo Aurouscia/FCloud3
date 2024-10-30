@@ -130,8 +130,8 @@ namespace FCloud3.WikiPreprocessor.Rules
     }
     public class LiteralInlineRule : InlineRule
     {
-        public Func<string> GetReplacement { get; }
-        public LiteralInlineRule(string target, Func<string> getReplacement, bool isSingle = true) 
+        public Func<string?> GetReplacement { get; }
+        public LiteralInlineRule(string target, Func<string?> getReplacement, bool isSingle = true) 
             : base(markLeft:target, markRight:"", putLeft:"", putRight:"", "", "",
                   isSingleUse:true)
         {
@@ -141,7 +141,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override IHtmlable MakeElementFromSpan(string span,
             InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
-            var t = new TextElement(GetReplacement());
+            var t = new TextElement(GetReplacement() ?? span);
             return new RuledInlineElement(t, this);
         }
         public override bool FulFill(string span)=>true;

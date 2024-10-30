@@ -1,57 +1,63 @@
 ﻿using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FCloud3.WikiPreprocessor.Test.Support;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    [TestClass]
-    public class AutoReplaceTest
+    internal class ScopedDataSourceWithAutoReplace : DataSourceBase
     {
-        private readonly Parser _parser;
-        private readonly Parser _parserWithCache;
-        private readonly Dictionary<string,int> wikis_1 = new()
+        public override string? Replace(string replaceTarget)
+        {
+            return MakeUrlForWiki(replaceTarget);
+        }
+        public readonly Dictionary<string, int> wikis_1 = new()
         {
             {  "3C教育体系大纲",6 },
             {  "咪么", 28 },
             {  "咪么么么" ,14 },
             {  "拍拍拍拿放", 73 }
         };
-        private readonly Dictionary<string,int> wikis_2 = new()
+        public readonly Dictionary<string, int> wikis_2 = new()
         {
             {  "夜莺",5 },
             {  "帝企鹅", 388 }
         };
-        private string MakeUrlForWiki(string title)
+        public string MakeUrlForWiki(string title)
         {
-            if(wikis_1.TryGetValue(title,out int id1))
+            if (wikis_1.TryGetValue(title, out int id1))
                 return $"<a href=\"/w/{id1}\">{title}</a>";
-            if(wikis_2.TryGetValue(title,out int id2))
+            if (wikis_2.TryGetValue(title, out int id2))
                 return $"<a href=\"/w/{id2}\">{title}</a>";
-            return title ;
+            return title;
         }
+    }
+    [TestClass]
+    public class AutoReplaceTest
+    {
+        private readonly Parser _parser;
+        private readonly Parser _parserWithCache;
+        private readonly ScopedDataSourceWithAutoReplace _dataSource;
         public AutoReplaceTest()
         {
+            _dataSource = new ScopedDataSourceWithAutoReplace();
+
             var optionsBuilder = new ParserBuilder()
-                .AutoReplace.AddReplacing(
-                    wikis_1.Select(x => x.Key).ToList(),
-                    MakeUrlForWiki
+                .AutoReplace.AddReplacingTargets(
+                    _dataSource.wikis_1.Select(x => x.Key).ToList(),
+                    true
                 );//默认加入的是仅单次使用
             //“单次使用”与“缓存”不可能同时实现，这里不启用缓存机制
             _parser = optionsBuilder.BuildParser();
+            _parser.SetDataSource(_dataSource);
             
             var optionsBuilder2 = new ParserBuilder()
-                .AutoReplace.AddReplacing(
-                    wikis_1.Select(x => x.Key).ToList(),
-                    MakeUrlForWiki
+                .AutoReplace.AddReplacingTargets(
+                    _dataSource.wikis_1.Select(x => x.Key).ToList(),
+                    true
                 );//默认加入的是仅单次使用
             optionsBuilder2.Cache.EnableCache();
             _parserWithCache = optionsBuilder2.BuildParser();
+            _parserWithCache.SetDataSource(_dataSource);
         }
 
         [TestMethod]
@@ -95,7 +101,8 @@ namespace FCloud3.WikiPreprocessor.Test
         public void ChangeTargets(string input, string answer, bool clear)
         {
             //更换目标，可选择是否去除旧目标
-            List<string?> targets = wikis_2.Keys.ToList().ConvertAll(x => (string?)x);
+            List<string?> targets = _dataSource.wikis_2.Keys
+                .ToList().ConvertAll(x => (string?)x);
             _parser.Context.AutoReplace.Register(targets, true, clear);
             string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
@@ -109,7 +116,8 @@ namespace FCloud3.WikiPreprocessor.Test
             "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，<a href=\"/w/5\">夜莺</a>会吃城市里的其他小鸟</p>")]
         public void NoSingleUse(string input, string answer)
         {
-            List<string?> targets = wikis_2.Keys.ToList().ConvertAll(x => (string?)x);
+            List<string?> targets = _dataSource.wikis_2.Keys
+                .ToList().ConvertAll(x => (string?)x);
             _parserWithCache.Context.AutoReplace.Register(targets, false, true);
             string res = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res);
