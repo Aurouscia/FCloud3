@@ -34,7 +34,7 @@ onMounted(async()=>{
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt">
-                <RouterLink :to="jumpToViewWikiRoute(w.Path)" target="_blank">{{ w.Title }}</RouterLink>
+                <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
         <div class="list">
@@ -43,7 +43,7 @@ onMounted(async()=>{
             </div>
             <div v-for="w in model.RandomWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt">
-                <RouterLink :to="jumpToViewWikiRoute(w.Path)" target="_blank">{{ w.Title }}</RouterLink>
+                <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
     </div>
@@ -60,10 +60,10 @@ onMounted(async()=>{
             </div>
             <div v-for="p in model.TopDirs" class="twinListRow">
                 <div class="listItem">
-                    <RouterLink :to="jumpToRootDirRoute(p.DPath)" target="_blank">{{ p.DName }}</RouterLink>
+                    <RouterLink :to="jumpToRootDirRoute(p.DPath)">{{ p.DName }}</RouterLink>
                 </div>
                 <div class="listItem">
-                    <RouterLink :to="jumpToViewWikiRoute(p.WPath)" target="_blank">{{ p.WTitle }}</RouterLink>
+                    <RouterLink :to="jumpToViewWikiRoute(p.WPath)">{{ p.WTitle }}</RouterLink>
                 </div>
             </div>
         </div>
