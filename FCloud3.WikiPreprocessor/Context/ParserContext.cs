@@ -1,4 +1,5 @@
 ﻿using FCloud3.WikiPreprocessor.Context.SubContext;
+using FCloud3.WikiPreprocessor.DataSource;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Util;
@@ -18,6 +19,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserFootNoteContext FootNote { get; }
         public ParserTitleGatheringContext TitleGathering { get; }
         public AutoReplaceContext AutoReplace { get; }
+        public IScopedDataSource? DataSource { get; private set; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -31,11 +33,15 @@ namespace FCloud3.WikiPreprocessor.Context
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
-            AutoReplace = new(options.InlineParsingOptions, options.AutoReplaceOptions, RuleUsage);
+            AutoReplace = new(
+                options.InlineParsingOptions,
+                options.AutoReplaceOptions,
+                RuleUsage,
+                this);
         }
 
         private int initialFrameCount = 0;
-        private int frameOffsetMax = 20;
+        private const int frameOffsetMax = 20;
         public void SetInitialFrameCount()
         {
             initialFrameCount = new StackTrace(false).FrameCount;
@@ -49,15 +55,26 @@ namespace FCloud3.WikiPreprocessor.Context
         }
 
         /// <summary>
-        /// 在同一个Parser对象多次反复运行之间，将一些参数设回初始值。
+        /// 在Parser对象运行之前，将一些参数设回初始值
         /// </summary>
-        public void Reset(bool enforce = false)
+        public void BeforeParsing()
         {
             UniqueSlotIncre = 0;
-            if( Options.ClearRuleUsageOnCall || enforce)
-                RuleUsage.Reset();
-            Caches.Reset();
+            RuleUsage.Reset();
+            Caches.BeforeParsing();
             FootNote.Clear();
+        }
+        /// <summary>
+        /// 在Parser对象运行之后，抛弃Scoped数据源，确保每次拿到的都是新的
+        /// </summary>
+        public void AfterParsing()
+        {
+            Caches.AfterParsing();
+            DataSource = null;
+        }
+        public void SetDataSource(IScopedDataSource dataSource)
+        {
+            DataSource = dataSource;
         }
         public string DebugInfo()
         {

@@ -130,8 +130,8 @@ namespace FCloud3.WikiPreprocessor.Rules
     }
     public class LiteralInlineRule : InlineRule
     {
-        public Func<string> GetReplacement { get; }
-        public LiteralInlineRule(string target, Func<string> getReplacement, bool isSingle = true) 
+        public Func<string?> GetReplacement { get; }
+        public LiteralInlineRule(string target, Func<string?> getReplacement, bool isSingle = true) 
             : base(markLeft:target, markRight:"", putLeft:"", putRight:"", "", "",
                   isSingleUse:true)
         {
@@ -141,7 +141,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override IHtmlable MakeElementFromSpan(string span,
             InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
-            var t = new TextElement(GetReplacement());
+            var t = new TextElement(GetReplacement() ?? span);
             return new RuledInlineElement(t, this);
         }
         public override bool FulFill(string span)=>true;
@@ -176,7 +176,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             var trimmedSpan = span.Trim();
             if (!UrlUtil.IsUrl(trimmedSpan))
             {
-                var link = context.Options.Link.LinkItems.Find(x => x.Text == trimmedSpan || x.Url == trimmedSpan);
+                //不是http或斜杠开头才会进来
+                var link = context.DataSource?.Link(trimmedSpan);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
@@ -222,7 +223,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             var trimmedPart2 = parts[1].Trim();
             if (!UrlUtil.IsUrl(trimmedPart2))
             {
-                var link = context.Options.Link.LinkItems.Find(x => x.Url == trimmedPart2);
+                var link = context.DataSource?.Link(trimmedPart2);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}

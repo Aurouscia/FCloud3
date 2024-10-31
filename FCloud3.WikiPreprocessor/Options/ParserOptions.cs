@@ -29,7 +29,6 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGatheringOptions { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; }
-        public bool ClearRuleUsageOnCall { get; }
         public IColorParser ColorParser { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
@@ -41,7 +40,7 @@ namespace FCloud3.WikiPreprocessor.Options
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
             LinkOptions link,
-            bool debug, bool clearRuleUsageOnCall,
+            bool debug,
             IColorParser colorParser, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
@@ -53,7 +52,6 @@ namespace FCloud3.WikiPreprocessor.Options
             TitleGatheringOptions = titleGathering;
             Link = link;
             Debug = debug;
-            ClearRuleUsageOnCall = clearRuleUsageOnCall;
             ColorParser = colorParser;
             LocatorHash = locatorHash;
         }
@@ -70,7 +68,6 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGathering { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; private set; }
-        public bool ClearRuleUsageOnCall { get; private set; }
         public IColorParser? ColorParser { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
@@ -98,11 +95,6 @@ namespace FCloud3.WikiPreprocessor.Options
             LocatorHash = locatorHash;
             return this;
         }
-        public ParserBuilder ClearUsageInfoOnCall()
-        {
-            ClearRuleUsageOnCall = true;
-            return this;
-        }
         public ParserBuilder UseColorParser(IColorParser colorParser)
         {
             ColorParser = colorParser;
@@ -114,7 +106,7 @@ namespace FCloud3.WikiPreprocessor.Options
             ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
-                Debug, ClearRuleUsageOnCall, ColorParser, LocatorHash);
+                Debug, ColorParser, LocatorHash);
             return options;
         }
 

@@ -39,6 +39,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiSelectedService>();
 
             services.AddScoped<WikiParserProviderService>();
+            services.AddScoped<WikiParserDataSource>();
             services.AddScoped<WikiParsingRulesProviderService>();
             services.AddScoped<WikiTemplateService>();
             services.AddScoped<WikiParsingService>();

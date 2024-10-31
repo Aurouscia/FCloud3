@@ -28,7 +28,6 @@ namespace FCloud3.WikiPreprocessor.Test
         public void Inline(string input,string answerStr)
         {
             var parser = new ParserBuilder()
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .BuildParser();
             var element = parser.RunToObject(input);
             var rules = element.ContainRules()??new();

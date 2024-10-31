@@ -3,7 +3,11 @@ using FCloud3.WikiPreprocessor.Util;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
-
+    /// <summary>
+    /// “规则使用”上下文<br/>
+    /// 用于记录各个规则使用的次数<br/>
+    /// 会被用来判断“一次性”规则是否已经被用过（有记录）
+    /// </summary>
     public class ParserRuleUsageContext
     {
         public Dictionary<IRule, int> UsedRulesLog { get; }

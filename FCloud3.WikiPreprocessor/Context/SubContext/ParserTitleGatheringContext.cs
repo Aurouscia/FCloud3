@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
+    /// <summary>
+    /// “标题收集”上下文
+    /// </summary>
     public class ParserTitleGatheringContext
     {
         private readonly Random _random;

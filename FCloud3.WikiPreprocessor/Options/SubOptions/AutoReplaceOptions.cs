@@ -8,38 +8,34 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
 {
     public class AutoReplaceOptions
     {
-        public List<ReplaceTarget> Detects { get; private set; }
-        public Func<string, string> Replace { get; private set; }
+        public HashSet<ReplaceTarget> Detects { get; private set; }
         private readonly ParserBuilder _master;
         public AutoReplaceOptions(ParserBuilder master)
         {
-            Detects = new();
-            Replace = x => x;
+            Detects = [];
             _master = master;
         }
-        public ParserBuilder AddReplacing(List<string> targets, Func<string, string> replace, bool isSingle = true)
+        public ParserBuilder AddReplacingTargets(IEnumerable<string?> targets, bool isSingle)
         {
-            Detects.RemoveAll(x=> targets.Contains(x.Text));
-            targets.ForEach(x =>
+            foreach (var t in targets)
             {
-                Detects.Add(new ReplaceTarget(x, isSingle));
-            });
-            var original = Replace;
-            Replace = (d) =>
-            {
-                string newAnswer = replace(d);
-                if (newAnswer == d)
-                    return original(d);
-                return newAnswer;
-            };
+                if(t is { })
+                    Detects.Add(new ReplaceTarget(t, isSingle));
+            }
             return _master;
         }
     }
     
-    public readonly struct ReplaceTarget
+    public class ReplaceTarget(string text, bool isSingleUse)
     {
-        public string Text { get; }
-        public bool IsSingleUse { get; }
-        public ReplaceTarget(string text, bool isSingleUse) { Text = text; IsSingleUse = isSingleUse; }
+        public string Text { get; } = text;
+        public bool IsSingleUse { get; } = isSingleUse;
+        public override int GetHashCode() => Text.GetHashCode();
+        public override bool Equals(object? obj)
+        {
+            if (obj is ReplaceTarget t)
+                return t.Text == this.Text;
+            return false;
+        }
     }
 }

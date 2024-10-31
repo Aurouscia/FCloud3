@@ -38,6 +38,7 @@ namespace FCloud3.Services.WikiParsing
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         AuthGrantService authGrantService,
+        WikiParserDataSource wikiParserDataSource,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
         ILogger<WikiParsingService> logger,
@@ -170,14 +171,17 @@ namespace FCloud3.Services.WikiParsing
 
             var contains = textContains.Union(tableContains).ToList();
             var allWikis = wikiItemRepo.CachedItemsByPred(x => !x.Sealed).ToList();
-            var parser = wikiParserProvider.Get($"w_{wiki.Id}", 
-                allWikis,
-                (b)=>{},
-                contains,
-                true,
-                true,
+            var parser = wikiParserProvider.Get(
+                cacheKey: $"w_{wiki.Id}", 
+                saveParser: false,
+                configure: p =>
+                {
+                    p.Block.SetTitleLevelOffset(1);
+                    p.TitleGathering.Enable();
+                },
+                containInfos: null,
+                linkSingle: true,
                 () => [wiki.Id]);
-            parser.Context.Reset(true);
 
             WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
             string? getTitle(string? nameoverride, string? title, bool parse = true)
@@ -204,6 +208,8 @@ namespace FCloud3.Services.WikiParsing
                 var itsContainDetects = itsContains.ConvertAll(wid =>
                     allWikis.Find(w => w.Id == wid)?.Title);
                 parser.Context.AutoReplace.Register(itsContainDetects);
+                //parser解析一次就会丢掉scopedDataSource，重新给回去
+                parser.SetDataSource(wikiParserDataSource);
                 
                 if (p.Type == WikiParaType.Text)
                 {

@@ -22,8 +22,7 @@ namespace FCloud3.WikiPreprocessor.Test
             var parserBuilder = new ParserBuilder()
                 .Block.AddMoreRule(
                     new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
-                )
-                .Cache.UseCacheInstance(CacheInstance.Get());;
+                );
             _parser = parserBuilder.BuildParser();
         }
 

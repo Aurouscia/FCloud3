@@ -35,7 +35,6 @@ namespace FCloud3.App.Services.Utils
             var builder = new ParserBuilder();
             builder
                 .UseLocatorHash(_locatorHash)
-                .Cache.UseCacheInstance(_cache)
                 .Block.SetTitleLevelOffset(1);
             if (configure is not null)
                 configure(builder);

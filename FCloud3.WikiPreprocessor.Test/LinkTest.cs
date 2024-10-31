@@ -1,10 +1,24 @@
 using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.DataSource.Models;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
+    internal class ScopedDataSourceWithLink : DataSourceBase
+    {
+        private readonly static List<LinkItem> LinkSource = [
+            new LinkItem("武汉市", "wuhan"),
+            new LinkItem("热干面","hot-dry-noodles")
+        ];
+        public override LinkItem? Link(string linkSpan)
+        {
+            return LinkSource.FirstOrDefault(x => 
+                x.Text == linkSpan || x.Url == linkSpan);
+        }
+    }
+
     [TestClass]
     public class LinkTest
     {
@@ -13,24 +27,23 @@ namespace FCloud3.WikiPreprocessor.Test
 
         public LinkTest()
         {
+            var dataSource = new ScopedDataSourceWithLink();
+
             var options1 = new ParserBuilder()
-                .Link.AddLinkItem("武汉市", "wuhan")
-                .Link.AddLinkItem("热干面","hot-dry-noodles")
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxDefault = new(options1);
+            _ctxDefault.SetDataSource(dataSource);
+
             var options2 = new ParserBuilder()
-                .Link.AddLinkItem("武汉市", "wuhan")
-                .Link.AddLinkItem("热干面","hot-dry-noodles")
                 .Link.ReplaceConvertFn((l, mustUseName) =>
                 {
                     if(mustUseName is not null)
                         return $"<a pathName=\"{l.Url}\">{mustUseName}</a>";
                     return $"<a pathName=\"{l.Url}\">{l.Text}</a>";
                 })
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctxWithConvertFn = new(options2);
+            _ctxWithConvertFn.SetDataSource(dataSource);
         }
 
         [TestMethod]

@@ -3,20 +3,27 @@ using FCloud3.WikiPreprocessor.Rules;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
+    /// <summary>
+    /// “自动替换”上下文<br/>
+    /// 自动替换会被转换为字面量行内规则(LiteralInlineRule)<br/>
+    /// 本类负责追踪自动替换目标与对应的LiteralInlineRule，在不再需要时将它们移除<br/>
+    /// 可更换或补充自动替换目标
+    /// </summary>
     public class AutoReplaceContext
     {
         private readonly InlineParsingOptions _inlineParsingOptions;
-        private readonly AutoReplaceOptions _autoReplaceOptions;
         private readonly ParserRuleUsageContext _ruleUsageContext;
+        private readonly ParserContext _ctx;
         public AutoReplaceContext(
             InlineParsingOptions inlineOptions,
             AutoReplaceOptions autoReplaceOptions,
-            ParserRuleUsageContext ruleUsageContext)
+            ParserRuleUsageContext ruleUsageContext,
+            ParserContext ctx)
         {
             _inlineParsingOptions = inlineOptions;
-            _autoReplaceOptions = autoReplaceOptions;
             _ruleUsageContext = ruleUsageContext;
-            Register(autoReplaceOptions.Detects);//初次传入的替换目标立即注册
+            _ctx = ctx;
+            Register(autoReplaceOptions.Detects.ToList());//初次传入的替换目标立即注册
         }
         public List<(ReplaceTarget target, LiteralInlineRule rule)> ActiveReplaces = [];
         
@@ -48,6 +55,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
                 _ruleUsageContext.UsedRulesLog.Remove(x.rule);
                 _inlineParsingOptions.InlineRules.Remove(x.rule);
             });
+            ActiveReplaces.Clear();
         }
         
         /// <summary>
@@ -66,7 +74,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
                 {
                     var rule = new LiteralInlineRule(
                         target: x.Text,
-                        getReplacement: () => _autoReplaceOptions.Replace(x.Text),
+                        getReplacement: () => _ctx.DataSource?.Replace(x.Text),
                         isSingle: x.IsSingleUse
                     );
                     res.Add((x, rule));

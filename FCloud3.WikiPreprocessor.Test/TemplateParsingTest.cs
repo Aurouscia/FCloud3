@@ -9,15 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FCloud3.WikiPreprocessor.Test.Support;
+using FCloud3.WikiPreprocessor.DataSource.Models;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    [TestClass]
-    public class TemplateParsingTest
+    internal class ScopedDataSourceWithImplant : DataSourceBase
     {
-        private readonly ParserOptions _options;
-        private readonly ParserContext _ctx;
-        public string? GenLinkForWiki(string name)
+        public override string? Implant(string implantSpan)
+        {
+            return GenLinkForWiki(implantSpan);
+        }
+        private static string? GenLinkForWiki(string name)
         {
             if (name == "哼哼")
                 return "<a href=\"/w/114514\">恶臭</a>";
@@ -25,6 +27,13 @@ namespace FCloud3.WikiPreprocessor.Test
                 return "<a href=\"/w/666\">efg666</a>";
             return null;
         }
+    }
+
+    [TestClass]
+    public class TemplateParsingTest
+    {
+        private readonly ParserOptions _options;
+        private readonly ParserContext _ctx;
         public TemplateParsingTest()
         {
             var templates = new List<Template>()
@@ -40,10 +49,9 @@ namespace FCloud3.WikiPreprocessor.Test
                 };
             _options = new ParserBuilder()
                 .Template.AddTemplates(templates)
-                .Implant.AddImplantsHandler(GenLinkForWiki)
-                .Cache.UseCacheInstance(CacheInstance.Get())
                 .GetCurrentOptions();
             _ctx = new(_options);
+            _ctx.SetDataSource(new ScopedDataSourceWithImplant());
         }
         [TestMethod]
         [DataRow(
@@ -180,10 +188,10 @@ namespace FCloud3.WikiPreprocessor.Test
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             string output2 = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output2);
-            _ctx.Reset();
+            _ctx.BeforeParsing();
             string output3 = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output3);
         }

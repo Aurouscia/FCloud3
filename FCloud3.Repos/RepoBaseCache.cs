@@ -62,6 +62,19 @@ namespace FCloud3.Repos
             }
             return res;
         }
+        public List<TProp> CachedItemsPropByIds<TProp>(
+            List<int> ids, Func<TCache, TProp> propSelector)
+        {
+            SynchronizeDictIfNecessary();
+            List<TProp> res = new(ids.Count);
+            foreach (var id in ids)
+            {
+                CacheDict.TryGetValue(id, out var item);
+                if (item is { })
+                    res.Add(propSelector(item));
+            }
+            return res;
+        }
         public IEnumerable<TCache> CachedItemsByPred(Func<TCache, bool> pred)
         {
             SynchronizeDictIfNecessary();

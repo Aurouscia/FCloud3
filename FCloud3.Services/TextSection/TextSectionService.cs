@@ -4,6 +4,7 @@ using FCloud3.Repos.TextSec;
 using FCloud3.Entities.Wiki;
 using FCloud3.DbContexts;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using FCloud3.Services.Diff;
 using FCloud3.Entities.Diff;
 using FCloud3.Services.Etc.TempData.EditLock;
@@ -24,9 +25,12 @@ namespace FCloud3.Services.TextSec
         DbTransactionService dbTransactionService,
         ContentEditLockService contentEditLockService,
         WikiParserProviderService wikiParserProviderService,
+        WikiParserDataSource wikiParserDataSource,
         ILocatorHash locatorHash, 
-        ILogger<TextSectionService> logger)
+        ILogger<TextSectionService> logger,
+        IConfiguration config)
     {
+        private readonly bool debug = config["Debug"] == "on";
         public TextSection? GetForEditing(int id, out string? errmsg)
         {
             if (!contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, true, out errmsg))
@@ -136,17 +140,22 @@ namespace FCloud3.Services.TextSec
         public TextSectionPreviewResponse Preview(int id, string content)
         {
             string cacheKey = $"tse_{id}";
-            var parser = wikiParserProviderService.Get(cacheKey, null, builder =>
+            var parser = wikiParserProviderService.Get(
+                cacheKey,
+                true,
+                builder =>
                 {
                     builder.UseLocatorHash(locatorHash);
-                    builder.ClearUsageInfoOnCall();
                     builder.Cache.EnableCache();
+                    builder.Block.SetTitleLevelOffset(1);
+                    if (debug)
+                        builder.EnableDebugInfo();
                 },
-                [],
-                false,
+                null,
                 false,
                 () => wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToArray()
             );
+            parser.SetDataSource(wikiParserDataSource);
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return res;
         }
