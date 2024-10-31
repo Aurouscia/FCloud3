@@ -15,10 +15,13 @@ namespace FCloud3.WikiPreprocessor.Options.SubOptions
             Detects = [];
             _master = master;
         }
-        public ParserBuilder AddReplacingTargets(IEnumerable<string> targets, bool isSingle)
+        public ParserBuilder AddReplacingTargets(IEnumerable<string?> targets, bool isSingle)
         {
-            foreach(var t in targets)
-                Detects.Add(new ReplaceTarget(t, isSingle));
+            foreach (var t in targets)
+            {
+                if(t is { })
+                    Detects.Add(new ReplaceTarget(t, isSingle));
+            }
             return _master;
         }
     }

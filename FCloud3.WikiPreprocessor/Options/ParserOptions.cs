@@ -68,7 +68,6 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGathering { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; private set; }
-        public bool ClearRuleUsageOnCall { get; private set; }
         public IColorParser? ColorParser { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
@@ -94,11 +93,6 @@ namespace FCloud3.WikiPreprocessor.Options
         public ParserBuilder UseLocatorHash(ILocatorHash locatorHash)
         {
             LocatorHash = locatorHash;
-            return this;
-        }
-        public ParserBuilder ClearUsageInfoOnCall()
-        {
-            ClearRuleUsageOnCall = true;
             return this;
         }
         public ParserBuilder UseColorParser(IColorParser colorParser)
