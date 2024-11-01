@@ -60,7 +60,8 @@ namespace FCloud3.WikiPreprocessor.Context
         public void BeforeParsing()
         {
             UniqueSlotIncre = 0;
-            RuleUsage.Reset();
+            if(!Options.KeepRuleUsage)
+                RuleUsage.Reset();
             Caches.BeforeParsing();
             FootNote.Clear();
         }
@@ -71,6 +72,10 @@ namespace FCloud3.WikiPreprocessor.Context
         {
             Caches.AfterParsing();
             DataSource = null;
+        }
+        public void ClearRuleUsage()
+        {
+            RuleUsage.Reset();
         }
         public void SetDataSource(IScopedDataSource dataSource)
         {

@@ -178,6 +178,7 @@ namespace FCloud3.Services.WikiParsing
                 {
                     p.Block.SetTitleLevelOffset(1);
                     p.TitleGathering.Enable();
+                    p.KeepRuleUsageBetweenParsing();
                 },
                 containInfos: null,
                 linkSingle: true,
@@ -208,8 +209,6 @@ namespace FCloud3.Services.WikiParsing
                 var itsContainDetects = itsContains.ConvertAll(wid =>
                     allWikis.Find(w => w.Id == wid)?.Title);
                 parser.Context.AutoReplace.Register(itsContainDetects);
-                //parser解析一次就会丢掉scopedDataSource，重新给回去
-                parser.SetDataSource(wikiParserDataSource);
                 
                 if (p.Type == WikiParaType.Text)
                 {
@@ -285,12 +284,16 @@ namespace FCloud3.Services.WikiParsing
                             p.ObjectId, model.ByteCount, false, false));
                     }
                 }
+
+                parser.Context.ClearRuleUsage();
             });
             result.ExtractRulesCommon();
             return result;
         }
-        private static ParserResultRaw ParseText(TextSection model, Parser parser)
+        private ParserResultRaw ParseText(TextSection model, Parser parser)
         {
+            //parser解析一次就会丢掉scopedDataSource，重新给回去
+            parser.SetDataSource(wikiParserDataSource);
             return parser.RunToParserResultRaw(model.Content);
         }
         private ParserResultRaw ParseTable(AuTable data, Parser parser)
@@ -304,6 +307,8 @@ namespace FCloud3.Services.WikiParsing
                     if (string.IsNullOrWhiteSpace(s))
                         return ("　", "");
                     var colorRes = MiniTableBlockRule.CellColorAttr(s, colorParser);
+                    //parser解析一次就会丢掉scopedDataSource，重新给回去
+                    parser.SetDataSource(wikiParserDataSource);
                     var res = parser.RunToParserResultRaw(colorRes.s, false);
                     usedRules.AddRange(res.UsedRules);
                     return (res.Content, colorRes.attrs);

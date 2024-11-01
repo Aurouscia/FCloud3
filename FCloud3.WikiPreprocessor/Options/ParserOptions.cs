@@ -29,6 +29,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGatheringOptions { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; }
+        public bool KeepRuleUsage { get; set; }
         public IColorParser ColorParser { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
@@ -40,7 +41,7 @@ namespace FCloud3.WikiPreprocessor.Options
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
             LinkOptions link,
-            bool debug,
+            bool debug, bool keepRuleUsage,
             IColorParser colorParser, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
@@ -52,6 +53,7 @@ namespace FCloud3.WikiPreprocessor.Options
             TitleGatheringOptions = titleGathering;
             Link = link;
             Debug = debug;
+            KeepRuleUsage = keepRuleUsage;
             ColorParser = colorParser;
             LocatorHash = locatorHash;
         }
@@ -68,6 +70,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public TitleGatheringOptions TitleGathering { get; }
         public LinkOptions Link { get; }
         public bool Debug { get; private set; }
+        public bool KeepRuleUsage { get; private set; }
         public IColorParser? ColorParser { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
@@ -99,14 +102,19 @@ namespace FCloud3.WikiPreprocessor.Options
         {
             ColorParser = colorParser;
             return this;
-        } 
+        }
+        public ParserBuilder KeepRuleUsageBetweenParsing()
+        {
+            KeepRuleUsage = true;
+            return this;
+        }
 
         public ParserOptions GetCurrentOptions()
         {
             ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
-                Debug, ColorParser, LocatorHash);
+                Debug, KeepRuleUsage, ColorParser, LocatorHash);
             return options;
         }
 
