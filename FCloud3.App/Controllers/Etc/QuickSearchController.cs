@@ -14,10 +14,10 @@ namespace FCloud3.App.Controllers.Etc
         private readonly HttpUserInfoService
             _httpUserInfoService = httpUserInfoService;
 
-        public IActionResult WikiItem(string s)
+        public IActionResult WikiItem(string s, int excludeDir)
         {
             var isAdmin = _httpUserInfoService.IsAdmin;
-            var res = _quickSearchService.SearchWikiItem(s, isAdmin);
+            var res = _quickSearchService.SearchWikiItem(s, excludeDir, isAdmin);
             return this.ApiResp(res);
         }
         public IActionResult UserName(string s)

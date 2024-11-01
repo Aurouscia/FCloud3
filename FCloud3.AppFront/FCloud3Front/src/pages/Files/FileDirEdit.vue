@@ -87,7 +87,7 @@ onMounted(async()=>{
                 </div>
                 <div>
                     <div v-if="data.CanPutThings">
-                        <Search ref="moveSearch" :source="api.etc.quickSearch.wikiItem" :placeholder="'词条标题'" :allow-free-input="false"
+                        <Search ref="moveSearch" :source="s=>api.etc.quickSearch.wikiItem(s, data?.Id)" :placeholder="'词条标题'" :allow-free-input="false"
                             :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
                         <Notice type="info">移入词条将不会影响词条在其他目录的存在，如果需要“剪切”，请前往其他文件夹点击“移出”</Notice>
                     </div>

@@ -1159,11 +1159,11 @@ export class Api{
     }
     etc = {
         quickSearch:{
-            wikiItem:async(s:string)=>{
+            wikiItem:async(s:string, excludeDir?:number)=>{
                 const res = await this.httpClient.request(
                     "/api/QuickSearch/WikiItem",
                     "get",
-                    {s}
+                    {s, excludeDir}
                 )
                 if(res.success){
                     return res.data as QuickSearchResult;
