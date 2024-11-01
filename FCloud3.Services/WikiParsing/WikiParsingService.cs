@@ -178,7 +178,7 @@ namespace FCloud3.Services.WikiParsing
                 {
                     p.Block.SetTitleLevelOffset(1);
                     p.TitleGathering.Enable();
-                    p.KeepRuleUsageBetweenParsing();
+                    p.KeepRuleUsageBeforeCalling();
                 },
                 containInfos: null,
                 linkSingle: true,

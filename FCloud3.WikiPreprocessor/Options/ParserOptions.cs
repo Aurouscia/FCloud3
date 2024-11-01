@@ -103,7 +103,7 @@ namespace FCloud3.WikiPreprocessor.Options
             ColorParser = colorParser;
             return this;
         }
-        public ParserBuilder KeepRuleUsageBetweenParsing()
+        public ParserBuilder KeepRuleUsageBeforeCalling()
         {
             KeepRuleUsage = true;
             return this;
