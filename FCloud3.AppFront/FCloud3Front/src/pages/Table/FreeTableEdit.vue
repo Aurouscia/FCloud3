@@ -9,7 +9,7 @@ import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import { join } from 'lodash';
 import SideBar from '@/components/SideBar.vue';
-import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
+import UnsavedLeavingWarning from '@/components/Editor/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
@@ -17,6 +17,7 @@ import leaveImg from '@/assets/leave.svg';
 import { useRouter } from 'vue-router';
 import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
 import { storeToRefs } from 'pinia';
+import LoginTimeCheck from '@/components/Editor/LoginTimeCheck.vue';
 
 const props = defineProps<{
     id:string
@@ -107,6 +108,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning = false"></UnsavedLeavingWarning>
 </div>
 <Loading v-else></Loading>
+<LoginTimeCheck></LoginTimeCheck>
 </template>
 
 <style scoped lang="scss">

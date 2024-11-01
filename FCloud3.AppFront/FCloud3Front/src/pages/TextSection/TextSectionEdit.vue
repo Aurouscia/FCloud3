@@ -14,7 +14,7 @@ import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import SideBar from '@/components/SideBar.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
-import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue';
+import UnsavedLeavingWarning from '@/components/Editor/UnsavedLeavingWarning.vue';
 import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '@/utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
@@ -26,6 +26,7 @@ import { storeToRefs } from 'pinia';
 import GrammarBtn from '@/components/Editor/GrammarBtn.vue';
 import { useGrammarBtnStore } from '@/utils/globalStores/grammarBtn';  
 import { textSectionConfigDefault, TextSectionLocalConfig } from '@/utils/localConfig/models/textSection';
+import LoginTimeCheck from '@/components/Editor/LoginTimeCheck.vue';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
@@ -480,6 +481,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
 </div>
 <Loading v-else></Loading>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
+<LoginTimeCheck></LoginTimeCheck>
 </template>
 
 <style scoped lang="scss">

@@ -11,7 +11,7 @@ import FileParaListItem from './ParaListItem/FileParaListItem.vue';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import WikiFileParaEdit from './WikiFileParaEdit.vue';
 import SideBar from '@/components/SideBar.vue';
-import UnsavedLeavingWarning from '@/components/UnsavedLeavingWarning.vue'
+import UnsavedLeavingWarning from '@/components/Editor/UnsavedLeavingWarning.vue'
 import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
@@ -22,6 +22,7 @@ import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTi
 import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
 import { storeToRefs } from 'pinia';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import LoginTimeCheck from '@/components/Editor/LoginTimeCheck.vue';
 
 const props = defineProps<{
     urlPathName: string
@@ -362,6 +363,7 @@ onUnmounted(()=>{
         :get-content="titleContainEditing.getContent"></WikiTitleContain>
 </SideBar>
 <UnsavedLeavingWarning v-if="showUnsavedWarning" :release="releasePreventLeaving" @ok="showUnsavedWarning=false"></UnsavedLeavingWarning>
+<LoginTimeCheck></LoginTimeCheck>
 </template>
 
 <style scoped lang="scss">
