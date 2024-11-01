@@ -130,7 +130,7 @@ onMounted(async()=>{
 
 <template>
 <table class="index" v-if="query&&i">
-    <tbody>
+    <thead>
         <tr v-if="!props.hidePage" class="indexControl">
             <th :colspan="3">
                 <div class="ops">
@@ -172,6 +172,8 @@ onMounted(async()=>{
                 </span>
             </th>
         </tr>
+    </thead>
+    <tbody>
         <slot></slot>
     </tbody>
 </table>

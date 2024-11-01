@@ -84,7 +84,8 @@ onMounted(async()=>{
         <button @click="startCreating">添加</button>
     </div>
 </h1>
-<table><tbody>
+<table>
+<thead>
     <tr>
         <th style="width: 30px;"></th>
         <th style="min-width: 220px">标题</th>
@@ -93,6 +94,8 @@ onMounted(async()=>{
         <th style="width: 100px;">时长</th>
         <th style="width: 50px;"></th>
     </tr>
+</thead>
+<tbody>
     <tr v-for="w in list">
         <td>
             {{ w.Order }}

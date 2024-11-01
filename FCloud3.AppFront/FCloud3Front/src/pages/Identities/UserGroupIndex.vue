@@ -92,7 +92,7 @@ onUnmounted(()=>{
             <table v-if="data">
                 <tbody>
                 <tr v-if="data.InvitingMe.length>0">
-                    <th class="typeHead" colspan="2">邀请我加入的用户组</th>
+                    <td class="typeHead" colspan="2">邀请我加入的用户组</td>
                 </tr>
                 <tr v-for="g in data.InvitingMe" :class="{selected:lookingDetail==g.Id}" :key="g.Id">
                     <td>
@@ -107,7 +107,7 @@ onUnmounted(()=>{
                     <td>{{ g.MemberCount }}人</td>
                 </tr>
                 <tr v-if="data.MeIn.length>0">
-                    <th class="typeHead" colspan="2">我所在的用户组</th>
+                    <td class="typeHead" colspan="2">我所在的用户组</td>
                 </tr>
                 <tr v-for="g in data.MeIn" :class="{selected:lookingDetail==g.Id}" :key="g.Id">
                     <td>
@@ -118,7 +118,7 @@ onUnmounted(()=>{
                     <td>{{ g.MemberCount }}人</td>
                 </tr>
                 <tr v-if="data.Others.length>0">
-                    <th class="typeHead" colspan="2">本站其他用户组</th>
+                    <td class="typeHead" colspan="2">本站其他用户组</td>
                 </tr>
                 <tr v-for="g in data.Others" :class="{selected:lookingDetail==g.Id}" :key="g.Id">
                     <td>
@@ -192,6 +192,8 @@ h1{
     cursor: pointer;
 }
 .typeHead{
+    font-weight: bold;
+    color: white;
     background-color:#999
 }
 .search{

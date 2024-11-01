@@ -182,7 +182,7 @@ function getQObj(){
 <template>
 <div ref="pos"></div>
 <table class="index" v-if="query && i && !hide">
-    <tbody>
+    <thead>
         <tr v-if="!props.hideHead">
             <th :colspan="props.displayColumnCount">
                 <div class="indexControl">
@@ -236,6 +236,8 @@ function getQObj(){
                 </div>
             </th>
         </tr>
+    </thead>
+    <tbody>
         <slot></slot>
     </tbody>
 </table>

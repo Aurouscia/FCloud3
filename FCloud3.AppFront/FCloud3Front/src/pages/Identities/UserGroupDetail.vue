@@ -106,14 +106,14 @@ watch(props,async ()=>{
             </div>
             <table><tbody>
                 <tr v-if="data.Inviting && data.Inviting.length>0">
-                    <th :colspan="data.CanEdit?2:1">已邀请用户</th>
+                    <td class="typeHead" :colspan="data.CanEdit?2:1">已邀请用户</td>
                 </tr>
                 <tr v-for="i in data.Inviting">
                     <td class="memberName" @click="jumpToUserCenter(i.Name)">{{ i.Name }}</td>
                     <td v-if="data.CanEdit"></td>
                 </tr>
                 <tr>
-                    <th :colspan="data.CanEdit?2:1">成员列表</th>
+                    <td class="typeHead" :colspan="data.CanEdit?2:1">成员列表</td>
                 </tr>
                 <tr v-for="m in data.FormalMembers">
                     <td class="memberName" @click="jumpToUserCenter(m.Name)">{{ m.Name }}</td>
@@ -122,8 +122,11 @@ watch(props,async ()=>{
                     </td> 
                 </tr>
             </tbody></table>
-            <table v-if="info && data.CanEdit"><tbody>
-                <th colspan="2">编辑信息</th>
+            <table v-if="info && data.CanEdit">
+            <thead>
+                <tr><th colspan="2">编辑信息</th></tr>
+            </thead>
+            <tbody>
                 <tr>
                     <td>名称</td>
                     <td><input v-model="info.Name"/></td>
@@ -172,7 +175,7 @@ a{
 .memberName a{
     color:black;
 }
-th{
+.typeHead{
     background-color: #999;
     color:white;
 }

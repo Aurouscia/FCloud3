@@ -47,7 +47,8 @@ onMounted(async()=>{
             <button @click="create">创建</button>
         </div>
     </div>
-    <table><tbody>
+    <table>
+    <thead>
         <tr>
             <th class="nameTh">
                 名称
@@ -59,6 +60,8 @@ onMounted(async()=>{
                 上次更新
             </th>
         </tr>
+    </thead>
+    <tbody>
         <tr v-for="item in data" :key="item.Id">
             <td>
                 <span class="name" @click="enterEdit(item.Id)">

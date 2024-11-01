@@ -90,31 +90,35 @@ onUnmounted(async()=>{
 <template>
 <div class="diffContentHistory">
     <div class="historyList" :class="{grow:tooNarrow}">
-        <table v-if="history"><tbody>
-            <tr>
-                <th class="t">时间</th>
-                <th>操作者</th>
-                <th class="c">变动</th>
-                <th v-if="iden.Type >= UserType.Admin" style="width: 15px;"></th>
-            </tr>
-            <tr v-for="i in history.Items" :class="{selected:selectedHistoryIdx==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
-                <td class="t">
-                    {{ i.T }}
-                </td>
-                <td class="u">
-                    <RouterLink :to="jumpToUserCenterRoute(i.UName)" target="_blank">{{ i.UName }}</RouterLink>
-                </td>
-                <td class="ard">
-                    <div class="ar">
-                        <span class="a">{{ i.A ? '+'+i.A : ''}}</span>
-                        <span class="r">{{ i.R ? '-'+i.R : ''}}</span>
-                    </div>
-                </td>
-                <td v-if="iden.Type >= UserType.Admin" class="hideBtn" :class="{hide:!i.H, unhide:i.H}" @click="setHidden(i)">
-                    ×
-                </td>
-            </tr>
-        </tbody></table>
+        <table v-if="history">
+            <thead>
+                <tr>
+                    <th class="t">时间</th>
+                    <th>操作者</th>
+                    <th class="c">变动</th>
+                    <th v-if="iden.Type >= UserType.Admin" style="width: 15px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="i in history.Items" :class="{selected:selectedHistoryIdx==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
+                    <td class="t">
+                        {{ i.T }}
+                    </td>
+                    <td class="u">
+                        <RouterLink :to="jumpToUserCenterRoute(i.UName)" target="_blank">{{ i.UName }}</RouterLink>
+                    </td>
+                    <td class="ard">
+                        <div class="ar">
+                            <span class="a">{{ i.A ? '+'+i.A : ''}}</span>
+                            <span class="r">{{ i.R ? '-'+i.R : ''}}</span>
+                        </div>
+                    </td>
+                    <td v-if="iden.Type >= UserType.Admin" class="hideBtn" :class="{hide:!i.H, unhide:i.H}" @click="setHidden(i)">
+                        ×
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         <Loading v-else></Loading>
     </div>
     <SideBar v-if="tooNarrow" ref="detailSidebar">
