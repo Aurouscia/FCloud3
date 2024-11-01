@@ -11,8 +11,9 @@ import { useIdentityRoutesJump } from './routes/routesJump';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
 import Footer from '@/components/Footer.vue';
-import { saveLocalConfig, readLocalConfig, AuthLocalConfig, authConfigDefault } from '@/utils/localConfig';
+import { saveLocalConfig, readLocalConfig } from '@/utils/localConfig/localConfig';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
+import { authConfigDefault, AuthLocalConfig } from '@/utils/localConfig/models/auth';
 
 const props = defineProps<{
     backAfterSuccess:string

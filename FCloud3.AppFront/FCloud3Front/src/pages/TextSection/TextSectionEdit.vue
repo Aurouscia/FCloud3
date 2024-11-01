@@ -20,11 +20,12 @@ import { sleep } from '@/utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useRouter } from 'vue-router';
-import { TextSectionLocalConfig, readLocalConfig, saveLocalConfig, textSectionConfigDefault } from '@/utils/localConfig';
+import { readLocalConfig, saveLocalConfig } from '@/utils/localConfig/localConfig';
 import { useHeartbeatReleaseStore } from '@/utils/globalStores/heartbeatRelease';
 import { storeToRefs } from 'pinia';
 import GrammarBtn from '@/components/Editor/GrammarBtn.vue';
 import { useGrammarBtnStore } from '@/utils/globalStores/grammarBtn';  
+import { textSectionConfigDefault, TextSectionLocalConfig } from '@/utils/localConfig/models/textSection';
 
 const locatorHash:(str:string)=>string = (str)=>{
     return md5(str.trim())
