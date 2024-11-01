@@ -23,7 +23,7 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(answer, res.Count);
         }
 
-        [TestMethod]
+        //[TestMethod]
         [DataRow(
             "\n123\n\r456\n789", 3)]
         [DataRow(

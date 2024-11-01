@@ -14,7 +14,7 @@ namespace FCloud3.WikiPreprocessor.Util
         });
         public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash)
         {
-            var htmlRanges = HtmlArea.FindRanges(input);
+            //var htmlRanges = HtmlArea.FindRanges(input);
 
             List<string> lines;
             StringBuilder sb = new();
@@ -23,12 +23,12 @@ namespace FCloud3.WikiPreprocessor.Util
             for(int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
-                if (htmlRanges.Any(x => i >= x.Start.Value && i <= x.End.Value))
-                {
-                    if(!Consts.htmlAvoidChars.Contains(c))
-                        sb.Append(c);
-                    continue;
-                }
+                //if (htmlRanges.Any(x => i >= x.Start.Value && i <= x.End.Value))
+                //{
+                //    if(!Consts.htmlAvoidChars.Contains(c))
+                //        sb.Append(c);
+                //    continue;
+                //}
                 if (c == Consts.tplt_L)
                     layer++;
                 if (c == Consts.tplt_R)
