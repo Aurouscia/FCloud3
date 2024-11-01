@@ -74,14 +74,14 @@ const leftTimeDisplay = computed<string>(()=>{
     return hours+'小时';
 })
 
-let authLocalConfig:AuthLocalConfig = authConfigDefault;
+let authLocalConfig:AuthLocalConfig = authConfigDefault();
 onMounted(async()=>{
     setTitleTo('登录')
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
     api = inject('api') as Api;
     identityInfoProvider = injectIdentityInfoProvider();
-    authLocalConfig = readLocalConfig('auth') as AuthLocalConfig;
+    authLocalConfig = (readLocalConfig('auth') || authConfigDefault()) as AuthLocalConfig;
     needExpire.value = authLocalConfig.expireHours || 72;
     await identityInfoProvider.getIdentityInfo(true);
 })

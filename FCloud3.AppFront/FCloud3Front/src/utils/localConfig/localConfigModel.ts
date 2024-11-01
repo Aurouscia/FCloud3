@@ -2,4 +2,4 @@ export interface LocalConfigModel{
     key:LocalConfigType
     version:string
 }
-export type LocalConfigType = "textSection"|"auth"
+export type LocalConfigType = "textSection"|"auth"|"wikiContentEdit"

@@ -292,9 +292,9 @@ let setTopbar:SetTopbarFunc|undefined;
 const { footNoteJumpCallBack, listenFootNoteJump, disposeFootNoteJump } = useFootNoteJump();
 let saveShortcut: ShortcutListener|undefined;
 let heartbeatSender:HeartbeatSender|undefined;
-const localConfig = ref<TextSectionLocalConfig>(textSectionConfigDefault);
+const localConfig = ref<TextSectionLocalConfig>(textSectionConfigDefault());
 onMounted(async()=>{
-    localConfig.value = (readLocalConfig("textSection") || textSectionConfigDefault) as TextSectionLocalConfig;
+    localConfig.value = (readLocalConfig("textSection") || textSectionConfigDefault()) as TextSectionLocalConfig;
     setTitleTo('文本段编辑器')
     pop = injectPop();
     api = injectApi();
@@ -437,7 +437,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
     </WikiTitleContain>
 </SideBar>
 <SideBar ref="localConfigSidebar">
-    <h1>编辑器设置</h1>
+    <h1>文本段编辑器设置</h1>
     <table style="margin: auto;"><tbody>
         <tr>
             <td>黑色背景</td>

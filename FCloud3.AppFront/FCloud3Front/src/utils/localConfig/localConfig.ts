@@ -2,8 +2,9 @@ import { LocalConfigModel, LocalConfigType } from "./localConfigModel";
 import { authConfigDefault } from "./models/auth";
 import { textSectionConfigDefault } from "./models/textSection";
 import { cloneDeep } from 'lodash'
+import { wikiContentEditConfigDefault } from "./models/wikiContentEdit";
 
-const defaultVals = [textSectionConfigDefault, authConfigDefault];
+const defaultVals = [textSectionConfigDefault(), authConfigDefault(), wikiContentEditConfigDefault()];
 
 const key = (k:string) => `localConfig_${k}`
 export function readLocalConfig(type:LocalConfigType){
