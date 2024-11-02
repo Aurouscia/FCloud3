@@ -39,7 +39,7 @@ namespace FCloud3.Services.Wiki
             {
                 int affectedWikiId = BelongToWikiId(paraId);
                 if(affectedWikiId > 0)
-                    _wikiItemRepo.UpdateTime(affectedWikiId);
+                    _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiId, true);
                 return true;
             }
             else
@@ -53,7 +53,7 @@ namespace FCloud3.Services.Wiki
             {
                 int affectedWikiId = BelongToWikiId(paraId);
                 if(affectedWikiId > 0)
-                    _wikiItemRepo.UpdateTime(affectedWikiId);
+                    _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiId, true);
                 return true;
             }
             return false;

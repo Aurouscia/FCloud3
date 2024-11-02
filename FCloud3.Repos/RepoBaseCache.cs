@@ -168,23 +168,23 @@ namespace FCloud3.Repos
             base.RemoveRange(items, time);
         }
 
-        public void UpdateTime(int wikiId)
+        public void UpdateTimeAndLu(int id)
         {
             var time = DateTime.Now;
             SetLastUpdateInLuTable(time);
-            base.UpdateTime(wikiId, time);
+            base.UpdateTime(id, time);
         }
-        public void UpdateTime(List<int> wikiIds)
+        public void UpdateTimeAndLu(List<int> ids)
         {
             var time = DateTime.Now;
             SetLastUpdateInLuTable(time);
-            base.UpdateTime(wikiIds, time);
+            base.UpdateTime(ids, time);
         }
-        public int UpdateTime(IQueryable<int> wikiIds)
+        public int UpdateTimeAndLu(IQueryable<int> ids)
         {
             var time = DateTime.Now;
             SetLastUpdateInLuTable(time);
-            return base.UpdateTime(wikiIds, time);
+            return base.UpdateTime(ids, time);
         }
         protected void SetLastUpdateInLuTable(DateTime time)
         {

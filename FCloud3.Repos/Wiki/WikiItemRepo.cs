@@ -4,6 +4,7 @@ using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
 using FCloud3.Repos.Sys;
 using FCloud3.Entities.Sys;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Wiki
 {
@@ -115,6 +116,24 @@ namespace FCloud3.Repos.Wiki
                 return false;
             }
             return true;
+        }
+
+        public const int updateActiveDiffCharCountThrs = 10;
+        public int UpdateTimeAndLuAndWikiActive(IQueryable<int> wikiIds, bool updateWikiActive)
+        {
+            int affectedCount = base.UpdateTimeAndLu(wikiIds);
+            if (updateWikiActive)
+            {
+                Existing.Where(x => wikiIds.Contains(x.Id))
+                    .ExecuteUpdate(spc => spc.SetProperty(
+                        x => x.LastActive, DateTime.Now));
+            }
+            return affectedCount;
+        }
+        public int UpdateTimeAndLuAndWikiActive(int wikiId, bool updateWikiActive)
+        {
+            var ids = new int[] { wikiId };
+            return UpdateTimeAndLuAndWikiActive(ids.AsQueryable(), updateWikiActive);
         }
 
         protected override LastUpdateType GetLastUpdateType()

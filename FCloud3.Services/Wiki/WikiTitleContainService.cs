@@ -146,7 +146,7 @@ namespace FCloud3.Services.Wiki
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
                 foreach(int w in wIds)
                     _cacheExpTokenService.WikiTitleContain.GetByKey(w).CancelAll();
-                _wikiItemRepo.UpdateTime(wIds);
+                _wikiItemRepo.UpdateTimeAndLu(wIds);
             }
             _dbTransactionService.CommitTransaction(t);
             return true;

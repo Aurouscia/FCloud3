@@ -69,7 +69,7 @@ namespace FCloud3.Services.Table
             if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
                 var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
-                _wikiItemRepo.UpdateTime(affectedWikiIds);
+                _wikiItemRepo.UpdateTimeAndLu(affectedWikiIds);
                 return true;
             }
             else
@@ -97,7 +97,8 @@ namespace FCloud3.Services.Table
 
             var oldData = model.Data ?? "";
             using var transaction = _dbTransactionService.BeginTransaction();
-            var diffSuccess = _diffContentService.MakeDiff(id, DiffContentType.FreeTable, oldData, data, out string? diffErrmsg);
+            var diffCharCount = _diffContentService.MakeDiff(id, DiffContentType.FreeTable, oldData, data, out string? diffErrmsg);
+            var diffSuccess = diffErrmsg is null;
             var saveSuccess = _freeTableRepo.TryEditContent(model, datatable, data, out string? saveErrmsg);
 
             if (saveSuccess && diffSuccess)
@@ -106,7 +107,7 @@ namespace FCloud3.Services.Table
                 _logger.LogInformation("更新[{id}]号表格成功", id);
 
                 var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
-                var affectedCount = _wikiItemRepo.UpdateTime(affectedWikiIds);
+                var affectedCount = _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds, true);
                 if (affectedCount > 0)
                 {
                     var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();

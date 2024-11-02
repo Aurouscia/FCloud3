@@ -91,6 +91,7 @@ namespace FCloud3.Services.TextSec
                 if (!textSectionRepo.TryChangeTitle(id, title, out errmsg))
                     return false;
             }
+            int diffCharCount = 0;
             if (content is not null)
             {
                 if (!contentEditLockService.Heartbeat(HeartbeatObjType.TextSection, id, false, out errmsg))
@@ -108,7 +109,8 @@ namespace FCloud3.Services.TextSec
                 }
                 using var t = dbTransactionService.BeginTransaction();
                 var updateSuccess = textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
-                var diffSuccess = contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
+                diffCharCount = contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
+                var diffSuccess = diffErrmsg is null;
                 if (updateSuccess && diffSuccess)
                 {
                     dbTransactionService.CommitTransaction(t);
@@ -126,7 +128,7 @@ namespace FCloud3.Services.TextSec
             if(title is not null || content is not null)
             {
                 var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Text, id);
-                var affectedCount = wikiItemRepo.UpdateTime(affectedWikiIds);
+                var affectedCount = wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds, true);
                 if (affectedCount > 0)
                 {
                     var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();

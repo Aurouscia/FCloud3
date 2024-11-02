@@ -259,19 +259,19 @@ namespace FCloud3.Repos
             AfterDataChange();
         }
         
-        public virtual void UpdateTime(int id, DateTime time)
+        protected virtual void UpdateTime(int id, DateTime time)
         {
             Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
             AfterDataChange();
         }
-        public virtual void UpdateTime(List<int> ids, DateTime time)
+        protected virtual void UpdateTime(List<int> ids, DateTime time)
         {
             Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
             AfterDataChange();
         }
-        public virtual int UpdateTime(IQueryable<int> ids, DateTime time)
+        protected virtual int UpdateTime(IQueryable<int> ids, DateTime time)
         {
             var changedCount = Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));

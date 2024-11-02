@@ -27,13 +27,13 @@ namespace FCloud3.Services.Diff
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
 
-        public bool MakeDiff(int objId, DiffContentType type, string? original, string? modified, out string? errmsg)
+        public int MakeDiff(int objId, DiffContentType type, string? original, string? modified, out string? errmsg)
         {
             var diffs = StringDiffSearch.Run(original, modified);
             if (diffs.Count == 0)
             {
                 errmsg = null;
-                return true;
+                return 0;
             }
             int removed = diffs.RemovedChars();
             int added = diffs.AddedChars();
@@ -52,7 +52,9 @@ namespace FCloud3.Services.Diff
                 Ori = x.Ori,
                 New = x.New,
             });
-            return _contentDiffRepo.AddRangeDiffSingle(dss, out errmsg);
+            if (_contentDiffRepo.AddRangeDiffSingle(dss, out errmsg))
+                return Math.Max(removed, added);
+            return 0;
         }
 
         public DiffContentHistoryResult? DiffHistory(DiffContentType type, int objId, out string? errmsg)

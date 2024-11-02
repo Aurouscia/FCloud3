@@ -53,10 +53,7 @@ namespace FCloud3.Services.Wiki
         private readonly IOperatingUserIdProvider _operatingUserIdProvider = operatingUserIdProvider;
         private readonly IStorage _storage = storage;
         public const int maxWikiTitleLength = 30;
-        public WikiItem? GetById(int id)
-        {
-            return _wikiRepo.GetById(id);
-        }
+
         public WikiItemCacheModel? GetInfoById(int id)
         {
             return _wikiRepo.CachedItemById(id);
@@ -515,7 +512,7 @@ namespace FCloud3.Services.Wiki
 
         private void SetWikiUpdated(int wikiId)
         {
-            _wikiRepo.UpdateTime(wikiId);
+            _wikiRepo.UpdateTimeAndLuAndWikiActive(wikiId, true);
         }
 
         public class WikiItemIndexItem

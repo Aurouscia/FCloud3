@@ -52,7 +52,7 @@ namespace FCloud3.Repos.Identities
         public void SetLastUpdateToNow()
         {
             int uid = _userIdProvider.Get();
-            base.UpdateTime(uid);
+            base.UpdateTimeAndLu(uid);
         }
         public IQueryable<User> QuickSearch(string str)
         {
