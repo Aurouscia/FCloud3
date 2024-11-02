@@ -1,12 +1,16 @@
 using FCloud3.DbContexts;
 using FCloud3.Entities;
+using FCloud3.Entities.Sys;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 using System.Collections.Concurrent;
 
 namespace FCloud3.Repos
 {
     public abstract class RepoBaseCache<T, TCache>(
         FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider)
         : RepoBase<T>(context, userIdProvider)
         where T : class, IDbModel
@@ -16,7 +20,7 @@ namespace FCloud3.Repos
         /// 存储Cache对象列表的线程安全字典，key为Id
         /// </summary>
         private static ConcurrentDictionary<int, TCache> CacheDict = [];
-        private static DateTime LatestUpdated
+        private static DateTime LatestUpdatedInDict
         {
             get
             {
@@ -91,29 +95,116 @@ namespace FCloud3.Repos
         {
             if (!Synchronized)
             {
-                var latestUpdated = LatestUpdated;
-                if(!CacheDict.IsEmpty)
-                {
-                    //如果已经有缓存，但还是需要进行同步，此时需要注意是否有新删掉的东西
-                    //如果没有缓存，就不需要做这一步，直接取所有Existing即可
-                    var delQ = Deleted.Where(x => x.Updated > latestUpdated);
-                    var delIds = delQ.Select(x => x.Id).ToList();
-                    delIds.ForEach(delId =>
+                var latestUpdatedInDict = LatestUpdatedInDict;
+                var lastUpdateInDb = GetLastUpdateInLuTable();
+                //先判断数据库上次更新时间是否比Dict中更新
+                if (lastUpdateInDb > latestUpdatedInDict || lastUpdateInDb == default)
+                {    
+                    if (!CacheDict.IsEmpty)
                     {
-                        CacheDict.TryRemove(delId, out _);
+                        //如果已经有缓存，但还是需要进行同步，此时需要注意是否有新删掉的东西
+                        //如果没有缓存，就不需要做这一步，直接取所有Existing即可
+                        var delQ = Deleted.Where(x => x.Updated > latestUpdatedInDict);
+                        var delIds = delQ.Select(x => x.Id).ToList();
+                        delIds.ForEach(delId =>
+                        {
+                            CacheDict.TryRemove(delId, out _);
+                        });
+                    }
+                    var q = Existing.Where(x => x.Updated > latestUpdatedInDict);
+                    var fetched = ConvertToCacheModel(q).ToList();
+                    fetched.ForEach(item =>
+                    {
+                        CacheDict.AddOrUpdate(item.Id, item, (id, oldVal) => item);
                     });
+                    RepoCacheDictSyncFetchedRows += fetched.Count;
+                    RepoCacheDictSyncTimes += 1;
                 }
-                var q = Existing.Where(x => x.Updated > latestUpdated);
-                var fetched = ConvertToCacheModel(q).ToList();
-                fetched.ForEach(item =>
-                {
-                    CacheDict.AddOrUpdate(item.Id, item, (id, oldVal) => item);
-                });
-                RepoCacheDictSyncFetchedRows += fetched.Count;
-                RepoCacheDictSyncTimes += 1;
                 Synchronized = true;
             }
         }
+
+
+        protected override void Add(T item, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.Add(item, t);
+        }
+        protected override void AddRange(List<T> items, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.AddRange(items, t);
+        }
+        protected override void Update(T item, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.Update(item, t);
+        }
+        protected override void UpdateRange(List<T> items, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.UpdateRange(items, t);
+        }
+        protected override void Remove(int id, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.Remove(id, time);
+        }
+        protected override void Remove(T item, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.Remove(item, time);
+        }
+        protected override void RemoveRange(List<T> items, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.RemoveRange(items, time);
+        }
+
+        public void UpdateTime(int wikiId)
+        {
+            var time = DateTime.Now;
+            SetLastUpdateInLuTable(time);
+            base.UpdateTime(wikiId, time);
+        }
+        public void UpdateTime(List<int> wikiIds)
+        {
+            var time = DateTime.Now;
+            SetLastUpdateInLuTable(time);
+            base.UpdateTime(wikiIds, time);
+        }
+        public int UpdateTime(IQueryable<int> wikiIds)
+        {
+            var time = DateTime.Now;
+            SetLastUpdateInLuTable(time);
+            return base.UpdateTime(wikiIds, time);
+        }
+        protected void SetLastUpdateInLuTable(DateTime time)
+        {
+            var t = GetLastUpdateType();
+            lastUpdateRepo.SetLastUpdateFor(t, time);
+        }
+        private DateTime GetLastUpdateInLuTable()
+        {
+            var t = GetLastUpdateType();
+            return lastUpdateRepo.GetLastUpdateFor(t, GetLastUpdateInDbForInit);
+        }
+        protected abstract LastUpdateType GetLastUpdateType();
+        private DateTime GetLastUpdateInDbForInit()
+        {
+            return Existing
+                .OrderByDescending(x => x.Updated)
+                .Select(x => x.Updated)
+                .FirstOrDefault();
+        }
+
         /// <summary>
         /// 清除缓存（仅在单元测试中使用（重置数据时），正常情况下不应使用）
         /// </summary>

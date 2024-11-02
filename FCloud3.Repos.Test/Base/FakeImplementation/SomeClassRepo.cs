@@ -1,4 +1,6 @@
-﻿using FCloud3.Repos.Etc;
+﻿using FCloud3.Entities.Sys;
+using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +11,9 @@ namespace FCloud3.Repos.Test.Base.FakeImplementation
 {
     internal class SomeClassRepo(
         FCloudContextWithSomeClass contextWithSomeClass,
+        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider) 
-        : RepoBaseCache<SomeClass, SomeClassCacheModel>(contextWithSomeClass, userIdProvider)
+        : RepoBaseCache<SomeClass, SomeClassCacheModel>(contextWithSomeClass, lastUpdateRepo, userIdProvider)
     {
         public new void Add(SomeClass item) => base.Add(item);
         public new void Update(SomeClass item) => base.Update(item);
@@ -18,6 +21,10 @@ namespace FCloud3.Repos.Test.Base.FakeImplementation
         protected override IQueryable<SomeClassCacheModel> ConvertToCacheModel(IQueryable<SomeClass> q)
         {
             return q.Select(x => new SomeClassCacheModel(x.Id, x.Updated, x.Number1));
+        }
+        protected override LastUpdateType GetLastUpdateType()
+        {
+            return (LastUpdateType)100;
         }
     }
 

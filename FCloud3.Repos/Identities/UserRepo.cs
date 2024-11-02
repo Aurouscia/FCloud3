@@ -1,18 +1,18 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Repos.Identities
 {
-    public class UserRepo : RepoBaseCache<User, UserCacheModel>
+    public class UserRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider)
+        : RepoBaseCache<User, UserCacheModel>(context, lastUpdateRepo, userIdProvider)
     {
-        public UserRepo(
-            FCloudContext context,
-            ICommitingUserIdProvider userIdProvider) 
-            : base(context, userIdProvider)
-        {
-        }
         public IQueryable<User> GetByName(string name)
         {
             return Existing.Where(x => x.Name == name);
@@ -61,6 +61,9 @@ namespace FCloud3.Repos.Identities
                 .OrderBy(x => x.Name!.Length)
                 .ThenByDescending(x => x.Updated);
         }
+
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.User;
 
         protected override IQueryable<UserCacheModel> ConvertToCacheModel(IQueryable<User> q)
         {

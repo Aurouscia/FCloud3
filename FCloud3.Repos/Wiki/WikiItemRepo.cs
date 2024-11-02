@@ -2,19 +2,18 @@
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
+using FCloud3.Repos.Sys;
+using FCloud3.Entities.Sys;
 
 namespace FCloud3.Repos.Wiki
 {
-    public class WikiItemRepo : RepoBaseCache<WikiItem, WikiItemCacheModel>
+    public class WikiItemRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider) 
+        : RepoBaseCache<WikiItem, WikiItemCacheModel>(context, lastUpdateRepo, userIdProvider)
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
-        public WikiItemRepo(
-            FCloudContext context,
-            ICommitingUserIdProvider userIdProvider) 
-            : base(context, userIdProvider)
-        {
-        }
 
         public IQueryable<WikiItem> ExistingAndNotSealed => Existing.Where(x => !x.Sealed);
         public IQueryable<WikiItem> ExistingAndNotSealedAndEdited
@@ -118,6 +117,8 @@ namespace FCloud3.Repos.Wiki
             return true;
         }
 
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.WikiItem;
         public override IQueryable<WikiItem> OwnedByUser(int uid = -1)
         {
             if (uid == -1)

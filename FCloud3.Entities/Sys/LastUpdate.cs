@@ -15,6 +15,7 @@ namespace FCloud3.Entities.Sys
         WikiItem = 10,
         User = 20,
         AuthGrant = 21,
-        Material = 30
+        FileDir = 30,
+        Material = 31
     }
 }

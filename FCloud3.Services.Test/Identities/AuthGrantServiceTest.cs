@@ -5,6 +5,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
+using FCloud3.Repos.Sys;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Identities;
@@ -27,14 +28,15 @@ namespace FCloud3.Services.Test.Identities
             int uid = 1;
             _userIdProvider = new(uid);
             _ctx = FCloudMemoryContext.Create();
-            _authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider);
+            var lastUpdateRepo = new LastUpdateRepo(_ctx);
+            _authGrantRepo = new AuthGrantRepo(_ctx, lastUpdateRepo, _userIdProvider);
             _authGrantRepo.ClearCache();
             var userToGroupRepo = new UserToGroupRepo(_ctx, _userIdProvider);
             var userGroupRepo = new UserGroupRepo(_ctx, _userIdProvider);
-            var userRepo = new UserRepo(_ctx, _userIdProvider);
+            var userRepo = new UserRepo(_ctx, lastUpdateRepo , _userIdProvider);
             var commentRepo = new CommentRepo(_ctx, _userIdProvider);
             var notifRepo = new NotificationRepo(_ctx, _userIdProvider);
-            var wikiItemRepo = new WikiItemRepo(_ctx, _userIdProvider);
+            var wikiItemRepo = new WikiItemRepo(_ctx, lastUpdateRepo, _userIdProvider);
             var cacheExpTokenService = new CacheExpTokenService(new FakeLogger<CacheExpTokenService>());
             var notificationService = new NotificationService(
                 notifRepo, commentRepo, userGroupRepo, userRepo, wikiItemRepo, _userIdProvider);

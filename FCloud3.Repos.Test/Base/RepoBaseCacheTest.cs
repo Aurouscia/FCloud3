@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos.Test.Base.FakeImplementation;
+﻿using FCloud3.Repos.Sys;
+using FCloud3.Repos.Test.Base.FakeImplementation;
 using FCloud3.Repos.Test.TestSupport;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,14 @@ namespace FCloud3.Repos.Test.Base
     public class RepoBaseCacheTest
     {
         private readonly SomeClassRepo _repo;
+        private readonly SomeClassRepo _repoAnother;
         public RepoBaseCacheTest()
         {
             var ctx = FCloudContextWithSomeClass.Create();
+            var lastUpdateRepo = new LastUpdateRepo(ctx);
             var userIdProvider = new StubUserIdProvider(2);
-            _repo = new SomeClassRepo(ctx, userIdProvider);
+            _repo = new SomeClassRepo(ctx, lastUpdateRepo, userIdProvider);
+            _repoAnother = new SomeClassRepo(ctx, lastUpdateRepo, userIdProvider);
 
             var time = new DateTime(2024, 1, 6);
             List<SomeClass> items = [
@@ -154,6 +158,26 @@ namespace FCloud3.Repos.Test.Base
             Assert.AreEqual(2, _repo.RepoCacheDictSyncTimes);
             Assert.AreEqual(3, _repo.RepoCacheDictSyncFetchedRows);
             Assert.AreEqual(2, _repo.CachedItemsCount());
+        }
+
+        [TestMethod]
+        public void AvoidUnnecessarySync()
+        {
+            var items1 = _repo.AllCachedItems().ToList();
+            AssertObjectsStatus(items1, [32, 64, 128]);
+            Assert.AreEqual(1, _repo.RepoCacheDictSyncTimes);
+            Assert.AreEqual(3, _repo.RepoCacheDictSyncFetchedRows);
+
+            //另一个Scope的repo进来，先去Lu表查最新时间，决定不需要Sync
+            var items2 = _repoAnother.AllCachedItems().ToList();
+            AssertObjectsStatus(items2, [32, 64, 128]);
+            Assert.AreEqual(0, _repoAnother.RepoCacheDictSyncTimes);
+            Assert.AreEqual(0, _repoAnother.RepoCacheDictSyncFetchedRows);
+
+            var items3 = _repoAnother.AllCachedItems().ToList();
+            AssertObjectsStatus(items3, [32, 64, 128]);
+            Assert.AreEqual(0, _repoAnother.RepoCacheDictSyncTimes);
+            Assert.AreEqual(0, _repoAnother.RepoCacheDictSyncFetchedRows);
         }
 
         private static void AssertObjectsStatus(List<SomeClassCacheModel> items, List<int> num1s)

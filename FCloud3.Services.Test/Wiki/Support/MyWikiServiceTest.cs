@@ -3,6 +3,7 @@ using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Sys;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Test.TestSupport;
@@ -20,9 +21,10 @@ namespace FCloud3.Services.Test.Wiki.Support
             int uid = 0;
             var userIdProvider = new StubUserIdProvider(uid);
             _ctx = FCloudMemoryContext.Create();
-            WikiItemRepo wikiItemRepo = new(_ctx, userIdProvider);
+            var lastUpdateRepo = new LastUpdateRepo(_ctx);
+            WikiItemRepo wikiItemRepo = new(_ctx, lastUpdateRepo, userIdProvider);
             WikiToDirRepo wikiToDirRepo = new(_ctx, userIdProvider);
-            FileDirRepo fileDirRepo = new(_ctx, userIdProvider);
+            FileDirRepo fileDirRepo = new(_ctx, lastUpdateRepo, userIdProvider);
             _myWikisService = new MyWikisService(wikiItemRepo, wikiToDirRepo, fileDirRepo);
             var time = new DateTime(2024, 1, 6);
 

@@ -1,20 +1,20 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Repos.Files
 {
-    public class FileDirRepo : RepoBaseCache<FileDir, FileDirCacheModel>
+    public class FileDirRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider
+            ) : RepoBaseCache<FileDir, FileDirCacheModel>(context, lastUpdateRepo, userIdProvider)
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";
-        public FileDirRepo(
-            FCloudContext context,
-            ICommitingUserIdProvider userIdProvider
-            ) : base(context, userIdProvider)
-        {
-        }
 
         public IQueryable<FileDir> QuickSearch(string str)
             => Existing
@@ -338,6 +338,8 @@ namespace FCloud3.Repos.Files
                 return 0;
             return base.GetOwnerIdById(id);
         }
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.FileDir;
 
 
         protected override IQueryable<FileDirCacheModel> ConvertToCacheModel(IQueryable<FileDir> q)

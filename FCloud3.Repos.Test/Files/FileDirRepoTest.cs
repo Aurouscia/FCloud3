@@ -3,8 +3,10 @@ using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Files;
+using FCloud3.Repos.Sys;
 using FCloud3.Repos.Test.TestSupport;
 using Microsoft.EntityFrameworkCore;
+using NPOI.OpenXmlFormats.Spreadsheet;
 
 namespace FCloud3.Repos.Test.Files
 {
@@ -40,7 +42,8 @@ namespace FCloud3.Repos.Test.Files
             _context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
             _context.SaveChanges();
 
-            _repo = new(_context, new StubUserIdProvider(2));
+            var lastUpdateRepo = new LastUpdateRepo(_context);
+            _repo = new(_context, lastUpdateRepo, new StubUserIdProvider(2));
             _repo.ClearCache();
         }
         #endregion

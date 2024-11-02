@@ -1,17 +1,17 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 
 namespace FCloud3.Repos.Files
 {
-    public class MaterialRepo : RepoBaseCache<Material, MaterialCacheModel>
+    public class MaterialRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider)
+        : RepoBaseCache<Material, MaterialCacheModel>(context, lastUpdateRepo, userIdProvider)
     {
-        public MaterialRepo(
-            FCloudContext context,
-            ICommitingUserIdProvider userIdProvider) 
-            : base(context, userIdProvider)
-        { }
-
         public IQueryable<Material> QuickSearch(string str)
         {
             return Existing
@@ -40,6 +40,8 @@ namespace FCloud3.Repos.Files
         {
             return q.Select(x => new MaterialCacheModel(x.Id, x.Updated, x.Name, x.StorePathName));
         }
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.Material;
 
         public bool ModelCheck(Material m, out string? errmsg)
         {

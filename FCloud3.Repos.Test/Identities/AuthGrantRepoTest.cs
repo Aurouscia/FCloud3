@@ -2,7 +2,9 @@ using FCloud3.DbContexts;
 using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Sys;
 using FCloud3.Repos.Test.TestSupport;
+using NPOI.OpenXmlFormats.Spreadsheet;
 
 namespace FCloud3.Repos.Test.Identities
 {
@@ -42,7 +44,8 @@ namespace FCloud3.Repos.Test.Identities
             _context.AddRange(initials);
             _context.SaveChanges();
 
-            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1));
+            var lastUpdateRepo = new LastUpdateRepo(_context);
+            _repo = new AuthGrantRepo(_context, lastUpdateRepo, new StubUserIdProvider(1));
             _repo.ClearCache();
         }
 

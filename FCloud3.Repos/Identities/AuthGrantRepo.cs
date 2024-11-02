@@ -1,18 +1,18 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Identities;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 
 namespace FCloud3.Repos.Identities
 {
-    public class AuthGrantRepo : RepoBaseCache<AuthGrant, AuthGrantCacheModel>
+    public class AuthGrantRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider)
+        : RepoBaseCache<AuthGrant, AuthGrantCacheModel>(context, lastUpdateRepo, userIdProvider)
     {
-        public AuthGrantRepo(
-            FCloudContext context, 
-            ICommitingUserIdProvider userIdProvider) 
-            : base(context, userIdProvider)
-        {
-        }
         /// <summary>
         /// 获取某对象的所有授权，本地和全局的/仅全局的，但不包括内置的
         /// </summary>
@@ -97,6 +97,9 @@ namespace FCloud3.Repos.Identities
         }
         public void UpdateRangeWithoutCheck(List<AuthGrant> items)
             => base.UpdateRange(items);
+
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.AuthGrant;
 
         protected override IQueryable<AuthGrantCacheModel> ConvertToCacheModel(IQueryable<AuthGrant> q)
         {

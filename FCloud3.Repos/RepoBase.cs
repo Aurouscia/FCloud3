@@ -197,26 +197,26 @@ namespace FCloud3.Repos
             return Existing.Where(x => x.Id == id).Select(x => x.CreatorUserId).FirstOrDefault();
         }
 
-        protected void Add(T item)
+        protected virtual void Add(T item, DateTime? time = null)
         {
             item.CreatorUserId = _userIdProvider.Get();
             //仅获取一次当前时间才能确保完全一致，
             //可通过判断创建时间==更新时间来判断该对象是否新建
-            DateTime now = DateTime.Now;
+            DateTime now = time ?? DateTime.Now;
             item.Created = now;
             item.Updated = now;
             _context.Add(item);
             _context.SaveChanges();
             AfterDataChange();
         }
-        protected void AddRange(List<T> items)
+        protected virtual void AddRange(List<T> items, DateTime? time = null)
         {
             int uid = _userIdProvider.Get();
-            foreach(var item in items)
+            //仅获取一次当前时间才能确保完全一致，
+            //可通过判断创建时间==更新时间来判断该对象是否新建
+            DateTime now = time ?? DateTime.Now;
+            foreach (var item in items)
             {
-                //仅获取一次当前时间才能确保完全一致，
-                //可通过判断创建时间==更新时间来判断该对象是否新建
-                DateTime now = DateTime.Now;
                 item.Created = now;
                 item.Updated = now;
                 item.CreatorUserId = uid;
@@ -240,69 +240,73 @@ namespace FCloud3.Repos
             return null; 
         }
 
-        protected void Update(T item)
+        protected virtual void Update(T item, DateTime? time = null)
         {
-            item.Updated = DateTime.Now;
+            item.Updated = time ?? DateTime.Now;
             _context.Update(item);
             _context.SaveChanges();
             AfterDataChange();
         }
-        protected void UpdateRange(List<T> items)
+        protected virtual void UpdateRange(List<T> items, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
             foreach(var item in items)
             {
-                item.Updated = DateTime.Now;
+                item.Updated = t;
                 _context.Update(item);
             }
             _context.SaveChanges();
             AfterDataChange();
         }
         
-        public void UpdateTime(int id)
+        public virtual void UpdateTime(int id, DateTime time)
         {
             Existing.Where(x => x.Id == id)
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
             AfterDataChange();
         }
-        public void UpdateTime(List<int> ids)
+        public virtual void UpdateTime(List<int> ids, DateTime time)
         {
             Existing.Where(x => ids.Contains(x.Id))
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
             AfterDataChange();
         }
-        public int UpdateTime(IQueryable<int> ids)
+        public virtual int UpdateTime(IQueryable<int> ids, DateTime time)
         {
             var changedCount = Existing.Where(x => ids.Contains(x.Id))
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, DateTime.Now));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
             AfterDataChange();
             return changedCount;
         }
 
-        protected void Remove(T item)
+        protected virtual void Remove(T item, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
             item.Deleted = true;
-            item.Updated = DateTime.Now;
+            item.Updated = t;
             _context.Update(item);
             _context.SaveChanges();
             AfterDataChange();
         }
-        protected void RemoveRange(List<T> items)
+        protected virtual void RemoveRange(List<T> items, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
             items.ForEach(item =>
             {
                 item.Deleted = true;
-                item.Updated = DateTime.Now;
+                item.Updated = t;
                 _context.Update(item);
             });
             _context.SaveChanges();
             AfterDataChange();
         }
-        protected void Remove(int id)
+        protected virtual void Remove(int id, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
             Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x
                     .SetProperty(m => m.Deleted, true)
-                    .SetProperty(m => m.Updated, DateTime.Now));
+                    .SetProperty(m => m.Updated, t));
             AfterDataChange();
         }
 
