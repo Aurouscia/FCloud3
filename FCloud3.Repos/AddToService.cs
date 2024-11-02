@@ -10,6 +10,7 @@ using FCloud3.Repos.WikiParsing;
 using FCloud3.Repos.Diff;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Sys;
 
 namespace FCloud3.Repos
 {
@@ -44,6 +45,8 @@ namespace FCloud3.Repos
             services.AddScoped<OpRecordRepo>();
 
             services.AddScoped<DiffContentRepo>();
+
+            services.AddScoped<LastUpdateRepo>();
 
             services.AddScoped<CreatorIdGetter>();
 
