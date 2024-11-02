@@ -273,10 +273,10 @@ namespace FCloud3.App.Controllers.Sys
             return this.ApiFailedResp("失败");
         }
 
-        public IActionResult Temp()
+        public IActionResult SetUpdateToLastActive()
         {
-            Thread.Sleep(11000);
-            return Ok("Ok");
+            var count = _context.WikiItems.ExecuteUpdate(spc => spc.SetProperty(w => w.LastActive, w => w.Updated));
+            return this.ApiResp($"OK：{count}");
         }
     }
 }

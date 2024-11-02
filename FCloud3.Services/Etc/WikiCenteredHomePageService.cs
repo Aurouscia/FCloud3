@@ -41,7 +41,7 @@ namespace FCloud3.Services.Etc
                 orderby wdg.Key.Updated descending
                 select new {
                     Wiki = wdg
-                        .OrderByDescending(x=>x.Updated)
+                        .OrderByDescending(x=>x.LastActive)
                         .Select(x=>new{x.UrlPathName, x.Title})
                         .FirstOrDefault(),
                     FileDir = new

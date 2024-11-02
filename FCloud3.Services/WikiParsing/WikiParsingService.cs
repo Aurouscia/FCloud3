@@ -109,7 +109,7 @@ namespace FCloud3.Services.WikiParsing
                 return null;
             if (w.Sealed && userIdProvider.Get() != w.OwnerId && !bypassSeal)
                 return null;//对于隐藏的词条，又不是拥有者又不是管理，就当不存在的
-            return GetParsedWikiStream(w.Id, w.Updated);
+            return GetParsedWikiStream(w.Id, w.Updated);//使用Updated字段决定要不要读缓存文件
         }
         public Stream GetParsedWikiStream(int id, DateTime update)
         {
@@ -184,7 +184,8 @@ namespace FCloud3.Services.WikiParsing
                 linkSingle: true,
                 () => [wiki.Id]);
 
-            WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.Updated, wiki.OwnerUserId);
+            //词条解析结果中，显示的“更新时间”指的是LastActive而不是Updated
+            WikiParsingResult result = new(wiki.Id, wiki.Title??"??", wiki.LastActive, wiki.OwnerUserId);
             string? getTitle(string? nameoverride, string? title, bool parse = true)
             {
                 string? t = nameoverride;
