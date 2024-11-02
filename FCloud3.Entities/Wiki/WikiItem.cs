@@ -20,6 +20,10 @@ namespace FCloud3.Entities.Wiki
         /// 管理员可设置的“词条封禁”
         /// </summary>
         public bool Sealed { get; set; }
+        /// <summary>
+        /// 词条内容的“上次更新”时间，用于显示在页面上，区别于模型的更新时间
+        /// </summary>
+        public DateTime LastActive { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

@@ -15,7 +15,7 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
             modelBuilder.Entity("FCloud3.Entities.Diff.DiffContent", b =>
                 {
@@ -261,6 +261,9 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
 
                     b.Property<string>("Desc")
                         .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastActive")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -555,6 +558,9 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
 
                     b.Property<bool>("Hidden")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastActive")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("OwnerUserId")
                         .HasColumnType("INTEGER");

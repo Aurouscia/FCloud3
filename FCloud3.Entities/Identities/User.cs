@@ -13,6 +13,10 @@ namespace FCloud3.Entities.Identities
         public UserType Type { get; set; }
         [MaxLength(64)]
         public string? Desc { get; set; }
+        /// <summary>
+        /// 用户的“上次活跃”时间，用于显示在页面上，区别于模型的更新时间
+        /// </summary>
+        public DateTime LastActive { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
