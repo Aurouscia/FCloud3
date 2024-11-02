@@ -2,6 +2,7 @@
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Messages;
+using FCloud3.Entities.Sys;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
@@ -37,6 +38,7 @@ namespace FCloud3.DbContexts
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OpRecord> OpRecords { get; set; }
         public DbSet<WikiSelected> WikiSelecteds { get; set; }
+        public DbSet<LastUpdate> LastUpdates { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations

@@ -4,6 +4,7 @@ using FCloud3.DbContexts.DbSpecific;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 {
     [DbContext(typeof(FCloudSqlServerContext))]
-    partial class FCloudSqlServerContextModelSnapshot : ModelSnapshot
+    [Migration("20241102042826_createLastUpdateTable")]
+    partial class createLastUpdateTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -474,6 +474,19 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                     b.ToTable("OpRecords");
                 });
 
+            modelBuilder.Entity("FCloud3.Entities.Sys.LastUpdate", b =>
+                {
+                    b.Property<byte>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastUpdateTime")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Type");
+
+                    b.ToTable("LastUpdates");
+                });
+
             modelBuilder.Entity("FCloud3.Entities.Table.FreeTable", b =>
                 {
                     b.Property<int>("Id")
