@@ -1,20 +1,18 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
-using NPOI.SS.Formula.PTG;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FCloud3.Repos.Sys;
 
 namespace FCloud3.Repos.Identities
 {
-    public class UserToGroupRepo : RepoBase<UserToGroup>
+    public class UserToGroupRepo(
+        FCloudContext context,
+        LastUpdateRepo lastUpdateRepo,
+        ICommitingUserIdProvider userIdProvider
+        ) : RepoBaseCache<UserToGroup, UserToGroupCacheModel>(
+            context, lastUpdateRepo,userIdProvider)
     {
-        public UserToGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
-        {
-        }
 
         public IQueryable<UserToGroup> ExistingAndShowLabel
             => Existing.Where(x => x.ShowLabel);
@@ -26,9 +24,9 @@ namespace FCloud3.Repos.Identities
         /// <returns>成员id列表</returns>
         public List<int> GetMembers(int groupId)
         {
-            return Existing
-                .Where(x=>x.GroupId == groupId)
-                .FilterFormalMember().Select(x=>x.UserId).ToList();
+            return AllCachedItemsFormalFiltered()
+                .Where(x => x.GroupId == groupId)
+                .Select(x => x.UserId).ToList();
         }
         /// <summary>
         /// 获取指定id组内所有成员（正在邀请的不算）
@@ -39,9 +37,9 @@ namespace FCloud3.Repos.Identities
         {
             if (groupIds.Count == 0)
                 return new();
-
+            var allFormal = AllCachedItemsFormalFiltered();
             var q = (
-                from g in Existing.FilterFormalMember()
+                from g in allFormal
                 where groupIds.Contains(g.GroupId)
                 group g.UserId by g.GroupId).ToList();
 
@@ -150,5 +148,24 @@ namespace FCloud3.Repos.Identities
             errmsg = null;
             return true;
         }
+
+        private IEnumerable<UserToGroupCacheModel> AllCachedItemsFormalFiltered()
+            => AllCachedItems().Where(x => x.Type > UserToGroupType.Inviting);
+        protected override IQueryable<UserToGroupCacheModel> ConvertToCacheModel(IQueryable<UserToGroup> q)
+        {
+            return q.Select(x => new UserToGroupCacheModel(
+                x.Id, x.Updated, x.UserId, x.GroupId, x.Type));
+        }
+
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.UserToGroup;
+    }
+    public class UserToGroupCacheModel(
+        int id, DateTime updated, int userId, int groupId, UserToGroupType type)
+        : CacheModelBase<UserToGroup>(id, updated)
+    {
+        public int UserId { get; } = userId;
+        public int GroupId { get; } = groupId;
+        public UserToGroupType Type { get; } = type;
     }
 }

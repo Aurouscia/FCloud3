@@ -15,8 +15,9 @@ namespace FCloud3.Repos.Test.Identities
         public UserToGroupRepoTest()
         {
             _context = FCloudMemoryContext.Create();
-            _repo = new UserToGroupRepo(_context, new StubUserIdProvider(1));
-            
+            _repo = new UserToGroupRepo(_context, new(_context), new StubUserIdProvider(1));
+            _repo.ClearCache();
+            var time = new DateTime(2024, 1, 6);
             _context.Users.AddRange(new List<User>()
             {
                 new() { Name = "李老师", Type = UserType.SuperAdmin }, //1
@@ -31,12 +32,12 @@ namespace FCloud3.Repos.Test.Identities
             });
             _context.UserToGroups.AddRange(new List<UserToGroup>()
             {
-                new(){ UserId = 1, GroupId = 1, Type = UserToGroupType.Member},
-                new(){ UserId = 2, GroupId = 1, Type = UserToGroupType.Member},
-                new(){ UserId = 3, GroupId = 1, Type = UserToGroupType.Member},
-                new(){ UserId = 3, GroupId = 2, Type = UserToGroupType.Member},
-                new(){ UserId = 4, GroupId = 2, Type = UserToGroupType.Member},
-                new(){ UserId = 1, GroupId = 2, Type = UserToGroupType.Inviting}
+                new(){ UserId = 1, GroupId = 1, Type = UserToGroupType.Member, Updated = time},
+                new(){ UserId = 2, GroupId = 1, Type = UserToGroupType.Member, Updated = time},
+                new(){ UserId = 3, GroupId = 1, Type = UserToGroupType.Member, Updated = time},
+                new(){ UserId = 3, GroupId = 2, Type = UserToGroupType.Member, Updated = time},
+                new(){ UserId = 4, GroupId = 2, Type = UserToGroupType.Member, Updated = time},
+                new(){ UserId = 1, GroupId = 2, Type = UserToGroupType.Inviting, Updated = time}
             });
             _context.SaveChanges();
         }
@@ -121,7 +122,8 @@ namespace FCloud3.Repos.Test.Identities
         {
             var actualSuccess = _repo.RemoveUserFromGroup(userId, groupId, out _);
             Assert.AreEqual(expectedSuccess, actualSuccess);
-            var actualMemberCount = _repo.GetMembers(groupId).Count;
+            var members = _repo.GetMembers(groupId);
+            var actualMemberCount = members.Count;
             Assert.AreEqual(expectedMemberCount, actualMemberCount);
         }
     }
