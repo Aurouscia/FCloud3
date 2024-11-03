@@ -34,7 +34,7 @@ namespace FCloud3.Repos.Identities
             base.Update(item);
             return true;
         }
-        public new void Remove(UserGroup item) => base.Remove(item);
+        public void Remove(UserGroup item) => base.Remove(item);
         public bool InfoCheck(UserGroup group, bool creating, out string? errmsg)
         {
             if (string.IsNullOrWhiteSpace(group.Name))

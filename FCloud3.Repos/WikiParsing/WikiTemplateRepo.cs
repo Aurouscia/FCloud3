@@ -16,7 +16,7 @@ namespace FCloud3.Repos.WikiParsing
             return Existing.Where(x => x.Name != null && x.Name.Contains(s))
                 .OrderBy(x => x.Updated);
         }
-        public new void Remove(int id) => base.Remove(id);
+        public void Remove(int id) => base.Remove(id);
         public bool TryAdd(WikiTemplate item, out string? errmsg)
         {
             if (!NameCheck(item.Name, out errmsg))

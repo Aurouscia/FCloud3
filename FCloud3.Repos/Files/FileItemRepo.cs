@@ -54,7 +54,7 @@ namespace FCloud3.Repos.Files
             errmsg = null;
             return true;
         }
-        public new void Remove(FileItem item) => base.Remove(item);
+        public void Remove(FileItem item) => base.Remove(item);
         public bool SetInDirForRange(int distDirId, List<int> ids, out string? errmsg)
         {
             int affected = base.GetRangeByIds(ids)

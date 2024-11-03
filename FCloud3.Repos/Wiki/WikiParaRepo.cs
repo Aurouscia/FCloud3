@@ -19,9 +19,9 @@ namespace FCloud3.Repos.Wiki
         public IQueryable<WikiPara> WithType(WikiParaType type) => Existing.Where(x => x.Type == type);
 
         public new int AddAndGetId(WikiPara para) => base.AddAndGetId(para);
-        public new void Update(WikiPara para) => base.Update(para);
-        public new void UpdateRange(List<WikiPara> paras) => base.UpdateRange(paras);
-        public new void Remove(WikiPara para) => base.Remove(para);
+        public void Update(WikiPara para) => base.Update(para);
+        public void UpdateRange(List<WikiPara> paras) => base.UpdateRange(paras);
+        public void Remove(WikiPara para) => base.Remove(para);
 
         public bool SetParaObjId(int paraId, WikiParaType shouldBeType, int objId, out string? errmsg)
         {

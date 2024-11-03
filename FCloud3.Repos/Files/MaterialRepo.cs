@@ -33,7 +33,7 @@ namespace FCloud3.Repos.Files
             return true;
         }
         public void UpdateInfoWithoutCheck(Material m) => base.Update(m);
-        public new void Remove(Material m) => base.Remove(m);
+        public void Remove(Material m) => base.Remove(m);
 
         protected override IQueryable<MaterialCacheModel> ConvertToCacheModel(IQueryable<Material> q)
         {

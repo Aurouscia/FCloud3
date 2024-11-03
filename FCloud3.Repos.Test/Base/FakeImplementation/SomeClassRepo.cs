@@ -14,9 +14,9 @@ namespace FCloud3.Repos.Test.Base.FakeImplementation
         ICommitingUserIdProvider userIdProvider) 
         : RepoBaseCache<SomeClass, SomeClassCacheModel>(contextWithSomeClass, userIdProvider)
     {
-        public new void Add(SomeClass item) => base.Add(item);
-        public new void Update(SomeClass item) => base.Update(item);
-        public new void Remove(int id) => base.Remove(id); 
+        public void Add(SomeClass item) => base.Add(item);
+        public void Update(SomeClass item) => base.Update(item);
+        public void Remove(int id) => base.Remove(id); 
         protected override IQueryable<SomeClassCacheModel> ConvertToCacheModel(IQueryable<SomeClass> q)
         {
             return q.Select(x => new SomeClassCacheModel(x.Id, x.Updated, x.Number1));
