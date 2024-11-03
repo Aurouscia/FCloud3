@@ -66,7 +66,7 @@ namespace FCloud3.Services.WikiParsing
 
             var access = defaultAccess;
             if(!access) 
-                access = authGrantService.Test(AuthGrantOn.WikiItem, info.WikiId);
+                access = authGrantService.CheckAccess(AuthGrantOn.WikiItem, info.WikiId);
             
             var groupLabels = (
                 from ug in userGroupRepo.Existing

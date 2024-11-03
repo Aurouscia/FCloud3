@@ -99,7 +99,7 @@ namespace FCloud3.App.Services.Filters
                 if (OnType == AuthGrantOn.None)
                     throw new Exception("权限验证未找到匹配类型");
 
-                if (!_authGrantService.Test(OnType, id))
+                if (!_authGrantService.CheckAccess(OnType, id))
                 {
                     var resp = new ApiResponse(null, false, "无权限，请咨询管理员");
                     context.Result = resp.BuildResult();

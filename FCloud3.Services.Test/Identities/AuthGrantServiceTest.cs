@@ -8,10 +8,10 @@ using FCloud3.Repos.Messages;
 using FCloud3.Repos.Sys;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Etc.Cache;
 using FCloud3.Services.Identities;
 using FCloud3.Services.Messages;
 using FCloud3.Services.Test.TestSupport;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.Services.Test.Identities
 {
@@ -28,15 +28,16 @@ namespace FCloud3.Services.Test.Identities
             int uid = 1;
             _userIdProvider = new(uid);
             _ctx = FCloudMemoryContext.Create();
-            var lastUpdateRepo = new LastUpdateRepo(_ctx);
-            _authGrantRepo = new AuthGrantRepo(_ctx, lastUpdateRepo, _userIdProvider);
+            _authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider);
             _authGrantRepo.ClearCache();
             var userToGroupRepo = new UserToGroupRepo(_ctx, _userIdProvider);
+            userToGroupRepo.ClearCache();
             var userGroupRepo = new UserGroupRepo(_ctx, _userIdProvider);
-            var userRepo = new UserRepo(_ctx, lastUpdateRepo , _userIdProvider);
+            userGroupRepo.ClearCache();
+            var userRepo = new UserRepo(_ctx, _userIdProvider);
             var commentRepo = new CommentRepo(_ctx, _userIdProvider);
             var notifRepo = new NotificationRepo(_ctx, _userIdProvider);
-            var wikiItemRepo = new WikiItemRepo(_ctx, lastUpdateRepo, _userIdProvider);
+            var wikiItemRepo = new WikiItemRepo(_ctx, _userIdProvider);
             var cacheExpTokenService = new CacheExpTokenService(new FakeLogger<CacheExpTokenService>());
             var notificationService = new NotificationService(
                 notifRepo, commentRepo, userGroupRepo, userRepo, wikiItemRepo, _userIdProvider);
@@ -45,11 +46,14 @@ namespace FCloud3.Services.Test.Identities
                     userRepo, cacheExpTokenService, notificationService);
             var wikiParaRepo = new WikiParaRepo(_ctx, _userIdProvider);
             var creatorIdGetter = new CreatorIdGetter(_ctx);
-            var memoryCache = new MemoryCache(new MemoryCacheOptions());
-            
+            var lastUpdateRepo = new LastUpdateRepo(_ctx);
+            var authResCacheHost = new AuthResCacheHost(lastUpdateRepo);
+            authResCacheHost.Clear();
+
             _svc = new AuthGrantService(_authGrantRepo, userRepo, userToGroupRepo, userGroupRepo, wikiParaRepo,
-                _userIdProvider, creatorIdGetter, memoryCache, cacheExpTokenService);
+                _userIdProvider, creatorIdGetter, authResCacheHost);
             _svc.DisableBuiltIn();
+            var time = new DateTime(2024, 1, 1);
 
             List<User> userList =
             [
@@ -59,19 +63,19 @@ namespace FCloud3.Services.Test.Identities
             ];
             List<UserGroup> userGroups =
             [
-                new() { Name = "g1", OwnerUserId = 1 },
-                new() { Name = "g2", OwnerUserId = 2 }
+                new() { Name = "g1", OwnerUserId = 1, Updated = time },
+                new() { Name = "g2", OwnerUserId = 2, Updated = time }
             ];
             List<UserToGroup> userToGroups =
             [
-                new() { UserId = 1, GroupId = 1 },
-                new() { UserId = 2, GroupId = 2 },
+                new() { UserId = 1, GroupId = 1, Type = UserToGroupType.Member, Updated = time },
+                new() { UserId = 2, GroupId = 2, Type = UserToGroupType.Member, Updated = time },
             ];
             List<WikiItem> wikiItems =
             [
-                new() { OwnerUserId = 1 },
-                new() { OwnerUserId = 2 },
-                new() { OwnerUserId = 3 },
+                new() { OwnerUserId = 1, Updated = time },
+                new() { OwnerUserId = 2, Updated = time },
+                new() { OwnerUserId = 3, Updated = time },
             ];
             _ctx.AddRange(userList); _ctx.AddRange(userGroups);
             _ctx.AddRange(userToGroups); _ctx.AddRange(wikiItems);
@@ -82,9 +86,9 @@ namespace FCloud3.Services.Test.Identities
         public void SelfOwned()
         {
             _userIdProvider.UserId = 1;
-            Assert.IsTrue(_svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.IsTrue(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(1, _svc.TestedCount);
-            Assert.IsTrue(_svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.IsTrue(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(1, _svc.TestedCount);
             Assert.AreEqual(0, _authGrantRepo.RepoCacheDictSyncTimes);//所有者等于访问者的情况，会避免数据库查询
         }
@@ -117,11 +121,14 @@ namespace FCloud3.Services.Test.Identities
         public void SingleUserGrant(int toUser, int loginUser, bool expected, bool notReject)
         {
             _userIdProvider.UserId = loginUser;
-            Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             _userIdProvider.UserId = 1;
             _svc.Add(new() { On = AuthGrantOn.WikiItem, OnId = 1, To = AuthGrantTo.User, ToId = toUser, IsReject = !notReject}, out _);
+
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
             _userIdProvider.UserId = loginUser;
-            Assert.AreEqual(expected && notReject, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(expected && notReject, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(2, _authGrantRepo.RepoCacheDictSyncTimes);//中间新增了一次，导致需要重新查询
         }
         
@@ -131,11 +138,14 @@ namespace FCloud3.Services.Test.Identities
         public void EveryOneGrant(bool isReject)
         {
             _userIdProvider.UserId = 2;
-            Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             _userIdProvider.UserId = 1;
             _svc.Add(new() { On = AuthGrantOn.WikiItem, OnId = 1, To = AuthGrantTo.EveryOne, IsReject = isReject}, out _);
+
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
             _userIdProvider.UserId = 2;
-            Assert.AreEqual(!isReject, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(!isReject, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(2, _authGrantRepo.RepoCacheDictSyncTimes);//中间新增了一次，导致需要重新查询
         }
         
@@ -145,16 +155,40 @@ namespace FCloud3.Services.Test.Identities
         public void UserGroupGrant(bool isReject)
         {
             _userIdProvider.UserId = 3;
-            Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
+            //3号用户默认情况下无法访问1号词条
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             _userIdProvider.UserId = 1;
+            //1号用户设置2号群组访问1号词条权限
             _svc.Add(new() { On = AuthGrantOn.WikiItem, OnId = 1, To = AuthGrantTo.UserGroup, ToId = 2, IsReject = isReject}, out _);
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
             _userIdProvider.UserId = 3;
-            Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
+            //3号用户依然无法访问1号词条
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            //3号用户加入2号群组
             _userGroupService.AddUserToGroup(3, 2, false, out _);
-            Assert.AreEqual(!isReject, _svc.Test(AuthGrantOn.WikiItem, 1));
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
+            //3号用户作为2号群组成员有权/无权访问1号词条
+            Assert.AreEqual(!isReject, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            //3号用户离开2号群组
             _userGroupService.RemoveUserFromGroup(3, 2, out _);
-            Assert.IsFalse(_svc.Test(AuthGrantOn.WikiItem, 1));
-            Assert.AreEqual(4, _svc.TestedCount);
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
+            //3号用户再无法访问1号词条
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            _userIdProvider.UserId = 2;
+            //但2号群组中的2号用户依然可以
+            Assert.AreEqual(!isReject, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            //解散2号群组
+            _userGroupService.Dissolve(2, out _);
+            _ctx.ChangeTracker.Clear();//模拟Scope结束
+
+            //2号用户再不能访问词条
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            //2号用户再不能访问词条（不会增加_svc.TestedCount）
+            Assert.IsFalse(_svc.CheckAccess(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(6, _svc.TestedCount);
             Assert.AreEqual(2, _authGrantRepo.RepoCacheDictSyncTimes);
             //一二次中间新增了一次，导致需要查询两次，二三四次中间并未新增/删除，Test需要的AuthGrant列表使用缓存
         }
@@ -194,7 +228,7 @@ namespace FCloud3.Services.Test.Identities
             globalAuthGrants.ForEach(a=> _svc.Add(a, out _));
             
             _userIdProvider.UserId = loginUid;
-            Assert.AreEqual(expected, _svc.Test(AuthGrantOn.WikiItem, 1));
+            Assert.AreEqual(expected, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(1, _authGrantRepo.RepoCacheDictSyncTimes);
         }
     }

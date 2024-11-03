@@ -133,6 +133,11 @@ namespace FCloud3.Repos.Identities
             errmsg = null; 
             return true;
         }
+        public void RemoveGroup(int groupId)
+        {
+            var relIds = CachedItemsByPred(x => x.GroupId == groupId).Select(x => x.Id).ToList();
+            RemoveRange(relIds);
+        }
         
         public bool SetShowLabel(int userId, int groupId, bool show, out string? errmsg)
         {

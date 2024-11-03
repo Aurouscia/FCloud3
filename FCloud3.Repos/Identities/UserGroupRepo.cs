@@ -1,14 +1,16 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Identities;
+using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Repos.Identities
 {
-    public class UserGroupRepo : RepoBase<UserGroup>
+    public class UserGroupRepo : RepoBaseCache<UserGroup, UserGroupCacheModel>
     {
         private const string userGroupNamePattern = @"^[\u4E00-\u9FA5A-Za-z0-9]{1,}$";
-        public UserGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
+        public UserGroupRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider)
+            : base(context, userIdProvider)
         {
         }
 
@@ -69,5 +71,19 @@ namespace FCloud3.Repos.Identities
             errmsg = null;
             return true;
         }
+
+        protected override IQueryable<UserGroupCacheModel> ConvertToCacheModel(IQueryable<UserGroup> q)
+        {
+            return q.Select(x => new UserGroupCacheModel(x.Id, x.Updated, x.OwnerUserId));
+        }
+
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.UserGroup;
+    }
+
+    public class UserGroupCacheModel(int id, DateTime updated, int owner)
+        : CacheModelBase<UserGroup>(id, updated)
+    {
+        public int Owner = owner;
     }
 }

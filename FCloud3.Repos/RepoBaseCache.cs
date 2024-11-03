@@ -165,6 +165,12 @@ namespace FCloud3.Repos
             SetLastUpdateInLuTable(t);
             base.Remove(item, time);
         }
+        protected override void RemoveRange(List<int> ids, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.RemoveRange(ids, time);
+        }
         protected override void RemoveRange(List<T> items, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;

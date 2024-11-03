@@ -21,10 +21,9 @@ namespace FCloud3.Services.Test.Wiki.Support
             int uid = 0;
             var userIdProvider = new StubUserIdProvider(uid);
             _ctx = FCloudMemoryContext.Create();
-            var lastUpdateRepo = new LastUpdateRepo(_ctx);
-            WikiItemRepo wikiItemRepo = new(_ctx, lastUpdateRepo, userIdProvider);
+            WikiItemRepo wikiItemRepo = new(_ctx, userIdProvider);
             WikiToDirRepo wikiToDirRepo = new(_ctx, userIdProvider);
-            FileDirRepo fileDirRepo = new(_ctx, lastUpdateRepo, userIdProvider);
+            FileDirRepo fileDirRepo = new(_ctx, userIdProvider);
             _myWikisService = new MyWikisService(wikiItemRepo, wikiToDirRepo, fileDirRepo);
             var time = new DateTime(2024, 1, 6);
 

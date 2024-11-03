@@ -45,7 +45,7 @@ namespace FCloud3.App.Controllers.Files
             if(data is null)
                 return BadRequest();
             var isAdminOrHigher = _httpUserInfoService.IsAdmin;
-            bool authGranted = _authGrantService.Test(AuthGrantOn.Dir, id);
+            bool authGranted = _authGrantService.CheckAccess(AuthGrantOn.Dir, id);
             var canEdit = isAdminOrHigher || authGranted;
             FileDirComModel resp = new()
             {

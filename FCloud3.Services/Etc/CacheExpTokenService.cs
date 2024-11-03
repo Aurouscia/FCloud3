@@ -10,7 +10,6 @@ namespace FCloud3.Services.Etc
             WikiTitleContain = new("词条标题包含", logger);
             WikiItemNamePathInfo = new("词条名称和路径名", logger);
             MaterialNamePathInfo = new("素材名称和路径名", logger);
-            AuthGrants = new("权限授予对象", logger);
         }
         /// <summary>
         /// “词条标题包含”的缓存过期token提供源，key为wikiId，
@@ -31,7 +30,6 @@ namespace FCloud3.Services.Etc
         /// “全部权限授予对象”的缓存过期token提供源
         /// 当任意权限授予对象改动，创建或删除时，必须将对应token过期，使“是否通过验证”缓存过期
         /// </summary>
-        public CacheExpTokenManager AuthGrants { get; }
 
         public class CacheExpTokenManager
         {

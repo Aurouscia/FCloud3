@@ -309,6 +309,15 @@ namespace FCloud3.Repos
                     .SetProperty(m => m.Updated, t));
             AfterDataChange();
         }
+        protected virtual void RemoveRange(List<int> ids, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            Existing.Where(x => ids.Contains(x.Id))
+                .ExecuteUpdate(x => x
+                    .SetProperty(m => m.Deleted, true)
+                    .SetProperty(m => m.Updated, t));
+            AfterDataChange();
+        }
 
         protected virtual void AfterDataChange() { }
     }

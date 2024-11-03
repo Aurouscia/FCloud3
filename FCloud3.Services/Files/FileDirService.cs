@@ -290,7 +290,7 @@ namespace FCloud3.Services.Files
             }
             int originalCount = fileItemIds.Count;
             if(!bypassAuth)
-                fileItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.FileItem, x));
+                fileItemIds.RemoveAll(x => !_authGrantService.CheckAccess(AuthGrantOn.FileItem, x));
             if (originalCount > fileItemIds.Count)
                 failMsg = "无权移动该文件，请咨询管理员";
             if (distDirId < 0)
@@ -330,7 +330,7 @@ namespace FCloud3.Services.Files
             }
             int originalCount = fileDirIds.Count;
             if(!bypassAuth)
-                fileDirIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.Dir, x));
+                fileDirIds.RemoveAll(x => !_authGrantService.CheckAccess(AuthGrantOn.Dir, x));
             if (originalCount > fileDirIds.Count)
                 failMsg = "无权移动该目录，请咨询管理员";
 
@@ -386,7 +386,7 @@ namespace FCloud3.Services.Files
             }
             int originalCount = wikiItemIds.Count;
             if(!bypassAuth)
-                wikiItemIds.RemoveAll(x => !_authGrantService.Test(AuthGrantOn.WikiItem, x));
+                wikiItemIds.RemoveAll(x => !_authGrantService.CheckAccess(AuthGrantOn.WikiItem, x));
             if (originalCount > wikiItemIds.Count)
                 failMsg = "无权移动该词条，请咨询管理员";
             if (wikiItemIds.Count > 0)

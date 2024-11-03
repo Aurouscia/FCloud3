@@ -16,6 +16,7 @@ namespace FCloud3.Entities.Sys
         User = 20,
         AuthGrant = 21,
         UserToGroup = 22,
+        UserGroup = 23,
         FileDir = 30,
         Material = 31
     }

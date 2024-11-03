@@ -165,7 +165,6 @@ namespace FCloud3.Services.Identities
         }
         public bool AddUserToGroup(int userId, int groupId, bool needAudit, out string? errmsg)
         {
-            _cacheExpTokenService.AuthGrants.CancelAll();
             var s = _userToGroupRepo.AddUserToGroup(userId, groupId, needAudit, out errmsg);
             if (s && needAudit)
             {
@@ -175,7 +174,6 @@ namespace FCloud3.Services.Identities
         }
         public bool AnswerInvitaion(int groupId, bool accept, out string? errmsg)
         {
-            _cacheExpTokenService.AuthGrants.CancelAll();
             if (accept)
                 return _userToGroupRepo.AcceptInvitaion(_userId, groupId, out errmsg);
             else
@@ -183,7 +181,6 @@ namespace FCloud3.Services.Identities
         }
         public bool RemoveUserFromGroup(int userId, int groupId, out string? errmsg)
         {
-            _cacheExpTokenService.AuthGrants.CancelAll();
             return _userToGroupRepo.RemoveUserFromGroup(userId, groupId, out errmsg);
         }
         public bool Leave(int groupId, out string? errmsg)
@@ -194,18 +191,17 @@ namespace FCloud3.Services.Identities
                 errmsg = "暂不支持群主退出";
                 return false;
             }
-            _cacheExpTokenService.AuthGrants.CancelAll();
             return RemoveUserFromGroup(_userId, groupId, out errmsg);
         }
         public bool Dissolve(int id,out string? errmsg)
         {
-            _cacheExpTokenService.AuthGrants.CancelAll();
             var g = _userGroupRepo.GetById(id);
             if (g is null)
             {
                 errmsg = "找不到指定群组";
                 return false;
             }
+            _userToGroupRepo.RemoveGroup(id);
             _userGroupRepo.Remove(g);
             errmsg = null;
             return true;

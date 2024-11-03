@@ -36,7 +36,7 @@ namespace FCloud3.App.Services.Auth
                         case "wikiitem":
                             onType = AuthGrantOn.WikiItem;break;
                     }
-                    if (_authGrantService.Test(onType, id))
+                    if (_authGrantService.CheckAccess(onType, id))
                     {
                         context.Succeed(requirement);
                         return Task.CompletedTask;
