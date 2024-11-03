@@ -9,9 +9,8 @@ namespace FCloud3.Repos.Files
 {
     public class FileDirRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider
-            ) : RepoBaseCache<FileDir, FileDirCacheModel>(context, lastUpdateRepo, userIdProvider)
+            ) : RepoBaseCache<FileDir, FileDirCacheModel>(context, userIdProvider)
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
         private const string zeroIdxUrlPathName = "homeless-items";

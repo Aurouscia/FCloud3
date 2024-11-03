@@ -9,9 +9,8 @@ namespace FCloud3.Repos.Identities
 {
     public class AuthGrantRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider)
-        : RepoBaseCache<AuthGrant, AuthGrantCacheModel>(context, lastUpdateRepo, userIdProvider)
+        : RepoBaseCache<AuthGrant, AuthGrantCacheModel>(context, userIdProvider)
     {
         /// <summary>
         /// 获取某对象的所有授权，本地和全局的/仅全局的，但不包括内置的

@@ -10,9 +10,8 @@ namespace FCloud3.Repos.Wiki
 {
     public class WikiItemRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider) 
-        : RepoBaseCache<WikiItem, WikiItemCacheModel>(context, lastUpdateRepo, userIdProvider)
+        : RepoBaseCache<WikiItem, WikiItemCacheModel>(context, userIdProvider)
     {
         private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
 

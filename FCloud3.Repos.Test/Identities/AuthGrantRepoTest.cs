@@ -44,8 +44,7 @@ namespace FCloud3.Repos.Test.Identities
             _context.AddRange(initials);
             _context.SaveChanges();
 
-            var lastUpdateRepo = new LastUpdateRepo(_context);
-            _repo = new AuthGrantRepo(_context, lastUpdateRepo, new StubUserIdProvider(1));
+            _repo = new AuthGrantRepo(_context, new StubUserIdProvider(1));
             _repo.ClearCache();
         }
 

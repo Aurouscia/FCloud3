@@ -15,7 +15,7 @@ namespace FCloud3.Repos.Test.Identities
         public UserToGroupRepoTest()
         {
             _context = FCloudMemoryContext.Create();
-            _repo = new UserToGroupRepo(_context, new(_context), new StubUserIdProvider(1));
+            _repo = new UserToGroupRepo(_context, new StubUserIdProvider(1));
             _repo.ClearCache();
             var time = new DateTime(2024, 1, 6);
             _context.Users.AddRange(new List<User>()

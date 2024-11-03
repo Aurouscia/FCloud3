@@ -42,8 +42,7 @@ namespace FCloud3.Repos.Test.Files
             _context.FileDirs.AddRange(dir1, dir2, dir3, dir4, aaa5, aaa6);
             _context.SaveChanges();
 
-            var lastUpdateRepo = new LastUpdateRepo(_context);
-            _repo = new(_context, lastUpdateRepo, new StubUserIdProvider(2));
+            _repo = new(_context, new StubUserIdProvider(2));
             _repo.ClearCache();
         }
         #endregion

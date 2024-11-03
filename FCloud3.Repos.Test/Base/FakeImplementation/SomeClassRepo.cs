@@ -11,9 +11,8 @@ namespace FCloud3.Repos.Test.Base.FakeImplementation
 {
     internal class SomeClassRepo(
         FCloudContextWithSomeClass contextWithSomeClass,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider) 
-        : RepoBaseCache<SomeClass, SomeClassCacheModel>(contextWithSomeClass, lastUpdateRepo, userIdProvider)
+        : RepoBaseCache<SomeClass, SomeClassCacheModel>(contextWithSomeClass, userIdProvider)
     {
         public new void Add(SomeClass item) => base.Add(item);
         public new void Update(SomeClass item) => base.Update(item);

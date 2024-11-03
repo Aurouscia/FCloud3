@@ -8,10 +8,9 @@ namespace FCloud3.Repos.Identities
 {
     public class UserToGroupRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider
         ) : RepoBaseCache<UserToGroup, UserToGroupCacheModel>(
-            context, lastUpdateRepo,userIdProvider)
+            context, userIdProvider)
     {
 
         public IQueryable<UserToGroup> ExistingAndShowLabel

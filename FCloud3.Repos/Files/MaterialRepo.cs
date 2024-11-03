@@ -8,9 +8,8 @@ namespace FCloud3.Repos.Files
 {
     public class MaterialRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider)
-        : RepoBaseCache<Material, MaterialCacheModel>(context, lastUpdateRepo, userIdProvider)
+        : RepoBaseCache<Material, MaterialCacheModel>(context, userIdProvider)
     {
         public IQueryable<Material> QuickSearch(string str)
         {

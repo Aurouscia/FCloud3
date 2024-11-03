@@ -17,10 +17,9 @@ namespace FCloud3.Repos.Test.Base
         public RepoBaseCacheTest()
         {
             var ctx = FCloudContextWithSomeClass.Create();
-            var lastUpdateRepo = new LastUpdateRepo(ctx);
             var userIdProvider = new StubUserIdProvider(2);
-            _repo = new SomeClassRepo(ctx, lastUpdateRepo, userIdProvider);
-            _repoAnother = new SomeClassRepo(ctx, lastUpdateRepo, userIdProvider);
+            _repo = new SomeClassRepo(ctx, userIdProvider);
+            _repoAnother = new SomeClassRepo(ctx, userIdProvider);
 
             var time = new DateTime(2024, 1, 6);
             List<SomeClass> items = [

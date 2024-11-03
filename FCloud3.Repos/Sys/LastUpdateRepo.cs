@@ -1,6 +1,7 @@
 ﻿using FCloud3.DbContexts;
 using FCloud3.Entities.Sys;
 using Microsoft.EntityFrameworkCore;
+using NPOI.OpenXmlFormats.Spreadsheet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,41 +13,92 @@ namespace FCloud3.Repos.Sys
     public class LastUpdateRepo(FCloudContext ctx)
     {
         public void SetLastUpdateFor(LastUpdateType type, DateTime time)
+            => LastUpdateDbUtil.SetLastUpdateFor(ctx, type, time);
+        public DateTime GetLastUpdateFor(LastUpdateType type, Func<DateTime>? init = null)
+            => LastUpdateDbUtil.GetLastUpdateFor(ctx, type, init);
+        public DateTime GetLastUpdateFor(LastUpdateType[] types, Func<DateTime>? init = null)
+            => LastUpdateDbUtil.GetLastUpdateFor(ctx, types, init);
+    }
+
+    public static class LastUpdateDbUtil
+    {
+        private static readonly DateTime defaultTime = new(1900, 1, 1);
+        private static readonly object lockObj = new();
+        public static void SetLastUpdateFor(FCloudContext ctx, LastUpdateType type, DateTime time)
         {
-            var updated = ctx.LastUpdates
-                .Where(x => x.Type == type)
-                .ExecuteUpdate(spc => spc
-                    .SetProperty(x => x.LastUpdateTime, time));
-            if(updated == 0)
+            lock (lockObj)
             {
-                LastUpdate model = new()
+                var updated = ctx.LastUpdates
+                    .Where(x => x.Type == type)
+                    .ExecuteUpdate(spc => spc
+                        .SetProperty(x => x.LastUpdateTime, time));
+                if (updated == 0)
                 {
-                    Type = type,
-                    LastUpdateTime = time
-                };
-                ctx.LastUpdates.Add(model);
-                ctx.SaveChanges();
+                    LastUpdate model = new()
+                    {
+                        Type = type,
+                        LastUpdateTime = time
+                    };
+                    ctx.LastUpdates.Add(model);
+                    ctx.SaveChanges();
+                }
             }
         }
-        public DateTime GetLastUpdateFor(LastUpdateType type, Func<DateTime> init)
+        public static DateTime GetLastUpdateFor(FCloudContext ctx, LastUpdateType type, Func<DateTime>? init = null)
         {
-            var res = ctx.LastUpdates
-                .Where(x => x.Type == type)
-                .Select(x => x.LastUpdateTime)
-                .FirstOrDefault();
-            if(res == default)
+            lock (lockObj)
             {
-                var initVal = init();
-                LastUpdate model = new()
+                var res = ctx.LastUpdates
+                    .Where(x => x.Type == type)
+                    .Select(x => x.LastUpdateTime)
+                    .FirstOrDefault();
+                if (res == default)
                 {
-                    Type = type,
-                    LastUpdateTime = initVal
-                };
-                ctx.LastUpdates.Add(model);
-                ctx.SaveChanges();
-                return initVal;
+                    var initVal = init is { } ? init() : defaultTime;
+                    LastUpdate model = new()
+                    {
+                        Type = type,
+                        LastUpdateTime = initVal
+                    };
+                    ctx.LastUpdates.Add(model);
+                    ctx.SaveChanges();
+                    return initVal;
+                }
+                return res;
             }
-            return res;
+        }
+        public static DateTime GetLastUpdateFor(FCloudContext ctx, LastUpdateType[] types, Func<DateTime>? init = null)
+        {
+            lock (lockObj)
+            {
+                var res = ctx.LastUpdates
+                    .Where(x => types.Contains(x.Type))
+                    .ToList();
+                if (res.Count > 0)
+                    return res.Select(x => x.LastUpdateTime).Max();
+                else
+                {
+                    var existingTypes = res.Select(x => x.Type);
+                    var initVal = init is { } ? init() : defaultTime;
+                    List<LastUpdate> models = [];
+                    foreach (var t in types)
+                    {
+                        if (existingTypes.Contains(t))
+                            continue;
+                        models.Add(new()
+                        {
+                            Type = t,
+                            LastUpdateTime = initVal
+                        });
+                    };
+                    if (models.Count > 0)
+                    {
+                        ctx.LastUpdates.AddRange(models);
+                        ctx.SaveChanges();
+                    }
+                    return initVal;
+                }
+            }
         }
     }
 }

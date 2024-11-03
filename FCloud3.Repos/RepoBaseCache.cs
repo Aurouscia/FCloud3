@@ -1,21 +1,25 @@
 using FCloud3.DbContexts;
 using FCloud3.Entities;
 using FCloud3.Entities.Sys;
-using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Sys;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace FCloud3.Repos
 {
-    public abstract class RepoBaseCache<T, TCache>(
-        FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
-        ICommitingUserIdProvider userIdProvider)
-        : RepoBase<T>(context, userIdProvider)
+    public abstract class RepoBaseCache<T, TCache> : RepoBase<T>
         where T : class, IDbModel
         where TCache : CacheModelBase<T>
     {
+        public FCloudContext _ctx;
+        public RepoBaseCache(
+            FCloudContext context,
+            ICommitingUserIdProvider userIdProvider)
+            : base(context, userIdProvider)
+        {
+            _ctx = context;
+        }
         /// <summary>
         /// 存储Cache对象列表的线程安全字典，key为Id
         /// </summary>
@@ -189,12 +193,12 @@ namespace FCloud3.Repos
         protected void SetLastUpdateInLuTable(DateTime time)
         {
             var t = GetLastUpdateType();
-            lastUpdateRepo.SetLastUpdateFor(t, time);
+            LastUpdateDbUtil.SetLastUpdateFor(_ctx, t, time);
         }
         private DateTime GetLastUpdateInLuTable()
         {
             var t = GetLastUpdateType();
-            return lastUpdateRepo.GetLastUpdateFor(t, GetLastUpdateInDbForInit);
+            return LastUpdateDbUtil.GetLastUpdateFor(_ctx, t, GetLastUpdateInDbForInit);
         }
         protected abstract LastUpdateType GetLastUpdateType();
         private DateTime GetLastUpdateInDbForInit()

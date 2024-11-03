@@ -9,9 +9,8 @@ namespace FCloud3.Repos.Identities
 {
     public class UserRepo(
         FCloudContext context,
-        LastUpdateRepo lastUpdateRepo,
         ICommitingUserIdProvider userIdProvider)
-        : RepoBaseCache<User, UserCacheModel>(context, lastUpdateRepo, userIdProvider)
+        : RepoBaseCache<User, UserCacheModel>(context, userIdProvider)
     {
         public IQueryable<User> GetByName(string name)
         {

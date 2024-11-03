@@ -15,8 +15,7 @@ namespace FCloud3.Repos.Test.Wiki
         public WikiItemRepoTest()
         {
             var ctx = FCloudMemoryContext.Create();
-            var lastUpdateRepo = new LastUpdateRepo(ctx);
-            _repo = new(ctx, lastUpdateRepo, new StubUserIdProvider(1));
+            _repo = new(ctx, new StubUserIdProvider(1));
             var list = new List<WikiItem>()
             {
                 new() { Id = 1, Created = _initalTime, Updated = _initalTime },
