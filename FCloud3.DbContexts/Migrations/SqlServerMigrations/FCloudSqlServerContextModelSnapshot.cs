@@ -592,6 +592,15 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<byte>("AllowComment")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("AllowCopy")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("CCLicense")
+                        .HasColumnType("tinyint");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
@@ -671,6 +680,26 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
                     b.HasKey("Id");
 
                     b.ToTable("WikiParas");
+                });
+
+            modelBuilder.Entity("FCloud3.Entities.Wiki.WikiRef", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Str")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("WikiId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WikiRefs");
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiSelected", b =>

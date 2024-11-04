@@ -26,6 +26,7 @@ namespace FCloud3.DbContexts
         public DbSet<WikiToDir> WikiToDirs { get; set; }
         public DbSet<WikiPara> WikiParas { get; set; }
         public DbSet<WikiTitleContain> WikiTitleContains { get; set; }
+        public DbSet<WikiRef> WikiRefs { get; set; }
         public DbSet<TextSection> TextSections { get; set; }
         public DbSet<WikiTemplate> WikiTemplates { get; set; }
         public DbSet<FreeTable> FreeTables { get; set; }
