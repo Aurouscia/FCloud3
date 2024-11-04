@@ -83,6 +83,30 @@ export class DbgDrawer extends DrawerBase{
             if(!config?.noStroke)
                 this.cvs.stroke()
         }
+        else if(type=='cross'){
+            const {x,y} = super.posToCord(pos,'c','c')
+            const radius = this.ctx.uPx / 4 * (config?.radiusRatio || 1)
+            this.cvs.beginPath()
+            this.cvs.fillStyle = 'white'
+            this.cvs.lineWidth = radius * 0.8
+            this.cvs.arc(x, y, radius*1.2, 0, 2*Math.PI)
+            this.cvs.fill()
+            if(!config?.noStroke){
+                this.cvs.strokeStyle = 'white'
+                this.cvs.stroke()
+                this.cvs.lineWidth = radius / 3
+                this.cvs.strokeStyle = '#666'
+                this.cvs.stroke()
+                this.cvs.lineCap = 'round'
+                this.cvs.lineWidth = radius / 4
+                this.cvs.beginPath()
+                this.cvs.arc(x, y, radius*0.6, 0, 0.6*Math.PI)
+                this.cvs.stroke()
+                this.cvs.beginPath()
+                this.cvs.arc(x, y, radius*0.6, Math.PI, 1.6*Math.PI)
+                this.cvs.stroke()
+            }
+        }
     }
     drawIcon(pos: Point, bgColor: string, text: string, type:DrawIconType):void{
         let {x,y} = super.posToCord(pos, 'c', 'c')

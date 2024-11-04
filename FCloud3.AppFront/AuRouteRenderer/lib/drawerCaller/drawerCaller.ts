@@ -1,7 +1,7 @@
 import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, needFillLine,
     staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
-import { Drawer, DrawIconType, DrawLineConfig, DrawLineType } from "../drawer/drawer";
+import { Drawer, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer/drawer";
 
 export function callDrawer(t:Target, drawer:Drawer){
     const color = t.config.c
@@ -53,7 +53,9 @@ export function callDrawer(t:Target, drawer:Drawer){
     const drawAllSta = (noStroke?:boolean, radiusRatio?:number)=>{
         enumerateGrid((x,y,mark)=>{
             if(mark ==='o'){
-                drawer.drawStation({x,y}, color, "single", {noStroke, radiusRatio})
+                const isExchangeRow = t.annotations[y]?.some(x => !isIconCall(x))
+                const type:DrawStationType = isExchangeRow ? 'cross' : 'single'
+                drawer.drawStation({x,y}, color, type, {noStroke, radiusRatio})
             }
         })
     }
@@ -143,6 +145,9 @@ function transLineType(grid:string[][], y:number, x:number)
     return undefined
 }
 
+function isIconCall(anno:string):boolean{
+    return anno.startsWith('_')
+}
 function readAnnoAsIcon(anno:string):{text:string, bgColor:string}|undefined{
     const isIconFixed = /^_.*?_$/.test(anno)
     if(isIconFixed){
