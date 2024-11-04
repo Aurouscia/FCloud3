@@ -92,7 +92,6 @@ namespace FCloud3.Services.Files
                 //写入存储名
                 m.StorePathName = storePathName;
                 var createdId = _materialRepo.TryAddAndGetId(m, out errmsg);
-                _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
                 return createdId;
             }
         }
@@ -141,7 +140,6 @@ namespace FCloud3.Services.Files
                 _storage.Delete(oldPathName, out _);
             m.StorePathName = storePathName;
             _materialRepo.UpdateInfoWithoutCheck(m);
-            _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
             return true;
         }
 
@@ -160,10 +158,6 @@ namespace FCloud3.Services.Files
                 m.Desc = desc;
                 if (!_materialRepo.TryUpdateInfo(m, out errmsg))
                     return false;
-                if(nameChanged)
-                {
-                    _cacheExpTokenService.MaterialNamePathInfo.CancelAll();
-                }
                 errmsg = null;
                 return true;
             }

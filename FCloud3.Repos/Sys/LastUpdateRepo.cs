@@ -44,6 +44,38 @@ namespace FCloud3.Repos.Sys
                 }
             }
         }
+        public static void SetLastUpdateFor(FCloudContext ctx, LastUpdateType[] types, DateTime time)
+        {
+            lock (lockObj)
+            {
+                var updated = ctx.LastUpdates
+                    .Where(x => types.Contains(x.Type))
+                    .ExecuteUpdate(spc => spc
+                        .SetProperty(x => x.LastUpdateTime, time));
+                if (updated < types.Length)
+                {
+                    var existingTypes = ctx.LastUpdates
+                        .Where(x => types.Contains(x.Type))
+                        .Select(x => x.Type).ToList();
+                    List<LastUpdate> models = [];
+                    foreach (var t in types)
+                    {
+                        if (existingTypes.Contains(t))
+                            continue;
+                        models.Add(new()
+                        {
+                            Type = t,
+                            LastUpdateTime = time
+                        });
+                    };
+                    if (models.Count > 0)
+                    {
+                        ctx.LastUpdates.AddRange(models);
+                        ctx.SaveChanges();
+                    }
+                }
+            }
+        }
         public static DateTime GetLastUpdateFor(FCloudContext ctx, LastUpdateType type, Func<DateTime>? init = null)
         {
             lock (lockObj)

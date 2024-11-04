@@ -52,7 +52,6 @@ namespace FCloud3.Services
             services.AddScoped<OpRecordService>();
 
             services.AddScoped<QuickSearchService>();
-            services.AddSingleton<CacheExpTokenService>();
             services.AddScoped<LatestWorkService>();
             services.AddScoped<WikiCenteredHomePageService>();
             services.AddScoped<WikiContentSearchService>();
@@ -61,6 +60,7 @@ namespace FCloud3.Services
             services.AddScoped<SplitService>();
 
             services.AddScoped<AuthResCacheHost>();
+            services.AddScoped<WikiParserCacheHost>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")

@@ -8,12 +8,12 @@ namespace FCloud3.Services.Etc.Cache.Base
         LastUpdateRepo lastUpdateRepo)
     {
         protected static ConcurrentDictionary<string, TimedValue> Dict { get; } = [];
-        protected void Set(string key, T value)
+        public void Set(string key, T value)
         {
             TimedValue tv = new(DateTime.Now, value);
             Dict.AddOrUpdate(key, tv, (_, _) => tv);
         }
-        protected bool TryGet(string key, out T? value, bool checkNewest = true)
+        public bool TryGet(string key, out T? value, bool checkNewest = true)
         {
             if (checkNewest)
             {

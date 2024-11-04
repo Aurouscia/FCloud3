@@ -47,14 +47,18 @@ namespace FCloud3.Repos.Wiki
             if (!InfoCheck(item, false, out errmsg))
                 return 0;
             item.OwnerUserId = _userIdProvider.Get();
-            base.Add(item);
+            var now = DateTime.Now;
+            base.Add(item, now);
+            UpdateWikiItemRefLu(now);
             return item.Id;
         }
         public bool TryUpdate(WikiItem item, out string? errmsg)
         {
             if (!InfoCheck(item, true, out errmsg))
                 return false;
-            base.Update(item);
+            var now = DateTime.Now;
+            base.Update(item, now);
+            UpdateWikiItemRefLu(now);
             return true;
         }
         public bool TryRemove(WikiItem item, out string? errmsg)
@@ -65,7 +69,9 @@ namespace FCloud3.Repos.Wiki
                 errmsg = "只有所有者能删除词条";
                 return false;
             }
-            base.Remove(item);
+            var now = DateTime.Now;
+            base.Remove(item, now);
+            UpdateWikiItemRefLu(now);
             errmsg = null;
             return true;
         }
@@ -133,6 +139,10 @@ namespace FCloud3.Repos.Wiki
         {
             var ids = new int[] { wikiId };
             return UpdateTimeAndLuAndWikiActive(ids.AsQueryable(), updateWikiActive);
+        }
+        private void UpdateWikiItemRefLu(DateTime time)
+        {
+            LastUpdateDbUtil.SetLastUpdateFor(_ctx, LastUpdateType.WikiItemRef, time);
         }
 
         protected override LastUpdateType GetLastUpdateType()

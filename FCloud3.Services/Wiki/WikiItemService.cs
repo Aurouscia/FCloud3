@@ -449,7 +449,6 @@ namespace FCloud3.Services.Wiki
             {
                 if (_wikiRepo.TryUpdate(target, out errmsg))
                 {
-                    _cacheExpTokenService.WikiItemNamePathInfo.CancelAll();
                     if(record.Length>0)
                         _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, 0, record);
                     return true;
