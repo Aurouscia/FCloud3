@@ -167,7 +167,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                                 break;
                         }
                     }
-                    pointer = right + 1;
+                    //TODO: 此处效率被迫降低，由于[]和[]()的蠢事（后者吞掉前者）
+                    //pointer = right + 1;
+                    pointer += 1;
                     if (pointer >= input.Length - 1)
                         break;
                 }

@@ -207,6 +207,8 @@ namespace FCloud3.WikiPreprocessor.Rules
             : base("[", ")", "", "", "", "带文字的手动链接") { }
         public override bool FulFill(string span)
         {
+            if (span.Contains('['))
+                return false;
             string[] parts = span.Split(partsSep);
             if (parts.Length != 2)
                 return false;
