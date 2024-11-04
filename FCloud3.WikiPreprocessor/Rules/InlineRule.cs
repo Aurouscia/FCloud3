@@ -177,6 +177,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             if (!UrlUtil.IsUrl(trimmedSpan))
             {
                 //不是http或斜杠开头才会进来
+                context.Ref.ReportRef(trimmedSpan);
                 var link = context.DataSource?.Link(trimmedSpan);
                 if (link is not null)
                 {
@@ -225,6 +226,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             var trimmedPart2 = parts[1].Trim();
             if (!UrlUtil.IsUrl(trimmedPart2))
             {
+                context.Ref.ReportRef(trimmedPart2);
                 var link = context.DataSource?.Link(trimmedPart2);
                 if (link is not null)
                 {

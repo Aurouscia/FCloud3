@@ -18,6 +18,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserRuleUsageContext RuleUsage { get; }
         public ParserFootNoteContext FootNote { get; }
         public ParserTitleGatheringContext TitleGathering { get; }
+        public ParserRefContext Ref { get; }
         public AutoReplaceContext AutoReplace { get; }
         public IScopedDataSource? DataSource { get; private set; }
 
@@ -33,6 +34,7 @@ namespace FCloud3.WikiPreprocessor.Context
             Caches = new(options.CacheOptions, this);
             FootNote = new();
             TitleGathering = new();
+            Ref = new();
             AutoReplace = new(
                 options.InlineParsingOptions,
                 options.AutoReplaceOptions,
@@ -64,6 +66,7 @@ namespace FCloud3.WikiPreprocessor.Context
                 RuleUsage.Reset();
             Caches.BeforeParsing();
             FootNote.Clear();
+            Ref.Clear();
         }
         /// <summary>
         /// 在Parser对象运行之后，抛弃Scoped数据源，确保每次拿到的都是新的

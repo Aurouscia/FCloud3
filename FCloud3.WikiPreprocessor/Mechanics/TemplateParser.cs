@@ -36,12 +36,14 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     res.AddFlat(_inlineParser.Value.Run(f.Content, mayContainTemplateCall: false));
                 else if (f.Type == SplittedByCalls.FragTypes.Template)
                 {
-                    res.Add(ParseSingleCall(f.PureContent,out Template? detected));
+                    res.Add(ParseSingleCall(f.PureContent, out string? templateName, out Template? detected));
+                    _ctx.Ref.ReportRef(templateName);
                     if(detected is not null)
                         _ctx.RuleUsage.ReportUsage(detected);
                 }
                 else if(f.Type == SplittedByCalls.FragTypes.Implant)
                 {
+                    _ctx.Ref.ReportRef(f.PureContent);
                     string? implantRes = _ctx.DataSource?.Implant(f.PureContent);
                     if (implantRes is null || implantRes == f.PureContent)
                         res.Add(new TextElement(f.Content));//对于未能匹配的Implant，应该仍保留俩括号"{}"，因为它们可能是style标签里的
@@ -54,13 +56,15 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
         private static readonly string[] valuesSep = new string[] { "&amp;&amp;" };
         private static readonly string[] keyValueSep = new string[] { "::", "：：" };
-        public Element ParseSingleCall(string templateCallSource,out Template? detected)
+        public Element ParseSingleCall(string templateCallSource, out string? tName, out Template? detected)
         {
+            tName = null;
             try
             {
                 ExtractCallName(templateCallSource, out string templateName, out string valueStr);
                 if (string.IsNullOrEmpty(templateName))
                     throw new Exception($"{Consts.callFormatMsg}，未填写模板名");
+                tName = templateName;
                 var template = _ctx.Options.TemplateParsingOptions.Templates.Find(x => x.Name == templateName);
                 detected = template;
                 if (template is null)
