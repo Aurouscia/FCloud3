@@ -13,6 +13,7 @@ namespace FCloud3.Entities.Sys
     {
         None = 0,
         WikiItem = 10,
+        WikiTitleContain = 11,
         User = 20,
         AuthGrant = 21,
         UserToGroup = 22,

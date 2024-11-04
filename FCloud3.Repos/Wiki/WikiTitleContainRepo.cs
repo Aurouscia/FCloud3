@@ -1,10 +1,12 @@
 ﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Sys;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos.Wiki
 {
-    public class WikiTitleContainRepo : RepoBase<WikiTitleContain>
+    public class WikiTitleContainRepo
+        : RepoBaseCache<WikiTitleContain, WikiTitleContainCacheModel>
     {
         public WikiTitleContainRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider) : base(context, userIdProvider)
         {
@@ -74,6 +76,36 @@ namespace FCloud3.Repos.Wiki
                 return WikiParaType.Table;
             throw new NotImplementedException();
         }
+
+        private IEnumerable<WikiTitleContainCacheModel> CachedContainAll(
+            int objId, WikiTitleContainType type)
+        {
+            return CachedItemsByPred(x => x.ObjId == objId && x.Type == type);
+        }
+        private IEnumerable<WikiTitleContainCacheModel> CachedContain(
+            bool blackListed, int objId, WikiTitleContainType type)
+        {
+            return CachedContainAll(objId, type).Where(x => x.BlackListed == blackListed);
+        }
+
+        protected override IQueryable<WikiTitleContainCacheModel> ConvertToCacheModel(IQueryable<WikiTitleContain> q)
+        {
+            return q.Select(x => new WikiTitleContainCacheModel(
+                x.Id, x.Updated, x.Type, x.ObjectId, x.WikiId, x.BlackListed));
+        }
+
+        protected override LastUpdateType GetLastUpdateType()
+            => LastUpdateType.WikiTitleContain;
+    }
+
+    public class WikiTitleContainCacheModel(
+        int id, DateTime updated, WikiTitleContainType type, int objId, int wikiId, bool blackListed)
+        : CacheModelBase<WikiTitleContain>(id, updated)
+    {
+        public WikiTitleContainType Type { get; } = type;
+        public int ObjId { get; } = objId;
+        public int WikiId { get; } = wikiId;
+        public bool BlackListed { get; } = blackListed;
     }
 
     public static class WikiTitleContainQueryableExtension
@@ -84,8 +116,5 @@ namespace FCloud3.Repos.Wiki
         public static IQueryable<WikiTitleContain> WithTypeAndIds
             (this IQueryable<WikiTitleContain> q, WikiTitleContainType type, List<int> objIds)
             => q.Where(x => x.Type == type && objIds.Contains(x.ObjectId));
-        public static IQueryable<WikiTitleContain> Siblings
-            (this IQueryable<WikiTitleContain> q, WikiTitleContain with)
-            => q.Where(x => x.Type == with.Type && x.ObjectId == with.ObjectId);
     }
 }

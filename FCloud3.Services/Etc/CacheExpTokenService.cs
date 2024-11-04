@@ -26,10 +26,6 @@ namespace FCloud3.Services.Etc
         /// 当任意素材的名称或路径名有改动时，必须将对应的token过期，使解析器重新构造
         /// </summary>
         public CacheExpTokenManager MaterialNamePathInfo { get; }
-        /// <summary>
-        /// “全部权限授予对象”的缓存过期token提供源
-        /// 当任意权限授予对象改动，创建或删除时，必须将对应token过期，使“是否通过验证”缓存过期
-        /// </summary>
 
         public class CacheExpTokenManager
         {

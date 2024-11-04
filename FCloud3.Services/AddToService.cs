@@ -16,6 +16,7 @@ using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Messages;
 using FCloud3.Services.Wiki.Support;
+using FCloud3.Services.Etc.Cache;
 
 namespace FCloud3.Services
 {
@@ -58,6 +59,8 @@ namespace FCloud3.Services
             services.AddScoped<MyWikisService>();
             services.AddScoped<LatestWikiExchangeService>();
             services.AddScoped<SplitService>();
+
+            services.AddScoped<AuthResCacheHost>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")
