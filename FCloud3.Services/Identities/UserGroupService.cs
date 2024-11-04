@@ -12,7 +12,6 @@ namespace FCloud3.Services.Identities
         private readonly UserToGroupRepo _userToGroupRepo;
         private readonly UserRepo _userRepo;
         private readonly int _userId;
-        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly NotificationService _notificationService;
 
         public UserGroupService(
@@ -20,14 +19,12 @@ namespace FCloud3.Services.Identities
             UserGroupRepo userGroupRepo,
             UserToGroupRepo userToGroupRepo,
             UserRepo userRepo,
-            CacheExpTokenService cacheExpTokenService,
             NotificationService notificationService) 
         {
             _userGroupRepo = userGroupRepo;
             _userToGroupRepo = userToGroupRepo;
             _userRepo = userRepo;
             _userId = userIdProvider.Get();
-            _cacheExpTokenService = cacheExpTokenService;
             _notificationService = notificationService;
         }
         public bool Create(string name, out string? errmsg)

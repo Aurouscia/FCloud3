@@ -15,7 +15,7 @@ namespace FCloud3.Services.Etc.Cache
     {
         protected override LastUpdateType[] LuTypes => [
                 LastUpdateType.Material,
-                LastUpdateType.WikiItemRef,
+                LastUpdateType.WikiItemRefedProps,
                 LastUpdateType.WikiTitleContain
             ];
     }

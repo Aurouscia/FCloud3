@@ -15,8 +15,7 @@ namespace FCloud3.Services.Wiki
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
-        DbTransactionService dbTransactionService,
-        CacheExpTokenService cacheExpTokenService)
+        DbTransactionService dbTransactionService)
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
@@ -25,7 +24,6 @@ namespace FCloud3.Services.Wiki
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
         private readonly DbTransactionService _dbTransactionService = dbTransactionService;
-        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
 
         public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
         {

@@ -142,7 +142,7 @@ namespace FCloud3.Repos.Wiki
         }
         private void UpdateWikiItemRefLu(DateTime time)
         {
-            LastUpdateDbUtil.SetLastUpdateFor(_ctx, LastUpdateType.WikiItemRef, time);
+            LastUpdateDbUtil.SetLastUpdateFor(_ctx, LastUpdateType.WikiItemRefedProps, time);
         }
 
         protected override LastUpdateType GetLastUpdateType()

@@ -13,19 +13,16 @@ namespace FCloud3.Services.Files
     public class MaterialService
     {
         private readonly MaterialRepo _materialRepo;
-        private readonly CacheExpTokenService _cacheExpTokenService;
         private readonly IOperatingUserIdProvider _userIdProvider;
         private readonly IStorage _storage;
         private readonly static object materialNamingLock = new();
 
         public MaterialService(
             MaterialRepo materialRepo,
-            CacheExpTokenService cacheExpTokenService,
             IOperatingUserIdProvider userIdProvider,
             IStorage storage)
         {
             _materialRepo = materialRepo;
-            _cacheExpTokenService = cacheExpTokenService;
             _userIdProvider = userIdProvider;
             _storage = storage;
         }

@@ -38,12 +38,11 @@ namespace FCloud3.Services.Test.Identities
             var commentRepo = new CommentRepo(_ctx, _userIdProvider);
             var notifRepo = new NotificationRepo(_ctx, _userIdProvider);
             var wikiItemRepo = new WikiItemRepo(_ctx, _userIdProvider);
-            var cacheExpTokenService = new CacheExpTokenService(new FakeLogger<CacheExpTokenService>());
             var notificationService = new NotificationService(
                 notifRepo, commentRepo, userGroupRepo, userRepo, wikiItemRepo, _userIdProvider);
             _userGroupService = 
                 new(_userIdProvider, userGroupRepo, userToGroupRepo,
-                    userRepo, cacheExpTokenService, notificationService);
+                    userRepo, notificationService);
             var wikiParaRepo = new WikiParaRepo(_ctx, _userIdProvider);
             var creatorIdGetter = new CreatorIdGetter(_ctx);
             var lastUpdateRepo = new LastUpdateRepo(_ctx);

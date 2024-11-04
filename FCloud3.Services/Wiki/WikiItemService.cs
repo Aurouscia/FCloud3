@@ -30,7 +30,6 @@ namespace FCloud3.Services.Wiki
         FileItemRepo fileItemRepo,
         FileDirRepo fileDirRepo,
         FreeTableRepo freeTableRepo,
-        CacheExpTokenService cacheExpTokenService,
         OpRecordRepo opRecordRepo,
         UserRepo userRepo,
         ContentEditLockService contentEditLockService,
@@ -46,7 +45,6 @@ namespace FCloud3.Services.Wiki
         private readonly FileItemRepo _fileItemRepo = fileItemRepo;
         private readonly FileDirRepo _fileDirRepo = fileDirRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly CacheExpTokenService _cacheExpTokenService = cacheExpTokenService;
         private readonly OpRecordRepo _opRecordRepo = opRecordRepo;
         private readonly UserRepo _userRepo = userRepo;
         private readonly ContentEditLockService _contentEditLockService = contentEditLockService;
