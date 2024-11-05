@@ -28,7 +28,7 @@ namespace FCloud3.Services.Etc.Split
                     .Where(x => x.WikiId == w.Id)
                     .Select(x => x.DirId)
                     .Except(allWInfo.dirIds).Any();
-                return new AllWikiInDirReportItem(title, owner, existsInOtherDir);
+                return new AllWikiInDirReportItem(w.Id, title, owner, existsInOtherDir);
             });
             return res;
         }
@@ -59,6 +59,12 @@ namespace FCloud3.Services.Etc.Split
                 AllWikiInDir(wIds, dIds, wikiToDirs, dirs, subdirId);
             }
         }
+        public List<int> DirDescendants(int dirId)
+        {
+            List<WikiToDir> wikiToDirs = wikiToDirRepo.Existing.ToList();
+            var (_, dirIds) = AllWikiInDir(wikiToDirs, dirId);
+            return dirIds.ToList();
+        }
         private readonly struct SimpleDir(int id, int parentId)
         {
             public int Id { get; } = id;
@@ -66,8 +72,9 @@ namespace FCloud3.Services.Etc.Split
         }
     }
 
-    public class AllWikiInDirReportItem(string title, string owner, bool existsInOtherDir)
+    public class AllWikiInDirReportItem(int id, string title, string owner, bool existsInOtherDir)
     {
+        public int Id { get; } = id;
         public string Title { get; set; } = title;
         public string Owner { get; set; } = owner;
         public bool ExistsInOtherDir { get; set; } = existsInOtherDir;
