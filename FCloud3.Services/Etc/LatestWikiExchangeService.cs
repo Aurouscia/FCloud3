@@ -252,24 +252,19 @@ namespace FCloud3.Services.Etc
                 .Select(x => new { x.Title, x.UrlPathName, x.OwnerUserId, x.LastActive })
                 .ToList();
             var ownerIds = latests.ConvertAll(x => x.OwnerUserId);
-            var ownersAvts = _userRepo
-                .Existing
-                .Where(x => ownerIds.Contains(x.Id))
-                .Select(x => new { x.Id, x.AvatarMaterialId })
-                .ToList();
-            var materialIds = ownersAvts.ConvertAll(x => x.AvatarMaterialId);
-            var materials = _materialRepo
-                .Existing
-                .Where(x => materialIds.Contains(x.Id))
-                .Select(x => new { x.Id, x.StorePathName })
-                .ToList();
+            var avts = (
+                from m in _materialRepo.Existing
+                from u in _userRepo.Existing
+                where u.AvatarMaterialId == m.Id
+                where ownerIds.Contains(u.Id)
+                select new { UserId = u.Id, Avt = m.StorePathName }).ToList();
             List<ExchangeItem> resItems = new(itemsMaxCount);
             latests.ForEach(w =>
             {
                 if (string.IsNullOrWhiteSpace(w.Title) || string.IsNullOrWhiteSpace(w.UrlPathName))
                     return;
-                var avt = materials.Find(m => m.Id == w.OwnerUserId)?.StorePathName;
-                string avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
+                var avt = avts.Find(a => a.UserId == w.OwnerUserId)?.Avt;
+                var avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
                 var item = new ExchangeItem() {
                     Avt = avtUrl,
                     Text = w.Title,
