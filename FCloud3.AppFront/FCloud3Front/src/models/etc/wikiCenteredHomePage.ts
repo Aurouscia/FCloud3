@@ -10,10 +10,8 @@ export interface Wiki
     Path:string
     Title:string
 }
-export interface WikiWithAvt
+export interface WikiWithAvt extends Wiki
 {
-    Path:string
-    Title:string
     Avt:string
 }
 export interface FileDir

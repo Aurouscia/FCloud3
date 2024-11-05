@@ -12,7 +12,7 @@ namespace FCloud3.Services.Etc
 
         public List<LatestWorkViewItem> Get(int uid = -1)
         {
-            var wikis = wikiItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Updated).Take(20).ToList();
+            var wikis = wikiItemRepo.OwnedByUser(uid).OrderByDescending(x => x.LastActive).Take(20).ToList();
             var files = fileItemRepo.OwnedByUser(uid).OrderByDescending(x => x.Created).Take(20).ToList();
             var relatedUserIds =
                 wikis.ConvertAll(x => x.OwnerUserId)
@@ -30,7 +30,7 @@ namespace FCloud3.Services.Etc
                     objId: w.Id,
                     userId: w.OwnerUserId,
                     userName: uname(w.OwnerUserId),
-                    time: w.Updated));
+                    time: w.LastActive));
             });
             files.ForEach(f =>
             {

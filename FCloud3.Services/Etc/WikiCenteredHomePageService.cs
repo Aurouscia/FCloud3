@@ -4,6 +4,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
+using Newtonsoft.Json;
 
 namespace FCloud3.Services.Etc
 {
@@ -13,6 +14,7 @@ namespace FCloud3.Services.Etc
         FileDirRepo fileDirRepo,
         UserRepo userRepo,
         MaterialRepo materialRepo,
+        LatestWikiExchangeService latestWikiExchangeService,
         IOperatingUserIdProvider userIdProvider,
         IStorage storage)
     {
@@ -27,9 +29,9 @@ namespace FCloud3.Services.Etc
         public WikiCenteredHomePage Get()
         {
             int latestCount = 8;
-            int nearCount = 40;
+            int nearCount = 30;
             int randRange = 300;
-            
+
             var tops = (
                 from w in _wikiItemRepo.ExistingAndNotSealedAndEdited
                 from dd in _fileDirRepo.Existing
@@ -41,8 +43,8 @@ namespace FCloud3.Services.Etc
                 orderby wdg.Key.Updated descending
                 select new {
                     Wiki = wdg
-                        .OrderByDescending(x=>x.LastActive)
-                        .Select(x=>new{x.UrlPathName, x.Title})
+                        .OrderByDescending(x => x.LastActive)
+                        .Select(x => new { x.UrlPathName, x.Title })
                         .FirstOrDefault(),
                     FileDir = new
                     {
@@ -51,33 +53,35 @@ namespace FCloud3.Services.Etc
                     },
                 })
                 .Take(nearCount).ToList();
-            
+
             var topPairs = tops.ConvertAll(x => new WikiCenteredHomePage.Pair(
                 x.Wiki.UrlPathName,
-                x.Wiki.Title, 
+                x.Wiki.Title,
                 x.FileDir.UrlPathName,
                 x.FileDir.Name));
 
             var latestWikisRaw = _wikiItemRepo.ExistingAndNotSealedAndEdited
-                .OrderByDescending(x => x.Updated)
+                .OrderByDescending(x => x.LastActive)
                 .Take(latestCount).ToList()
                 .ConvertAll(x => new
                 {
                     OwnerId = x.OwnerUserId,
                     UrlPathName = x.UrlPathName ?? "??",
-                    Title = x.Title ?? "??"
+                    Title = x.Title ?? "??",
+                    Active = x.LastActive
                 });
-            
+
             var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
-                .OrderByDescending(x => x.Updated)
+                .OrderByDescending(x => x.LastActive)
                 .Select(x => x.Id)
                 .Take(randRange).ToList();
             var randedWikisIds = RandomPick(randFromWikiIds, latestWikisRaw.Count);
             var randomWikisRaw = _wikiItemRepo.GetRangeByIdsOrdered<WikiCenteredHomePage.WikiWithOwner>(randedWikisIds, x
-                => x.Select(w => new { w.Id, w.UrlPathName, w.Title, w.OwnerUserId })
+                => x.Select(w => new { w.Id, w.UrlPathName, w.Title, w.OwnerUserId, w.LastActive })
                     .ToDictionary(
                         w => w.Id,
-                        w => new WikiCenteredHomePage.WikiWithOwner(w.UrlPathName ?? "??", w.Title ?? "??", w.OwnerUserId)));
+                        w => new WikiCenteredHomePage.WikiWithOwner(
+                            w.UrlPathName ?? "??", w.Title ?? "??", w.OwnerUserId, w.LastActive)));
 
             int uid = _userIdProvider.Get();
             if (uid > 0)
@@ -96,7 +100,7 @@ namespace FCloud3.Services.Etc
                     select new
                     {
                         Wiki = wdg
-                            .OrderByDescending(x => x.Updated)
+                            .OrderByDescending(x => x.LastActive)
                             .Select(x => new { x.UrlPathName, x.Title })
                             .FirstOrDefault(),
                         FileDir = new
@@ -107,7 +111,7 @@ namespace FCloud3.Services.Etc
                     }).Take(1).ToList();
                 var containingMinePairs = containingMine.ConvertAll(x => new WikiCenteredHomePage.Pair(
                     x.Wiki.UrlPathName,
-                    x.Wiki.Title, 
+                    x.Wiki.Title,
                     x.FileDir.UrlPathName,
                     x.FileDir.Name));
                 topPairs.RemoveAll(x => containingMinePairs.Any(c => c.DPath == x.DPath));
@@ -128,14 +132,28 @@ namespace FCloud3.Services.Etc
             {
                 var avt = avtInfo.Find(y => y.Uid == x.OwnerId)?.StorePathName;
                 string avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
-                return new WikiCenteredHomePage.WikiWithAvt(x.UrlPathName, x.Title, avtUrl);
+                return new WikiCenteredHomePage.WikiWithAvt(x.UrlPathName, x.Title, avtUrl, x.Active);
             });
             List<WikiCenteredHomePage.WikiWithAvt> randomWikis = randomWikisRaw.ConvertAll(x =>
             {
                 var avt = avtInfo.Find(y => y.Uid == x.Owner)?.StorePathName;
                 string avtUrl = avt is { } ? _storage.FullUrl(avt) : User.defaultAvatar;
-                return new WikiCenteredHomePage.WikiWithAvt(x.Path, x.Title, avtUrl);
+                return new WikiCenteredHomePage.WikiWithAvt(x.Path, x.Title, avtUrl, x.Active);
             });
+            foreach (var pulled in latestWikiExchangeService.GetItems())
+            {
+                if(pulled.Url is { } && pulled.Avt is { } && pulled.Text is { })
+                {
+                    latestWikis.Add(new WikiCenteredHomePage.WikiWithAvt(
+                        pulled.Url, pulled.Text, pulled.Avt, pulled.Time));
+                }
+            }
+            if(latestWikis.Count > latestCount)
+            {
+                latestWikis = latestWikis
+                    .OrderByDescending(x => x.Active)
+                    .Take(latestCount).ToList();
+            }
             
             var model = new WikiCenteredHomePage(latestWikis, randomWikis, topPairs);
             return model;
@@ -178,16 +196,20 @@ namespace FCloud3.Services.Etc
                 public string DPath { get; set; } = fileDirUrlPathName;
                 public string DName { get; set; } = fileDirName;
             }  
-            public class Wiki(string urlPathName, string title)
+            public class Wiki(string urlPathName, string title, DateTime active)
             {
                 public string Path { get; set; } = urlPathName;
                 public string Title { get; set; } = title;
+                [JsonIgnore]
+                public DateTime Active { get; set; } = active;
             }
-            public class WikiWithAvt(string urlPathName, string title, string avt) :Wiki(urlPathName, title)
+            public class WikiWithAvt(string urlPathName, string title, string avt, DateTime active) 
+                :Wiki(urlPathName, title, active)
             {
                 public string Avt { get; set; } = avt;
             }
-            public class WikiWithOwner(string urlPathName, string title, int owner) :Wiki(urlPathName, title)
+            public class WikiWithOwner(string urlPathName, string title, int owner, DateTime active) 
+                :Wiki(urlPathName, title, active)
             {
                 public int Owner { get; set; } = owner;
             }

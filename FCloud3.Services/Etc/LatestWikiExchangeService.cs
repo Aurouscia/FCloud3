@@ -63,7 +63,7 @@ namespace FCloud3.Services.Etc
         /// 本实例显示词条时，在此处获取其他实例的词条
         /// </summary>
         /// <returns></returns>
-        public List<ExchangeItem> GetItems()
+        public IEnumerable<ExchangeItem> GetItems()
         {
             if (Inited)
                 return Items;
@@ -243,13 +243,13 @@ namespace FCloud3.Services.Etc
             var latestQ = _wikiItemRepo.ExistingAndNotSealedAndEdited;
             if (after is { } time)
             {
-                latestQ = latestQ.Where(x => x.Updated > time);
+                latestQ = latestQ.Where(x => x.LastActive > time);
             }
             //TODO: 此处可缓存
             var latests = latestQ
-                .OrderByDescending(x => x.Updated)
+                .OrderByDescending(x => x.LastActive)
                 .Take(itemsMaxCount)
-                .Select(x => new { x.Title, x.UrlPathName, x.OwnerUserId, x.Updated })
+                .Select(x => new { x.Title, x.UrlPathName, x.OwnerUserId, x.LastActive })
                 .ToList();
             var ownerIds = latests.ConvertAll(x => x.OwnerUserId);
             var ownersAvts = _userRepo
@@ -273,7 +273,7 @@ namespace FCloud3.Services.Etc
                 var item = new ExchangeItem() {
                     Avt = avtUrl,
                     Text = w.Title,
-                    Time = w.Updated,
+                    Time = w.LastActive,
                     Url = WikiUrl(w.UrlPathName)
                 };
                 resItems.Add(item);

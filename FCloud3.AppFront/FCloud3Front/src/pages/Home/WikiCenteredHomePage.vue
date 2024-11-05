@@ -19,6 +19,9 @@ async function init(){
         model.value = resp;
     }
 }
+function isExternal(path:string){
+    return path.startsWith('http://') || path.startsWith('https://')
+}
 onMounted(async()=>{
     await init();
     checkAndPop();
@@ -34,7 +37,8 @@ onMounted(async()=>{
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt">
-                <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
+                <a v-if="isExternal(w.Path)" :href="w.Path" target="_blank">{{ w.Title }}</a>
+                <RouterLink v-else :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
         <div class="list">
