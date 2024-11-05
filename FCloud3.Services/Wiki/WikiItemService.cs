@@ -9,14 +9,12 @@ using FCloud3.Repos.Messages;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Wiki.Support;
 using System.Text;
-using FCloud3.Entities.Table;
-using FCloud3.Entities.TextSection;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc.TempData.EditLock;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.Wiki
 {
@@ -33,6 +31,7 @@ namespace FCloud3.Services.Wiki
         OpRecordRepo opRecordRepo,
         UserRepo userRepo,
         ContentEditLockService contentEditLockService,
+        LatestWikiExchangeService latestWikiExchangeService,
         IOperatingUserIdProvider operatingUserIdProvider,
         IStorage storage)
     {
@@ -510,6 +509,7 @@ namespace FCloud3.Services.Wiki
         private void SetWikiUpdated(int wikiId)
         {
             _wikiRepo.UpdateTimeAndLuAndWikiActive(wikiId, true);
+            latestWikiExchangeService.Push();
         }
 
         public class WikiItemIndexItem

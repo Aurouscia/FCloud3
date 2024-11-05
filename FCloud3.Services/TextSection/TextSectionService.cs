@@ -12,6 +12,7 @@ using FCloud3.Repos.Files;
 using FCloud3.Services.WikiParsing.Support;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Util;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.TextSec
 {
@@ -26,6 +27,7 @@ namespace FCloud3.Services.TextSec
         ContentEditLockService contentEditLockService,
         WikiParserProviderService wikiParserProviderService,
         WikiParserDataSource wikiParserDataSource,
+        LatestWikiExchangeService latestWikiExchangeService,
         ILocatorHash locatorHash, 
         ILogger<TextSectionService> logger,
         IConfiguration config)
@@ -133,6 +135,7 @@ namespace FCloud3.Services.TextSec
                 {
                     var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
                     fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
+                    latestWikiExchangeService.Push();
                 }
             }
             errmsg = null;

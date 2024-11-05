@@ -52,7 +52,7 @@ namespace FCloud3.Services.Etc
                 return _exConfig;
             }
         }
-        public static List<ExchangeItem> Items { get; set; } = [];
+        private static List<ExchangeItem> Items { get; set; } = [];
         private static readonly object itemsListLockObj = new();
         public static bool Inited { get; set; }
         public static DateTime MyPushedLatest { get; private set; }

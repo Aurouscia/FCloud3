@@ -9,6 +9,7 @@ using FCloud3.Entities.Diff;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Repos.Files;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.Table
 {
@@ -22,6 +23,7 @@ namespace FCloud3.Services.Table
         private readonly DiffContentService _diffContentService;
         private readonly ContentEditLockService _contentEditLockService;
         private readonly DbTransactionService _dbTransactionService;
+        private readonly LatestWikiExchangeService _latestWikiExchangeService;
         private readonly ILogger<FreeTableService> _logger;
 
         public FreeTableService(
@@ -33,6 +35,7 @@ namespace FCloud3.Services.Table
             DiffContentService diffContentService,
             ContentEditLockService contentEditLockService,
             DbTransactionService dbTransactionService,
+            LatestWikiExchangeService latestWikiExchangeService,
             ILogger<FreeTableService> logger)
         {
             _freeTableRepo = freeTableRepo;
@@ -43,6 +46,7 @@ namespace FCloud3.Services.Table
             _diffContentService = diffContentService;
             _contentEditLockService = contentEditLockService;
             _dbTransactionService = dbTransactionService;
+            _latestWikiExchangeService = latestWikiExchangeService;
             _logger = logger;
         }
 
@@ -113,6 +117,7 @@ namespace FCloud3.Services.Table
                     var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
                     _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
+                _latestWikiExchangeService.Push();
                 return true;
             }
             else

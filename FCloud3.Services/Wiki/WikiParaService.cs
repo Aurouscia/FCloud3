@@ -7,6 +7,7 @@ using FCloud3.Repos.Wiki;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
 using FCloud3.Services.Files.Storage.Abstractions;
+using FCloud3.Services.Etc;
 
 namespace FCloud3.Services.Wiki
 {
@@ -16,7 +17,7 @@ namespace FCloud3.Services.Wiki
         WikiItemRepo wikiItemRepo,
         TextSectionRepo textSectionRepo,
         FreeTableRepo freeTableRepo,
-        DbTransactionService dbTransactionService,
+        LatestWikiExchangeService latestWikiExchangeService,
         IStorage storage) 
     {
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
@@ -24,7 +25,6 @@ namespace FCloud3.Services.Wiki
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly DbTransactionService _dbTransactionService = dbTransactionService;
         private readonly IStorage _storage = storage;
 
         public bool SetFileParaFileId(int paraId, int fileId, out string? errmsg)
@@ -37,23 +37,19 @@ namespace FCloud3.Services.Wiki
             }
             if(_wikiParaRepo.SetParaObjId(paraId, WikiParaType.File, fileId, out errmsg))
             {
-                int affectedWikiId = BelongToWikiId(paraId);
-                if(affectedWikiId > 0)
-                    _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiId, true);
+                UpdateRelatedWiki(paraId);
                 return true;
             }
             else
                 return false;
         }
-        public IQueryable<int> WikiContainingIt(WikiParaType type, int objId) => _wikiParaRepo.WikiContainingIt(type, objId);
         public bool SetInfo(int paraId, string? nameOverride, out string? errmsg)
         {
             var success = _wikiParaRepo.SetInfo(paraId, nameOverride, out errmsg);
             if(success)
             {
-                int affectedWikiId = BelongToWikiId(paraId);
-                if(affectedWikiId > 0)
-                    _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiId, true);
+
+                UpdateRelatedWiki(paraId);
                 return true;
             }
             return false;
@@ -145,6 +141,7 @@ namespace FCloud3.Services.Wiki
                     p.Type = WikiParaType.Table;
                     p.ObjectId = createdTableId;
                     _wikiParaRepo.Update(p);
+                    UpdateRelatedWiki(paraId);
                 }
                 else
                 {
@@ -165,6 +162,15 @@ namespace FCloud3.Services.Wiki
                 where p.WikiItemId == w.Id
                 select w;
             return q.Select(x => x.Id).FirstOrDefault();
+        }
+        private void UpdateRelatedWiki(int paraId)
+        {
+            int affectedWikiId = BelongToWikiId(paraId);
+            if (affectedWikiId > 0)
+            {
+                _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiId, true);
+                latestWikiExchangeService.Push();
+            }
         }
 
         public class WikiParaRawContentRes
