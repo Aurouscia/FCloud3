@@ -1,6 +1,7 @@
 import foldImg from '@/assets/fold.svg';
 import { imgClickJumpExcludeClassName } from './imgClickJump';
 const clickables = ['H1','H2','H3','H4','H5','H6']
+const paraHeadTag = 'H1'
 const clickableFoldedClass = 'hFolded'
 const nextIdentifyClass = 'indent'
 const nextFoldedClass = 'indentFolded'
@@ -25,23 +26,28 @@ export class TitleClickFold{
                 img.src = foldImg;
                 img.classList.add('foldImg');
                 img.classList.add(imgClickJumpExcludeClassName);
-                const textNode = h.childNodes[0];
-                if(textNode && isDefaultFolded(textNode.textContent || "")){
-                    needProcessDefaultFold.push({h, text:textNode})
-                }
-                if(h.tagName != 'H1'){
+                let firstChildNode:ChildNode
+                if(h.tagName !== paraHeadTag){
+                    //段落标题会有个span装着，内部的没有，这里需要创建span并把东西移入
                     const span = document.createElement('span');
                     span.innerHTML = h.innerHTML;
                     h.innerHTML = '';
                     h.prepend(span);
+                    firstChildNode = span.childNodes[0];
+                }else{
+                    firstChildNode = h.childNodes[0];
+                }
+                //如果是默认折起的标题，记录下来待会统一处理
+                if(firstChildNode && isDefaultFolded(firstChildNode.textContent || "")){
+                    needProcessDefaultFold.push({h, text: firstChildNode})
                 }
                 h.prepend(img);
             }
         })
         titles.sort((x,y)=>x.offsetTop - y.offsetTop)
-        needProcessDefaultFold.forEach(({h, text:textNode})=>{
+        needProcessDefaultFold.forEach(({h, text})=>{
             this.tryToggleElement(h as HTMLElement)
-            textNode.textContent = removeDefaultFoldedMark(textNode.textContent || "");
+            text.textContent = removeDefaultFoldedMark(text.textContent || "");
         })
         return titles;
     }
