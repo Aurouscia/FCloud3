@@ -55,7 +55,6 @@ namespace FCloud3.Services.Etc
         private static List<ExchangeItem> Items { get; set; } = [];
         private static readonly object itemsListLockObj = new();
         public static bool Inited { get; set; }
-        public static DateTime MyPushedLatest { get; private set; }
         public static DateTime MyLastPush { get; private set; }
         public bool Enabled => ExConfig.Enabled;
 
@@ -81,8 +80,11 @@ namespace FCloud3.Services.Etc
         /// <param name="data"></param>
         public void BePushed(ExchangePushRequest data)
         {
-            if (data.PusherCode is null || data.PusherDomain is null)
+            if (data.PusherCode is null || data.PusherDomain is null) 
+            {
                 _logger.LogDebug(bePushedErr + "推送参数异常");
+                return;
+            }
             var target = ExConfig.Targets?
                 .FirstOrDefault(x => x.Domain == data.PusherDomain && x.Code == data.PusherCode);
             if (target is { })
@@ -91,7 +93,13 @@ namespace FCloud3.Services.Etc
                 {
                     lock (itemsListLockObj)
                     {
-                        Items.AddRange(data.Items ?? []);
+                        Items.RemoveAll(x => x.Url is null || x.Url.StartsWith(data.PusherDomain));
+                        if (data.Items is { })
+                        {
+                            var validItems = data.Items.Where(x => 
+                                x.Url is { } && x.Url.StartsWith(data.PusherDomain));
+                            Items.AddRange(validItems);
+                        }
                     }
                     _logger.LogDebug(bePushedSuccess + "{domain}", data.PusherDomain);
                 }
@@ -142,10 +150,9 @@ namespace FCloud3.Services.Etc
             if ((now - MyLastPush).TotalSeconds < pushCooldownSecs)
                 return;
             MyLastPush = now;
-            var needPush = MyLatestWikis(MyPushedLatest);
+            var needPush = MyLatestWikis();
             if (needPush.Count == 0)
                 return;
-            MyPushedLatest = needPush.Select(x => x.Time).Max();
             
             if (ExConfig.MyCode is null || ExConfig.Targets is null)
             {
