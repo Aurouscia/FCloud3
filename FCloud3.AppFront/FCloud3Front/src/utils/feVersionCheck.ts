@@ -1,4 +1,4 @@
-import { feVersion as verInCode } from '@/build/feVersion';
+import { feVersion as verInCode } from '@/build/version/feVersion';
 import { injectPop } from '@/provides';
 
 export function useFeVersionChecker(){
@@ -21,7 +21,7 @@ export function useFeVersionChecker(){
             catch{
                 pop.value?.show("版本检查失败", "failed");
             }
-        },1000)
+        },500)
     }
 
     return {check, checkAndPop}

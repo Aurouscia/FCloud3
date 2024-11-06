@@ -254,8 +254,9 @@ async function init(changedPathName?:boolean){
     }
 
     if(routeRendererContainer.value){
-        const rr = new RouteRenderer(routeRendererContainer.value)
-        rr.run()
+        const rr = new RouteRenderer(routeRendererContainer.value, ()=>{
+            rr.execute()
+        })
     }
 }
 onUnmounted(()=>{

@@ -8,7 +8,7 @@ export default defineConfig({
     lib: {
       formats:['es'],
       entry: './lib/auRouteRenderer.ts',
-      fileName: 'dist'
+      fileName: '[name]-[hash]'
     },
     emptyOutDir: true,
     outDir:'../FCloud3Front/public/plugins/AuRouteRenderer',

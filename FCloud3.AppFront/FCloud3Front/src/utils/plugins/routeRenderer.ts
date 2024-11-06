@@ -1,9 +1,9 @@
 import { PluginExe } from "./common/pluginExe"
 
-const path = '/plugins/AuRouteRenderer/dist.js'
+const pluginName = 'AuRouteRenderer'
 
 export class RouteRenderer extends PluginExe{
-    constructor(container:HTMLDivElement){
-        super(container, path)
+    constructor(container:HTMLDivElement, onReady?:()=>void){
+        super(container, pluginName, onReady)
     }
 }
