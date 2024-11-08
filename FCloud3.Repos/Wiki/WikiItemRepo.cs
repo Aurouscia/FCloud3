@@ -123,7 +123,6 @@ namespace FCloud3.Repos.Wiki
             return true;
         }
 
-        public const int updateActiveDiffCharCountThrs = 10;
         public int UpdateTimeAndLuAndWikiActive(IQueryable<int> wikiIds, bool updateWikiActive)
         {
             int affectedCount = base.UpdateTimeAndLu(wikiIds);

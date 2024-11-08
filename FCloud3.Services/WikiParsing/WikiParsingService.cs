@@ -39,6 +39,7 @@ namespace FCloud3.Services.WikiParsing
         WikiParsedResultService wikiParsedResult,
         AuthGrantService authGrantService,
         WikiParserDataSource wikiParserDataSource,
+        WikiRefRepo wikiRefRepo,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
         ILogger<WikiParsingService> logger,
@@ -179,6 +180,7 @@ namespace FCloud3.Services.WikiParsing
                     p.Block.SetTitleLevelOffset(1);
                     p.TitleGathering.Enable();
                     p.KeepRuleUsageBeforeCalling();
+                    p.KeepRefBeforeCalling();
                 },
                 containInfos: null,
                 linkSingle: true,
@@ -193,6 +195,7 @@ namespace FCloud3.Services.WikiParsing
                     t = title;
                 if (!parse)
                     return t;
+                parser.SetDataSource(wikiParserDataSource);
                 var resOft = parser.RunToParserResultRaw(t,false);
                 result.AddRules(resOft.UsedRules);
                 return resOft.Content;
@@ -289,6 +292,10 @@ namespace FCloud3.Services.WikiParsing
                 parser.Context.ClearRuleUsage();
             });
             result.ExtractRulesCommon();
+
+            var refs = parser.Context.Ref;
+            wikiRefRepo.SetRefs(wiki.Id, refs.Refs);
+
             return result;
         }
         private ParserResultRaw ParseText(TextSection model, Parser parser)

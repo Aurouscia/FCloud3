@@ -8,7 +8,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
     public class ParserRefContext
     {
-        private HashSet<string> Refs { get; set; } = [];
+        public HashSet<string> Refs { get; set; } = [];
         public void Clear() => Refs.Clear();
         public void ReportRef(string? str)
         {
@@ -16,6 +16,5 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
             if(!string.IsNullOrWhiteSpace(str) && str.Length <= 32)
                 Refs.Add(str);
         }
-        public IEnumerable<string> GetRefs() => Refs; 
     }
 }

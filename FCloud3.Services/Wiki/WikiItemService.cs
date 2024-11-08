@@ -15,6 +15,7 @@ using System.Text;
 using FCloud3.Repos.Identities;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Etc;
+using NPOI.SS.Formula.PTG;
 
 namespace FCloud3.Services.Wiki
 {
@@ -32,6 +33,7 @@ namespace FCloud3.Services.Wiki
         UserRepo userRepo,
         ContentEditLockService contentEditLockService,
         LatestWikiExchangeService latestWikiExchangeService,
+        WikiRefService wikiRefService,
         IOperatingUserIdProvider operatingUserIdProvider,
         IStorage storage)
     {
@@ -357,6 +359,7 @@ namespace FCloud3.Services.Wiki
             int createdWikiId = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
             if (createdWikiId > 0)
             {
+                wikiRefService.ReferencedWikiPropChangeHandle(createdWikiId, title, urlPathName);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, createdWikiId, 0, $"{title} ({urlPathName})");
                 if(_wikiToDirRepo.AddWikisToDir([createdWikiId], dirId, out errmsg))
                 {
@@ -377,6 +380,7 @@ namespace FCloud3.Services.Wiki
             var createdWikiId = _wikiRepo.TryAddAndGetId(newWiki, out errmsg);
             if (createdWikiId > 0)
             {
+                wikiRefService.ReferencedWikiPropChangeHandle(createdWikiId, title, urlPathName);
                 _opRecordRepo.Record(OpRecordOpType.Create, OpRecordTargetType.WikiItem, createdWikiId, 0, $"{title} ({urlPathName})");
                 return true;
             }
@@ -409,8 +413,11 @@ namespace FCloud3.Services.Wiki
             }
             var s = _wikiRepo.TryRemove(w, out errmsg);
             if (s)
+            {
+                wikiRefService.ReferencedWikiPropChangeHandle(id, w.Title, w.UrlPathName);
                 _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.WikiItem, id, 0,
                     $"{w.Title} ({w.UrlPathName})");
+            }
             return s;
         }
         public WikiItem? GetInfo(string urlPathName, out string? errmsg)
@@ -432,13 +439,15 @@ namespace FCloud3.Services.Wiki
                 errmsg = "未找到指定路径名的词条";
                 return false;
             }
-            bool changed = target.Title != title || target.UrlPathName != urlPathName;
+            string? originalTitle = target.Title;
+            string? originalUrlPathName = target.UrlPathName;
+            bool changed = originalTitle != title || originalUrlPathName != urlPathName;
 
             string record = "";
-            if (target.Title != title)
-                record += $"将 {target.Title} 更名为 {title} ; ";
-            if (target.UrlPathName != urlPathName)
-                record += $"将路径名 {target.UrlPathName} 改为 {urlPathName}";
+            if (originalTitle != title)
+                record += $"将 {originalTitle} 更名为 {title} ; ";
+            if (originalUrlPathName != urlPathName)
+                record += $"将路径名 {originalUrlPathName} 改为 {urlPathName}";
 
             target.Title = title;
             target.UrlPathName = urlPathName;
@@ -446,6 +455,8 @@ namespace FCloud3.Services.Wiki
             {
                 if (_wikiRepo.TryUpdate(target, out errmsg))
                 {
+                    wikiRefService.ReferencedWikiPropChangeHandle(
+                        id, originalTitle, originalUrlPathName, title, urlPathName);
                     if(record.Length>0)
                         _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, 0, record);
                     return true;
@@ -499,6 +510,7 @@ namespace FCloud3.Services.Wiki
             var s = _wikiRepo.TryUpdate(w, out errmsg);
             if (s)
             {
+                wikiRefService.ReferencedWikiPropChangeHandle(id, w.Title, w.UrlPathName);
                 string opStr = @sealed ? "隐藏" : "解除隐藏";
                 opStr += $" {w.Title} ({w.UrlPathName})";
                 _opRecordRepo.Record(OpRecordOpType.EditImportant, OpRecordTargetType.WikiItem ,id, 0, opStr);

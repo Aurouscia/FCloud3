@@ -31,6 +31,7 @@ namespace FCloud3.Services
             services.AddScoped<WikiItemService>();
             services.AddScoped<WikiParaService>();
             services.AddScoped<WikiTitleContainService>();
+            services.AddScoped<WikiRefService>();
             services.AddScoped<TextSectionService>();
             services.AddScoped<FreeTableService>();
             services.AddScoped<FileItemService>();

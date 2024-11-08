@@ -46,6 +46,24 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing.Where(x => x.Type == type && x.ObjectId == objId).Select(x => x.WikiItemId);
         }
+        public HashSet<int> WikisContainingThem(List<(WikiParaType Type, int ObjectId)> paras)
+        {
+            var allObjIds = paras.Select(x => x.ObjectId);
+            var suspicious = Existing
+                .Where(x => allObjIds.Contains(x.ObjectId))
+                .Select(x => new {x.ObjectId, x.Type, x.WikiItemId})
+                .ToList();
+            var res = new HashSet<int>();
+            foreach(var p in paras)
+            {
+                var wId = suspicious.Find(x => x.Type == p.Type && x.ObjectId == p.ObjectId)?.WikiItemId;
+                if(wId is int wikiId)
+                {
+                    res.Add(wikiId);
+                }
+            }
+            return res;
+        }
 
         public IQueryable<WikiPara> GetParasByWikiId(int wikiId)
         {

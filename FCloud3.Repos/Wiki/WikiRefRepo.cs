@@ -21,5 +21,23 @@ namespace FCloud3.Repos.Wiki
             WikiRefs.RemoveRange(removing);
             ctx.SaveChanges();
         }
+        public IQueryable<int> GetRefingWikiIds(string? text1, string? text2, string? text3, string? text4)
+        {
+            return WikiRefs
+                .Where(x => x.Str == text1 || x.Str == text2 || x.Str == text3 || x.Str == text4)
+                .Select(x => x.WikiId);
+        }
+        public IQueryable<int> GetRefingWikiIds(string? text1, string? text2)
+        {
+            return WikiRefs
+                .Where(x => x.Str == text1 || x.Str == text2)
+                .Select(x => x.WikiId);
+        }
+        public IQueryable<int> GetRefingWikiIds(string? text1)
+        {
+            return WikiRefs
+                .Where(x => x.Str == text1)
+                .Select(x => x.WikiId);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using FCloud3.Entities.Sys;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
+using System.Linq;
 
 namespace FCloud3.Repos.Wiki
 {
@@ -41,6 +42,7 @@ namespace FCloud3.Repos.Wiki
         }
         public List<WikiTitleContain> GetByTypeAndObjIds(WikiTitleContainType type, List<int> objIds, bool noBlackList = true) 
         {
+            //TODO：可以读缓存
             var from = noBlackList ? NotBlackListed : All;
             var res = from.WithTypeAndIds(type, objIds).ToList();
             return CheckDuplicate(res);
@@ -59,14 +61,37 @@ namespace FCloud3.Repos.Wiki
             base.RemoveRange(redundancy);
             return distincted;
         }
-        
+        public IEnumerable<WikiTitleContainCacheModel> GetByContaining(int wikiId)
+        {
+            return CachedItemsByPred(x => !x.BlackListed && x.WikiId == wikiId);
+        }
+        public IEnumerable<(WikiParaType Type, int ObjectId)> GetWikiParasByContaining(int wikiId)
+        {
+            var models = GetByContaining(wikiId);
+            return models.Select(x => (ContainType2ParaType(x.Type), x.ObjId));
+        }
+        public IEnumerable<WikiTitleContainCacheModel> GetByWikiParas(
+            List<(WikiParaType Type, int ObjectId)> wikiParas)
+        {
+            var tableIds = wikiParas
+                .Where(x => ParaType2ContainType(x.Type) == WikiTitleContainType.FreeTable)
+                .Select(x => x.ObjectId).ToList();
+            var textIds = wikiParas
+                .Where(x => ParaType2ContainType(x.Type) == WikiTitleContainType.TextSection)
+                .Select(x => x.ObjectId).ToList();
+            return CachedItemsByPred(c =>
+                (c.Type == WikiTitleContainType.TextSection && textIds.Contains(c.ObjId)) ||
+                (c.Type == WikiTitleContainType.FreeTable && tableIds.Contains(c.ObjId))
+            );
+        }
+
         public WikiTitleContainType ParaType2ContainType(WikiParaType wikiParaType)
         {
             if (wikiParaType == WikiParaType.Text)
                 return WikiTitleContainType.TextSection;
             else if (wikiParaType == WikiParaType.Table)
                 return WikiTitleContainType.FreeTable;
-            return WikiTitleContainType.Unknown;
+            throw new NotImplementedException();
         }
         public WikiParaType ContainType2ParaType(WikiTitleContainType wikiTitleContainType)
         {

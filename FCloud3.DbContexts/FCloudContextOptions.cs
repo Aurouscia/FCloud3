@@ -40,6 +40,10 @@ namespace FCloud3.DbContexts
             {
                 services.AddDbContext<FCloudContext, FCloudSqlServerContext>();
             }
+            else if (dbType == "memory")
+            {
+                services.AddScoped<FCloudContext>((_) => FCloudMemoryContext.Create());
+            }
             else
                 throw new Exception("不支持的数据库类型(配置项Db:Type)");
 
