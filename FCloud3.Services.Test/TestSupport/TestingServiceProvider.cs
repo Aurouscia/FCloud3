@@ -1,6 +1,4 @@
-﻿using FCloud3.DbContexts.DbSpecific;
-using FCloud3.DbContexts;
-using FCloud3.Repos;
+﻿using FCloud3.Repos;
 using FCloud3.Repos.Etc;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
@@ -43,6 +41,7 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddScoped<LatestWikiExchangeService>();
             services.AddSingleton<ILogger<LatestWikiExchangeService>, FakeLogger<LatestWikiExchangeService>>();
             services.AddScoped<WikiItemService>();
+            services.AddScoped<MyWikisService>();
             _serviceProvider = services.BuildServiceProvider();
         }
         public T Get<T>()

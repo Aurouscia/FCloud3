@@ -18,13 +18,10 @@ namespace FCloud3.Services.Test.Wiki.Support
 
         public MyWikiServiceTest()
         {
-            int uid = 0;
-            var userIdProvider = new StubUserIdProvider(uid);
-            _ctx = FCloudMemoryContext.Create();
-            WikiItemRepo wikiItemRepo = new(_ctx, userIdProvider);
-            WikiToDirRepo wikiToDirRepo = new(_ctx, userIdProvider);
-            FileDirRepo fileDirRepo = new(_ctx, userIdProvider);
-            _myWikisService = new MyWikisService(wikiItemRepo, wikiToDirRepo, fileDirRepo);
+            TestingServiceProvider serviceProvider = new();
+            _myWikisService = serviceProvider.Get<MyWikisService>();
+            _ctx = serviceProvider.Get<FCloudContext>();
+            serviceProvider.Get<WikiItemRepo>().ClearCache();
             var time = new DateTime(2024, 1, 6);
 
             // 1
