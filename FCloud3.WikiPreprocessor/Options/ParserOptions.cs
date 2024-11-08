@@ -30,6 +30,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public LinkOptions Link { get; }
         public bool Debug { get; }
         public bool KeepRuleUsage { get; set; }
+        public bool KeepRef { get; set; }
         public IColorParser ColorParser { get; }
         public ILocatorHash? LocatorHash { get; }
         public ParserOptions(
@@ -41,7 +42,7 @@ namespace FCloud3.WikiPreprocessor.Options
             CacheOptions cacheOptions,
             TitleGatheringOptions titleGathering,
             LinkOptions link,
-            bool debug, bool keepRuleUsage,
+            bool debug, bool keepRuleUsage, bool keepRef,
             IColorParser colorParser, ILocatorHash? locatorHash)
         {
             TemplateParsingOptions = template;
@@ -54,6 +55,7 @@ namespace FCloud3.WikiPreprocessor.Options
             Link = link;
             Debug = debug;
             KeepRuleUsage = keepRuleUsage;
+            KeepRef = keepRef;
             ColorParser = colorParser;
             LocatorHash = locatorHash;
         }
@@ -71,6 +73,7 @@ namespace FCloud3.WikiPreprocessor.Options
         public LinkOptions Link { get; }
         public bool Debug { get; private set; }
         public bool KeepRuleUsage { get; private set; }
+        public bool KeepRef { get; private set; }
         public IColorParser? ColorParser { get; private set; }
         public ILocatorHash? LocatorHash { get; private set; }
         public ParserBuilder()
@@ -108,13 +111,18 @@ namespace FCloud3.WikiPreprocessor.Options
             KeepRuleUsage = true;
             return this;
         }
+        public ParserBuilder KeepRefBeforeCalling()
+        {
+            KeepRef = true;
+            return this;
+        }
 
         public ParserOptions GetCurrentOptions()
         {
             ColorParser ??= FallToColorParser();
             ParserOptions options = 
                 new(Template, Implant, AutoReplace, Inline, Block, Cache, TitleGathering, Link,
-                Debug, KeepRuleUsage, ColorParser, LocatorHash);
+                Debug, KeepRuleUsage, KeepRef, ColorParser, LocatorHash);
             return options;
         }
 

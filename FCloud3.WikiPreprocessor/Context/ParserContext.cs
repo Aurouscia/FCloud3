@@ -66,7 +66,8 @@ namespace FCloud3.WikiPreprocessor.Context
                 RuleUsage.Reset();
             Caches.BeforeParsing();
             FootNote.Clear();
-            Ref.Clear();
+            if(!Options.KeepRef)
+                Ref.Clear();
         }
         /// <summary>
         /// 在Parser对象运行之后，抛弃Scoped数据源，确保每次拿到的都是新的

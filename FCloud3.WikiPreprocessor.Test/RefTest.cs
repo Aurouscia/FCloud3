@@ -11,15 +11,32 @@ namespace FCloud3.WikiPreprocessor.Test
     public class RefTest
     {
         [TestMethod]
-        public void Refs()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Refs(bool keep)
         {
-            var p = new ParserBuilder().BuildParser();
-            var text = "ABC[DE]，123[456](789 )，X{Y}Z，{{M}2233}";
-            _ = p.RunToParserResult(text);
-            var refs = p.Context.Ref.GetRefs().ToList();
+            var pb = new ParserBuilder();
+            pb = keep ? pb.KeepRefBeforeCalling() : pb;
+            var p = pb.BuildParser();
+            var text1 = "ABC[DE]，123[456](789 )，X{Y}Z，{{M}2233}";
+            _ = p.RunToParserResult(text1);
+            var refs1 = p.Context.Ref.GetRefs().ToList();
             CollectionAssert.AreEquivalent(
                 new List<string>() { "DE", "789", "Y", "M" },
-                refs);
+                refs1);
+
+            var text2 = "ABC[KK]，123[456](789)";
+            _ = p.RunToParserResult(text2);
+            var refs2 = p.Context.Ref.GetRefs().ToList();
+            if (keep)
+                CollectionAssert.AreEquivalent(
+                    new List<string>() { "DE", "789", "Y", "M", "KK" },
+                    refs2);
+            else
+                CollectionAssert.AreEquivalent(
+                    new List<string>() { "KK", "789" },
+                    refs2
+                    );
         }
     }
 }
