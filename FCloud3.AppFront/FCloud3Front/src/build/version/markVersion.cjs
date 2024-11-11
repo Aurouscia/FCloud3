@@ -13,5 +13,6 @@ module.exports = {
         const code = `export const feVersion = '${timestamp}'`;
         //会被pack到代码里
         fs.writeFileSync('src/build/version/feVersion.js', code)
+        console.log(`[fcloud3]前端更新时间戳写入 ${timestamp}`)
     }
 }

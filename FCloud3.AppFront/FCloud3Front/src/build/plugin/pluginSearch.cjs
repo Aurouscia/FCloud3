@@ -7,7 +7,13 @@ module.exports = {
         const pluginsPath = `public/${pluginsDirName}`
         const resPath = `src/build/plugin/pluginsFound.js`
         const found = {}
-        const items = fs.readdirSync(pluginsPath)
+        let items;
+        try{
+          items = fs.readdirSync(pluginsPath)
+        }
+        catch{
+          items = []
+        }
         items.forEach(item => {
           const itemPath = path.join(pluginsPath, item)
           const itemStats = fs.statSync(itemPath)
@@ -25,5 +31,6 @@ module.exports = {
         }
         code += '}\n'
         fs.writeFileSync(resPath, code)
+        console.log(`[fcloud3]注册 ${items.length} 个插件`)
     }
 }
