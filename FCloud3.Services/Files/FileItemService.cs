@@ -35,13 +35,15 @@ namespace FCloud3.Services.Files
                 errmsg = "找不到指定id的文件";
                 return null;
             }
-            var path = _fileDirRepo.GetPathById(item.InDir);
+            int inDir = item.InDir;
+            var path = _fileDirRepo.GetPathById(inDir);
             if (path is null)
             {
-                errmsg = "寻找指定文件的文件夹路径时出错";
-                return null;
+                inDir = 0;
+                _fileItemRepo.SetInDirForRange(inDir, [item.Id], out _);
+                path = _fileDirRepo.GetPathById(inDir);
             }
-            var friendlyPath = _fileDirRepo.GetFriendlyPathById(item.InDir);
+            var friendlyPath = _fileDirRepo.GetFriendlyPathById(inDir);
             FileItemDetail d = new()
             {
                 ItemInfo = item,
