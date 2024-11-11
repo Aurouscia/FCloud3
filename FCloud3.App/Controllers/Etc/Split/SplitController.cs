@@ -1,5 +1,6 @@
 using System.Net.Mime;
 using FCloud3.DbContexts;
+using FCloud3.Entities.Wiki;
 using FCloud3.Services.Etc.Split;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -106,6 +107,28 @@ namespace FCloud3.App.Controllers.Etc.Split
             ctx.UserGroups.Where(x => x.Id != groupId)
                 .ExecuteUpdate(spc => spc.SetProperty(u => u.Deleted, true));
             return Ok("Ok");
+        }
+
+        [Route("/S/RemoveRubbishParaAndFile")]
+        public IActionResult RemoveRubbishParaAndFile()
+        {
+            var allWikiIds = ctx.WikiItems.Select(x => x.Id).ToHashSet();
+            var allParas = ctx.WikiParas.Select(x => new { ParaId = x.Id, x.WikiItemId }).ToList();
+            var keepParas = allParas.Where(x => allWikiIds.Contains(x.WikiItemId))
+                .Select(x => x.ParaId).ToList();
+            ctx.WikiParas.Where(x => !keepParas.Contains(x.Id)).ExecuteDelete();
+
+            var allUserIds = ctx.Users.Where(x => !x.Deleted).Select(x => x.Id).ToHashSet();
+            var allFileParasFileIds = ctx.WikiParas
+                .Where(x => x.Type == WikiParaType.File)
+                .Select(x => x.ObjectId).ToHashSet();
+            var allFiles = ctx.FileItems.Select(x => new { FileId = x.Id, x.CreatorUserId }).ToList();
+            var keepFiles = allFiles.Where(x => allFileParasFileIds.Contains(x.FileId)
+                || allUserIds.Contains(x.CreatorUserId))
+                .Select(x => x.FileId).ToList();
+            ctx.FileItems.Where(x => !keepFiles.Contains(x.Id)).ExecuteDelete();
+            return Ok($"移除垃圾段落{allParas.Count - keepParas.Count}个，" +
+                $"移除垃圾文件{allFiles.Count - keepFiles.Count}个");
         }
     }
 }
