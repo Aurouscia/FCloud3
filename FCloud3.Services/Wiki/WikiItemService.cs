@@ -459,6 +459,7 @@ namespace FCloud3.Services.Wiki
                         id, originalTitle, originalUrlPathName, title, urlPathName);
                     if(record.Length>0)
                         _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.WikiItem, id, 0, record);
+                    latestWikiExchangeService.Push();
                     return true;
                 }
                 else
