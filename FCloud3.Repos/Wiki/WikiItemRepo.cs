@@ -48,6 +48,7 @@ namespace FCloud3.Repos.Wiki
                 return 0;
             item.OwnerUserId = _userIdProvider.Get();
             var now = DateTime.Now;
+            item.LastActive = now;
             base.Add(item, now);
             UpdateWikiItemRefLu(now);
             return item.Id;
