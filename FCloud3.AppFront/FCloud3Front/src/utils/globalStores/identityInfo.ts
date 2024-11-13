@@ -1,7 +1,7 @@
 import { defineStore } from "pinia"
 import { UserType } from "@/models/identities/user"
 import { Api } from "../com/api"
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { getTimeStamp } from "../timeStamp"
 import { userDefaultAvatar } from "@/models/files/material"
 
@@ -74,8 +74,9 @@ export class IdentityInfoProvider{
 }
 
 //存储身份信息的piniaStore，获取时应该通过这里获取
-export const useIdentityInfoStore = defineStore('iden', {
-    state:()=>{
-        return {iden: ref(defaultValue)}
-    }
+export const useIdentityInfoStore = defineStore('iden', ()=>{
+    const iden = ref(defaultValue)
+    const isAdmin = computed<boolean>(()=>iden.value.Type>=UserType.Admin)
+    const isSuperAdmin = computed<boolean>(()=>iden.value.Type>=UserType.SuperAdmin)
+    return { iden, isAdmin, isSuperAdmin }
 })

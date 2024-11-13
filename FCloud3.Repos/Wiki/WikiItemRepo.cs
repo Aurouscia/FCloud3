@@ -64,12 +64,6 @@ namespace FCloud3.Repos.Wiki
         }
         public bool TryRemove(WikiItem item, out string? errmsg)
         {
-            var uid = _userIdProvider.Get();
-            if(item.OwnerUserId != uid)
-            {
-                errmsg = "只有所有者能删除词条";
-                return false;
-            }
             var now = DateTime.Now;
             base.Remove(item, now);
             UpdateWikiItemRefLu(now);

@@ -403,12 +403,18 @@ namespace FCloud3.Services.Wiki
             }
             return false;
         }
-        public bool Delete(int id, out string? errmsg)
+        public bool Delete(int id, bool isSuperAdmin, out string? errmsg)
         {
             var w = _wikiRepo.GetById(id);
             if(w is null)
             {
                 errmsg = "找不到指定词条";
+                return false;
+            }
+            var currentUid = _operatingUserIdProvider.Get();
+            if (w.OwnerUserId != currentUid && !isSuperAdmin)
+            {
+                errmsg = "只有词条所有者/超管能删除词条";
                 return false;
             }
             var s = _wikiRepo.TryRemove(w, out errmsg);
@@ -469,7 +475,7 @@ namespace FCloud3.Services.Wiki
             return true;
         }
 
-        public bool Transfer(int id, int uid, out string? errmsg)
+        public bool Transfer(int id, int uid, bool isSuperAdmin, out string? errmsg)
         {
             var currentUid = _operatingUserIdProvider.Get();
             var w = _wikiRepo.GetById(id);
@@ -478,9 +484,9 @@ namespace FCloud3.Services.Wiki
                 errmsg = "找不到目标词条";
                 return false;
             }
-            if (w.OwnerUserId != currentUid)
+            if (w.OwnerUserId != currentUid && !isSuperAdmin)
             {
-                errmsg = "只有词条所有者能转让";
+                errmsg = "只有词条所有者/超管能转让";
                 return false;
             }
             var targetUser = _userRepo.GetById(uid);

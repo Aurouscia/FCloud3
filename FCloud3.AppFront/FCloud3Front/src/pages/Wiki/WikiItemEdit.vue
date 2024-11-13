@@ -36,7 +36,7 @@ import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTi
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
-const { iden } = useIdentityInfoStore();
+const idenStore = useIdentityInfoStore();
 const paraYSpace = 130;
 var api:Api;
 const router = useRouter();
@@ -402,7 +402,7 @@ onUnmounted(()=>{
                     修改链接名称将导致文中已写下的链接名和分享的查看链接失效，请谨慎操作。<br/>
                 </Notice>
             </div>
-            <button v-if="iden.Id === info.OwnerId" class="dangerZoneBtn" :class="{danger:dangerZoneOpen}" @click="dangerZoneOpen = true">危险区</button>
+            <button v-if="idenStore.iden.Id === info.OwnerId || idenStore.isSuperAdmin" class="dangerZoneBtn" :class="{danger:dangerZoneOpen}" @click="dangerZoneOpen = true">危险区</button>
             <div v-if="dangerZoneOpen" class="dangerZone">
                 <div>
                     <LongPress :reached="del">长按删除词条</LongPress>

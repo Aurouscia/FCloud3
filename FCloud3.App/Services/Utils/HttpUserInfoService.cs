@@ -15,6 +15,7 @@ namespace FCloud3.App.Services.Utils
         public int LeftHours { get; } = 0;
         public string? AvtSrc { get; }
         public bool IsAdmin => Type >= UserType.Admin;
+        public bool IsSuperAdmin => Type >= UserType.SuperAdmin;
         public HttpUserInfoService(IHttpContextAccessor httpContextAccessor, HttpUserIdProvider userId, UserService userService)
         {
             //TODO: 可按需加载

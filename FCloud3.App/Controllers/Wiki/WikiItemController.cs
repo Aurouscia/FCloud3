@@ -77,8 +77,9 @@ namespace FCloud3.App.Controllers.Wiki
         [AuthGranted]
         [UserTypeRestricted]
         public IActionResult Delete(int id)
-        { 
-            if(!_wikiService.Delete(id, out string? errmsg))
+        {
+            var isSuperAdmin = _userInfo.IsSuperAdmin;
+            if (!_wikiService.Delete(id, isSuperAdmin, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
@@ -109,7 +110,8 @@ namespace FCloud3.App.Controllers.Wiki
         [Authorize]
         public IActionResult Transfer(int wikiId, int uid)
         {
-            if (!_wikiService.Transfer(wikiId, uid, out string? errmsg))
+            var isSuperAdmin = _userInfo.IsSuperAdmin;
+            if (!_wikiService.Transfer(wikiId, uid, isSuperAdmin, out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
