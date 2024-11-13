@@ -5,7 +5,6 @@ import { WikiParaType} from '@/models/wiki/wikiParaType'
 import { MouseDragListener } from '@/utils/eventListeners/mouseDrag';
 import Functions from '@/components/Functions.vue';
 import { useRouter } from 'vue-router';
-import { Api } from '@/utils/com/api';
 import addIconSrc from '@/assets/add.svg';
 import dragYIconSrc from '@/assets/dragY.svg';
 import { WikiItem } from '@/models/wiki/wikiItem';
@@ -38,7 +37,7 @@ const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
 const idenStore = useIdentityInfoStore();
 const paraYSpace = 130;
-var api:Api;
+var api = injectApi();
 const router = useRouter();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const { jumpToWikiLocations, jumpToWikiContentEdit } = useWikiRoutesJump();
@@ -323,9 +322,7 @@ function tabSwitched(idx:number){
     }
 }
 onMounted(async()=>{
-    api = injectApi();
     await Load();
-    //initLisenters();
 })
 onUnmounted(()=>{
     recoverTitle()
@@ -343,7 +340,7 @@ onUnmounted(()=>{
         </div>
     </h1>
     <SwitchingTabs v-if="loadComplete" :texts="['段落信息','基础信息','权限设置']" @switch="tabSwitched">
-    <div class="paras" ref="parasDiv">
+    <div class="paras tabContainer" ref="parasDiv">
         <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"
@@ -375,7 +372,7 @@ onUnmounted(()=>{
             请点击<img :src="addIconSrc" class="smallAvatar"/>添加段落以开始创作
         </div>
     </div>
-    <div>
+    <div class="tabContainer">
         <div class="wikiInfo" v-if="info">
             <table><tbody>
                 <tr>
@@ -414,7 +411,7 @@ onUnmounted(()=>{
         </div>
         <Loading v-else></Loading>
     </div>
-    <div>
+    <div class="tabContainer">
         <AuthGrants v-if="info" :on="AuthGrantOn.WikiItem" :on-id="info.Id"></AuthGrants>
     </div>
     </SwitchingTabs>
@@ -441,6 +438,14 @@ h1{
 .h1Btns{
     flex-shrink: 0;
     font-size: medium;
+}
+
+.tabContainer{
+    min-width: 100%;
+    max-width: 600px;
+    height: calc(globalValues.$body-height - 230px);//230px是顶部栏+标题+tab按键那块的高度
+    overflow-y: scroll;
+    padding-bottom: 100px;
 }
 
 .wikiInfo>*{
@@ -482,11 +487,6 @@ h1{
 }
 
 .paras {
-    min-width: 100%;
-    max-width: 600px;
-    max-height: calc(globalValues.$body-height - 230px);
-    overflow-y: auto;
-    padding-bottom: 100px;
     position: relative;
     background-color: white;
 }
