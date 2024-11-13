@@ -6,6 +6,7 @@ import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useFeVersionChecker } from '@/utils/feVersionCheck';
+import externalLinkIcon from '@/assets/externalLink.svg'
 import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
 
 const api = injectApi();
@@ -36,8 +37,11 @@ onMounted(async()=>{
                 最近更新
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
-                <img :src="w.Avt">
-                <a v-if="isExternal(w.Path)" :href="w.Path" target="_blank">{{ w.Title }}</a>
+                <img :src="w.Avt" class="avt">
+                <a v-if="isExternal(w.Path)" :href="w.Path" target="_blank">
+                    {{ w.Title }}
+                    <img class="externalLinkIcon" :src="externalLinkIcon"/>
+                </a>
                 <RouterLink v-else :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
@@ -46,7 +50,7 @@ onMounted(async()=>{
                 随机看看
             </div>
             <div v-for="w in model.RandomWikis" :key="w.Path" class="listItem">
-                <img :src="w.Avt">
+                <img :src="w.Avt" class="avt">
                 <RouterLink :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
             </div>
         </div>
@@ -106,7 +110,7 @@ onMounted(async()=>{
             font-weight: bold;
             background-color: #eee;
         }
-        img{
+        img.avt{
             vertical-align: middle;
             display: inline-block;
             height: 20px;
