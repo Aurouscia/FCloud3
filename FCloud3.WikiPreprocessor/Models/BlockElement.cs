@@ -26,6 +26,10 @@ namespace FCloud3.WikiPreprocessor.Models
         {
             Content.WriteHtml(sb);
         }
+        public override void WriteBody(StringBuilder sb, int maxLength)
+        {
+            Content.WriteBody(sb, maxLength);
+        }
         public override List<IRule>? ContainRules()
         {
             return Content.ContainRules();

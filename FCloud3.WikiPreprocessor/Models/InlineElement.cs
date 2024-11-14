@@ -67,6 +67,16 @@ namespace FCloud3.WikiPreprocessor.Models
         {
             sb.Append(Content);
         }
+        public override void WriteBody(StringBuilder sb, int maxLength)
+        {
+            int leftLength = maxLength - sb.Length;
+            if (leftLength <= 0)
+                return;
+            if (Content.Length <= leftLength)
+                sb.Append(Content);
+            else
+                sb.Append(Content.AsSpan()[..leftLength]);
+        }
     }
     public class EmptyElement : InlineElement
     {

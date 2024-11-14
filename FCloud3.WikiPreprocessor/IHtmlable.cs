@@ -12,6 +12,7 @@ namespace FCloud3.WikiPreprocessor
     {
         public string ToHtml();
         public void WriteHtml(StringBuilder sb);
+        public void WriteBody(StringBuilder sb, int maxLength);
         public List<IRule>? ContainRules();
         public List<IHtmlable>? ContainFootNotes();
         public List<ParserTitleTreeNode>? ContainTitleNodes();

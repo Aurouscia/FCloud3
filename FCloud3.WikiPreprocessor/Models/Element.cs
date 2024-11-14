@@ -19,6 +19,7 @@ namespace FCloud3.WikiPreprocessor.Models
         { 
             sb.Append(ToHtml());
         }
+        public virtual void WriteBody(StringBuilder sb, int maxLength) { }
     }
 
     public class ErrorElement : Element
@@ -65,6 +66,42 @@ namespace FCloud3.WikiPreprocessor.Models
         public virtual void WriteHtml(StringBuilder sb)
         {
             this.ForEach(x => x.WriteHtml(sb));
+        }
+        public virtual void WriteBody(StringBuilder sb, int maxLength)
+        {
+            bool isFirst = true;
+            List<string> bodies = [];
+            int bodiesCurrentTotalLength = 0;
+            StringBuilder tempSb = new();
+            foreach(var ele in this)
+            {
+                tempSb.Clear();
+                int leftLength = maxLength - sb.Length - bodiesCurrentTotalLength;
+                if (leftLength <= 0)
+                    break;
+                ele.WriteBody(tempSb, leftLength);
+                bodiesCurrentTotalLength += tempSb.Length;
+                bodies.Add(tempSb.ToString());
+            }
+            foreach(var body in bodies)
+            {
+                if (body.Length == 0)
+                    continue;
+                int leftLength = maxLength - sb.Length;
+                if (leftLength <= 0)
+                    break;
+                if (isFirst)
+                    isFirst = false;
+                else
+                {
+                    sb.Append(' ');
+                    leftLength -= 1;
+                }
+                if (body.Length <= leftLength)
+                    sb.Append(body);
+                else
+                    sb.Append(body.AsSpan()[..leftLength]);
+            }
         }
         public virtual List<IRule> ContainRules()
         {
