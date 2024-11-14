@@ -232,9 +232,9 @@ watch(onlyMine, async()=>{
                 </tr>
             </tbody></table>
         </div>
-        <Notice :type="'warn'" :title="'⚠已知缺陷'">
-            修改素材名称将造成使用原名称的词条无法再显示该素材<br/><br/>
-            修改素材文件可能无法立即对词条中的显示造成更改，请以某种方式影响词条的更新时间使词条重新解析
+        <Notice :type="'warn'" :title="'⚠注意'">
+            修改素材名称将造成使用原名称的各词条无法再显示该素材<br/>
+            更改文件没有问题，各词条内将立即更换为新文件
         </Notice>
         <div class="deleteBtn">
             <button class="danger" @click="deleteMaterial(detailId)">删除本素材</button>
