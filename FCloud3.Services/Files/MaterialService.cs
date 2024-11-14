@@ -1,101 +1,88 @@
 ﻿using FCloud3.Entities.Files;
 using FCloud3.Repos.Etc.Index;
 using FCloud3.Repos.Files;
-using FCloud3.Services.Etc;
 using FCloud3.Services.Files.Storage.Abstractions;
-using NPOI.SS.Formula.Functions;
-using NPOI.SS.Formula.PTG;
+using FCloud3.Services.Wiki;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
 namespace FCloud3.Services.Files
 {
-    public class MaterialService
-    {
-        private readonly MaterialRepo _materialRepo;
-        private readonly IOperatingUserIdProvider _userIdProvider;
-        private readonly IStorage _storage;
-        private readonly static object materialNamingLock = new();
-
-        public MaterialService(
-            MaterialRepo materialRepo,
-            IOperatingUserIdProvider userIdProvider,
-            IStorage storage)
-        {
-            _materialRepo = materialRepo;
-            _userIdProvider = userIdProvider;
-            _storage = storage;
-        }
+    public class MaterialService(
+        MaterialRepo materialRepo,
+        WikiRefService wikiRefService,
+        IOperatingUserIdProvider userIdProvider,
+        IStorage storage)
+    { 
 
         public IndexResult<MaterialIndexItem> Index(IndexQuery q, bool onlyMine)
         {
             IQueryable<Material> from;
             if (onlyMine)
             {
-                var userId = _userIdProvider.Get();
-                from = _materialRepo.Existing.Where(x => x.CreatorUserId == userId);
+                var userId = userIdProvider.Get();
+                from = materialRepo.Existing.Where(x => x.CreatorUserId == userId);
             }
             else
-                from = _materialRepo.Existing;
-            var m = _materialRepo.IndexFilterOrder(from, q).TakePageAndConvertOneByOne(q, x => new MaterialIndexItem(x, _storage.FullUrl));
+                from = materialRepo.Existing;
+            var m = materialRepo.IndexFilterOrder(from, q)
+                .TakePageAndConvertOneByOne(q, x => new MaterialIndexItem(x, storage.FullUrl));
             return m;
         }
 
         public int Add(Stream stream, string formFileName, string path, string? name, string? desc, out string? errmsg)
         {
-            lock (materialNamingLock)
+            Material m = new()
             {
-                Material m = new()
-                {
-                    Name = name,
-                    StorePathName = null,
-                    Desc = desc
-                };
-                //进行名称检查
-                if (!_materialRepo.ModelCheck(m, out errmsg))
-                    return 0;
+                Name = name,
+                StorePathName = null,
+                Desc = desc
+            };
+            //进行名称检查
+            if (!materialRepo.ModelCheck(m, out errmsg))
+                return 0;
 
-                using MemoryStream compressed = new();
-                string ext;
-                if (CanCompress(formFileName))
-                {
-                    if (!CompressImage(stream, compressed, out errmsg))
-                        return 0;
-                    ext = ".png";
-                }
-                else if(CanSaveButNoCompress(formFileName))
-                {
-                    stream.CopyTo(compressed);
-                    if(compressed.Length > noCompressMaxSize)
-                    {
-                        errmsg = noCompressMaxSizeExceedMsg;
-                        return 0;
-                    }
-                    ext = Path.GetExtension(formFileName);
-                }
-                else
-                {
-                    errmsg = "不支持的文件格式";
+            using MemoryStream compressed = new();
+            string ext;
+            if (CanCompress(formFileName))
+            {
+                if (!CompressImage(stream, compressed, out errmsg))
                     return 0;
-                }
-                stream.Close();
-                compressed.Seek(0, SeekOrigin.Begin);
-
-                string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
-                string storePathName = StorePathName(path, storeName);
-                if (!_storage.Save(compressed, storePathName, out errmsg))
-                    return 0;
-
-                //写入存储名
-                m.StorePathName = storePathName;
-                var createdId = _materialRepo.TryAddAndGetId(m, out errmsg);
-                return createdId;
+                ext = ".png";
             }
+            else if (CanSaveButNoCompress(formFileName))
+            {
+                stream.CopyTo(compressed);
+                if (compressed.Length > noCompressMaxSize)
+                {
+                    errmsg = noCompressMaxSizeExceedMsg;
+                    return 0;
+                }
+                ext = Path.GetExtension(formFileName);
+            }
+            else
+            {
+                errmsg = "不支持的文件格式";
+                return 0;
+            }
+            stream.Close();
+            compressed.Seek(0, SeekOrigin.Begin);
+
+            string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
+            string storePathName = StorePathName(path, storeName);
+            if (!storage.Save(compressed, storePathName, out errmsg))
+                return 0;
+
+            //写入存储名
+            m.StorePathName = storePathName;
+            var createdId = materialRepo.TryAddAndGetId(m, out errmsg);
+            wikiRefService.ReferencedMaterialPropChangeHandle(name);
+            return createdId;
         }
 
         public bool UpdateContent(int id, Stream stream, string formFileName, string path, out string? errmsg)
         {
-            Material? m = _materialRepo.GetById(id);
+            Material? m = materialRepo.GetById(id);
             if (m is null)
             {
                 errmsg = "找不到指定素材";
@@ -130,39 +117,40 @@ namespace FCloud3.Services.Files
 
             string storeName = Path.ChangeExtension(Path.GetRandomFileName(), ext);
             string storePathName = StorePathName(path, storeName);
-            if (!_storage.Save(compressed, storePathName, out errmsg))
+            if (!storage.Save(compressed, storePathName, out errmsg))
                 return false;
             string? oldPathName = m.StorePathName;
             if (oldPathName != null)
-                _storage.Delete(oldPathName, out _);
+                storage.Delete(oldPathName, out _);
             m.StorePathName = storePathName;
-            _materialRepo.UpdateInfoWithoutCheck(m);
+            materialRepo.UpdateInfoWithoutCheck(m);
+            wikiRefService.ReferencedMaterialPropChangeHandle(m.Name);
             return true;
         }
 
         public bool UpdateInfo(int id, string name, string? desc, out string? errmsg)
         {
-            lock (materialNamingLock)
+            var m = materialRepo.GetById(id);
+            if (m is null)
             {
-                var m = _materialRepo.GetById(id);
-                if(m is null)
-                {
-                    errmsg = "找不到指定素材";
-                    return false;
-                }
-                bool nameChanged = m.Name != name;
-                m.Name = name;
-                m.Desc = desc;
-                if (!_materialRepo.TryUpdateInfo(m, out errmsg))
-                    return false;
-                errmsg = null;
-                return true;
+                errmsg = "找不到指定素材";
+                return false;
             }
+            string? originalName = m.Name;
+            m.Name = name;
+            m.Desc = desc;
+            if (!materialRepo.TryUpdateInfo(m, out errmsg))
+                return false;
+            if(originalName != name)
+                wikiRefService.ReferencedMaterialPropChangeHandle(originalName, name);
+            errmsg = null;
+            return true;
         }
+    
 
         public bool Delete(int id, out string? errmsg)
         {
-            var m = _materialRepo.GetById(id);
+            var m = materialRepo.GetById(id);
             if (m is null)
             {
                 errmsg = "找不到指定素材";
@@ -170,8 +158,9 @@ namespace FCloud3.Services.Files
             }
             string? oldPathName = m.StorePathName;
             if (oldPathName != null)
-                _storage.Delete(oldPathName, out _);
-            _materialRepo.Remove(m);
+                storage.Delete(oldPathName, out _);
+            materialRepo.Remove(m);
+            wikiRefService.ReferencedMaterialPropChangeHandle(m.Name);
             errmsg = null;
             return true;
         }
@@ -250,7 +239,7 @@ namespace FCloud3.Services.Files
 
         public string GetMaterialFullSrc(string pathName)
         {
-            return _storage.FullUrl(pathName);
+            return storage.FullUrl(pathName);
         }
 
         public class MaterialIndexItem

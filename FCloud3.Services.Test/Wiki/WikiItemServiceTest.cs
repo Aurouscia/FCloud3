@@ -1,7 +1,11 @@
 ﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Files;
+using FCloud3.Repos.Wiki;
+using FCloud3.Services.Files;
 using FCloud3.Services.Test.TestSupport;
 using FCloud3.Services.Wiki;
 
@@ -12,24 +16,31 @@ namespace FCloud3.Services.Test.Wiki
     {
         private readonly FCloudContext _ctx;
         private readonly WikiItemService _service;
+        private readonly MaterialService _materialService;
         private readonly WikiItem _w1 = new() { Title = "侏儒兔", UrlPathName = "dwarf-rabbit" };
         private readonly WikiItem _w2 = new() { Title = "干草", UrlPathName = "hay" };
         private readonly WikiItem _w3 = new() { Title = "冬枣", UrlPathName = "winter-dates" };
+        private readonly Material _m1 = new() { Name = "bunny" };
         private readonly DateTime _initTime = new(2024, 6, 1);
         public WikiItemServiceTest() 
         {
             var provider = new TestingServiceProvider();
             _service = provider.Get<WikiItemService>();
+            _materialService = provider.Get<MaterialService>();
+            provider.Get<WikiItemRepo>().ClearCache();
+            provider.Get<MaterialRepo>().ClearCache();
             _ctx = provider.Get<FCloudContext>();
             _w1.Updated = _initTime;
             _w2.Updated = _initTime;
             _w3.Updated = _initTime;
+            _m1.Updated = _initTime;
             _ctx.WikiItems.AddRange(_w1, _w2, _w3);
+            _ctx.Materials.AddRange(_m1);
             _ctx.SaveChanges();
             var text1 = new TextSection()
             {
                 Title = "食物",
-                Content = "我家这只侏儒兔喜欢吃[某种枣子](winter-dates)",
+                Content = "我家这只{bunny}侏儒兔喜欢吃[某种枣子](winter-dates)",
             };
             var table1 = new FreeTable()
             {
@@ -55,12 +66,17 @@ namespace FCloud3.Services.Test.Wiki
                 WikiId = 3,    //干草词条中的"营养价值"段落包含干草的隐式引用(TitleContain)
                 Updated = _initTime
             };
-            var @ref = new WikiRef()
+            var ref1 = new WikiRef()
             {
                 WikiId = 1,    //侏儒兔 词条
-                Str = "winter-dates" //侏儒兔词条中的"食物"段落包含"冬枣"的显式引用
+                Str = "winter-dates" //侏儒兔词条中的"食物"段落包含词条"冬枣"的显式引用
             };
-            _ctx.AddRange(text1, table1, para1, para2, contain, @ref);
+            var ref2 = new WikiRef()
+            {
+                WikiId = 1,    //侏儒兔 词条
+                Str = "bunny" //侏儒兔词条中的"食物"段落包含素材"bunny"的显式引用
+            };
+            _ctx.AddRange(text1, table1, para1, para2, contain, ref1, ref2);
             _ctx.SaveChanges();
             _ctx.ChangeTracker.Clear();
         }
@@ -82,7 +98,7 @@ namespace FCloud3.Services.Test.Wiki
         }
 
         [TestMethod]
-        public void UpdateRefProp()
+        public void UpdateRefedWikiProp()
         {
             string title = "荷兰猪";
             string urlPathName = "guinea-pig";
@@ -107,6 +123,34 @@ namespace FCloud3.Services.Test.Wiki
             Assert.IsTrue(w1_updated.Updated > now);
             Assert.IsTrue(w2_updated.Updated > now);
             Assert.AreEqual(_initTime, w3.Updated);
+        }
+
+        [TestMethod]
+        public void UpdateRefedMaterialProp()
+        {
+            string title = "荷兰猪";
+            string urlPathName = "guinea-pig";
+            _service.Create(title, urlPathName, out _);
+
+            var w1 = _service.GetInfoById(1)!;
+            var w2 = _service.GetInfoById(2)!;
+            var w3 = _service.GetInfoById(3)!;
+            Assert.AreEqual(_initTime, w1.Updated);
+            Assert.AreEqual(_initTime, w2.Updated);
+            Assert.AreEqual(_initTime, w3.Updated);
+            _ctx.ChangeTracker.Clear();
+
+            DateTime now = DateTime.Now;
+            _materialService.UpdateInfo(1, "rabbit", "", out _);
+            //由于词条1引用了bunny
+            //所以bunny素材的名称/文件名(没法测试)变化时必须让他们重新解析
+            //无关词条不受影响
+
+            var w1_updated = _service.GetInfoById(1)!;
+            var w2_updated = _service.GetInfoById(2)!;
+            Assert.IsTrue(w1_updated.Updated > now);
+            Assert.AreEqual(_initTime, w2.Updated);
+            Assert.AreEqual(_initTime, w3.Updated);//无关词条不受影响
         }
     }
 }

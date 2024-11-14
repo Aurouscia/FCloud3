@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Files;
 
 namespace FCloud3.Services.Test.TestSupport
 {
@@ -42,6 +43,7 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddSingleton<ILogger<LatestWikiExchangeService>, FakeLogger<LatestWikiExchangeService>>();
             services.AddScoped<WikiItemService>();
             services.AddScoped<MyWikisService>();
+            services.AddScoped<MaterialService>();
             _serviceProvider = services.BuildServiceProvider();
         }
         public T Get<T>()

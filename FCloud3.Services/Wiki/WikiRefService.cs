@@ -39,5 +39,13 @@ namespace FCloud3.Services.Wiki
             var needUpdateTimeWikiIds = containingWikis.Union(refingWikiIds).ToList();
             wikiItemRepo.UpdateTimeAndLu(needUpdateTimeWikiIds);
         }
+
+        public void ReferencedMaterialPropChangeHandle(string? originalName, string? newName = null)
+        {
+            var refingWikiIds = wikiRefRepo
+                .GetRefingWikiIds(originalName, newName)
+                .ToList();
+            wikiItemRepo.UpdateTimeAndLu(refingWikiIds);
+        }
     }
 }
