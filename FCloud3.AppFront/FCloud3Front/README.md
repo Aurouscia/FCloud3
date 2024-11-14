@@ -12,6 +12,13 @@ npm run dev
 npm run build （到../../FCloud3.App/wwwroot目录）
 npm run build-here （到./dist目录）
 ```
+## 连接远程后端调试前端
+如果本地没有.netSDK，可在`./env`文件夹下创建名为`.env.development.local`的文件，内容写：
+```
+VITE_ApiUrlBase = "[你的后端域名]"
+例如：
+VITE_ApiUrlBase = "http://wiki.jowei19.com"
+```
 ## 插件
 约定：
 - 插件的入口是单个的js文件（ecma标准），**export一个名为`run`的函数**

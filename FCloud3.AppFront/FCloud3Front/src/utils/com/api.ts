@@ -1363,5 +1363,5 @@ export class Api{
 }
 
 export function fileDownloadLink(fileId:number){
-    return import.meta.env.VITE_BASEURL + '/api/FileItem/Download?id=' + fileId
+    return import.meta.env.VITE_ApiUrlBase + '/api/FileItem/Download?id=' + fileId
 }

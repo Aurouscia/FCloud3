@@ -5,4 +5,4 @@ export function recoverTitle(){
     document.title = defaultTitle;
 }
 
-export const defaultTitle = import.meta.env.VITE_TITLE;
+export const defaultTitle = import.meta.env.VITE_AppTitle;

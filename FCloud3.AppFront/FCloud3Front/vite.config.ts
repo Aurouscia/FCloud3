@@ -36,4 +36,5 @@ export default defineConfig({
       },
     },
   },
+  envDir: "dev/env"
 })

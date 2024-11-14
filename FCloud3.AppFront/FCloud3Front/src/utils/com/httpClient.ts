@@ -38,7 +38,7 @@ export class HttpClient{
         this.needMemberCallBack = needMemberCallBack;
         this.showWaitCallBack = showWait;
         this.ax = axios.create({
-            baseURL: import.meta.env.VITE_BASEURL,
+            baseURL: import.meta.env.VITE_ApiUrlBase,
             validateStatus: (n)=>n < 500
           });
     }
