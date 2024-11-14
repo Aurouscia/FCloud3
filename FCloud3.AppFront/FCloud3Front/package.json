@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "build-here": "vue-tsc && vite build --outDir ./dist --emptyOutDir",
-    "prebuild": "node src/build/prebuildEntry.cjs"
+    "prebuild": "node dev/build/prebuildEntry.cjs"
   },
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.5.9",

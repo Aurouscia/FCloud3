@@ -26,8 +26,8 @@ dist-ssr
 # 前端版本检查
 public/feVersion.txt
 # 构建时自动生成代码
-src/build/version/feVersion.js
-src/build/plugin/pluginsFound.js
+feVersion.js
+pluginsFound.js
 
-# 插件
+# 插件编译结果
 public/plugins/*
