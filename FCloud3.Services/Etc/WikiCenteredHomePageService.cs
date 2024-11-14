@@ -3,7 +3,6 @@ using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Identities;
 using Newtonsoft.Json;
 
 namespace FCloud3.Services.Etc
@@ -31,6 +30,7 @@ namespace FCloud3.Services.Etc
             int latestCount = 8;
             int nearCount = 30;
             int randRange = 300;
+            int sameOwnerMax = 2;
 
             var tops = (
                 from w in _wikiItemRepo.ExistingAndNotSealedAndEdited
@@ -60,23 +60,29 @@ namespace FCloud3.Services.Etc
                 x.FileDir.UrlPathName,
                 x.FileDir.Name));
 
+            int latestTakeCount = latestCount * 4;
             var latestWikisRaw = _wikiItemRepo.ExistingAndNotSealedAndEdited
                 .OrderByDescending(x => x.LastActive)
-                .Take(latestCount).ToList()
-                .ConvertAll(x => new
-                {
-                    OwnerId = x.OwnerUserId,
-                    UrlPathName = x.UrlPathName ?? "??",
-                    Title = x.Title ?? "??",
-                    Active = x.LastActive
-                });
+                .Take(latestTakeCount).ToList()
+                .ConvertAll(x => new WikiInfoRaw(
+                    x.OwnerUserId, x.UrlPathName, x.Title, x.LastActive));
+            var removing = new HashSet<WikiInfoRaw>();
+            Dictionary<int, int> ownerWorkCount = [];
+            latestWikisRaw.ForEach(x =>
+            {
+                ownerWorkCount.TryGetValue(x.OwnerId, out int count);
+                ownerWorkCount[x.OwnerId] = count + 1;
+                if(count + 1 > sameOwnerMax)
+                    removing.Add(x);
+            });
+            latestWikisRaw = latestWikisRaw.Except(removing).Take(latestCount).ToList();
 
             var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
                 .OrderByDescending(x => x.LastActive)
                 .Select(x => x.Id)
                 .Take(randRange).ToList();
             var randedWikisIds = RandomPick(randFromWikiIds, latestWikisRaw.Count);
-            var randomWikisRaw = _wikiItemRepo.GetRangeByIdsOrdered<WikiCenteredHomePage.WikiWithOwner>(randedWikisIds, x
+            var randomWikisRaw = _wikiItemRepo.GetRangeByIdsOrdered(randedWikisIds, x
                 => x.Select(w => new { w.Id, w.UrlPathName, w.Title, w.OwnerUserId, w.LastActive })
                     .ToDictionary(
                         w => w.Id,
@@ -148,12 +154,26 @@ namespace FCloud3.Services.Etc
                         pulled.Url, pulled.Text, pulled.Avt, pulled.Time));
                 }
             }
-            if(latestWikis.Count > latestCount)
+            latestWikis = latestWikis
+                .OrderByDescending(x => x.Active)
+                .Take(latestCount).ToList();
+            var now = DateTime.Now;
+            var displayIfWithin = TimeSpan.FromHours(4);
+            latestWikis.ForEach(w =>
             {
-                latestWikis = latestWikis
-                    .OrderByDescending(x => x.Active)
-                    .Take(latestCount).ToList();
-            }
+                TimeSpan passed = now - w.Active;
+                if (passed <= displayIfWithin)
+                {
+                    var hr = passed.TotalHours;
+                    var min = passed.TotalMinutes;
+                    if (hr > 1)
+                        w.TimeInfo = $"{Math.Floor(hr)}小时前";
+                    else if (min > 1)
+                        w.TimeInfo = $"{Math.Floor(passed.TotalMinutes)}分钟前";
+                    else
+                        w.TimeInfo = "刚刚";
+                }
+            });
             
             var model = new WikiCenteredHomePage(latestWikis, randomWikis, topPairs);
             return model;
@@ -200,6 +220,7 @@ namespace FCloud3.Services.Etc
             {
                 public string Path { get; set; } = urlPathName;
                 public string Title { get; set; } = title;
+                public string? TimeInfo { get; set; }
                 [JsonIgnore]
                 public DateTime Active { get; set; } = active;
             }
@@ -218,6 +239,13 @@ namespace FCloud3.Services.Etc
                 public string Path { get; set; } = urlPathName;
                 public string Name { get; set; } = name;
             }
+        }
+        private class WikiInfoRaw(int ownerId, string? urlPathName, string? title, DateTime lastActive)
+        {
+            public int OwnerId { get; } = ownerId;
+            public string UrlPathName { get; } = urlPathName ?? "??";
+            public string Title { get; } = title ?? "??";
+            public DateTime Active { get; } = lastActive;
         }
     }
 }

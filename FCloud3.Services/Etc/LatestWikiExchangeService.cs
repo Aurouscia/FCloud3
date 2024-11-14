@@ -15,7 +15,7 @@ namespace FCloud3.Services.Etc
         public const string pullRoute = "/api/LatestWikiExchange/Pull";
         public const string pushRoute = "/api/LatestWikiExchange/Push";
         public const string configSectionName = "LatestWikiExchange";
-        public const int itemsMaxCount = 8;
+        public const int itemsMaxCount = 4;
         public const int pushCooldownSecs = 60;
         private readonly WikiItemRepo _wikiItemRepo;
         private readonly UserRepo _userRepo;

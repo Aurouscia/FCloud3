@@ -9,6 +9,7 @@ export interface Wiki
 {
     Path:string
     Title:string
+    TimeInfo?:string|null
 }
 export interface WikiWithAvt extends Wiki
 {

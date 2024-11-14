@@ -43,6 +43,7 @@ onMounted(async()=>{
                     <img class="externalLinkIcon" :src="externalLinkIcon"/>
                 </a>
                 <RouterLink v-else :to="jumpToViewWikiRoute(w.Path)">{{ w.Title }}</RouterLink>
+                <span class="tInfo" v-if="w.TimeInfo">{{ w.TimeInfo }}</span>
             </div>
         </div>
         <div class="list">
@@ -121,6 +122,13 @@ onMounted(async()=>{
         a{
             color: #000;
             vertical-align: middle;
+        }
+        .tInfo{
+            color: gray;
+            margin-left: 6px;
+            font-size: 13px;
+            font-weight: normal;
+            vertical-align: bottom;
         }
     }
     .listTitle{
