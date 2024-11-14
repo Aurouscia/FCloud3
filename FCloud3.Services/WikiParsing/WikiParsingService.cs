@@ -182,7 +182,7 @@ namespace FCloud3.Services.WikiParsing
                     p.KeepRuleUsageBeforeCalling();
                     p.KeepRefBeforeCalling();
                 },
-                containInfos: null,
+                getContains: null,
                 linkSingle: true,
                 () => [wiki.Id]);
 

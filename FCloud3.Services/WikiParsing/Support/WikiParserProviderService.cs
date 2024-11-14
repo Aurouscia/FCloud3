@@ -13,12 +13,12 @@ namespace FCloud3.Services.WikiParsing.Support
         ILogger<WikiParserProviderService> logger)
     {
         public Parser Get(string cacheKey, bool saveParser,
-            Action<ParserBuilder>? configure = null, List<WikiTitleContain>? containInfos = null,
+            Action<ParserBuilder>? configure = null, Func<List<WikiTitleContain>>? getContains = null,
             bool linkSingle = true, Func<int[]>? getTitleContainExpiringWikiIds = null)
         {
             if (!saveParser || !wikiParserCacheHost.TryGet(cacheKey, out var p) || p is null)
             {
-                p = Get(configure, containInfos, linkSingle);
+                p = Get(configure, getContains, linkSingle);
                 string logDesc = saveParser ? "缓存之" : "不缓存之";
                 logger.LogDebug("词条解析器[{cacheKey}]已创建，{logDesc}", cacheKey, logDesc);
                 if (saveParser)
@@ -32,13 +32,14 @@ namespace FCloud3.Services.WikiParsing.Support
         }
         private Parser Get(
             Action<ParserBuilder>? configure = null, 
-            List<WikiTitleContain>? containInfos = null, 
+            Func<List<WikiTitleContain>>? getContains = null, 
             bool linkSingle = true)
         {
             var pb = new ParserBuilder();
-            if (containInfos != null)
+            if (getContains != null)
             {
-                var containWikiIds = containInfos.ConvertAll(x => x.WikiId);
+                var contains = getContains();
+                var containWikiIds = contains.ConvertAll(x => x.WikiId);
                 var wikiTitles = wikiItemRepo.CachedItemsPropByIds(containWikiIds, w => w.Title);
                 pb.AutoReplace.AddReplacingTargets(wikiTitles, linkSingle);
             }

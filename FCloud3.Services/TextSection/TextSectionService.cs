@@ -21,6 +21,7 @@ namespace FCloud3.Services.TextSec
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
         WikiToDirRepo wikiToDirRepo,
+        WikiTitleContainRepo wikiTitleContainRepo,
         FileDirRepo fileDirRepo,
         DiffContentService contentDiffService,
         DbTransactionService dbTransactionService,
@@ -148,16 +149,15 @@ namespace FCloud3.Services.TextSec
             var parser = wikiParserProviderService.Get(
                 cacheKey,
                 true,
-                builder =>
-                {
+                builder => {
                     builder.UseLocatorHash(locatorHash);
-                    builder.Cache.EnableCache();
                     builder.Block.SetTitleLevelOffset(1);
                     if (debug)
                         builder.EnableDebugInfo();
                 },
-                null,
-                false,
+                () => wikiTitleContainRepo.GetByTypeAndObjId(
+                        WikiTitleContainType.TextSection, id),
+                true,
                 () => wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToArray()
             );
             parser.SetDataSource(wikiParserDataSource);
