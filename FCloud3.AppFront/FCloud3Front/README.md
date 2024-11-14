@@ -2,13 +2,15 @@
 请确保安装了node客户端（npm命令可用）  
 安装依赖项并开始调试：
 ```
-npm i
+npm config set registry https://registry.npmmirror.com （设置npm国内镜像）
+npm ci
+npm run prebuild （仅第一次run dev前需要）
 npm run dev
 ```
 编译：
 ```
-npm run build (到../../FCloud3.App/wwwroot目录)
-npm run build-here (到./dist目录)
+npm run build （到../../FCloud3.App/wwwroot目录）
+npm run build-here （到./dist目录）
 ```
 ## 插件
 约定：

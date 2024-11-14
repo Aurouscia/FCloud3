@@ -34,14 +34,19 @@ http://wiki.jowei19.com
 
 ### 步骤
 1. 在命令行中输入`git clone 【本仓库链接】`
-2. 进入前端文件夹(/FCloud3.AppFront/FCloud3Front)，在命令行中输入`npm install`和`npm run build`
-    - npm install 可能需要挂t子或设镜像
+2. 进入前端文件夹(/FCloud3.AppFront/FCloud3Front)，在命令行中输入
+    ```
+    npm config set registry https://registry.npmmirror.com（设置npm国内镜像）
+    npm ci
+    npm run build
+    ```
+    如果需要调试前端项目，见前端文件夹内的Readme文件
 3. 双击项目根目录的sln文件，进入vs
 4. 按appsettings.json中的注释调整配置文件
     - （如果需要）更改数据库连接字符串，不作配置默认使用sqlite
     - （如果需要）阿里云OSS账号密码，不作配置默认使用服务器本地文件存储（Data/FileStorage文件夹）
-    - 必须更改总密码（MasterAdminCode）
-    - 必须更改jwt密钥（Jwt:SecretKey）
+    - **必须**更改总密码（MasterAdminCode）
+    - **必须**更改jwt密钥（Jwt:SecretKey）
 5. 点击顶部绿色启动按钮启动调试，检查是否正常
 6. 在浏览器地址栏访问`调试域名/init/{配置文件内的总密码}/initDb`以初始化数据库
 7. 停止调试，点击顶部栏`生成-发布`即可选择位置导出
@@ -56,11 +61,13 @@ http://wiki.jowei19.com
 ## 注意
 本项目暂不成熟，不建议直接投入生产环境  
 **部署或使用遇到问题欢迎提出issue或者PR**  
+需要帮助请加qq群：798877093  
+<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=4oMUQMONpSEqiV8up23fZ_vUn5OjD9JI&jump_from=webapi&authKey=dJxZX5kBCr46IASe9YH6V9aBvwHG/CNs13kgTm6k4nKYrVcsWI+zndBiypF5H4lW"><img src="//pub.idqqimg.com/wpa/images/group.png" alt="Au的软件开发交流群" title="Au的软件开发交流群"></a>
 
 ## 主要缺陷
 - 只能单实例部署
 - 没有代码生成器和布局设计器，二次开发较为麻烦
-- 词条内容为动态加载，无法被搜索引擎抓取
+- 词条内容为动态加载，无法被搜索引擎抓取（完全没有SEO）
 
 ## 特别感谢
 - 我父母和网友璃夜：帮我渡过困难时期
