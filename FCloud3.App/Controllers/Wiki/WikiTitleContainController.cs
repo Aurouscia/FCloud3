@@ -21,13 +21,13 @@ namespace FCloud3.App.Controllers.Wiki
         [UserTypeRestricted]
         public IActionResult GetAll([FromBody]WikiTitleContainGetAllRequest req)
         {
-            var resp = _wikiTitleContainService.GetAll(req.Type, req.ObjectId);
+            var resp = _wikiTitleContainService.GetContains(req.Type, req.ObjectId);
             return this.ApiResp(resp);
         }
         [AllowAnonymous]
         public IActionResult GetAllForWiki(int wikiId)
         {
-            var resp = _wikiTitleContainService.GetAllForWiki(wikiId);
+            var resp = _wikiTitleContainService.GetContainsForWiki(wikiId);
             return this.ApiResp(resp);
         }        
         [AuthGranted]
@@ -36,8 +36,7 @@ namespace FCloud3.App.Controllers.Wiki
         {
             if (req.WikiIds is null)
                 return BadRequest();
-            if(!_wikiTitleContainService.SetAll(req.Type, req.ObjectId, req.WikiIds, out string? errmsg))
-                this.ApiFailedResp(errmsg);
+            _wikiTitleContainService.SetContains(req.Type, req.ObjectId, req.WikiIds);
             return this.ApiResp();
         }
         [UserTypeRestricted]

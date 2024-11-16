@@ -25,6 +25,7 @@ namespace FCloud3.Repos.Test.Wiki
                 new() { WikiId = 2, Type = WikiTitleContainType.FreeTable, ObjectId = 1 },    //6
                 new() { WikiId = 3, Type = WikiTitleContainType.FreeTable, ObjectId = 1, BlackListed = true },
             ];
+            existing.ForEach(c => c.Updated = new DateTime(2024, 6, 30));
             ctx.AddRange(existing);
             ctx.SaveChanges();
         }
@@ -45,32 +46,37 @@ namespace FCloud3.Repos.Test.Wiki
         [TestMethod]
         public void SetStatus()
         {
-            List<WikiTitleContain> inToBlackList = _repo.GetRangeByIds([1]).ToList();
-            List<WikiTitleContain> outOfBlackList = _repo.GetRangeByIds([3]).ToList();
+            List<int> inToBlackList = [1];
+            List<int> outOfBlackList = [3];
             List<WikiTitleContain> newObjs =
             [
                 new() { WikiId = 4, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
                 new() { WikiId = 5, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
             ];
-            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs, out _);
+            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs);
             var t1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, true);
             CollectionAssert.AreEquivalent(new List<int>(){ 2, 3, 4,5 }, t1nb.ConvertAll(x=>x.WikiId));
             var t1b = _repo.BlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
             CollectionAssert.AreEquivalent(new List<int>(){ 1 }, t1b.ConvertAll(x=>x.WikiId));
+
+            var t1nb_c = _repo.CachedContains(WikiTitleContainType.TextSection, 1, true);
+            CollectionAssert.AreEquivalent(new List<int>() { 2, 3, 4, 5 }, t1nb_c.Select(x => x.WikiId).ToList());
+            var t1all_c = _repo.CachedContains(WikiTitleContainType.TextSection, 1, false).ToList();
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3, 4, 5 }, t1all_c.Select(x => x.WikiId).ToList());
         }
 
         [TestMethod]
         public void AutoRemoveDuplicate()
         {
-            List<WikiTitleContain> inToBlackList = _repo.GetRangeByIds([1]).ToList();
-            List<WikiTitleContain> outOfBlackList = _repo.GetRangeByIds([3]).ToList();
+            List<int> inToBlackList = [1];
+            List<int> outOfBlackList = [3];
             List<WikiTitleContain> newObjs =
             [
                 //意外重复插入了3
                 new() { WikiId = 3, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
                 new() { WikiId = 4, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
             ];
-            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs, out _);
+            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs);
             //此处不会修复
             var t1nb = _repo.NotBlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
             Assert.AreEqual(4, t1nb.Count);

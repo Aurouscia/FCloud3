@@ -153,6 +153,12 @@ namespace FCloud3.Repos
             SetLastUpdateInLuTable(t);
             base.UpdateRange(items, t);
         }
+        protected override void UpdateRangeByDelegateLocally(Func<T, bool> selector, Action<T> operations, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            SetLastUpdateInLuTable(t);
+            base.UpdateRangeByDelegateLocally(selector, operations, t);
+        }
         protected override void Remove(int id, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;

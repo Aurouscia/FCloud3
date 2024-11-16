@@ -5,6 +5,7 @@ using FCloud3.Services.Etc;
 using System.Security.Cryptography;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
+using System.ComponentModel.DataAnnotations;
 
 namespace FCloud3.Services.Wiki
 {
@@ -14,8 +15,7 @@ namespace FCloud3.Services.Wiki
         WikiItemService wikiItemService,
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
-        FreeTableRepo freeTableRepo,
-        DbTransactionService dbTransactionService)
+        FreeTableRepo freeTableRepo)
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
@@ -23,13 +23,13 @@ namespace FCloud3.Services.Wiki
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly DbTransactionService _dbTransactionService = dbTransactionService;
 
         public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
         {
             return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
         }
-        
+
+        [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string? content)
         {
             WikiTitleContainAutoFillResult res = new();
@@ -55,6 +55,7 @@ namespace FCloud3.Services.Wiki
             });
             return res;
         }
+        [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType)
         {
             string? content;
@@ -64,9 +65,9 @@ namespace FCloud3.Services.Wiki
                 content = _freeTableRepo.GetqById(objId).Select(x => x.Data).FirstOrDefault();
             return AutoFill(objId, containType, content);
         }
-        public WikiTitleContainListModel GetAll(WikiTitleContainType type, int objectId)
+        public WikiTitleContainListModel GetContains(WikiTitleContainType type, int objectId)
         {
-            var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
+            var list = _wikiTitleContainRepo.CachedContains(type, objectId, true).ToList();
             var wikiIds = list.ConvertAll(x => x.WikiId);
             var wikis = _wikiItemRepo.CachedItemsByIds(wikiIds);
             WikiTitleContainListModel model = new();
@@ -79,7 +80,7 @@ namespace FCloud3.Services.Wiki
             return model;
         }
 
-        public WikiTitleContainForWikiResult GetAllForWiki(int wikiId)
+        public WikiTitleContainForWikiResult GetContainsForWiki(int wikiId)
         {
             var textType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.TextSection);
             var tableType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.FreeTable);
@@ -117,26 +118,22 @@ namespace FCloud3.Services.Wiki
             });
             return res;
         }
-        public bool SetAll(WikiTitleContainType type, int objectId, List<int> wikiIds, out string? errmsg)
+        public void SetContains(WikiTitleContainType type, int objectId, List<int> wikiIds)
         {
-            wikiIds = wikiIds.Distinct().ToList();
-            var all = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, false);
-            var needRemove = all.FindAll(x => !x.BlackListed && !wikiIds.Contains(x.WikiId));
-            var needRecover = all.FindAll(x => x.BlackListed && wikiIds.Contains(x.WikiId));
-            var needAdd = wikiIds.FindAll(x => !all.Any(c => c.WikiId == x));
-            var newObjs = needAdd.ConvertAll(x => new WikiTitleContain
+            var wikiIdsSet = wikiIds.ToHashSet();
+            var all = _wikiTitleContainRepo.CachedContains(type, objectId, false);
+            var allIds = all.Select(x => x.Id);
+            var needRemove = all.Where(x => !x.BlackListed && !wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
+            var needRecover = all.Where(x => x.BlackListed && wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
+            var needAdd = wikiIdsSet.Except(allIds);
+            var newObjs = needAdd.Select(x => new WikiTitleContain
             {
                 WikiId = x,
                 Type = type,
                 ObjectId = objectId,
-            });
+            }).ToList();
 
-            using var t = _dbTransactionService.BeginTransaction();
-            if (!_wikiTitleContainRepo.SetStatus(needRemove, needRecover, newObjs, out errmsg))
-            {
-                _dbTransactionService.RollbackTransaction(t);
-                return false;
-            }
+            _wikiTitleContainRepo.SetStatus(needRemove, needRecover, newObjs);
 
             if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
             {
@@ -144,8 +141,32 @@ namespace FCloud3.Services.Wiki
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
                 _wikiItemRepo.UpdateTimeAndLu(wIds);
             }
-            _dbTransactionService.CommitTransaction(t);
-            return true;
+        }
+        public void AutoAppendForGroups(
+            List<(WikiTitleContainType containType, int objId, List<int> excludeWIds, string content)> groups)
+        {
+            WikiTitleContainAutoFillResult res = new();
+            if (groups.Count == 0)
+                return;
+            List<(WikiTitleContainType containType, int objId, List<int> wikiIds)> wIdss = [];
+            foreach (var group in groups) {
+                //不包括已加的
+                List<int> excludeWikiIds = _wikiTitleContainRepo
+                    .CachedContains(group.containType, group.objId, false)
+                    .Select(x => x.WikiId).ToList();
+                var wIds = _wikiItemRepo.AllCachedItems()
+                    .Where(x => x.Title != null && group.content.Contains(x.Title))
+                    .Select(x => x.Id)
+                    .Except(excludeWikiIds)
+                    .Except(group.excludeWIds)
+                    .ToList();
+                wIdss.Add((group.containType, group.objId, wIds));
+            }
+            _wikiTitleContainRepo.AppendForGroups(wIdss);
+        }
+        public void AutoAppendForOne(WikiTitleContainType containType, int objId, List<int> excludeWIds, string content)
+        {
+            AutoAppendForGroups([(containType, objId, excludeWIds, content)]);
         }
 
         public class WikiTitleContainListModel

@@ -16,22 +16,43 @@ namespace FCloud3.Repos.Wiki
         public IQueryable<WikiTitleContain> BlackListed => Existing.Where(x => x.BlackListed);
         public IQueryable<WikiTitleContain> NotBlackListed => Existing.Where(x => !x.BlackListed);
 
-        public bool SetStatus(
-            List<WikiTitleContain> intoBlackList,
-            List<WikiTitleContain> outOfBlackList,
-            List<WikiTitleContain> newObjs,
-            out string? errmsg)
+        public void SetStatus(
+            List<int> intoBlackList,
+            List<int> outOfBlackList,
+            List<WikiTitleContain> newObjs)
         {
-            intoBlackList.ForEach(x => x.BlackListed = true);
-            outOfBlackList.ForEach(x => x.BlackListed = false);
-            var needUpdate = new List<WikiTitleContain>(
-                intoBlackList.Count + outOfBlackList.Count);
-            needUpdate.AddRange(intoBlackList);
-            needUpdate.AddRange(outOfBlackList);
-            base.UpdateRange(intoBlackList);
-            base.AddRange(newObjs);
-            errmsg = null;
-            return true;
+            var needUpdateIds = intoBlackList.Union(outOfBlackList).ToList();
+            if (needUpdateIds.Count > 0)
+            {
+                base.UpdateRangeByDelegateLocally(
+                    x => needUpdateIds.Contains(x.Id),
+                    x =>
+                    {
+                        if (intoBlackList.Contains(x.Id))
+                            x.BlackListed = true;
+                        else
+                            x.BlackListed = false;
+                    });
+            }
+            if(newObjs.Count > 0)
+                base.AddRange(newObjs);
+        }
+        public void AppendForGroups(List<(WikiTitleContainType type, int objId, List<int> wikiIds)> groups)
+        {
+            var objs = new List<WikiTitleContain>();
+            groups.ForEach(g => 
+            {
+                g.wikiIds.ForEach(wId =>
+                    objs.Add(new WikiTitleContain()
+                    {
+                        WikiId = wId,
+                        Type = g.type,
+                        ObjectId = g.objId,
+                        BlackListed = false
+                    })
+                );
+            });
+            base.AddRange(objs);
         }
 
         public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId, bool noBlackList = true)
@@ -102,15 +123,13 @@ namespace FCloud3.Repos.Wiki
             throw new NotImplementedException();
         }
 
-        private IEnumerable<WikiTitleContainCacheModel> CachedContainAll(
-            int objId, WikiTitleContainType type)
+        public IEnumerable<WikiTitleContainCacheModel> CachedContains(
+            WikiTitleContainType type, int objId, bool noBlackList = true)
         {
-            return CachedItemsByPred(x => x.ObjId == objId && x.Type == type);
-        }
-        private IEnumerable<WikiTitleContainCacheModel> CachedContain(
-            bool blackListed, int objId, WikiTitleContainType type)
-        {
-            return CachedContainAll(objId, type).Where(x => x.BlackListed == blackListed);
+            var res = CachedItemsByPred(x => x.ObjId == objId && x.Type == type);
+            if (noBlackList)
+                res = res.Where(x => !x.BlackListed);
+            return res;
         }
 
         protected override IQueryable<WikiTitleContainCacheModel> ConvertToCacheModel(IQueryable<WikiTitleContain> q)

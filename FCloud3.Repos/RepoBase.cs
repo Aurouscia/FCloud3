@@ -258,6 +258,19 @@ namespace FCloud3.Repos
             _context.SaveChanges();
             AfterDataChange();
         }
+        protected virtual void UpdateRangeByDelegateLocally(
+            Func<T, bool> selector, Action<T> operations, DateTime? time = null)
+        {
+            var t = time ?? DateTime.Now;
+            var items = Existing.Where(selector).ToList();
+            items.ForEach(item =>
+            {
+                operations(item);
+                item.Updated = t;
+            });
+            _context.SaveChanges();
+            AfterDataChange();
+        }
         
         protected virtual void UpdateTime(int id, DateTime time)
         {
