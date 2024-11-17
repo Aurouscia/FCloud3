@@ -25,17 +25,32 @@ export function callDrawer(t:Target, drawer:Drawer){
         }
     }
 
+    type ConnectInfo = {top?:boolean, bottom?:boolean, topBias?:number, bottomBias?:number}
+    const connectInfo:ConnectInfo[][] = []
+    for(let i=0; i<t.grid.length; i++){
+        connectInfo[i] = []
+        for(let j=0; j<t.gridColCount; j++){
+            connectInfo[i][j] = {}
+        }
+    }
     enumerateGrid((x,y,mark)=>{
         if(mark===waterMark){
             drawer.drawRiver({x,y})
         }
     })
-    const drawAllLines = (color:string, lineWidthRatio?:number)=>{
+    const drawAllLines = (color:string, lineWidthRatio?:number, recordConnectInfo?:boolean)=>{
         enumerateGrid((x,y,mark)=>{
             if(needFillLine(mark)){
                 const type = staLineType(t.grid, y, x)
-                if(type)
-                    drawer.drawLine({x,y}, color, type, {lineWidthRatio})
+                if(type){
+                    const config:DrawLineConfig = {lineWidthRatio}
+                    drawer.drawLine({x,y}, color, type, config)
+
+                    if(recordConnectInfo){
+                        connectInfo[y][x].bottom = true
+                        connectInfo[y][x].top = true
+                    }
+                }
             }else if(isTransMark(mark)){
                 const param = transLineType(t.grid, y, x)
                 if(param){
@@ -46,13 +61,25 @@ export function callDrawer(t:Target, drawer:Drawer){
                         bottomShrink:param.bottomShrink,
                         lineWidthRatio
                     })
+
+                    if(recordConnectInfo){
+                        if(typeof param.topBias == 'number')
+                        {
+                            connectInfo[y][x+param.topBias].top = true
+                            connectInfo[y][x].topBias = param.topBias
+                        }
+                        if(typeof param.bottomBias == 'number'){
+                            connectInfo[y][x+param.bottomBias].bottom = true
+                            connectInfo[y][x].bottomBias = param.bottomBias
+                        }
+                    }
                 }
             }
         })
     }
     const drawAllSta = (noStroke?:boolean, radiusRatio?:number)=>{
         enumerateGrid((x,y,mark)=>{
-            if(mark ==='o'){
+            if(mark === staMark){
                 const isExchangeRow = t.annotations[y]?.some(x => !isIconCall(x))
                 const type:DrawStationType = isExchangeRow ? 'cross' : 'single'
                 drawer.drawStation({x,y}, color, type, {noStroke, radiusRatio})
@@ -69,11 +96,51 @@ export function callDrawer(t:Target, drawer:Drawer){
             }
         })
     }
-    drawAllLines('white', 1.4)
+    const drawButts = (color:string, lineWidthRatio?:number)=>{
+        enumerateGrid((x,y,mark)=>{
+            if(needFillLine(mark) && mark!==staMark){
+                const topConn = gridNeighbor<ConnectInfo>(connectInfo, x, y, "middle", "up")?.bottom
+                const bottomConn = gridNeighbor<ConnectInfo>(connectInfo, x, y, "middle", "down")?.top
+                if(!topConn){
+                    drawer.drawButt({x,y}, color, 'up', {lineWidthRatio})
+                }else if(!bottomConn){
+                    drawer.drawButt({x,y}, color, 'down', {lineWidthRatio})
+                }
+            }
+            else if(isTransMark(mark)){
+                const info = connectInfo[y][x]
+                const topX = x + (info.topBias||0)
+                const bottomX = x + (info.bottomBias||0)
+                let topConn:boolean
+                if(y>0){
+                    topConn = !!connectInfo[y-1][topX].bottom
+                }else{
+                    topConn = false
+                }
+                let bottomConn:boolean
+                if(y<connectInfo.length-1){
+                    bottomConn = !!connectInfo[y+1][bottomX].top
+                }else{
+                    bottomConn = false
+                }
+                if(!topConn){
+                    if(gridNeighbor<string>(t.grid, x, y, "middle", "up") !== staMark)
+                        drawer.drawButt({x:topX,y:y-1}, color, 'up', {lineWidthRatio})
+                }
+                if(!bottomConn){
+                    if(gridNeighbor<string>(t.grid, x, y, "middle", "down") !== staMark)
+                        drawer.drawButt({x:bottomX,y:y+1}, color, 'down', {lineWidthRatio})
+                }
+            }
+        })
+    }
+    drawAllLines('white', 1.4, true)
+    drawButts('white', 0.6)
     drawBranches(color)
     drawAllSta(true, 1.4)
     drawAllLines(color)
     drawAllSta()
+    drawButts(color, 0)
 
     enumerateAnno((x,y,anno,isLast)=>{
         const icon = readAnnoAsIcon(anno);

@@ -28,6 +28,10 @@ export type DrawBranchType = "upper"|"lower"
 export interface DrawBranchConfig{
     lineWidthRatio?:number
 }
+export type DrawButtType = 'up'|'down'
+export interface DrawButtConfig{
+    lineWidthRatio?:number
+}
 
 export interface Drawer{
     ctx:DrawerContext;
@@ -37,6 +41,7 @@ export interface Drawer{
     drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
     drawRiver(pos:Point):void
     drawBranch(pos:Point, color: string, type:DrawBranchType, config?:DrawBranchConfig):void
+    drawButt(pos: Point, color:string, type: DrawButtType, config?:DrawButtConfig):void
 }
 
 export abstract class DrawerBase implements Drawer{
@@ -51,6 +56,7 @@ export abstract class DrawerBase implements Drawer{
     abstract drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
     abstract drawRiver(pos: Point): void
     abstract drawBranch(pos: Point, color:string, type: DrawBranchType, config?:DrawBranchConfig): void
+    abstract drawButt(pos: Point, color:string, type: DrawButtType, config?:DrawButtConfig):void
     protected posToCord(pos:Point, xbias:"c"|"l"|"r", ybias:"c"|"t"|"tt"|"b"|"bb", offset?:PointLoose){
         let xbiasNum = 0;
         if(xbias=='c')

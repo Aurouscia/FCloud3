@@ -21,8 +21,8 @@ export function targetConfigDefault():TargetConfig{
     }
 }
 
-export function gridNeighbor(grid: string[][], x:number, y:number, 
-        xb:"left"|"middle"|"right", yb:"up"|"middle"|"down"):string|undefined {
+export function gridNeighbor<T>(grid: T[][], x:number, y:number, 
+        xb:"left"|"middle"|"right", yb:"up"|"middle"|"down"):T|undefined {
     const rc = grid.length;
     const rl = grid[y].length
     let canReachTop = y>0;

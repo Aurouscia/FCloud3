@@ -2,7 +2,7 @@ import { autoTextColor } from "../../common/colorUtil";
 import { airportCalls, waterColor } from "../../common/consts";
 import { Point } from "../../common/point";
 import { drawAirport } from "../../common/specialIconDraw";
-import { DrawBranchConfig, DrawBranchType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
+import { DrawBranchConfig, DrawBranchType, DrawButtConfig, DrawButtType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
 
 
 export class DbgDrawer extends DrawerBase{
@@ -198,5 +198,34 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.lineTo(ex, ey - arrowSize*0.6)
         this.cvs.fillStyle = color
         this.cvs.fill()
+    }
+    drawButt(pos: Point, color: string, type: DrawButtType, config?:DrawButtConfig): void {
+        let a:{x:number,y:number} = {x:0,y:0}
+        let b:{x:number,y:number} = {x:0,y:0}
+        let c:{x:number,y:number} = {x:0,y:0}
+        const drawButt = ()=>{
+            this.cvs.beginPath()
+            this.cvs.moveTo(a.x, a.y)
+            this.cvs.lineTo(b.x, b.y)
+            this.cvs.lineTo(c.x, c.y)
+            this.cvs.closePath()
+            this.cvs.fillStyle = color
+            this.cvs.lineWidth = this.ctx.lineWidth * (config?.lineWidthRatio||0)
+            this.cvs.lineJoin = 'miter'
+            this.cvs.stroke()
+            this.cvs.fill()
+        }
+        if(type=='down'){
+            a = super.posToCord(pos, 'c', 'c', {x:-0.8*this.ctx.lineWidth})
+            b = super.posToCord(pos, 'c', 'c', {x:0.8*this.ctx.lineWidth})
+            c = super.posToCord(pos, 'c', 'c', {y:2*this.ctx.lineWidth})
+            drawButt()
+        }
+        else if(type=='up'){
+            a = super.posToCord(pos, 'c', 'c', {x:-0.8*this.ctx.lineWidth})
+            b = super.posToCord(pos, 'c', 'c', {x:0.8*this.ctx.lineWidth})
+            c = super.posToCord(pos, 'c', 'c', {y:-2*this.ctx.lineWidth})
+            drawButt()
+        }
     }
 }
