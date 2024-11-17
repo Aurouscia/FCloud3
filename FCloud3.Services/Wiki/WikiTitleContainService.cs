@@ -18,11 +18,6 @@ namespace FCloud3.Services.Wiki
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
 
-        public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
-        {
-            return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
-        }
-
         [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string? content)
         {
@@ -80,22 +75,8 @@ namespace FCloud3.Services.Wiki
         }
         public void SetContains(WikiTitleContainType type, int objectId, List<int> wikiIds)
         {
-            var wikiIdsSet = wikiIds.ToHashSet();
-            var all = _wikiTitleContainRepo.CachedContains(type, objectId, false);
-            var allIds = all.Select(x => x.Id);
-            var needRemove = all.Where(x => !x.BlackListed && !wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
-            var needRecover = all.Where(x => x.BlackListed && wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
-            var needAdd = wikiIdsSet.Except(allIds);
-            var newObjs = needAdd.Select(x => new WikiTitleContain
-            {
-                WikiId = x,
-                Type = type,
-                ObjectId = objectId,
-            }).ToList();
-
-            _wikiTitleContainRepo.SetStatus(needRemove, needRecover, newObjs);
-
-            if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
+            var changed = _wikiTitleContainRepo.SetStatus(type, objectId, wikiIds);
+            if (changed > 0)
             {
                 WikiParaType pt = _wikiTitleContainRepo.ContainType2ParaType(type);
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
@@ -110,14 +91,9 @@ namespace FCloud3.Services.Wiki
                 return;
             List<(WikiTitleContainType containType, int objId, List<int> wikiIds)> wIdss = [];
             foreach (var group in groups) {
-                //不包括已加的
-                List<int> excludeWikiIds = _wikiTitleContainRepo
-                    .CachedContains(group.containType, group.objId, false)
-                    .Select(x => x.WikiId).ToList();
                 var wIds = _wikiItemRepo.AllCachedItems()
                     .Where(x => x.Title != null && group.content.Contains(x.Title))
                     .Select(x => x.Id)
-                    .Except(excludeWikiIds)
                     .Except(group.excludeWIds)
                     .ToList();
                 wIdss.Add((group.containType, group.objId, wIds));

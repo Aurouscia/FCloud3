@@ -19,6 +19,7 @@ namespace FCloud3.Services.Test.Wiki
             _context = serviceProvider.Get<FCloudContext>();
             _wikiTitleContainRepo = serviceProvider.Get<WikiTitleContainRepo>();
             _wikiTitleContainRepo.ClearCache();
+            serviceProvider.Get<WikiItemRepo>().ClearCache();
             var contains = new List<WikiTitleContain>
             {
                 new(){WikiId = 1, Type = WikiTitleContainType.TextSection, ObjectId = 1, BlackListed = false},
