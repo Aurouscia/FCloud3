@@ -92,6 +92,7 @@ namespace FCloud3.Services.Wiki
             List<(WikiTitleContainType containType, int objId, List<int> wikiIds)> wIdss = [];
             foreach (var group in groups) {
                 var wIds = _wikiItemRepo.AllCachedItems()
+                    .Where(x => !x.Sealed)
                     .Where(x => x.Title != null && group.content.Contains(x.Title))
                     .Select(x => x.Id)
                     .Except(group.excludeWIds)

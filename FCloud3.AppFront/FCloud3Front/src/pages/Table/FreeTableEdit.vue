@@ -120,7 +120,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     position: absolute;
     top:4px;
     right: 3px;
-    z-index: 19900;
+    z-index: 22;
     cursor: pointer;
     transition: 0.5s;
 }
@@ -135,7 +135,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
     position: absolute;
     top:5px;
     right: 5px;
-    z-index: 19900;
+    z-index: 21;
 }
 .additional{
     position: absolute;

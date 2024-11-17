@@ -184,12 +184,13 @@ async function replaceContent() {
     if(!loadComplete.value){
         return;
     }
-    if(localConfig.value.autoLinkAtSave)
-        await wikiTitleContain.value?.autoFill(true);
     const resp = await api.textSection.textSection.editExe(data.value);
     if(resp){
         releasePreventLeaving()
         initialContent = data.value.Content || "";
+        if(previewOn.value){
+            refreshPreview()
+        }
     }
 }
 function preleaveAction(){
@@ -432,7 +433,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
     </div>
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
 </div>
-<SideBar ref="wikiTitleContainSidebar" :shrink-way="'v-show'">
+<SideBar ref="wikiTitleContainSidebar" :shrink-way="'v-if'">
     <WikiTitleContain ref="wikiTitleContain" :type="WikiTitleContainType.TextSection" :object-id="textSecId" 
         :get-content="()=>data.Content" @changed="refreshPreview">
     </WikiTitleContain>
@@ -447,10 +448,6 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
         <tr>
             <td>字体大小</td>
             <td><input type="range" min="14" max="20" step="1" v-model="localConfig.fontSize"/></td>
-        </tr>
-        <tr>
-            <td>保存时自动<br/>更新链接</td>
-            <td><input type="checkbox" v-model="localConfig.autoLinkAtSave"/></td>
         </tr>
         <tr>
             <td class="noBg" colspan="2"><button @click="saveLocalConfigClick">保存</button><br/></td>

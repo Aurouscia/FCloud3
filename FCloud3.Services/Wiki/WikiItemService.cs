@@ -103,9 +103,6 @@ namespace FCloud3.Services.Wiki
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTableMeta> tableParaObjs = _freeTableRepo.GetMetaRangeByIds(tableIds);
 
-            var textContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiParaType.Text, textIds);
-            var tableContains = _wikiTitleContainRepo.GetByTypeAndObjIds(WikiParaType.Table, tableIds);
-
             List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
                 WikiParaType type = x.Type;
@@ -113,7 +110,9 @@ namespace FCloud3.Services.Wiki
                 if (type == WikiParaType.Text)
                 {
                     var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
-                    var itsContainsCount = textContains.Count(c => c.ObjectId == x.ObjectId);
+                    var itsContainsCount = _wikiTitleContainRepo
+                        .CachedContains(WikiTitleContainType.TextSection, x.ObjectId, true)
+                        .Count();
                     if(obj is not null)
                         paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title,
                             obj.ContentBrief, x.NameOverride, WikiParaType.Text, 0, itsContainsCount);
@@ -128,7 +127,9 @@ namespace FCloud3.Services.Wiki
                 else if(type == WikiParaType.Table)
                 {
                     var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
-                    var itsContainsCount = tableContains.Count(c => c.ObjectId == x.ObjectId);
+                    var itsContainsCount = _wikiTitleContainRepo
+                        .CachedContains(WikiTitleContainType.FreeTable, x.ObjectId, true)
+                        .Count();
                     if (obj is not null)
                         paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name,
                             obj.Brief, x.NameOverride, WikiParaType.Table, 0, itsContainsCount);

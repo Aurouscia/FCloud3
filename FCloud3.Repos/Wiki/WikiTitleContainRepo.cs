@@ -19,11 +19,11 @@ namespace FCloud3.Repos.Wiki
         public int SetStatus(WikiTitleContainType type, int objId, List<int> wikiIds)
         {
             var wikiIdsSet = wikiIds.ToHashSet();
-            var all = CachedContains(type, objId, false);
-            var allIds = all.Select(x => x.Id);
+            var all = CachedContains(type, objId, false).ToList();
+            var allWikiIds = all.Select(x => x.WikiId).ToList();
             var needRemove = all.Where(x => !x.BlackListed && !wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
             var needRecover = all.Where(x => x.BlackListed && wikiIdsSet.Contains(x.WikiId)).Select(x => x.Id).ToList();
-            var needAdd = wikiIdsSet.Except(allIds);
+            var needAdd = wikiIdsSet.Except(allWikiIds);
             var newObjs = needAdd.Select(x => new WikiTitleContain
             {
                 WikiId = x,
