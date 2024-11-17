@@ -2,7 +2,7 @@ import { autoTextColor } from "../../common/colorUtil";
 import { airportCalls, waterColor } from "../../common/consts";
 import { Point } from "../../common/point";
 import { drawAirport } from "../../common/specialIconDraw";
-import { DrawBranchConfig, DrawBranchType, DrawButtConfig, DrawButtType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType } from "../drawer";
+import { DrawBranchConfig, DrawBranchType, DrawButtConfig, DrawButtType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType, DrawTurnConfig, DrawTurnType } from "../drawer";
 
 
 export class DbgDrawer extends DrawerBase{
@@ -227,5 +227,24 @@ export class DbgDrawer extends DrawerBase{
             c = super.posToCord(pos, 'c', 'c', {y:-2*this.ctx.lineWidth})
             drawButt()
         }
+    }
+    drawTurn(pos: Point, color:string, type: DrawTurnType, config?: DrawTurnConfig): void {
+        const leftCord = this.posToCord(pos, 'c', 'c')
+        const rightPos = {...pos}
+        rightPos.x += (config?.widthBlocks||2)-1;
+        const rightCord = this.posToCord(rightPos, 'c', 'c')
+        const centerCord = {x: (leftCord.x+rightCord.x)/2, y:leftCord.y }
+        const radius = (rightCord.x - leftCord.x)/2
+        let startAngle = 0;
+        let endAngle = Math.PI;
+        if(type=='top'){
+            startAngle = Math.PI;
+            endAngle = Math.PI*2
+        }
+        this.cvs.beginPath()
+        this.cvs.arc(centerCord.x, centerCord.y, radius, startAngle, endAngle)
+        this.cvs.lineWidth = this.ctx.lineWidth * (config?.lineWidthRatio||1)
+        this.cvs.strokeStyle = color
+        this.cvs.stroke()
     }
 }

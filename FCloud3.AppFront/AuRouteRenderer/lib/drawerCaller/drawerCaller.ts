@@ -1,7 +1,8 @@
-import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, needFillLine,
-    staMark, transLeftMark, transRightMark, ValidMark, waterMark } from "../common/marks";
+import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, isTurnMark, needButt, needFillLine,
+    noActiveLink,
+    staMark, transLeftMark, transRightMark, turnBottomMark, turnSpan, turnTopMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
-import { Drawer, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType } from "../drawer/drawer";
+import { Drawer, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType, DrawTurnType } from "../drawer/drawer";
 
 export function callDrawer(t:Target, drawer:Drawer){
     const color = t.config.c
@@ -77,6 +78,37 @@ export function callDrawer(t:Target, drawer:Drawer){
             }
         })
     }
+    const drawAllTurns = (color:string, lineWidthRatio?:number)=>{
+        let rowIdx = 0
+        t.grid.forEach(row=>{
+            let isInTurn:typeof turnBottomMark|typeof turnTopMark|null = null
+            let turnLeftX = 0;
+            let turnWidth = 0;
+            let cursor = 0;
+            const rowExtended = [...row, 'T']
+            rowExtended.forEach(m=>{
+                if(m==turnTopMark || m==turnBottomMark || m===turnSpan){
+                    if(!isInTurn && isTurnMark(m)){
+                        isInTurn = m
+                        turnLeftX = cursor
+                    }else if(m===isInTurn || m===turnSpan){
+                        turnWidth = cursor - turnLeftX + 1
+                    }else{
+                        const type:DrawTurnType = isInTurn === turnBottomMark?'bottom':'top'
+                        drawer.drawTurn({x:turnLeftX, y:rowIdx}, color, type, {lineWidthRatio, widthBlocks:turnWidth})
+                        isInTurn = m
+                        turnLeftX = cursor
+                    }
+                }else if(isInTurn){
+                    const type:DrawTurnType = isInTurn === turnBottomMark?'bottom':'top'
+                    drawer.drawTurn({x:turnLeftX, y:rowIdx}, color, type, {lineWidthRatio, widthBlocks:turnWidth})
+                    isInTurn = null
+                }
+                cursor++;
+            })
+            rowIdx++;
+        })
+    }
     const drawAllSta = (noStroke?:boolean, radiusRatio?:number)=>{
         enumerateGrid((x,y,mark)=>{
             if(mark === staMark){
@@ -98,7 +130,7 @@ export function callDrawer(t:Target, drawer:Drawer){
     }
     const drawButts = (color:string, lineWidthRatio?:number)=>{
         enumerateGrid((x,y,mark)=>{
-            if(needFillLine(mark) && mark!==staMark){
+            if(needFillLine(mark) && needButt(mark)){
                 const topConn = gridNeighbor<ConnectInfo>(connectInfo, x, y, "middle", "up")?.bottom
                 const bottomConn = gridNeighbor<ConnectInfo>(connectInfo, x, y, "middle", "down")?.top
                 if(!topConn){
@@ -124,21 +156,23 @@ export function callDrawer(t:Target, drawer:Drawer){
                     bottomConn = false
                 }
                 if(!topConn){
-                    if(gridNeighbor<string>(t.grid, x, y, "middle", "up") !== staMark)
+                    if(needButt(gridNeighbor<string>(t.grid, x, y, "middle", "up")))
                         drawer.drawButt({x:topX,y:y-1}, color, 'up', {lineWidthRatio})
                 }
                 if(!bottomConn){
-                    if(gridNeighbor<string>(t.grid, x, y, "middle", "down") !== staMark)
+                    if(needButt(gridNeighbor<string>(t.grid, x, y, "middle", "down")))
                         drawer.drawButt({x:bottomX,y:y+1}, color, 'down', {lineWidthRatio})
                 }
             }
         })
     }
     drawAllLines('white', 1.4, true)
+    drawAllTurns('white', 1.4)
     drawButts('white', 0.6)
     drawBranches(color)
     drawAllSta(true, 1.4)
     drawAllLines(color)
+    drawAllTurns(color)
     drawAllSta()
     drawButts(color, 0)
 
@@ -160,10 +194,10 @@ function staLineType(grid:string[][], y:number, x:number):DrawLineType|undefined
     let bottomConn = true;
     const upNei = gridNeighbor(grid, x, y, "middle", "up")
     const downNei = gridNeighbor(grid, x, y, "middle", "down")
-    if(!upNei || upNei===emptyMark || isTransMark(upNei)){
+    if(!upNei || upNei===emptyMark || isTransMark(upNei) || noActiveLink(upNei)){
         topConn = false
     }
-    if(!downNei || downNei===emptyMark || isTransMark(downNei)){
+    if(!downNei || downNei===emptyMark || isTransMark(downNei) || noActiveLink(downNei)){
         bottomConn = false
     }
     if(topConn){
