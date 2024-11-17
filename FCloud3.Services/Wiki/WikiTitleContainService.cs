@@ -1,8 +1,5 @@
-﻿using FCloud3.DbContexts;
-using FCloud3.Entities.Wiki;
+﻿using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Wiki;
-using FCloud3.Services.Etc;
-using System.Security.Cryptography;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Table;
 
@@ -11,25 +8,17 @@ namespace FCloud3.Services.Wiki
     public class WikiTitleContainService(
         WikiTitleContainRepo wikiTitleContainRepo,
         WikiItemRepo wikiItemRepo,
-        WikiItemService wikiItemService,
         WikiParaRepo wikiParaRepo,
         TextSectionRepo textSectionRepo,
-        FreeTableRepo freeTableRepo,
-        DbTransactionService dbTransactionService)
+        FreeTableRepo freeTableRepo)
     {
         private readonly WikiTitleContainRepo _wikiTitleContainRepo = wikiTitleContainRepo;
         private readonly WikiItemRepo _wikiItemRepo = wikiItemRepo;
-        private readonly WikiItemService _wikiItemService = wikiItemService;
         private readonly WikiParaRepo _wikiParaRepo = wikiParaRepo;
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
-        private readonly DbTransactionService _dbTransactionService = dbTransactionService;
 
-        public List<WikiTitleContain> GetByTypeAndObjId(WikiTitleContainType type, int objId)
-        {
-            return _wikiTitleContainRepo.GetByTypeAndObjId(type, objId);
-        }
-        
+        [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string? content)
         {
             WikiTitleContainAutoFillResult res = new();
@@ -55,6 +44,7 @@ namespace FCloud3.Services.Wiki
             });
             return res;
         }
+        [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType)
         {
             string? content;
@@ -64,9 +54,9 @@ namespace FCloud3.Services.Wiki
                 content = _freeTableRepo.GetqById(objId).Select(x => x.Data).FirstOrDefault();
             return AutoFill(objId, containType, content);
         }
-        public WikiTitleContainListModel GetAll(WikiTitleContainType type, int objectId)
+        public WikiTitleContainListModel GetContains(WikiTitleContainType type, int objectId)
         {
-            var list = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, true);
+            var list = _wikiTitleContainRepo.CachedContains(type, objectId, true).ToList();
             var wikiIds = list.ConvertAll(x => x.WikiId);
             var wikis = _wikiItemRepo.CachedItemsByIds(wikiIds);
             WikiTitleContainListModel model = new();
@@ -79,73 +69,41 @@ namespace FCloud3.Services.Wiki
             return model;
         }
 
-        public WikiTitleContainForWikiResult GetAllForWiki(int wikiId)
+        public WikiTitleContainForWikiResult GetContainsForWiki(int wikiId)
         {
-            var textType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.TextSection);
-            var tableType = _wikiTitleContainRepo.ContainType2ParaType(WikiTitleContainType.FreeTable);
-            var paras = _wikiItemService.GetWikiParaDisplays(wikiId);
-            var allTextIds = paras
-                .FindAll(x => x.Type == textType)
-                .ConvertAll(x=>x.UnderlyingId);
-            var allTableIds = paras
-                .FindAll(x => x.Type == tableType)
-                .ConvertAll(x=>x.UnderlyingId);
-            var contains = _wikiTitleContainRepo
-                .GetByTypeAndObjIds(WikiTitleContainType.TextSection, allTextIds);
-            contains.AddRange(_wikiTitleContainRepo
-                .GetByTypeAndObjIds(WikiTitleContainType.FreeTable, allTableIds));
-            var relatedWikiIds = contains.ConvertAll(x => x.WikiId).Distinct().ToList();
-            var relatedWikis = _wikiItemRepo.CachedItemsByIds(relatedWikiIds);
-            WikiTitleContainForWikiResult res = new();
-            paras.ForEach(p =>
-            {
-                var itsList = res.Add(p.ParaId, p.UnderlyingId, p.NameOverride ?? p.Title ?? "未命名段落").Items;
-                var itsConts = contains
-                    .FindAll(x => x.ObjectId == p.UnderlyingId 
-                                  && x.Type == _wikiTitleContainRepo.ParaType2ContainType(p.Type));
-                itsConts.ForEach(c =>
-                {
-                    var title = relatedWikis.Find(x => x.Id == c.WikiId)?.Title;
-                    if(title is {})
-                        itsList.Add(new()
-                        {
-                            Id = c.Id,
-                            WikiId = c.WikiId,
-                            WikiTitle = title
-                        });
-                });
-            });
-            return res;
+            throw new NotImplementedException();
         }
-        public bool SetAll(WikiTitleContainType type, int objectId, List<int> wikiIds, out string? errmsg)
+        public void SetContains(WikiTitleContainType type, int objectId, List<int> wikiIds)
         {
-            wikiIds = wikiIds.Distinct().ToList();
-            var all = _wikiTitleContainRepo.GetByTypeAndObjId(type, objectId, false);
-            var needRemove = all.FindAll(x => !x.BlackListed && !wikiIds.Contains(x.WikiId));
-            var needRecover = all.FindAll(x => x.BlackListed && wikiIds.Contains(x.WikiId));
-            var needAdd = wikiIds.FindAll(x => !all.Any(c => c.WikiId == x));
-            var newObjs = needAdd.ConvertAll(x => new WikiTitleContain
-            {
-                WikiId = x,
-                Type = type,
-                ObjectId = objectId,
-            });
-
-            using var t = _dbTransactionService.BeginTransaction();
-            if (!_wikiTitleContainRepo.SetStatus(needRemove, needRecover, newObjs, out errmsg))
-            {
-                _dbTransactionService.RollbackTransaction(t);
-                return false;
-            }
-
-            if (newObjs.Count > 0 || needRemove.Count > 0 || needRecover.Count > 0)
+            var changed = _wikiTitleContainRepo.SetStatus(type, objectId, wikiIds);
+            if (changed > 0)
             {
                 WikiParaType pt = _wikiTitleContainRepo.ContainType2ParaType(type);
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
                 _wikiItemRepo.UpdateTimeAndLu(wIds);
             }
-            _dbTransactionService.CommitTransaction(t);
-            return true;
+        }
+        public void AutoAppendForGroups(
+            List<(WikiTitleContainType containType, int objId, List<int> excludeWIds, string content)> groups)
+        {
+            WikiTitleContainAutoFillResult res = new();
+            if (groups.Count == 0)
+                return;
+            List<(WikiTitleContainType containType, int objId, List<int> wikiIds)> wIdss = [];
+            foreach (var group in groups) {
+                var wIds = _wikiItemRepo.AllCachedItems()
+                    .Where(x => !x.Sealed)
+                    .Where(x => x.Title != null && group.content.Contains(x.Title))
+                    .Select(x => x.Id)
+                    .Except(group.excludeWIds)
+                    .ToList();
+                wIdss.Add((group.containType, group.objId, wIds));
+            }
+            _wikiTitleContainRepo.AppendForGroups(wIdss);
+        }
+        public void AutoAppendForOne(WikiTitleContainType containType, int objId, List<int> excludeWIds, string content)
+        {
+            AutoAppendForGroups([(containType, objId, excludeWIds, content)]);
         }
 
         public class WikiTitleContainListModel

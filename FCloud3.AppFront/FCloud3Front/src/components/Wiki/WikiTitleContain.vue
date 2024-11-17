@@ -108,7 +108,7 @@ onMounted(async() => {
     </div>
     <div>
         <Search v-if="api" :source="api.etc.quickSearch.wikiItem" @done="searchDone" :placeholder="'手动添加'"></Search>
-        <button @click="()=>autoFill()" v-if="getContent" class="minor" style="width: 280px;margin: 5px 0px 0px 0px">自动添加</button>
+        <button @click="()=>autoFill()" v-if="getContent" class="minor" style="width: 260px;margin: 5px 0px 0px 0px">自动添加</button>
     </div>
     <div v-if="data" class="list">
         <div v-for="item,idx in data.Items" :key="item.WikiId">

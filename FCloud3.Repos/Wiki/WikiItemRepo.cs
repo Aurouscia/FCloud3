@@ -134,6 +134,10 @@ namespace FCloud3.Repos.Wiki
             var ids = new int[] { wikiId };
             return UpdateTimeAndLuAndWikiActive(ids.AsQueryable(), updateWikiActive);
         }
+        public int UpdateTimeAndLuAndWikiActive(List<int> wikiIds, bool updateWikiActive)
+        {
+            return UpdateTimeAndLuAndWikiActive(wikiIds.AsQueryable(), updateWikiActive);
+        }
         private void UpdateWikiItemRefLu(DateTime time)
         {
             LastUpdateDbUtil.SetLastUpdateFor(_ctx, LastUpdateType.WikiItemRefedProps, time);

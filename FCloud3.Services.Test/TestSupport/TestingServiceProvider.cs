@@ -44,6 +44,7 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddScoped<WikiItemService>();
             services.AddScoped<MyWikisService>();
             services.AddScoped<MaterialService>();
+            services.AddScoped<WikiTitleContainService>();
             _serviceProvider = services.BuildServiceProvider();
         }
         public T Get<T>()

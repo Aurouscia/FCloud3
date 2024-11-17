@@ -13,6 +13,7 @@ using FCloud3.Services.WikiParsing.Support;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Wiki;
 
 namespace FCloud3.Services.TextSec
 {
@@ -22,6 +23,7 @@ namespace FCloud3.Services.TextSec
         TextSectionRepo textSectionRepo,
         WikiToDirRepo wikiToDirRepo,
         WikiTitleContainRepo wikiTitleContainRepo,
+        WikiTitleContainService wikiTitleContainService,
         FileDirRepo fileDirRepo,
         DiffContentService contentDiffService,
         DbTransactionService dbTransactionService,
@@ -89,6 +91,9 @@ namespace FCloud3.Services.TextSec
                 errmsg = "未得到更新文本段Id";
                 return false;
             }
+            List<int>? affectedWikiIds = null;
+            if (title is not null || content is not null)
+                affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToList();
             if (title is not null)
             {
                 if (!textSectionRepo.TryChangeTitle(id, title, out errmsg))
@@ -126,15 +131,16 @@ namespace FCloud3.Services.TextSec
                     logger.LogError("更新[{id}]号文本段失败，\"{msg}\"", id, errmsg);
                     return false;
                 }
+                wikiTitleContainService.AutoAppendForOne(
+                    WikiTitleContainType.TextSection, id, affectedWikiIds ?? [], content);
             }
 
             if(title is not null || content is not null)
             {
-                var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Text, id);
-                var affectedCount = wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds, true);
+                var affectedCount = wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds ?? [], true);
                 if (affectedCount > 0)
                 {
-                    var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
+                    var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds ?? []).ToList();
                     fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                     latestWikiExchangeService.Push();
                 }

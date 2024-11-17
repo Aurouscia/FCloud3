@@ -13,6 +13,7 @@ namespace FCloud3.Repos.Test.Wiki
         {
             var ctx = FCloudMemoryContext.Create();
             _repo = new WikiTitleContainRepo(ctx, new StubUserIdProvider(1));
+            _repo.ClearCache();
             List<WikiTitleContain> existing =
             [
                 new() { WikiId = 1, Type = WikiTitleContainType.TextSection, ObjectId = 1 },  //1
@@ -25,6 +26,7 @@ namespace FCloud3.Repos.Test.Wiki
                 new() { WikiId = 2, Type = WikiTitleContainType.FreeTable, ObjectId = 1 },    //6
                 new() { WikiId = 3, Type = WikiTitleContainType.FreeTable, ObjectId = 1, BlackListed = true },
             ];
+            existing.ForEach(c => c.Updated = new DateTime(2024, 6, 30));
             ctx.AddRange(existing);
             ctx.SaveChanges();
         }
@@ -45,41 +47,39 @@ namespace FCloud3.Repos.Test.Wiki
         [TestMethod]
         public void SetStatus()
         {
-            List<WikiTitleContain> inToBlackList = _repo.GetRangeByIds([1]).ToList();
-            List<WikiTitleContain> outOfBlackList = _repo.GetRangeByIds([3]).ToList();
-            List<WikiTitleContain> newObjs =
-            [
-                new() { WikiId = 4, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
-                new() { WikiId = 5, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
-            ];
-            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs, out _);
+            _repo.SetStatus(WikiTitleContainType.TextSection, 1, [1, 3, 4, 5]);
             var t1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, true);
-            CollectionAssert.AreEquivalent(new List<int>(){ 2, 3, 4,5 }, t1nb.ConvertAll(x=>x.WikiId));
+            CollectionAssert.AreEquivalent(new List<int>(){ 1, 3, 4, 5 }, t1nb.ConvertAll(x=>x.WikiId));
             var t1b = _repo.BlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
-            CollectionAssert.AreEquivalent(new List<int>(){ 1 }, t1b.ConvertAll(x=>x.WikiId));
+            CollectionAssert.AreEquivalent(new List<int>(){ 2 }, t1b.ConvertAll(x=>x.WikiId));
+
+            var t1nb_c = _repo.CachedContains(WikiTitleContainType.TextSection, 1, true);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 3, 4, 5 }, t1nb_c.Select(x => x.WikiId).ToList());
+            var t1all_c = _repo.CachedContains(WikiTitleContainType.TextSection, 1, false).ToList();
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3, 4, 5 }, t1all_c.Select(x => x.WikiId).ToList());
         }
 
         [TestMethod]
-        public void AutoRemoveDuplicate()
+        public void AppendForGroups()
         {
-            List<WikiTitleContain> inToBlackList = _repo.GetRangeByIds([1]).ToList();
-            List<WikiTitleContain> outOfBlackList = _repo.GetRangeByIds([3]).ToList();
-            List<WikiTitleContain> newObjs =
-            [
-                //意外重复插入了3
-                new() { WikiId = 3, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
-                new() { WikiId = 4, Type = WikiTitleContainType.TextSection, ObjectId = 1 },
-            ];
-            _repo.SetStatus(inToBlackList, outOfBlackList, newObjs, out _);
-            //此处不会修复
-            var t1nb = _repo.NotBlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
-            Assert.AreEqual(4, t1nb.Count);
-            //此处会修复
-            t1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, true);
-            Assert.AreEqual(3, t1nb.Count);
-            CollectionAssert.AreEquivalent(new List<int>(){ 2, 3, 4 }, t1nb.ConvertAll(x=>x.WikiId));
-            var t1b = _repo.BlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
-            CollectionAssert.AreEquivalent(new List<int>(){ 1 }, t1b.ConvertAll(x=>x.WikiId));
+            List<(WikiTitleContainType type, int objId, List<int> wikiIds)> groups = [
+                (WikiTitleContainType.TextSection, 1, [2, 3, 4, 5]),
+                (WikiTitleContainType.TextSection, 2, [1, 2, 3]),
+                (WikiTitleContainType.FreeTable, 1, [1, 2, 3]),
+                ];
+            _repo.AppendForGroups(groups);
+            var t1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, true).Select(x=>x.WikiId).ToList();
+            var t1all = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, false).Select(x => x.WikiId).ToList();
+            var t2nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 2, true).Select(x => x.WikiId).ToList();
+            var t2all = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 2, false).Select(x => x.WikiId).ToList();
+            var f1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.FreeTable, 1, true).Select(x => x.WikiId).ToList();
+            var f1all = _repo.GetByTypeAndObjId(WikiTitleContainType.FreeTable, 1, false).Select(x => x.WikiId).ToList();
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 4, 5 }, t1nb);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3, 4, 5 }, t1all);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2 }, t2nb);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3 }, t2all);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2 }, f1nb);
+            CollectionAssert.AreEquivalent(new List<int>() { 1, 2, 3 }, f1all);
         }
     }
 }

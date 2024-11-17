@@ -10,51 +10,28 @@ using Microsoft.Extensions.Logging;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Repos.Files;
 using FCloud3.Services.Etc;
+using FCloud3.Services.Wiki;
 
 namespace FCloud3.Services.Table
 {
-    public class FreeTableService
+    public class FreeTableService(
+        FreeTableRepo freeTableRepo,
+        WikiParaRepo wikiParaRepo,
+        WikiItemRepo wikiItemRepo,
+        WikiToDirRepo wikiToDirRepo,
+        FileDirRepo fileDirRepo,
+        WikiTitleContainService wikiTitleContainService,
+        DiffContentService diffContentService,
+        ContentEditLockService contentEditLockService,
+        DbTransactionService dbTransactionService,
+        LatestWikiExchangeService latestWikiExchangeService,
+        ILogger<FreeTableService> logger)
     {
-        private readonly FreeTableRepo _freeTableRepo;
-        private readonly WikiParaRepo _wikiParaRepo;
-        private readonly WikiItemRepo _wikiItemRepo;
-        private readonly WikiToDirRepo _wikiToDirRepo;
-        private readonly FileDirRepo _fileDirRepo;
-        private readonly DiffContentService _diffContentService;
-        private readonly ContentEditLockService _contentEditLockService;
-        private readonly DbTransactionService _dbTransactionService;
-        private readonly LatestWikiExchangeService _latestWikiExchangeService;
-        private readonly ILogger<FreeTableService> _logger;
-
-        public FreeTableService(
-            FreeTableRepo freeTableRepo,
-            WikiParaRepo wikiParaRepo,
-            WikiItemRepo wikiItemRepo,
-            WikiToDirRepo wikiToDirRepo,
-            FileDirRepo fileDirRepo,
-            DiffContentService diffContentService,
-            ContentEditLockService contentEditLockService,
-            DbTransactionService dbTransactionService,
-            LatestWikiExchangeService latestWikiExchangeService,
-            ILogger<FreeTableService> logger)
-        {
-            _freeTableRepo = freeTableRepo;
-            _wikiParaRepo = wikiParaRepo;
-            _wikiItemRepo = wikiItemRepo;
-            _wikiToDirRepo = wikiToDirRepo;
-            _fileDirRepo = fileDirRepo;
-            _diffContentService = diffContentService;
-            _contentEditLockService = contentEditLockService;
-            _dbTransactionService = dbTransactionService;
-            _latestWikiExchangeService = latestWikiExchangeService;
-            _logger = logger;
-        }
-
         public FreeTable? GetForEditing(int id, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, true, out errmsg))
+            if (!contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, true, out errmsg))
                 return null;
-            var freeTable = _freeTableRepo.GetById(id);
+            var freeTable = freeTableRepo.GetById(id);
             if (freeTable is null)
             {
                 errmsg = "找不到指定表格";
@@ -65,15 +42,15 @@ namespace FCloud3.Services.Table
 
         public FreeTableMeta? GetMeta(int id)
         {
-            return _freeTableRepo.GetqById(id).GetMeta().FirstOrDefault();
+            return freeTableRepo.GetqById(id).GetMeta().FirstOrDefault();
         }
         
         public bool TryEditInfo(int id, string name, out string? errmsg)
         {
-            if (_freeTableRepo.TryEditInfo(id, name, out errmsg))
+            if (freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
-                var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
-                _wikiItemRepo.UpdateTimeAndLu(affectedWikiIds);
+                var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
+                wikiItemRepo.UpdateTimeAndLu(affectedWikiIds);
                 return true;
             }
             else
@@ -81,9 +58,9 @@ namespace FCloud3.Services.Table
         }
         public bool TryEditContent(int id, string data, out string? errmsg)
         {
-            if (!_contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, false, out errmsg))
+            if (!contentEditLockService.Heartbeat(HeartbeatObjType.FreeTable, id, false, out errmsg))
                 return false;
-            var model = _freeTableRepo.GetById(id);
+            var model = freeTableRepo.GetById(id);
             if (model is null)
             {
                 errmsg = "找不到指定表格";
@@ -100,44 +77,46 @@ namespace FCloud3.Services.Table
             }
 
             var oldData = model.Data ?? "";
-            using var transaction = _dbTransactionService.BeginTransaction();
-            var diffCharCount = _diffContentService.MakeDiff(id, DiffContentType.FreeTable, oldData, data, out string? diffErrmsg);
+            using var transaction = dbTransactionService.BeginTransaction();
+            var diffCharCount = diffContentService.MakeDiff(id, DiffContentType.FreeTable, oldData, data, out string? diffErrmsg);
             var diffSuccess = diffErrmsg is null;
-            var saveSuccess = _freeTableRepo.TryEditContent(model, datatable, data, out string? saveErrmsg);
+            var saveSuccess = freeTableRepo.TryEditContent(model, datatable, data, out string? saveErrmsg);
 
             if (saveSuccess && diffSuccess)
             {
-                _dbTransactionService.CommitTransaction(transaction);
-                _logger.LogInformation("更新[{id}]号表格成功", id);
+                dbTransactionService.CommitTransaction(transaction);
+                logger.LogInformation("更新[{id}]号表格成功", id);
 
-                var affectedWikiIds = _wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
-                var affectedCount = _wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds, true);
+                var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Table, id).ToList();
+                var affectedCount = wikiItemRepo.UpdateTimeAndLuAndWikiActive(affectedWikiIds, true);
                 if (affectedCount > 0)
                 {
-                    var containingWikiDirs = _wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
-                    _fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
+                    var containingWikiDirs = wikiToDirRepo.GetDirIdsByWikiIds(affectedWikiIds).ToList();
+                    fileDirRepo.SetUpdateTimeRangeAncestrally(containingWikiDirs, out _);
                 }
-                _latestWikiExchangeService.Push();
+                wikiTitleContainService.AutoAppendForOne(
+                    WikiTitleContainType.FreeTable, id, affectedWikiIds ?? [], data);
+                latestWikiExchangeService.Push();
                 return true;
             }
             else
             {
-                _dbTransactionService.RollbackTransaction(transaction);
+                dbTransactionService.RollbackTransaction(transaction);
                 errmsg = saveErrmsg + diffErrmsg;
-                _logger.LogError("更新[{id}]号表格失败，\"{msg}\"", id, errmsg);
+                logger.LogError("更新[{id}]号表格失败，\"{msg}\"", id, errmsg);
                 return false;
             }
         }
 
         public int TryAddAndAttach(int paraId, out string? errmsg)
         {
-            int createdTableId = _freeTableRepo.AddDefaultAndGetId();
+            int createdTableId = freeTableRepo.AddDefaultAndGetId();
             if (createdTableId <= 0)
             {
                 errmsg = "未知错误，表格创建失败";
                 return 0;
             }
-            if (!_wikiParaRepo.SetParaObjId(paraId, WikiParaType.Table, createdTableId, out errmsg))
+            if (!wikiParaRepo.SetParaObjId(paraId, WikiParaType.Table, createdTableId, out errmsg))
                 return 0;
             return createdTableId;
         }
