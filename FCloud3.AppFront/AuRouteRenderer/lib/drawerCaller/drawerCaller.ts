@@ -1,6 +1,6 @@
 import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, isTurnMark, needButt, needFillLine,
     noActiveLink,
-    staMark, transLeftMark, transRightMark, turnBottomMark, turnSpan, turnTopMark, ValidMark, waterMark } from "../common/marks";
+    staMark, transLeftMark, transRightMark, turnBottomMark, turnSpanMark, turnTopMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
 import { Drawer, DrawIconType, DrawLineConfig, DrawLineType, DrawStationType, DrawTurnType } from "../drawer/drawer";
 
@@ -87,11 +87,11 @@ export function callDrawer(t:Target, drawer:Drawer){
             let cursor = 0;
             const rowExtended = [...row, 'T']
             rowExtended.forEach(m=>{
-                if(m==turnTopMark || m==turnBottomMark || m===turnSpan){
+                if(m==turnTopMark || m==turnBottomMark || m===turnSpanMark){
                     if(!isInTurn && isTurnMark(m)){
                         isInTurn = m
                         turnLeftX = cursor
-                    }else if(m===isInTurn || m===turnSpan){
+                    }else if(m===isInTurn || m===turnSpanMark){
                         turnWidth = cursor - turnLeftX + 1
                     }else{
                         const type:DrawTurnType = isInTurn === turnBottomMark?'bottom':'top'
