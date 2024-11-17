@@ -27,9 +27,10 @@ namespace FCloud3.App.Controllers.Wiki
         [AllowAnonymous]
         public IActionResult GetAllForWiki(int wikiId)
         {
-            var resp = _wikiTitleContainService.GetContainsForWiki(wikiId);
-            return this.ApiResp(resp);
-        }        
+            throw new NotImplementedException();
+            //var resp = _wikiTitleContainService.GetContainsForWiki(wikiId);
+            //return this.ApiResp(resp);
+        }
         [AuthGranted]
         [UserTypeRestricted]
         public IActionResult SetAll([FromBody]WikiTitleContainSetAllRequest req)
