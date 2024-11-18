@@ -1,12 +1,11 @@
-import { feVersion as verInCode } from '@/build/version/feVersion';
+import { appVersionCheck } from '@aurouscia/vite-app-version/check';
 import { injectPop } from '@/provides';
 
 export function useFeVersionChecker(){
     const pop = injectPop();
     const check = async()=>{
-        const verInPublic = await(await fetch('/feVersion.txt', {cache: "no-store"})).text();
-        console.log(`代码版本:${verInCode}\n最新版本:${verInPublic}`);
-        return verInPublic === verInCode
+        const obj = JSON.parse(__VERSION_FILE__)
+        return await appVersionCheck(obj, true)
     };
     const checkAndPop = ()=>{
         setTimeout(async()=>{
@@ -18,11 +17,11 @@ export function useFeVersionChecker(){
                     console.log("版本检查：通过")
                 }
             }
-            catch{
+            catch(err){
                 pop.value?.show("版本检查失败", "failed");
+                throw err
             }
-        },500)
+        },100)
     }
-
     return {check, checkAndPop}
 }

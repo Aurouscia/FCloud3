@@ -5,7 +5,7 @@ import { injectApi } from '@/provides';
 import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
-import { useFeVersionChecker } from '@/utils/feVersionCheck';
+import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
 import externalLinkIcon from '@/assets/externalLink.svg'
 import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
 
@@ -24,8 +24,8 @@ function isExternal(path:string){
     return path.startsWith('http://') || path.startsWith('https://')
 }
 onMounted(async()=>{
-    await init();
     checkAndPop();
+    await init();
 })
 </script>
 
