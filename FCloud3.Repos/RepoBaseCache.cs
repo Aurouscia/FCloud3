@@ -115,7 +115,11 @@ namespace FCloud3.Repos
                             CacheDict.TryRemove(delId, out _);
                         });
                     }
-                    var q = Existing.Where(x => x.Updated > latestUpdatedInDict);
+                    IQueryable<T> q;
+                    if (latestUpdatedInDict == default)
+                        q = Existing.Where(x => x.Updated >= latestUpdatedInDict);
+                    else
+                        q = Existing.Where(x => x.Updated > latestUpdatedInDict);
                     var fetched = ConvertToCacheModel(q).ToList();
                     fetched.ForEach(item =>
                     {

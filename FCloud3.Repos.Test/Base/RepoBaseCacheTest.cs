@@ -23,11 +23,11 @@ namespace FCloud3.Repos.Test.Base
 
             var time = new DateTime(2024, 1, 6);
             List<SomeClass> items = [
-                new(){ Name = "Au", Number1 = 32, Number2 = 11, Number3 = 12 },
+                new(){ Name = "Au", Number1 = 32, Number2 = 11, Number3 = 12, Updated = time },
                 new(){ Name = "Bu", Number1 = 64, Number2 = 21, Number3 = 22 },
                 new(){ Name = "Cu", Number1 = 128, Number2 = 31, Number3 = 32 },
                 ];
-            items.ForEach(i => i.Updated = time);
+            //即使有的行的Update为默认值，也不影响缓存同步
             ctx.AddRange(items);
             ctx.SaveChanges();
             _repo.ClearCache();
