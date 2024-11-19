@@ -203,6 +203,7 @@ namespace FCloud3.Repos
             //仅获取一次当前时间才能确保完全一致，
             //可通过判断创建时间==更新时间来判断该对象是否新建
             DateTime now = time ?? DateTime.Now;
+            BeforeDataChange(now);
             item.Created = now;
             item.Updated = now;
             _context.Add(item);
@@ -215,6 +216,7 @@ namespace FCloud3.Repos
             //仅获取一次当前时间才能确保完全一致，
             //可通过判断创建时间==更新时间来判断该对象是否新建
             DateTime now = time ?? DateTime.Now;
+            BeforeDataChange(now);
             foreach (var item in items)
             {
                 item.Created = now;
@@ -242,7 +244,9 @@ namespace FCloud3.Repos
 
         protected virtual void Update(T item, DateTime? time = null)
         {
-            item.Updated = time ?? DateTime.Now;
+            var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
+            item.Updated = t;
             _context.Update(item);
             _context.SaveChanges();
             AfterDataChange();
@@ -250,7 +254,8 @@ namespace FCloud3.Repos
         protected virtual void UpdateRange(List<T> items, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
-            foreach(var item in items)
+            BeforeDataChange(t);
+            foreach (var item in items)
             {
                 item.Updated = t;
                 _context.Update(item);
@@ -262,6 +267,7 @@ namespace FCloud3.Repos
             Func<T, bool> selector, Action<T> operations, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             var items = Existing.Where(selector).ToList();
             items.ForEach(item =>
             {
@@ -272,22 +278,28 @@ namespace FCloud3.Repos
             AfterDataChange();
         }
         
-        protected virtual void UpdateTime(int id, DateTime time)
+        public void UpdateTime(int id, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             Existing.Where(x => x.Id == id)
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, t));
             AfterDataChange();
         }
-        protected virtual void UpdateTime(List<int> ids, DateTime time)
+        public virtual void UpdateTime(List<int> ids, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             Existing.Where(x => ids.Contains(x.Id))
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, t));
             AfterDataChange();
         }
-        protected virtual int UpdateTime(IQueryable<int> ids, DateTime time)
+        public virtual int UpdateTime(IQueryable<int> ids, DateTime? time = null)
         {
+            var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             var changedCount = Existing.Where(x => ids.Contains(x.Id))
-                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, time));
+                .ExecuteUpdate(x => x.SetProperty(m => m.Updated, t));
             AfterDataChange();
             return changedCount;
         }
@@ -295,6 +307,7 @@ namespace FCloud3.Repos
         protected virtual void Remove(T item, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             item.Deleted = true;
             item.Updated = t;
             _context.Update(item);
@@ -304,6 +317,7 @@ namespace FCloud3.Repos
         protected virtual void RemoveRange(List<T> items, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             items.ForEach(item =>
             {
                 item.Deleted = true;
@@ -316,6 +330,7 @@ namespace FCloud3.Repos
         protected virtual void Remove(int id, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             Existing.Where(x => x.Id == id)
                 .ExecuteUpdate(x => x
                     .SetProperty(m => m.Deleted, true)
@@ -325,6 +340,7 @@ namespace FCloud3.Repos
         protected virtual void RemoveRange(List<int> ids, DateTime? time = null)
         {
             var t = time ?? DateTime.Now;
+            BeforeDataChange(t);
             Existing.Where(x => ids.Contains(x.Id))
                 .ExecuteUpdate(x => x
                     .SetProperty(m => m.Deleted, true)
@@ -333,5 +349,6 @@ namespace FCloud3.Repos
         }
 
         protected virtual void AfterDataChange() { }
+        protected virtual void BeforeDataChange(DateTime time) { }
     }
 }

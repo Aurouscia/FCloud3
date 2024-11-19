@@ -40,7 +40,7 @@ namespace FCloud3.Repos.Test.Wiki
         [DataRow(2)]
         public void UpdateTimeSingle(int id)
         {
-            _repo.UpdateTimeAndLu(id);
+            _repo.UpdateTime(id);
             CheckUpdated([id]);
         }
         
@@ -52,7 +52,7 @@ namespace FCloud3.Repos.Test.Wiki
         public void UpdateTimeMutiple(string idsStr)
         {
             List<int> ids = TestStrParse.IntList(idsStr);
-            _repo.UpdateTimeAndLu(ids);
+            _repo.UpdateTime(ids);
             CheckUpdated(ids);
         }
         
@@ -65,7 +65,7 @@ namespace FCloud3.Repos.Test.Wiki
         {
             List<int> ids = TestStrParse.IntList(idsStr);
             var q = ids.AsQueryable();
-            _repo.UpdateTimeAndLu(q);
+            _repo.UpdateTime(q);
             CheckUpdated(ids);
         }
     }

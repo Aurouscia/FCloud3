@@ -50,7 +50,7 @@ namespace FCloud3.Services.Table
             if (freeTableRepo.TryEditInfo(id, name, out errmsg))
             {
                 var affectedWikiIds = wikiParaRepo.WikiContainingIt(WikiParaType.Table, id);
-                wikiItemRepo.UpdateTimeAndLu(affectedWikiIds);
+                wikiItemRepo.UpdateTime(affectedWikiIds);
                 return true;
             }
             else

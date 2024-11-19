@@ -120,12 +120,13 @@ namespace FCloud3.Repos.Wiki
 
         public int UpdateTimeAndLuAndWikiActive(IQueryable<int> wikiIds, bool updateWikiActive)
         {
-            int affectedCount = base.UpdateTimeAndLu(wikiIds);
+            var now = DateTime.Now;
+            int affectedCount = base.UpdateTime(wikiIds, now);
             if (updateWikiActive)
             {
                 Existing.Where(x => wikiIds.Contains(x.Id))
                     .ExecuteUpdate(spc => spc.SetProperty(
-                        x => x.LastActive, DateTime.Now));
+                        x => x.LastActive, now));
             }
             return affectedCount;
         }

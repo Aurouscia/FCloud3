@@ -80,7 +80,7 @@ namespace FCloud3.Services.Wiki
             {
                 WikiParaType pt = _wikiTitleContainRepo.ContainType2ParaType(type);
                 var wIds = _wikiParaRepo.WikiContainingIt(pt, objectId).ToList();
-                _wikiItemRepo.UpdateTimeAndLu(wIds);
+                _wikiItemRepo.UpdateTime(wIds);
             }
         }
         public void AutoAppendForGroups(

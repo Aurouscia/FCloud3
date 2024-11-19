@@ -51,7 +51,7 @@ namespace FCloud3.Repos.Identities
         public void SetLastUpdateToNow()
         {
             int uid = _userIdProvider.Get();
-            base.UpdateTimeAndLu(uid);
+            base.UpdateTime(uid);
         }
         public IQueryable<User> QuickSearch(string str)
         {

@@ -132,97 +132,23 @@ namespace FCloud3.Repos
             }
         }
 
-
-        protected override void Add(T item, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.Add(item, t);
-        }
-        protected override void AddRange(List<T> items, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.AddRange(items, t);
-        }
-        protected override void Update(T item, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.Update(item, t);
-        }
-        protected override void UpdateRange(List<T> items, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.UpdateRange(items, t);
-        }
-        protected override void UpdateRangeByDelegateLocally(Func<T, bool> selector, Action<T> operations, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.UpdateRangeByDelegateLocally(selector, operations, t);
-        }
-        protected override void Remove(int id, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.Remove(id, time);
-        }
-        protected override void Remove(T item, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.Remove(item, time);
-        }
-        protected override void RemoveRange(List<int> ids, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.RemoveRange(ids, time);
-        }
-        protected override void RemoveRange(List<T> items, DateTime? time = null)
-        {
-            var t = time ?? DateTime.Now;
-            SetLastUpdateInLuTable(t);
-            base.RemoveRange(items, time);
-        }
-
-        public void UpdateTimeAndLu(int id)
-        {
-            var time = DateTime.Now;
-            SetLastUpdateInLuTable(time);
-            base.UpdateTime(id, time);
-        }
-        public void UpdateTimeAndLu(List<int> ids)
-        {
-            var time = DateTime.Now;
-            SetLastUpdateInLuTable(time);
-            base.UpdateTime(ids, time);
-        }
-        public int UpdateTimeAndLu(IQueryable<int> ids)
-        {
-            var time = DateTime.Now;
-            SetLastUpdateInLuTable(time);
-            return base.UpdateTime(ids, time);
-        }
-        protected void SetLastUpdateInLuTable(DateTime time)
-        {
-            var t = GetLastUpdateType();
-            LastUpdateDbUtil.SetLastUpdateFor(_ctx, t, time);
-        }
+        protected abstract LastUpdateType GetLastUpdateType();
         private DateTime GetLastUpdateInLuTable()
         {
             var t = GetLastUpdateType();
             return LastUpdateDbUtil.GetLastUpdateFor(_ctx, t, GetLastUpdateInDbForInit);
         }
-        protected abstract LastUpdateType GetLastUpdateType();
         private DateTime GetLastUpdateInDbForInit()
         {
             return Existing
                 .OrderByDescending(x => x.Updated)
                 .Select(x => x.Updated)
                 .FirstOrDefault();
+        }
+        private void SetLastUpdateInLuTable(DateTime time)
+        {
+            var t = GetLastUpdateType();
+            LastUpdateDbUtil.SetLastUpdateFor(_ctx, t, time);
         }
 
         /// <summary>
@@ -242,6 +168,10 @@ namespace FCloud3.Repos
         protected override void AfterDataChange()
         {
             Synchronized = false;
+        }
+        protected override void BeforeDataChange(DateTime time)
+        {
+            SetLastUpdateInLuTable(time);
         }
     }
 

@@ -37,7 +37,7 @@ namespace FCloud3.Services.Wiki
             var containingParas = titleContainRepo.GetWikiParasByContaining(wikiId).ToList();
             var containingWikis = wikiParaRepo.WikisContainingThem(containingParas);
             var needUpdateTimeWikiIds = containingWikis.Union(refingWikiIds).ToList();
-            wikiItemRepo.UpdateTimeAndLu(needUpdateTimeWikiIds);
+            wikiItemRepo.UpdateTime(needUpdateTimeWikiIds);
         }
 
         public void ReferencedMaterialPropChangeHandle(string? originalName, string? newName = null)
@@ -45,7 +45,7 @@ namespace FCloud3.Services.Wiki
             var refingWikiIds = wikiRefRepo
                 .GetRefingWikiIds(originalName, newName)
                 .ToList();
-            wikiItemRepo.UpdateTimeAndLu(refingWikiIds);
+            wikiItemRepo.UpdateTime(refingWikiIds);
         }
     }
 }

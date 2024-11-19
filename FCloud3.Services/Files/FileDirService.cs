@@ -449,7 +449,7 @@ namespace FCloud3.Services.Files
                 return null;
             }
 
-            _fileDirRepo.UpdateTimeAndLu(dirIdsChain);
+            _fileDirRepo.UpdateTime(dirIdsChain);
             var resp = new FileDirPutInResult()
             {
                 FileItemSuccess = fileItemSuccess,

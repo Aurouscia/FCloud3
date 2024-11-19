@@ -109,7 +109,7 @@ namespace FCloud3.Repos.Files
                 errmsg = "更新文件夹时间出错：树状结构溯源失败";
                 return false;
             }
-            UpdateTimeAndLu(chain);
+            UpdateTime(chain);
             errmsg = null;
             return true;
         }
@@ -132,7 +132,7 @@ namespace FCloud3.Repos.Files
                 }
                 needUpdateIds.AddRange(chain);
             }
-            UpdateTimeAndLu(needUpdateIds);
+            UpdateTime(needUpdateIds);
             errmsg = null;
             return true;
         }
