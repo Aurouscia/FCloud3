@@ -3,6 +3,7 @@ using FCloud3.DbContexts.DbSpecific;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Messages;
 using FCloud3.Repos.Sys;
@@ -38,19 +39,30 @@ namespace FCloud3.Services.Test.Identities
             var commentRepo = new CommentRepo(_ctx, _userIdProvider);
             var notifRepo = new NotificationRepo(_ctx, _userIdProvider);
             var wikiItemRepo = new WikiItemRepo(_ctx, _userIdProvider);
+            var fileDirRepo = new FileDirRepo(_ctx, _userIdProvider);
+            var fileItemRepo = new FileItemRepo(_ctx, _userIdProvider);
+            var materialRepo = new MaterialRepo(_ctx, _userIdProvider);
             var notificationService = new NotificationService(
                 notifRepo, commentRepo, userGroupRepo, userRepo, wikiItemRepo, _userIdProvider);
             _userGroupService = 
                 new(_userIdProvider, userGroupRepo, userToGroupRepo,
                     userRepo, notificationService);
             var wikiParaRepo = new WikiParaRepo(_ctx, _userIdProvider);
-            var creatorIdGetter = new CreatorIdGetter(_ctx);
             var lastUpdateRepo = new LastUpdateRepo(_ctx);
             var authResCacheHost = new AuthResCacheHost(lastUpdateRepo);
             authResCacheHost.Clear();
 
-            _svc = new AuthGrantService(_authGrantRepo, userRepo, userToGroupRepo, userGroupRepo, wikiParaRepo,
-                _userIdProvider, creatorIdGetter, authResCacheHost);
+            _svc = new AuthGrantService(
+                _authGrantRepo,
+                userRepo,
+                userGroupRepo,
+                userToGroupRepo,
+                wikiItemRepo,
+                wikiParaRepo,
+                fileDirRepo,
+                fileItemRepo,
+                materialRepo,
+                _userIdProvider, authResCacheHost);
             _svc.DisableBuiltIn();
             var time = new DateTime(2024, 1, 1);
 

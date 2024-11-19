@@ -48,9 +48,6 @@ namespace FCloud3.Repos
             services.AddScoped<DiffContentRepo>();
 
             services.AddScoped<LastUpdateRepo>();
-
-            services.AddScoped<CreatorIdGetter>();
-
             return services;
         }
     }

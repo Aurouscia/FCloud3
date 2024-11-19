@@ -3,6 +3,7 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Etc;
@@ -11,54 +12,37 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace FCloud3.Services.Identities
 {
-    public class AuthGrantService
+    public class AuthGrantService(
+        AuthGrantRepo authGrantRepo,
+        UserRepo userRepo,
+        UserGroupRepo userGroupRepo,
+        UserToGroupRepo userToGroupRepo,
+        WikiItemRepo wikiItemRepo,
+        WikiParaRepo wikiParaRepo,
+        FileDirRepo fileDirRepo,
+        FileItemRepo fileItemRepo,
+        MaterialRepo materialRepo,
+        IOperatingUserIdProvider userIdProvider,
+        AuthResCacheHost authResCacheHost)
     {
-        private readonly AuthGrantRepo _authGrantRepo;
-        private readonly UserRepo _userRepo;
-        private readonly UserToGroupRepo _userToGroupRepo;
-        private readonly UserGroupRepo _userGroupRepo;
-        private readonly WikiParaRepo _wikiParaRepo;
-        private readonly IOperatingUserIdProvider _userIdProvider;
-        private readonly CreatorIdGetter _creatorIdGetter;
-        private readonly AuthResCacheHost _authResCacheHost;
-        
-        public AuthGrantService(
-            AuthGrantRepo authGrantRepo,
-            UserRepo userRepo,
-            UserToGroupRepo userToGroupRepo,
-            UserGroupRepo userGroupRepo,
-            WikiParaRepo wikiParaRepo,
-            IOperatingUserIdProvider userIdProvider,
-            CreatorIdGetter creatorIdGetter,
-            AuthResCacheHost authResCacheHost)
-        {
-            _authGrantRepo = authGrantRepo;
-            _userRepo = userRepo;
-            _userToGroupRepo = userToGroupRepo;
-            _userGroupRepo = userGroupRepo;
-            _wikiParaRepo = wikiParaRepo;
-            _userIdProvider = userIdProvider;
-            _creatorIdGetter = creatorIdGetter;
-            _authResCacheHost = authResCacheHost;
-        }
 
         public int TestedCount { get; private set; }
         
         public bool CheckAccess(AuthGrantOn on, int onId)
         {
-            int userId = _userIdProvider.Get();
-            if (_authResCacheHost.TryReadCache(on, onId, userId, out bool canAccess))
+            int userId = userIdProvider.Get();
+            if (authResCacheHost.TryReadCache(on, onId, userId, out bool canAccess))
             {
                 return canAccess;
             }
             var queried = CheckAccessWithoutCache(on, onId);
-            _authResCacheHost.SetCache(on, onId, userId, queried);
+            authResCacheHost.SetCache(on, onId, userId, queried);
             TestedCount++;
             return queried;
         }
         private bool CheckAccessWithoutCache(AuthGrantOn on, int onId)
         {
-            int userId = _userIdProvider.Get();
+            int userId = userIdProvider.Get();
             if (userId == 0)
                 return false;
 
@@ -75,7 +59,7 @@ namespace FCloud3.Services.Identities
                     return false;//如果所有者不是访问者，但是该类型只允许所有者访问，直接拒绝
             }
 
-            var gs = _authGrantRepo.GetByOn(on, onId, ownerId);
+            var gs = authGrantRepo.GetByOn(on, onId, ownerId);
             gs.Reverse();//下面覆盖上面，所以先检验
 
             if(GetBuiltInOfInCacheModel(on) is List<AuthGrantCacheModel> baseAuths){
@@ -83,7 +67,7 @@ namespace FCloud3.Services.Identities
             }
 
             var groupIds = gs.Where(x => x.To == AuthGrantTo.UserGroup).Select(x => x.ToId).ToList();
-            var groupDict = _userToGroupRepo.GetMembersDict(groupIds);
+            var groupDict = userToGroupRepo.GetMembersDict(groupIds);
 
             foreach (var g in gs)
             {
@@ -106,7 +90,7 @@ namespace FCloud3.Services.Identities
                 }
                 if (g.To == AuthGrantTo.SameGroup)
                 {
-                    if(_userToGroupRepo.IsInSameGroup(userId, ownerId))
+                    if(userToGroupRepo.IsInSameGroup(userId, ownerId))
                         return !g.IsReject;
                 }
             }
@@ -126,7 +110,7 @@ namespace FCloud3.Services.Identities
             bool problematic = false;
             if(on == AuthGrantOn.TextSection)
             {
-                var wikiIds = _wikiParaRepo.WithType(WikiParaType.Text).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
+                var wikiIds = wikiParaRepo.WithType(WikiParaType.Text).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
                 if (wikiIds.Count != 1)
                     problematic = true;
                 else
@@ -137,7 +121,7 @@ namespace FCloud3.Services.Identities
             }
             else if(on == AuthGrantOn.FreeTable)
             {
-                var wikiIds = _wikiParaRepo.WithType(WikiParaType.Table).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
+                var wikiIds = wikiParaRepo.WithType(WikiParaType.Table).Where(x => x.ObjectId == onId).Select(x => x.WikiItemId).ToList();
                 if (wikiIds.Count != 1)
                     problematic = true;
                 else
@@ -148,7 +132,7 @@ namespace FCloud3.Services.Identities
             }
             else if(on == AuthGrantOn.WikiPara)
             {
-                var para = _wikiParaRepo.GetById(onId);
+                var para = wikiParaRepo.GetById(onId);
                 if (para is not null)
                 {
                     toOnId = para.WikiItemId;
@@ -200,7 +184,7 @@ namespace FCloud3.Services.Identities
             var builtIn = GetBuiltInOfInCacheModel(on) ?? [];
             list.AddRange(builtIn);
             int owner = GetOwnerId(on, onId);
-            var userDefined = _authGrantRepo.GetByOn(on, onId, owner);
+            var userDefined = authGrantRepo.GetByOn(on, onId, owner);
             var globalDefined = new List<AuthGrantCacheModel>();
             var localDefined = new List<AuthGrantCacheModel>();
             if (onId != AuthGrant.onIdForAll)
@@ -224,20 +208,20 @@ namespace FCloud3.Services.Identities
             var creatorIds = list.Select(x => x.CreatorUserId).ToList();
             userIds = userIds.Union(creatorIds).ToList();
             userIds.RemoveAll(x => x == 0);
-            var groupNames = _userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id, x.Name}).ToList();
+            var groupNames = userGroupRepo.GetRangeByIds(groupIds).Select(x => new { x.Id, x.Name}).ToList();
             Func<AuthGrantCacheModel, AuthGrantViewModelItem> convert = x =>
             {
                 string? toName = null;
                 if (x.To == AuthGrantTo.UserGroup)
                     toName = groupNames.FirstOrDefault(g => g.Id == x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.User)
-                    toName = _userRepo.CachedItemById(x.ToId)?.Name;
+                    toName = userRepo.CachedItemById(x.ToId)?.Name;
                 else if (x.To == AuthGrantTo.EveryOne)
                     toName = "所有人";
                 else if (x.To == AuthGrantTo.SameGroup)
                     toName = "同组用户";
                 toName ??= "N/A";
-                string creatorName = _userRepo.CachedItemById(x.CreatorUserId)?.Name ?? "N/A";
+                string creatorName = userRepo.CachedItemById(x.CreatorUserId)?.Name ?? "N/A";
                 return new AuthGrantViewModelItem(x, toName, creatorName);
             };
 
@@ -254,7 +238,7 @@ namespace FCloud3.Services.Identities
                 errmsg = "该权限类型不允许设置";
                 return false;
             }
-            int userId = _userIdProvider.Get();
+            int userId = userIdProvider.Get();
             if (!CanEdit(newGrant.On, newGrant.OnId))
             {
                 errmsg = "只有所有者能设置权限";
@@ -265,12 +249,12 @@ namespace FCloud3.Services.Identities
                 errmsg = "无需为自己设置权限";
                 return false;
             }
-            var s = _authGrantRepo.TryAdd(newGrant, out errmsg);
+            var s = authGrantRepo.TryAdd(newGrant, out errmsg);
             return s;
         }
         public bool Remove(int id, out string? errmsg)
         {
-            AuthGrant? target = _authGrantRepo.GetById(id);
+            AuthGrant? target = authGrantRepo.GetById(id);
             if (target is null)
             {
                 errmsg = "找不到指定目标，请刷新后重试";
@@ -281,7 +265,7 @@ namespace FCloud3.Services.Identities
                 errmsg = "只有所有者能设置权限";
                 return false;
             }
-            var s = _authGrantRepo.TryRemove(target, out errmsg);
+            var s = authGrantRepo.TryRemove(target, out errmsg);
             return s;
         }
         public bool SetOrder(AuthGrantOn on, int onId, List<int> ids, out string? errmsg)
@@ -300,7 +284,7 @@ namespace FCloud3.Services.Identities
                 errmsg = "数量超出上限";
                 return false;
             }
-            var gs = _authGrantRepo.GetRangeByIds(ids).ToList();
+            var gs = authGrantRepo.GetRangeByIds(ids).ToList();
             if (gs.Count != ids.Count)
             {
                 errmsg = "数据异常，请刷新后重试";
@@ -317,7 +301,7 @@ namespace FCloud3.Services.Identities
                 return false;
             }
             gs.ResetOrder(ids);
-            _authGrantRepo.UpdateRangeWithoutCheck(gs);
+            authGrantRepo.UpdateRangeWithoutCheck(gs);
             errmsg = null;
             return true;
         }
@@ -326,7 +310,7 @@ namespace FCloud3.Services.Identities
         {
             if (onId == AuthGrant.onIdForAll)
                 return true; // 表示正在设置全局设置，所有者肯定是自己
-            int userId = _userIdProvider.Get();
+            int userId = userIdProvider.Get();
             int owner = GetOwnerId(on, onId);
             return userId == owner;
         }
@@ -335,15 +319,15 @@ namespace FCloud3.Services.Identities
         {
             if (on == AuthGrantOn.WikiItem)
             {
-                return _creatorIdGetter.Get<WikiItem>(onId);
+                return wikiItemRepo.GetOwnerIdById(onId);
             }
             else if (on == AuthGrantOn.Dir)
             {
-                return _creatorIdGetter.Get<FileDir>(onId);
+                return fileDirRepo.GetOwnerIdById(onId);
             }
             else if (on == AuthGrantOn.Material)
             {
-                return _creatorIdGetter.Get<Material>(onId);
+                return materialRepo.GetOwnerIdById(onId);
             }
             else if (on == AuthGrantOn.User)
             {
@@ -351,11 +335,11 @@ namespace FCloud3.Services.Identities
             }
             else if (on == AuthGrantOn.FileItem)
             {
-                return _creatorIdGetter.Get<FileItem>(onId);
+                return fileItemRepo.GetOwnerIdById(onId);
             }
             else if (on == AuthGrantOn.UserGroup)
             {
-                return _creatorIdGetter.Get<UserGroup>(onId);
+                return userGroupRepo.GetOwnerIdById(onId);
             }
             throw new Exception("获取所有者失败");
         }
