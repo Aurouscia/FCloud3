@@ -44,7 +44,7 @@ export interface Drawer{
     drawStation(pos:Point, color:string, type:DrawStationType, config?:DrawStationConfig):void
     drawStation(pos: Point, color: string, type: DrawStationType): void
     drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
-    drawRiver(pos:Point):void
+    drawTerrain(pos:Point, color:string):void
     drawBranch(pos:Point, color: string, type:DrawBranchType, config?:DrawBranchConfig):void
     drawButt(pos: Point, color:string, type: DrawButtType, config?:DrawButtConfig):void
     drawTurn(leftPos: Point, color:string, type:DrawTurnType, config?:DrawTurnConfig):void
@@ -60,7 +60,7 @@ export abstract class DrawerBase implements Drawer{
     abstract drawLine(pos: Point, color: string, type: DrawLineType, config?:DrawLineConfig): void
     abstract drawStation(pos: Point, color: string, type: DrawStationType, config?:DrawStationConfig): void
     abstract drawIcon(pos:Point, bgColor: string, text:string, type: DrawIconType): void
-    abstract drawRiver(pos: Point): void
+    abstract drawTerrain(pos: Point, color:string): void
     abstract drawBranch(pos: Point, color:string, type: DrawBranchType, config?:DrawBranchConfig): void
     abstract drawButt(pos: Point, color:string, type: DrawButtType, config?:DrawButtConfig):void
     abstract drawTurn(leftPos: Point, color:string, type:DrawTurnType, config?:DrawTurnConfig):void

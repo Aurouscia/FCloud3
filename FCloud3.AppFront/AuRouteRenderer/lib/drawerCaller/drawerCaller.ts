@@ -1,4 +1,5 @@
-import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, isTransMark, isTurnMark, needButt, needFillLine,
+import { hillColor, waterColor } from "../common/consts";
+import { branchBothMark, branchLowerMark, branchUpperMark, emptyMark, hillMark, isTransMark, isTurnMark, needButt, needFillLine,
     noActiveLink,
     staMark, transLeftMark, transRightMark, turnBottomMark, turnSpanMark, turnTopMark, ValidMark, waterMark } from "../common/marks";
 import { gridNeighbor, gridNeighborActiveLink, Target } from "../common/target";
@@ -36,7 +37,10 @@ export function callDrawer(t:Target, drawer:Drawer){
     }
     enumerateGrid((x,y,mark)=>{
         if(mark===waterMark){
-            drawer.drawRiver({x,y})
+            drawer.drawTerrain({x,y}, waterColor)
+        }
+        else if(mark===hillMark){
+            drawer.drawTerrain({x,y}, hillColor)
         }
     })
     const drawAllLines = (color:string, lineWidthRatio?:number, recordConnectInfo?:boolean)=>{

@@ -1,5 +1,5 @@
 import { autoTextColor } from "../../common/colorUtil";
-import { airportCalls, waterColor } from "../../common/consts";
+import { airportCalls, exchangeStaColor } from "../../common/consts";
 import { Point } from "../../common/point";
 import { drawAirport } from "../../common/specialIconDraw";
 import { DrawBranchConfig, DrawBranchType, DrawButtConfig, DrawButtType, DrawerBase, DrawerContext, DrawIconType, DrawLineConfig, DrawLineType, DrawStationConfig, DrawStationType, DrawTurnConfig, DrawTurnType } from "../drawer";
@@ -95,7 +95,7 @@ export class DbgDrawer extends DrawerBase{
                 this.cvs.strokeStyle = 'white'
                 this.cvs.stroke()
                 this.cvs.lineWidth = radius / 3
-                this.cvs.strokeStyle = '#666'
+                this.cvs.strokeStyle = exchangeStaColor
                 this.cvs.stroke()
                 this.cvs.lineCap = 'round'
                 this.cvs.lineWidth = radius / 4
@@ -154,7 +154,7 @@ export class DbgDrawer extends DrawerBase{
         this.cvs.fillStyle = textColor
         this.cvs.fillText(text, x, y+vertBias)
     }
-    drawRiver(pos: Point): void {
+    drawTerrain(pos: Point, color:string): void {
         let {x:fx,y:fy} = this.posToCord(pos,'l','c')
         let {x:tx,y:ty} = this.posToCord(pos,'r','c')
         if(pos.x == 0){
@@ -165,7 +165,7 @@ export class DbgDrawer extends DrawerBase{
         }
         const riverWidth = this.ctx.uPx;
         this.cvs.lineWidth = riverWidth;
-        this.cvs.strokeStyle = waterColor
+        this.cvs.strokeStyle = color
         this.cvs.beginPath()
         this.cvs.moveTo(fx,fy);
         this.cvs.lineTo(tx,ty)
