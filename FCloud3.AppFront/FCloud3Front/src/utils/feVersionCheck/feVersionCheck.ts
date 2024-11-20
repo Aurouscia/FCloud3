@@ -4,7 +4,7 @@ import { injectPop } from '@/provides';
 export function useFeVersionChecker(){
     const pop = injectPop();
     const check = async()=>{
-        const obj = JSON.parse(__VERSION_FILE__)
+        const obj = JSON.parse(__VERSION_CONFIG__)
         return await appVersionCheck(obj, true)
     };
     const checkAndPop = ()=>{

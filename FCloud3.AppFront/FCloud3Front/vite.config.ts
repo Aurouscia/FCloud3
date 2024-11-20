@@ -11,7 +11,7 @@ export default defineConfig({
     appVersionMark(versionConfig),
   ],
   define: {
-    __VERSION_FILE__: `'${JSON.stringify(versionConfig)}'`
+    __VERSION_CONFIG__: `'${JSON.stringify(versionConfig)}'`
   },
   server: {
     port: 5173

@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare const __VERSION_FILE__: string
+declare const __VERSION_CONFIG__: string
