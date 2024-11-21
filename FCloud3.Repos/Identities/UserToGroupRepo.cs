@@ -46,13 +46,13 @@ namespace FCloud3.Repos.Identities
         }
         public bool IsInSameGroup(int user1,int user2)
         {
-            var q =
-                from rA in Existing.FilterFormalMember()
-                from rB in Existing.FilterFormalMember()
-                where rA.UserId == user1 && rB.UserId == user2
-                where rA.GroupId == rB.GroupId
-                select rA.GroupId;
-            return q.Any();
+            var rels1Groups = AllCachedItemsFormalFiltered()
+                .Where(x => x.UserId == user1)
+                .Select(x => x.GroupId);
+            var rels2Groups = AllCachedItemsFormalFiltered()
+                .Where(x => x.UserId == user2)
+                .Select(x => x.GroupId);
+            return rels1Groups.Intersect(rels2Groups).Any();
         }
         public UserToGroup? GetRelation(int groupId, int userId)
             => Existing.Where(x => x.GroupId == groupId && x.UserId == userId).FirstOrDefault();
