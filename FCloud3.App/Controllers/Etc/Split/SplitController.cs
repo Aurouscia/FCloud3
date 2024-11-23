@@ -169,5 +169,13 @@ namespace FCloud3.App.Controllers.Etc.Split
             int copied = splitService.CopyAllFilesToAnotherBucket();
             return Ok($"复制了{copied}个");
         }
+
+        [Route("/S/RemoveUnusedFilesInBucket")]
+        public IActionResult RemoveUnusedFilesInBucket()
+        {
+            //将bucket中所有未被引用的文件重命名（key前面加上"trash/"）
+            int removed = splitService.RemoveUnusedFilesInBucket();
+            return Ok($"移除了{removed}个垃圾文件");
+        }
     }
 }

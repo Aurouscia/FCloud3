@@ -5,6 +5,7 @@ using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 using Microsoft.Extensions.Configuration;
+using System.Security.AccessControl;
 
 namespace FCloud3.Services.Etc.Split
 {
@@ -105,6 +106,62 @@ namespace FCloud3.Services.Etc.Split
                 catch { }
             }
             return allKeys.Count;
+        }
+        public int RemoveUnusedFilesInBucket()
+        {
+            var configSec = config.GetSection("FileStorage:Oss");
+            var endPoint = configSec["EndPoint"];
+            var bucketName = configSec["BucketName"];
+            var accessKeyId = configSec["AccessKeyId"];
+            var accessKeySecret = configSec["AccessKeySecret"];
+            var client = new OssClient(endPoint, accessKeyId, accessKeySecret);
+            var allFileFiles = fileItemRepo.Existing.Select(x => x.StorePathName).ToList();
+            var allMatFiles = materialRepo.Existing.Select(x => x.StorePathName).ToList();
+            var allKeys = allFileFiles.Union(allMatFiles).ToHashSet();
+            var existInBucket = GetAllFilesInBucket(client, bucketName!);
+            var needBeTrash = new List<string>();
+            var alreadyTrash = new List<string>();
+            foreach (var existingFile in existInBucket)
+            {
+                if(allKeys.Contains(existingFile))
+                    continue;//排除有引用的文件
+                if (existingFile.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                    continue;//排除.svg格式的文件
+
+                if (existingFile.StartsWith("trash/"))
+                    alreadyTrash.Add(existingFile.Substring(6));
+                else
+                    needBeTrash.Add(existingFile);
+            }
+            needBeTrash = needBeTrash.Except(alreadyTrash).ToList();
+            foreach (var key in needBeTrash)
+            {
+                if(alreadyTrash.Contains(key))
+                    continue;
+                var newKey = "trash/" + key;
+                var req = new CopyObjectRequest(bucketName, key, bucketName, newKey);
+                try
+                {
+                    client.CopyObject(req);
+                }
+                catch { }
+            }
+            var trueDel = needBeTrash.Union(alreadyTrash).ToList();
+            List<List<string>> batches = [];
+            for(int i = 0; i < trueDel.Count; i++)
+            {
+                int batchIdx = i / 1000;
+                int inBatchIdx = i % 1000;
+                if(batches.Count <= batchIdx)
+                    batches.Add([]);
+                batches[batchIdx].Add(trueDel[i]);
+            }
+            foreach (var batch in batches)
+            {
+                DeleteObjectsRequest delReq = new(bucketName, batch);
+                client.DeleteObjects(delReq);
+            }
+            return trueDel.Count;
         }
         public List<string> GetAllFilesInBucket(OssClient client, string bucketName)
         {
