@@ -7,6 +7,7 @@ using FCloud3.Entities.Wiki;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
+using FCloud3.Services.WikiParsing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,12 +20,14 @@ namespace FCloud3.App.Controllers.Sys
         private readonly TempDataContext _tempDataContext;
         private readonly WikiTitleContainService _wikiTitleContainService;
         private readonly FileDirService _fileDirService;
+        private readonly WikiParsingService _wikiParsingService;
         private readonly static object migrateLockObj = new();
         public InitController(
             FCloudContext context,
             TempDataContext tempDataContext,
             WikiTitleContainService wikiTitleContainService,
             FileDirService fileDirService,
+            WikiParsingService wikiParsingService,
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -32,6 +35,7 @@ namespace FCloud3.App.Controllers.Sys
             _tempDataContext = tempDataContext;
             _wikiTitleContainService = wikiTitleContainService;
             _fileDirService = fileDirService;
+            _wikiParsingService = wikiParsingService;
 
             var code = httpContextAccessor.HttpContext?.Request.RouteValues["code"]?.ToString();
             if (string.IsNullOrWhiteSpace(code))
@@ -277,6 +281,21 @@ namespace FCloud3.App.Controllers.Sys
         {
             var count = _context.WikiItems.ExecuteUpdate(spc => spc.SetProperty(w => w.LastActive, w => w.Updated));
             return this.ApiResp($"OK：{count}");
+        }
+
+        public IActionResult EnforceParseAll()
+        {
+            //解析所有词条，以创建Ref
+            var existingWikisIds = _context.WikiItems
+                .Where(x => !x.Deleted)
+                .Select(x => x.Id).ToList();
+            var originalRefCount = _context.WikiRefs.Count();
+            existingWikisIds.ForEach(wikiId =>
+            {
+                _ = _wikiParsingService.GetParsedWiki(wikiId);
+            });
+            var newRefCount = _context.WikiRefs.Count();
+            return Ok($"Ref {originalRefCount} -> {newRefCount}");
         }
     }
 }
