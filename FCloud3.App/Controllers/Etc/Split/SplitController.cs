@@ -18,7 +18,7 @@ namespace FCloud3.App.Controllers.Etc.Split
             this.ctx = ctx;
             if ("666".Any())
             {
-                //throw new InvalidOperationException("请注释throw语句以使用功能");
+                throw new InvalidOperationException("请注释throw语句以使用功能");
             }
         }
 
