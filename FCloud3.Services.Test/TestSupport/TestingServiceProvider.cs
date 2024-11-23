@@ -1,50 +1,49 @@
 ﻿using FCloud3.Repos;
 using FCloud3.Repos.Etc;
 using FCloud3.Services.Etc.TempData.Context;
-using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Files.Storage.Abstractions;
-using FCloud3.Services.Wiki;
+using FCloud3.WikiPreprocessor.Util;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using FCloud3.Services.Etc;
-using FCloud3.Services.Files;
+using Serilog;
 
 namespace FCloud3.Services.Test.TestSupport
 {
     public class TestingServiceProvider
     {
         private readonly ServiceProvider _serviceProvider;
-        public TestingServiceProvider()
+        public TestingServiceProvider(int asUser = 2)
         {
             ServiceCollection services = new();
             IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["Db:Type"] = "memory"
+                    ["Db:Type"] = "memory",
+                    ["TempData:ConnStr"] = "Filename=:memory:",
+                    ["FileStorage:Type"] = "NoNeed"
                 }).Build();
             services.AddSingleton(config);
+
             services.AddRepos(config);
-            var userIdProviderCreate = (IServiceProvider _) => new StubUserIdProvider(2);
+
+            var userIdProviderCreate = (IServiceProvider _) => new StubUserIdProvider(asUser);
             services.AddScoped<IOperatingUserIdProvider, StubUserIdProvider>(
                 userIdProviderCreate);
             services.AddScoped<ICommitingUserIdProvider, StubUserIdProvider>(
                 userIdProviderCreate);
             services.AddScoped<IStorage, FakeStorage>(
                 _ => new FakeStorage());
-            var tctx = CreateTempDataContext();
-            services.AddScoped<TempDataContext>(_ => tctx);
-            services.AddScoped<ContentEditLockService>();
-            services.AddScoped<WikiRefService>();
-            services.AddSingleton<ILogger<ContentEditLockService>, FakeLogger<ContentEditLockService>>();
-            services.AddScoped<LatestWikiExchangeService>();
-            services.AddSingleton<ILogger<LatestWikiExchangeService>, FakeLogger<LatestWikiExchangeService>>();
-            services.AddScoped<WikiItemService>();
-            services.AddScoped<MyWikisService>();
-            services.AddScoped<MaterialService>();
-            services.AddScoped<WikiTitleContainService>();
+            var logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.Debug()
+                .CreateLogger();
+            services.AddLogging(builder => builder.AddSerilog(logger));
+            services.AddSingleton<ILocatorHash, FakeLocatorHash>();
+
+            services.AddFCloudServices(config);
+
             _serviceProvider = services.BuildServiceProvider();
         }
         public T Get<T>()
@@ -52,8 +51,8 @@ namespace FCloud3.Services.Test.TestSupport
             return _serviceProvider.GetService<T>() ?? throw new NotImplementedException();
         }
 
-
         //TODO:不要临时数据了，全合并到大context，避免多实例不一致
+        [Obsolete]
         public static TempDataContext CreateTempDataContext()
         {
             var connection = new SqliteConnection("Filename=:memory:");

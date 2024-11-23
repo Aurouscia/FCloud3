@@ -68,6 +68,10 @@ namespace FCloud3.Services
                 services.AddSingleton<IStorage, LocalStorage>();
             else if (storageType == "Oss")
                 services.AddSingleton<IStorage, OssStorage>();
+            else if (storageType == "NoNeed")
+            {
+
+            }
             else
                 throw new Exception("不支持的文件存储类型(配置项FileStorage:Type)");
 
