@@ -26,44 +26,20 @@ namespace FCloud3.Services.Test.Identities
         private readonly AuthGrantRepo _authGrantRepo;
         public AuthGrantServiceTest()
         {
-            int uid = 1;
-            _userIdProvider = new(uid);
-            _ctx = FCloudMemoryContext.Create();
-            _authGrantRepo = new AuthGrantRepo(_ctx, _userIdProvider);
-            _authGrantRepo.ClearCache();
-            var userToGroupRepo = new UserToGroupRepo(_ctx, _userIdProvider);
-            userToGroupRepo.ClearCache();
-            var userGroupRepo = new UserGroupRepo(_ctx, _userIdProvider);
-            userGroupRepo.ClearCache();
-            var userRepo = new UserRepo(_ctx, _userIdProvider);
-            var commentRepo = new CommentRepo(_ctx, _userIdProvider);
-            var notifRepo = new NotificationRepo(_ctx, _userIdProvider);
-            var wikiItemRepo = new WikiItemRepo(_ctx, _userIdProvider);
-            var fileDirRepo = new FileDirRepo(_ctx, _userIdProvider);
-            var fileItemRepo = new FileItemRepo(_ctx, _userIdProvider);
-            var materialRepo = new MaterialRepo(_ctx, _userIdProvider);
-            var notificationService = new NotificationService(
-                notifRepo, commentRepo, userGroupRepo, userRepo, wikiItemRepo, _userIdProvider);
-            _userGroupService = 
-                new(_userIdProvider, userGroupRepo, userToGroupRepo,
-                    userRepo, notificationService);
-            var wikiParaRepo = new WikiParaRepo(_ctx, _userIdProvider);
-            var lastUpdateRepo = new LastUpdateRepo(_ctx);
-            var authResCacheHost = new AuthResCacheHost(lastUpdateRepo);
-            authResCacheHost.Clear();
+            var provider = new TestingServiceProvider(1);
 
-            _svc = new AuthGrantService(
-                _authGrantRepo,
-                userRepo,
-                userGroupRepo,
-                userToGroupRepo,
-                wikiItemRepo,
-                wikiParaRepo,
-                fileDirRepo,
-                fileItemRepo,
-                materialRepo,
-                _userIdProvider, authResCacheHost);
+            _svc = provider.Get<AuthGrantService>();
             _svc.DisableBuiltIn();
+            _userIdProvider = provider.Get<StubUserIdProvider>();
+            _ctx = provider.Get<FCloudContext>();
+            _userGroupService = provider.Get<UserGroupService>();
+            _authGrantRepo = provider.Get<AuthGrantRepo>();
+
+            _authGrantRepo.ClearCache();
+            provider.Get<AuthResCacheHost>().Clear();
+            provider.Get<UserGroupRepo>().ClearCache();
+            provider.Get<UserToGroupRepo>().ClearCache();
+
             var time = new DateTime(2024, 1, 1);
 
             List<User> userList =

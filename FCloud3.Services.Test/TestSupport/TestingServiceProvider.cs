@@ -28,11 +28,13 @@ namespace FCloud3.Services.Test.TestSupport
 
             services.AddRepos(config);
 
-            var userIdProviderCreate = (IServiceProvider _) => new StubUserIdProvider(asUser);
+            var stubUserIdProvider = new StubUserIdProvider(asUser);
+            var userIdProviderCreate = (IServiceProvider _) => stubUserIdProvider;
             services.AddScoped<IOperatingUserIdProvider, StubUserIdProvider>(
                 userIdProviderCreate);
             services.AddScoped<ICommitingUserIdProvider, StubUserIdProvider>(
                 userIdProviderCreate);
+            services.AddSingleton<StubUserIdProvider>(stubUserIdProvider);
             services.AddScoped<IStorage, FakeStorage>(
                 _ => new FakeStorage());
             var logger = new LoggerConfiguration()
