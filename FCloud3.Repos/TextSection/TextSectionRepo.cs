@@ -1,8 +1,6 @@
-﻿using FCloud3.Entities;
-using FCloud3.DbContexts;
+﻿using FCloud3.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Entities.TextSection;
-using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 
 namespace FCloud3.Repos.TextSec
@@ -52,10 +50,9 @@ namespace FCloud3.Repos.TextSec
             }
         }
 
-        public bool TryChangeContent(int id, string newContent, out string? errmsg)
+        public bool TryChangeContent(int id, string newContent, string brief, out string? errmsg)
         {
             errmsg = null;
-            string brief = TextSectionBrief(newContent);
             int changed = Existing.Where(s => s.Id == id)
                 .ExecuteUpdate(s => s
                     .SetProperty(x => x.Content, newContent)
@@ -83,6 +80,7 @@ namespace FCloud3.Repos.TextSec
             return newSection;
         }
 
+        [Obsolete]
         public static string TextSectionBrief(string content)
         {
             if (content.Length >= 30)

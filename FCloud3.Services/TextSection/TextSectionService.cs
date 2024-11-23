@@ -14,6 +14,7 @@ using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Wiki;
+using System.Text;
 
 namespace FCloud3.Services.TextSec
 {
@@ -116,7 +117,8 @@ namespace FCloud3.Services.TextSec
                     return true;
                 }
                 using var t = dbTransactionService.BeginTransaction();
-                var updateSuccess = textSectionRepo.TryChangeContent(id, content, out var updateErrmsg);
+                var brief = Brief(id, content);
+                var updateSuccess = textSectionRepo.TryChangeContent(id, content, brief, out var updateErrmsg);
                 diffCharCount = contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
                 var diffSuccess = diffErrmsg is null;
                 if (updateSuccess && diffSuccess)
@@ -151,6 +153,34 @@ namespace FCloud3.Services.TextSec
 
         public TextSectionPreviewResponse Preview(int id, string content)
         {
+            var parser = GetPreviewParser(id);
+            parser.SetDataSource(wikiParserDataSource);
+            var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
+            return res;
+        }
+        public string Brief(int id, string content, int briefLength = 30, int parseLength = 100)
+        {
+            var parser = GetPreviewParser(id);
+            parser.SetDataSource(wikiParserDataSource);
+            if(content.Length > parseLength)
+                content = content.Substring(0, parseLength);
+            try
+            {
+                var res = parser.RunToObject(content);
+                var bodySb = new StringBuilder();
+                res.WriteBody(bodySb, briefLength);
+                var bodyStr = bodySb.ToString();
+                if (bodyStr.Length > briefLength - 3)
+                    bodyStr = string.Concat(bodyStr.AsSpan(0, briefLength - 3), "...");
+                return bodyStr;
+            }
+            catch
+            {
+                return "【概要生成失败】";
+            }
+        }
+        private Parser GetPreviewParser(int id)
+        {
             string cacheKey = $"tse_{id}";
             var parser = wikiParserProviderService.Get(
                 cacheKey,
@@ -166,9 +196,7 @@ namespace FCloud3.Services.TextSec
                 true,
                 () => wikiParaRepo.WikiContainingIt(WikiParaType.Text, id).ToArray()
             );
-            parser.SetDataSource(wikiParserDataSource);
-            var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
-            return res;
+            return parser;
         }
         public class TextSectionPreviewResponse
         {
