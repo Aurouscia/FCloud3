@@ -130,5 +130,36 @@ namespace FCloud3.App.Controllers.Etc.Split
             return Ok($"移除垃圾段落{allParas.Count - keepParas.Count}个，" +
                 $"移除垃圾文件{allFiles.Count - keepFiles.Count}个");
         }
+
+        [Route("/S/RemoveRubbishParaObj")]
+        public IActionResult RemoveRubbishParaObj()
+        {
+            //移除所有未被段落引用的TextSection和FreeTable
+            var allParas = ctx.WikiParas.Select(x => new { x.ObjectId, x.Type }).ToList();
+            var keepTextIds = allParas
+                .Where(x => x.Type == WikiParaType.Text)
+                .Select(x => x.ObjectId).ToList();
+            var keepTableIds = allParas
+                .Where(x => x.Type == WikiParaType.Table)
+                .Select(x => x.ObjectId).ToList();
+            int textDel = ctx.TextSections.Where(x => !keepTextIds.Contains(x.Id)).ExecuteDelete();
+            int tableDel = ctx.FreeTables.Where(x => !keepTableIds.Contains(x.Id)).ExecuteDelete();
+            return Ok($"删文本段{textDel}个，表格{tableDel}个");
+        }
+
+        [Route("/S/RemoveRubbishMaterials")]
+        public IActionResult RemoveRubbishMaterials()
+        {
+            //移除所有未被引用的素材（不会删除文件）
+            var allUsers = ctx.Users.Where(x => !x.Deleted).Select(x => x.Id).ToHashSet();
+            var allRefNames = ctx.WikiRefs.Select(x => x.Str).ToHashSet();
+            var allMats = ctx.Materials.Select(x => new { x.Id, x.CreatorUserId, x.Name }).ToList();
+            //找到所有无主的 而且 未被引用的
+            var delMats = allMats
+                .Where(x => !allUsers.Contains(x.CreatorUserId) && !allRefNames.Contains(x.Name))
+                .Select(x => x.Id).ToList();
+            ctx.Materials.Where(x => delMats.Contains(x.Id)).ExecuteDelete();
+            return Ok($"删素材{delMats.Count}个");
+        }
     }
 }
