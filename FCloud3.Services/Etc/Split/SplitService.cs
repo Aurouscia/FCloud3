@@ -1,7 +1,10 @@
+using Aliyun.OSS;
 using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
+using FCloud3.Services.Files.Storage.Abstractions;
+using Microsoft.Extensions.Configuration;
 
 namespace FCloud3.Services.Etc.Split
 {
@@ -9,7 +12,11 @@ namespace FCloud3.Services.Etc.Split
         WikiItemRepo wikiItemRepo,
         WikiToDirRepo wikiToDirRepo,
         FileDirRepo fileDirRepo,
-        UserRepo userRepo)
+        UserRepo userRepo,
+        FileItemRepo fileItemRepo,
+        MaterialRepo materialRepo,
+        //IStorage storage,
+        IConfiguration config)
     {
         public List<AllWikiInDirReportItem> AllWikiInDirReport(int dirId)
         {
@@ -69,6 +76,57 @@ namespace FCloud3.Services.Etc.Split
         {
             public int Id { get; } = id;
             public int ParentId { get; } = parentId;
+        }
+
+        public int CopyAllFilesToAnotherBucket()
+        {
+            var distBucketName = config["FileMoveToOss:BucketName"];
+            var configSec = config.GetSection("FileStorage:Oss");
+            var endPoint = configSec["EndPoint"];
+            var bucketName = configSec["BucketName"];
+            var accessKeyId = configSec["AccessKeyId"];
+            var accessKeySecret = configSec["AccessKeySecret"];
+            var client = new OssClient(endPoint, accessKeyId, accessKeySecret);
+            var allFileFiles = fileItemRepo.Existing.Select(x => x.StorePathName).ToList();
+            var allMatFiles = materialRepo.Existing.Select(x => x.StorePathName).ToList();
+            var allKeys = allFileFiles.Union(allMatFiles).ToList();
+            var existInDist = GetAllFilesInBucket(client, distBucketName!);
+            int copied = 0;
+            foreach (var key in allKeys)
+            {
+                if (key is null || existInDist.Contains(key))
+                    continue;
+                var copyReq = new CopyObjectRequest(bucketName, key, distBucketName, key);
+                try
+                {
+                    client.CopyObject(copyReq);
+                    copied++;
+                }
+                catch { }
+            }
+            return allKeys.Count;
+        }
+        public List<string> GetAllFilesInBucket(OssClient client, string bucketName)
+        {
+            List<string> keys = [];
+            ObjectListing result;
+            string nextMarker = string.Empty;
+            do
+            {
+                // 每页列举的文件个数通过MaxKeys指定，超出指定数量的文件将分页显示。
+                var listObjectsRequest = new ListObjectsRequest(bucketName)
+                {
+                    Marker = nextMarker,
+                    MaxKeys = 100
+                };
+                result = client.ListObjects(listObjectsRequest);
+                foreach (var summary in result.ObjectSummaries)
+                {
+                    keys.Add(summary.Key);
+                }
+                nextMarker = result.NextMarker;
+            } while (result.IsTruncated);
+            return keys;
         }
     }
 

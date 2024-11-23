@@ -18,7 +18,7 @@ namespace FCloud3.App.Controllers.Etc.Split
             this.ctx = ctx;
             if ("666".Any())
             {
-                throw new InvalidOperationException("请注释throw语句以使用功能");
+                //throw new InvalidOperationException("请注释throw语句以使用功能");
             }
         }
 
@@ -160,6 +160,14 @@ namespace FCloud3.App.Controllers.Etc.Split
                 .Select(x => x.Id).ToList();
             ctx.Materials.Where(x => delMats.Contains(x.Id)).ExecuteDelete();
             return Ok($"删素材{delMats.Count}个");
+        }
+
+        [Route("/S/CopyAllFilesToAnotherBucket")]
+        public IActionResult CopyAllFilesToAnotherBucket()
+        {
+            //收集所有有引用的存储文件（FileItem和Material）复制到另一个Bucket里
+            int copied = splitService.CopyAllFilesToAnotherBucket();
+            return Ok($"复制了{copied}个");
         }
     }
 }
