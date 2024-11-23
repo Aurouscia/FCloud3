@@ -20,6 +20,12 @@ namespace FCloud3.WikiPreprocessor.Test
 
         [TestMethod]
         [DataRow(
+            "你好，很高兴认识你",
+            "你好，很高兴认识你", 100)]
+        [DataRow(
+            "你好，很*高兴*认识你",
+            "你好，很高兴认识你", 100)]
+        [DataRow(
             "你好\n很高兴认识你",
             "你好 很高兴认识你", 100)]
         [DataRow(
@@ -39,6 +45,9 @@ namespace FCloud3.WikiPreprocessor.Test
             "你好 很高兴认识你 ——朋友", 100)]
         [DataRow(
             "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+            "你好 很高兴认识你 ——朋友", 100)]
+        [DataRow(
+            "# 来自*朋友*的问候\n> 你好\n > 很*高兴*认识你\n...   ——朋友",
             "你好 很高兴认识你 ——朋友", 100)]
         [DataRow(
             "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",

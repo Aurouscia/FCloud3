@@ -51,6 +51,10 @@ namespace FCloud3.WikiPreprocessor.Models
                 res.Add(Rule);
             return res;
         }
+        public override void WriteBody(StringBuilder sb, int maxLength)
+        {
+            Content.WriteBody(sb, maxLength);
+        }
     }
     public class TextElement:InlineElement
     {

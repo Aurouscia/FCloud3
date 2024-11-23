@@ -70,7 +70,7 @@ namespace FCloud3.WikiPreprocessor.Models
         public virtual void WriteBody(StringBuilder sb, int maxLength)
         {
             bool isFirst = true;
-            List<string> bodies = [];
+            List<(bool isBlock, string body)> bodies = [];
             int bodiesCurrentTotalLength = 0;
             StringBuilder tempSb = new();
             foreach(var ele in this)
@@ -81,11 +81,11 @@ namespace FCloud3.WikiPreprocessor.Models
                     break;
                 ele.WriteBody(tempSb, leftLength);
                 bodiesCurrentTotalLength += tempSb.Length;
-                bodies.Add(tempSb.ToString());
+                bodies.Add((ele is BlockElement, tempSb.ToString()));
             }
             foreach(var body in bodies)
             {
-                if (body.Length == 0)
+                if (body.body.Length == 0)
                     continue;
                 int leftLength = maxLength - sb.Length;
                 if (leftLength <= 0)
@@ -94,13 +94,16 @@ namespace FCloud3.WikiPreprocessor.Models
                     isFirst = false;
                 else
                 {
-                    sb.Append(' ');
-                    leftLength -= 1;
+                    if (body.isBlock)
+                    {
+                        sb.Append(' ');
+                        leftLength -= 1;
+                    }
                 }
-                if (body.Length <= leftLength)
-                    sb.Append(body);
+                if (body.body.Length <= leftLength)
+                    sb.Append(body.body);
                 else
-                    sb.Append(body.AsSpan()[..leftLength]);
+                    sb.Append(body.body.AsSpan()[..leftLength]);
             }
         }
         public virtual List<IRule> ContainRules()
