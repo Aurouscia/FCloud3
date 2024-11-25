@@ -301,7 +301,7 @@ onUnmounted(()=>{
         <div v-for="p,idx in paras" :key="p.ParaId" class="para"
             :class="{selected:p.ParaId == selectedPara}" @click="selectedPara = p.ParaId">
             <div class="paraTop">
-                <h2 :class="{changed:p.changed}">
+                <h2 :class="{changed:p.changed}" @click="startEditingInfo(p)">
                     {{ displayTitle(p) }}
                     <span class="defaultFold">{{ p.NameOverride?.startsWith('^') ? '(默认折起)':''}}</span>
                 </h2>
@@ -464,6 +464,7 @@ onUnmounted(()=>{
         padding: 3px;
         border-radius: 3px;
         word-break: break-all;
+        cursor: pointer;
     }
     h2.changed{
         background-color: palevioletred;
