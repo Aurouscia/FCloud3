@@ -171,7 +171,7 @@ namespace FCloud3.Services.Etc
                     else if (min > 1)
                         w.TimeInfo = $"{Math.Floor(passed.TotalMinutes)}分钟前";
                     else
-                        w.TimeInfo = "刚刚";
+                        w.TimeInfo = $"{Math.Floor(passed.TotalSeconds)}秒前";
                 }
             });
             
