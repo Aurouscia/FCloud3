@@ -46,6 +46,7 @@ watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
     data.value = undefined;
     commentsLoaded.value = false;
     recommendsLoaded.value = false;
+    clickFold?.dispose()
     await init(true);
 })
 
