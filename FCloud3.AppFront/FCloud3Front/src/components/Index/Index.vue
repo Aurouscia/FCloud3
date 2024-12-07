@@ -91,6 +91,7 @@ async function setSearch(colName:string) {
         target.searchText = "";
         target.editing = false;
     }
+    query.value.Page = 1;
     reloadData();
 }
 function startEdit(colName:string){
@@ -106,6 +107,7 @@ async function endEdit(colName:string){
     if(!target){return;}
     target.editing = false;
     target.searchText = "";
+    query.value.Page = 1;
     await reloadData();
 }
 
