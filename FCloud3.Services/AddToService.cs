@@ -59,6 +59,7 @@ namespace FCloud3.Services
             services.AddScoped<MyWikisService>();
             services.AddScoped<LatestWikiExchangeService>();
             services.AddScoped<SplitService>();
+            services.AddScoped<WikiImportExportService>();
 
             services.AddScoped<AuthResCacheHost>();
             services.AddScoped<WikiParserCacheHost>();

@@ -27,14 +27,15 @@ namespace FCloud3.Services.Etc.Split
         /// 如果不能保证WikiRefs完整，应先让版主运行InitController中的EnforceParseAll方法
         /// </summary>
         /// <param name="memStream">zip写入的MemoryStream</param>
-        public void ExportMyWikis(MemoryStream memStream)
+        public void ExportMyWikis(MemoryStream memStream, int uid = 0)
         {
-            var uid = userIdProvider.Get();
+            if(uid==0)
+                uid = userIdProvider.Get();
             var myWikis = wikiItemRepo.Existing
                 .Where(x => x.OwnerUserId == uid)
                 .ToList();
             var allParas = wikiParaRepo.Existing
-                .Select(x => new { x.WikiItemId, x.NameOverride, x.ObjectId, x.Type })
+                .Select(x => new { x.WikiItemId, x.NameOverride, x.ObjectId, x.Type, x.Order })
                 .ToList();
             var myWikiIds = myWikis.Select(x => x.Id).ToList();
             var myParas = allParas.Where(x => myWikiIds.Contains(x.WikiItemId));
@@ -58,11 +59,13 @@ namespace FCloud3.Services.Etc.Split
                 .Select(x => new { x.Id, x.DisplayName, x.StorePathName }).ToList();
 
             var exportedWikis = new List<ExportedWiki>();
-            var attachments = new AttachmentsSummary();
+            var attachments = new AttachmentsSummary(storage.GetUrlBase());
             foreach (var w in myWikis)
             {
                 var exw = new ExportedWiki(w);
-                var itsParas = allParas.FindAll(x => x.WikiItemId == w.Id);
+                var itsParas = allParas
+                    .Where(x => x.WikiItemId == w.Id)
+                    .OrderBy(x => x.Order);
                 foreach (var p in itsParas)
                 {
                     ExportedWiki.ExportedWikiPara? para = null;
@@ -85,7 +88,7 @@ namespace FCloud3.Services.Etc.Split
                         {
                             para = new(file.DisplayName, p.NameOverride, p.Type, file.StorePathName);
                             if (file.StorePathName is { })
-                                attachments.Materials.Add(file.StorePathName);
+                                attachments.FileItems.Add(file.StorePathName);
                         }
                     }
                     if (para is { })
@@ -100,13 +103,14 @@ namespace FCloud3.Services.Etc.Split
                 foreach (var mat in refedMats)
                 {
                     if (mat is { })
-                        attachments.FileItems.Add(mat);
+                        attachments.Materials.Add(mat);
                 }
                 exportedWikis.Add(exw);
             }
 
-            using var archive = new ZipArchive(memStream);
+            using var archive = new ZipArchive(memStream, ZipArchiveMode.Create, true);
             var jsonSerializer = JsonSerializer.CreateDefault();
+            jsonSerializer.Formatting = Formatting.Indented;
             foreach (var w in exportedWikis)
             {
                 var fileName = GetZipEntryNameForWiki(w.Info.Title);
@@ -116,27 +120,34 @@ namespace FCloud3.Services.Etc.Split
                 jsonSerializer.Serialize(writer, w);
                 writer.Flush();
             }
-            string attachmentsEntryName = "词条附件.txt";
+            string attachmentsEntryName = "词条附件.json";
             var attachmentsEntry = archive.CreateEntry(attachmentsEntryName);
-            using var attachmentsStream = attachmentsEntry.Open();
-            using var attachmentsWriter = new StreamWriter(attachmentsStream);
-            jsonSerializer.Serialize(attachmentsWriter, attachments);
-            attachmentsWriter.Flush();
+            using (var attachmentsStream = attachmentsEntry.Open())
+            {
+                using var attachmentsWriter = new StreamWriter(attachmentsStream);
+                jsonSerializer.Serialize(attachmentsWriter, attachments);
+                attachmentsWriter.Flush();
+            }
 
             var readmeEntry = archive.CreateEntry("说明.txt");
-            using var readmeStream = readmeEntry.Open();
-            using var readmeWriter = new StreamWriter(readmeStream);
-            var readmeContent = $"""
+            using (var readmeStream = readmeEntry.Open())
+            {
+                using var readmeWriter = new StreamWriter(readmeStream);
+                var readmeContent = $"""
                 你好：
                 本压缩包内是你的所有词条，以及它们引用的文件链接。
                 如需将内容导入另一个FCloud3网站，把本压缩包交给该网站管理员。
                 请注意，本压缩包仅备份了文本内容，词条中引用的文件依然在原有服务器上。
                 如果需要下载到本地，见"{attachmentsEntryName}"文件。
+                在另一网站导入时，新网站会自动获取和存储这些引用文件，无需任何操作。
 
                 除非你知道你在做什么，否则不要随意修改文件中的任何内容，以免造成格式损坏。
-            """;
-            readmeWriter.Write(readmeContent);
-            readmeWriter.Flush();
+                """;
+                readmeWriter.Write(readmeContent);
+                readmeWriter.Flush();
+            }
+
+            archive.Dispose();
         }
 
 
@@ -179,8 +190,9 @@ namespace FCloud3.Services.Etc.Split
                 public string? Data { get; } = data;
             }
         }
-        public class AttachmentsSummary
+        public class AttachmentsSummary(string urlBase)
         {
+            public string UrlBase { get; } = urlBase;
             public HashSet<string> Materials { get; } = [];
             public HashSet<string> FileItems { get; } = [];
         }

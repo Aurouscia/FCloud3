@@ -45,6 +45,10 @@ namespace FCloud3.Services.Files.Storage
             errmsg = null;
             return true;
         }
+        public string GetUrlBase()
+        {
+            return _config.DomainName ?? "";
+        }
         public string FullUrl(string pathName)
         {
             return _config.DomainName + "/" + pathName;

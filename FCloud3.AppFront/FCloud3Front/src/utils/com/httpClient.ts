@@ -8,7 +8,7 @@ export type ApiResponse = {
     errmsg: string
     code: number
 }
-export type RequestType = "get"|"postForm"|"postRaw"|"getStream";
+export type RequestType = "get"|"postForm"|"postRaw"|"getStream"|"download";
 
 export type HttpCallBack = (result:"ok"|"warn"|"err",msg:string)=>void
 export interface ApiRequestHeader{
@@ -95,6 +95,14 @@ export class HttpClient{
                         headers:this.headers()
                     }
                 );
+            }else if(type=='download'){
+                res = await this.ax.get(resource,
+                    {
+                        params: data,
+                        headers:this.headers(),
+                        responseType: 'blob'
+                    }
+                );
             }
             if(showWait)
                 this.showWaitCallBack(false);
@@ -116,7 +124,7 @@ export class HttpClient{
             let resp: ApiResponse|undefined = undefined;
             if (this.isApiResponseObj(res.data)) {
                 resp = res.data as ApiResponse;
-            } else if (type=='getStream') {
+            } else if (type=='getStream' || type=='download') {
                 resp = {
                     success: true,
                     errmsg: '',
@@ -128,7 +136,8 @@ export class HttpClient{
                 resp = defaultFailResp;
             }
             if (resp.success) {
-                console.log(`[${type}]${resource}成功`, resp.data)
+                const logData = type!=='download' ? resp.data : resp.data?.length
+                console.log(`[${type}]${resource}成功`, logData)
                 if (successMsg) {
                     this.httpCallBack('ok', successMsg)
                 }

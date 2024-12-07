@@ -1360,6 +1360,20 @@ export class Api{
             }
         }
     }
+    split = {
+        wikiImportExport:{
+            exportMyWikis:async()=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/ExportMyWikis',
+                    'download',
+                    undefined,undefined,true
+                )
+                if(resp.success){
+                    return resp.data as Blob
+                }
+            }
+        }
+    }
 }
 
 export function fileDownloadLink(fileId:number){

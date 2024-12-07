@@ -7,6 +7,9 @@ import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import { injectApi, injectPop } from '@/provides';
 import { random } from 'lodash';
 import Search from '@/components/Search.vue';
+import jsfd from 'js-file-download';
+import { truncate } from 'lodash';
+import { timeReadable } from '@/utils/timeStamp';
 
 const user = ref<User>();
 var api:Api;
@@ -77,6 +80,14 @@ const emits = defineEmits<{
     (e:'requireReload'):void
 }>()
 
+async function exportAllWikis() {
+    const data = await api.split.wikiImportExport.exportMyWikis()
+    if(data){
+        const nameTrun = truncate(user.value?.Name||'', {length:10, omission:''})
+        jsfd(data, `${nameTrun}_所有词条_${timeReadable('ymdhm')}.zip`)
+    }
+}
+
 onMounted(async()=>{
     pop = injectPop();
     api = injectApi();
@@ -129,6 +140,10 @@ onMounted(async()=>{
                 </div>
             </SwitchingTabs>
         </div>
+        <h1>导出所有词条</h1>
+        <div class="section">
+            <button @click="exportAllWikis" class="wikiExportBtn">导出本账号所有词条</button>
+        </div>
     </div>
 </template>
 
@@ -145,5 +160,9 @@ onMounted(async()=>{
         border-radius: 50%;
         border: 2px solid #eee
     }
+}
+.wikiExportBtn{
+    display: block;
+    margin: auto;
 }
 </style>

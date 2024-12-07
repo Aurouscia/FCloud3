@@ -10,6 +10,7 @@ namespace FCloud3.Services.Files.Storage.Abstractions
     {
         public bool Save(Stream s, string pathName, out string? errmsg);
         public bool Delete(string pathName, out string? errmsg);
+        public string GetUrlBase();
         public string FullUrl(string pathName);
         public Stream? Read(string pathName);
         public StorageProvideType ProvideType { get; }

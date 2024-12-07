@@ -1,3 +1,5 @@
+import { padStart } from "lodash"
+
 export function getTimeStamp(){
     return (new Date()).getTime()/1000
 }
@@ -19,4 +21,19 @@ export class TimedLock{
         }
         return false;
     }
+}
+export function timeReadable(type:'ymd'|'ymdhm'='ymd'){
+    const t = new Date()
+    const y = t.getFullYear().toString()
+    let m = (t.getMonth()+1).toString()
+    let d = t.getDate().toString()
+    m = padStart(m, 2, '0')
+    d = padStart(d, 2, '0')
+    if(type==='ymd')
+        return `${y}${m}${d}`
+    let hour = t.getHours().toString()
+    let min = t.getMinutes().toString()
+    hour = padStart(hour, 2, '0')
+    min = padStart(min, 2, '0')
+    return `${y}${m}${d}${hour}${min}`
 }
