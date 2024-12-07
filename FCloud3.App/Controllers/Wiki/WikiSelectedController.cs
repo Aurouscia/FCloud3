@@ -21,7 +21,7 @@ namespace FCloud3.App.Controllers.Wiki
         [UserTypeRestricted(UserType.Admin)]
         public IActionResult Insert(WikiSelectedDto model)
         {
-            var res = wikiSelectedService.Insert(model.Order, model, out string? errmsg);
+            var res = wikiSelectedService.Insert(model, out string? errmsg);
             if (!res)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();

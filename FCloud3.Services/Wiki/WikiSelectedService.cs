@@ -81,10 +81,9 @@ namespace FCloud3.Services.Wiki
             return items;
         }
 
-        public bool Insert(int beforeOrder, WikiSelectedDto model, out string? errmsg)
+        public bool Insert(WikiSelectedDto model, out string? errmsg)
         {
-            return wikiSelectedRepo.TryInsert(
-                beforeOrder, model.WikiItemId, model.Intro, model.DropAfterHr, out errmsg);
+            return wikiSelectedRepo.TryInsert(model.WikiItemId, model.Intro, model.DropAfterHr, out errmsg);
         }
 
         public bool Edit(WikiSelectedDto model, out string? errmsg)

@@ -7,6 +7,7 @@ namespace FCloud3.Repos.Wiki
 {
     public class WikiSelectedRepo(
         FCloudContext context,
+        WikiItemRepo wikiItemRepo,
         ICommitingUserIdProvider userIdProvider,
         IConfiguration config) 
         :RepoBase<WikiSelected>(context, userIdProvider)
@@ -20,10 +21,9 @@ namespace FCloud3.Repos.Wiki
                 return 8;
             });
         
-        public bool TryInsert(int beforeOrder,
-            int wikiItemId, string? intro, int dropAfterHr, out string? errmsg)
+        public bool TryInsert(int wikiItemId, string? intro, int dropAfterHr, out string? errmsg)
         {
-            var all = Existing.ToList();
+            var all = Existing.OrderBy(x=>x.Order).ToList();
             var model = new WikiSelected()
             {
                 WikiItemId = wikiItemId,
@@ -31,21 +31,24 @@ namespace FCloud3.Repos.Wiki
                 DropAfterHr = dropAfterHr
             };
             TryAdd(model, out errmsg);
+            all.Insert(0, model);
             if (errmsg is { })
                 return false;
-            var lessOrder = all.FindAll(x => x.Order < beforeOrder);
-            var biggerOrder = all.Except(lessOrder);
-            List<WikiSelected> ordered = [..lessOrder];
-            ordered.Add(model);
-            ordered.AddRange(biggerOrder);
-            var needUpdate = new List<WikiSelected>();
-            
-            if (ordered.Count > MaxCount)
+
+            var allWikiIds = wikiItemRepo.AllCachedItems().Select(x => x.Id);
+            var removeItems = new List<WikiSelected>();
+            foreach(var ws in all)
             {
-                int exceeded = ordered.Count - MaxCount;
+                if (!allWikiIds.Contains(ws.WikiItemId))
+                    removeItems.Add(ws);
+            }
+
+            if (all.Count > MaxCount)
+            {
+                int exceeded = all.Count - MaxCount;
                 List<(double overHr, WikiSelected item)> removeList = [];
                 var now = DateTime.Now;
-                foreach(var w in ordered)
+                foreach(var w in all)
                 {
                     var lasted = (now - w.Created).TotalHours;
                     if (lasted > w.DropAfterHr)
@@ -56,22 +59,18 @@ namespace FCloud3.Repos.Wiki
                             break;
                     }
                 }
-                var removeItems = removeList
+                removeItems.AddRange(removeList
                     .OrderByDescending(x => x.overHr)
                     .Select(x => x.item)
                     .Take(exceeded)
-                    .ToList();
-                if (removeList.Count > 0)
-                {
-                    ordered.RemoveAll(removeItems.Contains);
-                    base.RemoveRange(removeItems);
-                }
+                    .ToList());
             }
-            for (int i = 0; i < ordered.Count; i++)
-            {
-                ordered[i].Order = i;
-            }
-            base.UpdateRange(ordered);
+            base.RemoveRange(removeItems);
+            all = all.Except(removeItems).ToList();
+
+            for (int i = 0; i < all.Count; i++)
+                all[i].Order = i;
+            base.UpdateRange(all);
             return true;
         }
 
