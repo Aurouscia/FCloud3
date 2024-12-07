@@ -53,7 +53,8 @@ namespace FCloud3.App.Services.Filters
             {
                 var resp = new ApiResponse(null, false, 
                     $"请求频率过高，请注意{SlidingWindowMs}毫秒内最多{MaxCountWithin}个请求");
-                context.Result = resp.BuildResult();
+                //HTTP 429 TooManyRequests
+                context.Result = resp.BuildResult(429);
                 return;
             }
             await next();

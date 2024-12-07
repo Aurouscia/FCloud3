@@ -120,6 +120,10 @@ export class HttpClient{
                 this.unauthorizeCallBack()
                 return defaultFailResp;
             }
+            if (res.status == 429){
+                this.httpCallBack("err", "操作频率过高，请稍后再试")
+                return defaultFailResp
+            }
 
             let resp: ApiResponse|undefined = undefined;
             if (this.isApiResponseObj(res.data)) {

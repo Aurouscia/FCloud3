@@ -35,5 +35,5 @@ export function timeReadable(type:'ymd'|'ymdhm'='ymd'){
     let min = t.getMinutes().toString()
     hour = padStart(hour, 2, '0')
     min = padStart(min, 2, '0')
-    return `${y}${m}${d}${hour}${min}`
+    return `${y}${m}${d}_${hour}${min}`
 }

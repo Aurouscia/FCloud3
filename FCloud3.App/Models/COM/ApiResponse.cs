@@ -25,11 +25,11 @@ namespace FCloud3.App.Models.COM
             this.errmsg ??= string.Empty;
             this.code = code;
         }
-        public ContentResult BuildResult()
+        public ContentResult BuildResult(int statusCode = 200)
         {
             return new ContentResult()
             {
-                StatusCode = 200,
+                StatusCode = statusCode,
                 Content = JsonConvert.SerializeObject(this),
                 ContentType = Application.Json
             };

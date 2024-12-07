@@ -85,6 +85,7 @@ async function exportAllWikis() {
     if(data){
         const nameTrun = truncate(user.value?.Name||'', {length:10, omission:''})
         jsfd(data, `${nameTrun}_所有词条_${timeReadable('ymdhm')}.zip`)
+        pop.value.show('获取成功，已下载', 'success')
     }
 }
 
