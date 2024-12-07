@@ -11,6 +11,8 @@ namespace FCloud3.Repos.Files
         ICommitingUserIdProvider userIdProvider)
         : RepoBaseCache<Material, MaterialCacheModel>(context, userIdProvider)
     {
+        public IQueryable<Material> ExistingExceptHidden =>
+            Existing.Where(x => x.Name != null && !x.Name.Contains("头像_") && !x.Name.Contains("_avt"));
         public IQueryable<Material> QuickSearch(string str)
         {
             return Existing

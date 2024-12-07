@@ -17,14 +17,13 @@ namespace FCloud3.Services.Files
 
         public IndexResult<MaterialIndexItem> Index(IndexQuery q, bool onlyMine)
         {
-            IQueryable<Material> from;
+            bool anySearch = q.Search is { } && q.Search.Count > 0;
+            IQueryable<Material> from = anySearch ? materialRepo.Existing : materialRepo.ExistingExceptHidden;
             if (onlyMine)
             {
                 var userId = userIdProvider.Get();
-                from = materialRepo.Existing.Where(x => x.CreatorUserId == userId);
+                from = from.Where(x => x.CreatorUserId == userId);
             }
-            else
-                from = materialRepo.Existing;
             var m = materialRepo.IndexFilterOrder(from, q)
                 .TakePageAndConvertOneByOne(q, x => new MaterialIndexItem(x, storage.FullUrl));
             return m;
