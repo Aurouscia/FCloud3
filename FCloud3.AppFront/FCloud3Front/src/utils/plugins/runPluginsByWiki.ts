@@ -1,11 +1,13 @@
+import { PluginsFound } from "@/build/plugin/pluginsFound"
 import { consolePrefix, PluginExe } from "./common/pluginExe"
 import pluginsFound from '@/build/plugin/pluginsFound.json'
 
 export function runPluginsByWiki(wikiStringData:string|undefined){
     if(!wikiStringData)
         return
-    const exes:PluginExe[] = []
-    pluginsFound.forEach(plugin=>{
+    const exes:PluginExe[] = [];
+    const pluginList = pluginsFound as PluginsFound
+    pluginList.forEach(plugin=>{
         if(wikiStringData.includes(plugin.trigger)){
             const name = plugin.name
             const eleId = containerDivId(name)

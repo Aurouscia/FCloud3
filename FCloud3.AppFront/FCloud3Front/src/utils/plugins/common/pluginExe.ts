@@ -1,4 +1,4 @@
-//import { sleep } from "@/utils/sleep"
+import { PluginsFound } from "@/build/plugin/pluginsFound"
 import { runJs, runJsFile } from "./runJs"
 import pluginsFound from '@/build/plugin/pluginsFound.json'
 
@@ -19,7 +19,8 @@ export class PluginExe{
         container.appendChild(this.runContainer)
         this.state = "checking";
         this.pluginName = pluginName
-        const plugin = pluginsFound.find(x=>x.name===pluginName)
+        const pluginList = pluginsFound as PluginsFound
+        const plugin = pluginList.find(x=>x.name===pluginName)
         this.pluginPath = plugin?.entry
         if(this.pluginPath){
             runJsFile(this.pluginPath, this.initContainer).then(_=>{
