@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: '[name]-[hash]'
     },
     emptyOutDir: true,
-    outDir:'../FCloud3Front/public/plugins/AuRouteRenderer',
+    outDir:'../../FCloud3Front/public/plugins/AuRouteRenderer',
     copyPublicDir: false
   }
 })
