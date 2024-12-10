@@ -1,17 +1,23 @@
 import { defineConfig } from 'vite'
 
-export default defineConfig({
-  server:{
-    port:5174
-  },
-  build: {
-    lib: {
-      formats:['es'],
-      entry: './lib/auRouteRenderer.ts',
-      fileName: '[name]-[hash]'
+const publicDirBuild = 'public/publicBuild'
+const publicDirDev = 'public/publicDev'
+
+export default defineConfig(({command})=>{
+  const publicDir = command === 'build' ? publicDirBuild : publicDirDev
+  return{
+    server:{
+      port:5174
     },
-    emptyOutDir: true,
-    outDir:'../../FCloud3Front/public/plugins/AuRouteRenderer',
-    copyPublicDir: false
+    build: {
+      lib: {
+        formats:['es'],
+        entry: './lib/auRouteRenderer.ts',
+        fileName: '[name]-[hash].entry'
+      },
+      emptyOutDir: true,
+      outDir:'../../FCloud3Front/public/plugins/AuRouteRenderer',
+    },
+    publicDir
   }
 })

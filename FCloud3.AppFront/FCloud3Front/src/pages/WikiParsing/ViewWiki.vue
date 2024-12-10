@@ -33,7 +33,7 @@ import Footer from '@/components/Footer.vue';
 import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
-import { RouteRenderer } from '@/utils/plugins/routeRenderer'
+import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
 import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 import _ from 'lodash';
 
@@ -208,7 +208,6 @@ const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
 const wikiViewScrollMemory = injectWikiViewScrollMemory()
-const routeRendererContainer = ref<HTMLDivElement>()
 const pop = injectPop()
 
 async function init(changedPathName?:boolean){
@@ -254,11 +253,7 @@ async function init(changedPathName?:boolean){
         viewAreaScrollHandler(true)
     }
 
-    if(routeRendererContainer.value){
-        const rr = new RouteRenderer(routeRendererContainer.value, ()=>{
-            rr.execute()
-        })
-    }
+    runPluginsByWiki(data.value?.Paras.map(x=>x.Content).join())
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()
@@ -370,8 +365,6 @@ onUnmounted(()=>{
     <ImageFocusView v-if="focusImg" :img-src="focusImg" :desc="focusImgDesc" 
         :close="()=>{focusImg=undefined;focusImgDesc=undefined}" ref="imgFocusViewElement">
     </ImageFocusView>
-
-    <div ref="routeRendererContainer" style="display: none;"></div>
 </div>
 </template>
 

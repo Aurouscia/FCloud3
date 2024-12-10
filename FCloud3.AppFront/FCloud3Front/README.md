@@ -21,6 +21,11 @@ VITE_ApiUrlBase = "http://wiki.jowei19.com"
 ```
 ## 插件
 约定：
-- 插件的入口是单个的js文件（ecma标准），**export一个名为`run`的函数**
 - 插件编译到`public/plugins/[插件名]`目录下
-- 插件编译时需要在文件名中带哈希，避免更新后客户端不更新
+    - 插件的入口：js文件（ecma标准）
+        - **名称为 xxx.entry.js**
+        - **export一个名为`run`的函数**
+        - 文件名带哈希，避免客户端不更新
+    - 插件的触发词：txt文件
+        - **名称为 trigger.txt**
+        - 内容是插件触发词，没有其他东西

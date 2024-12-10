@@ -1,32 +1,35 @@
 //import { sleep } from "@/utils/sleep"
 import { runJs, runJsFile } from "./runJs"
-import { pluginsFound } from '@/build/plugin/pluginsFound'
+import pluginsFound from '@/build/plugin/pluginsFound.json'
+
+export const consolePrefix = '[f3-plugin]'
 
 export class PluginExe{
     private state:"checking"|"notAvailable"|"ready"
     private initContainer:HTMLDivElement
     private runContainer:HTMLDivElement
-    private pluginName:string
+    public pluginName:string
     private pluginPath?:string
-    constructor(container:HTMLDivElement, pluginName:string, onReady?:()=>void){
+    constructor(container:HTMLDivElement, pluginName:string){
         this.pluginName = pluginName
         this.initContainer = document.createElement('div')
         this.runContainer = document.createElement('div')
+        container.innerHTML = ''
         container.appendChild(this.initContainer)
         container.appendChild(this.runContainer)
         this.state = "checking";
         this.pluginName = pluginName
-        this.pluginPath = pluginsFound[pluginName]
+        const plugin = pluginsFound.find(x=>x.name===pluginName)
+        this.pluginPath = plugin?.entry
         if(this.pluginPath){
             runJsFile(this.pluginPath, this.initContainer).then(_=>{
                 this.state = "ready";
-                console.log(`插件${pluginName}已初始化`)
-                if(onReady)
-                    onReady()
+                console.log(`${consolePrefix}插件${pluginName}已初始化`)
+                this.execute()
             })
         }else{
             this.state = "notAvailable";
-            console.log(`插件${pluginName}未能找到`)
+            console.log(`${consolePrefix}插件${pluginName}未能找到`)
         }
     }
     execute(){
@@ -36,7 +39,7 @@ export class PluginExe{
                 run()
             `
             runJs(code, this.runContainer)
-            console.log(`插件${this.pluginName}已执行`)
+            console.log(`${consolePrefix}插件${this.pluginName}已执行`)
         }
     }
 }
