@@ -25,7 +25,7 @@ export function parseTargets():TargetGroup[]{
     return targetGroups
 }
 
-const mainCellPattern = `(?<=${trigger}\\()[0-9-/:\\+\\* ]{0,32}(?=\\))`
+const mainCellPattern = `(?<=${trigger}\\()[0-9-/:\\+& ]{0,32}(?=\\))`
 const mainCellPatternRegex = new RegExp(mainCellPattern)
 export function parseTableRow(row:HTMLTableRowElement):Target|false{
     const cellCount = row.cells.length
@@ -49,8 +49,10 @@ export function parseTableRow(row:HTMLTableRowElement):Target|false{
     if(!ymd)
         return false
     let {y, m, d} = ymd
+    let specifyTimeOfDay = false
     let h=0, min=0, s=0
     if(parts.length>1){
+        specifyTimeOfDay = true
         const hms = parseHMS(parts[1])
         if(!hms){
             return false
@@ -65,10 +67,10 @@ export function parseTableRow(row:HTMLTableRowElement):Target|false{
     const nowMonth = now.getMonth()+1
     const nowDay = now.getDate()
     if(typeof(y) == 'string'){
-        if(y=='*')
-            y = nowYear //星号表示当年
+        if(y=='&')
+            y = nowYear //&号表示当年
         else{
-            //加号表示下一年（如果过了当天）
+            //+号表示下一年（如果过了当天）
             let passedMD = false
             if(nowMonth > m)
                 passedMD = true
@@ -82,22 +84,24 @@ export function parseTableRow(row:HTMLTableRowElement):Target|false{
     }
     return {
         t:new Date(y, m-1, d, h, min, s),
+        specifyTimeOfDay,
         desc
     }
 }
-function parseYMD(str:string):{y:number|'*'|'+', m:number, d:number}|undefined{
+function parseYMD(str:string):{y:number|'&'|'+', m:number, d:number}|undefined{
     const parts = str.split(/[/-]/)
     if(parts.length==2){
         return {
-            y:'*',
+            y:'+',
             m:parseInt(parts[0]),
             d:parseInt(parts[1])
         }
     }
     if(parts.length==3){
         const first = parts[0]
-        let y:'*'|'+'|number
-        if(first=='*' || first=='+')
+        let y:'&'|'+'|number
+        console.log(first)
+        if(first=='&' || first=='+')
             y = first
         else{
             const tryYear = parseInt(first)

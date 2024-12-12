@@ -6,5 +6,6 @@ export interface TargetGroup{
 }
 export interface Target{
     t:Date
+    specifyTimeOfDay:boolean
     desc?:string
 }
