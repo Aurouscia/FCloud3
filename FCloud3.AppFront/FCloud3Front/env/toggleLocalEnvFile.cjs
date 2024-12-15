@@ -1,6 +1,6 @@
 const fs = require('fs')
-const enabledName = "dev/env/.env.development.local"
-const disabledName = "dev/env/.env.development-disabled.local"
+const enabledName = __dirname + "/.env.development.local"
+const disabledName = __dirname + "/.env.development-disabled.local"
 const enableMsg = "已启用.env.development.local"
 const disableMsg = "已禁用.env.development.local"
 const errMsg = "未找到.env.development[-disabled].local文件，请手动创建"

@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build-here": "vite build --outDir ./dist --emptyOutDir",
-    "prebuild": "node dev/build/prebuildEntry.cjs",
-    "toggleEnvLocal": "node dev/env/toggleLocalEnvFile.cjs"
+    "prebuild": "node src/build/prebuildEntry.cjs",
+    "toggleEnvLocal": "node env/toggleLocalEnvFile.cjs"
   },
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.5.9",
