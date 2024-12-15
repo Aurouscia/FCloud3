@@ -19,7 +19,7 @@ export function parseFooterLinks(str:string):FooterLinks{
             writingLeft = false
             return
         }
-        const parts = r.split('=')
+        const parts = r.split(' = ')
         if(parts.length<2 || parts.some(x=>!x))
             return
         const text = parts[0].trim()
