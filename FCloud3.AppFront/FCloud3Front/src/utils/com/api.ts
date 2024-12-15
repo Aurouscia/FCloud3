@@ -29,7 +29,6 @@ import { LatestWorkViewItem } from '@/models/etc/latestWork';
 import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
 import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
 import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
-import { FooterLinks } from '@/models/etc/footerLinks';
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
@@ -1239,15 +1238,6 @@ export class Api{
                 )
                 if(resp.success){
                     return resp.data.res as string;
-                }
-            },
-            getFooterLinks:async()=>{
-                const resp = await this.httpClient.request(
-                    "/api/Utils/GetFooterLinks",
-                    "get"
-                )
-                if(resp.success){
-                    return resp.data as FooterLinks
                 }
             }
         },

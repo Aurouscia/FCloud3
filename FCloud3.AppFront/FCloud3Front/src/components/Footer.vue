@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { FooterLinks } from '@/models/etc/footerLinks';
-import { useFooterLinksProvider } from '@/utils/globalStores/footerLinks';
+import { FooterLinks, parseFooterLinks } from '@/models/etc/footerLinks';
+import { guideInfo } from '@/utils/guideInfo';
 import { onMounted, ref } from 'vue';
 
 const model = ref<FooterLinks>();
 const display = ref<boolean>(true);
-const getFooterLinks = useFooterLinksProvider();
 onMounted(async()=>{
-    model.value = await getFooterLinks();
+    model.value = parseFooterLinks(guideInfo.footerLinks)
 })
 defineExpose({display})
 </script>
 
 <template>
 <div class="footer" v-show="display">
-    <div class="vital" v-if="model && model.Links.length>=1">
-        <a :href="model.Links[0].Url||'/'" target="_blank">{{ model.Links[0].Text }}</a>
+    <div class="vital" v-if="model && model.linksLeft.length>=1">
+        <div v-for="item in model?.linksLeft">
+            <a :href="item.url||'/'" target="_blank">{{ item.text }}</a>
+        </div>
     </div>
     <div class="others">
-        <div v-for="item,idx in model?.Links">
-            <a v-if="idx>0" :href="item.Url||'/'" target="_blank">{{ item.Text }}</a>
+        <div v-for="item in model?.linksRight">
+            <a :href="item.url||'/'" target="_blank">{{ item.text }}</a>
         </div>
     </div>
 </div>
@@ -36,10 +37,7 @@ defineExpose({display})
 .footer div{
     line-height: 30px;
 }
-.vital{
-    flex-shrink: 0;
-}
-.others{
+.vital, .others{
     display: flex;
     justify-content: right;
     flex-wrap: wrap;
@@ -49,6 +47,13 @@ defineExpose({display})
         overflow: hidden;
         text-overflow: ellipsis;
         margin-left: 5px;
+    }
+}
+.vital{
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    &>div{
+        flex-shrink: 0;
     }
 }
 a{
