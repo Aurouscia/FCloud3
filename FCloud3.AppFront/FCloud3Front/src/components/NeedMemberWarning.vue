@@ -1,24 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { injectApi } from '../provides';
-import { Api } from '../utils/com/api';
+import { guideInfo } from '@/utils/guideInfo';
 
 const show = ref<boolean>(false);
 const way = ref<string|undefined>();
-let api:Api;
 function setShow(s:boolean){
     show.value = s;
-    if(s){
-        getWay()
-    }
 }
 defineExpose({setShow})
 
-async function getWay(){
-    way.value = await api.etc.utils.applyBeingMember();
-}
 onMounted(()=>{
-    api = injectApi();
+    way.value = guideInfo.applyMember
 })
 </script>
 

@@ -16,11 +16,6 @@ namespace FCloud3.App.Controllers.Etc
             var res = PinYinHelper.ToUrlName(input);
             return this.ApiResp(new { res });
         }
-        public IActionResult ApplyBeingMember()
-        {
-            var res = _config["ApplyBeingMember"] ?? "暂不提供申请方式";
-            return this.ApiResp(new { res });
-        }
         public IActionResult GetFooterLinks()
         {
             var model = new FooterLinks();

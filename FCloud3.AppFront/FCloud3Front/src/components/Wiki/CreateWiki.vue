@@ -3,7 +3,7 @@ import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump'
 import { injectApi } from '@/provides';
 import Notice from '../Notice.vue';
 import { useUrlPathNameConverter } from '@/utils/urlPathName';
-import { useGuideInfoStore } from '@/utils/globalStores/guideInfo';
+import { guideInfo } from '@/utils/guideInfo';
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -13,7 +13,6 @@ const props = defineProps<{
 }>();
 const {jumpToViewWiki, jumpToViewWikiRoute} = useWikiParsingRoutesJump();
 const {name:creatingWikiTitle, converted:creatingWikiUrlPathName, run:runForWiki} = useUrlPathNameConverter();
-const { getGuideOf } = useGuideInfoStore()
 const guideText = ref<string|null|undefined>();
 const regulationPathName = ref<string|null|undefined>();
 
@@ -33,8 +32,8 @@ async function createWiki() {
     }
 }
 onMounted(async()=>{
-    guideText.value = await getGuideOf('createWiki', api)
-    regulationPathName.value = await getGuideOf('regulation', api)
+    guideText.value = guideInfo.createWiki
+    regulationPathName.value = guideInfo.siteRegulations
 })
 </script>
 

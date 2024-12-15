@@ -7,7 +7,7 @@ import Footer from '@/components/Footer.vue'
 import SideBar from '@/components/SideBar.vue';
 import CreateWiki from '@/components/Wiki/CreateWiki.vue';
 import { onMounted, ref } from 'vue';
-import { useGuideInfoStore } from '@/utils/globalStores/guideInfo';
+import { guideInfo } from '@/utils/guideInfo';
 import { RouterLink } from 'vue-router';
 
 const api = injectApi();
@@ -22,10 +22,9 @@ function toggleSidebar(){
     }
 }
 
-const { getGuideOf } = useGuideInfoStore();
 const introPathName = ref<string|null|undefined>();
 onMounted(async()=>{
-    introPathName.value = await getGuideOf('intro', api)
+    introPathName.value = guideInfo.siteIntro
 })
 </script>
 

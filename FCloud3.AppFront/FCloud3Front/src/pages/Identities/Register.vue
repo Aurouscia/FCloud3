@@ -7,6 +7,7 @@ import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import Notice from '@/components/Notice.vue';
 import { RouterLink } from 'vue-router';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
+import { guideInfo } from '@/utils/guideInfo';
 
 const { jumpToLogin } = useIdentityRoutesJump();
 const userName = ref<string>("");
@@ -39,7 +40,7 @@ onMounted(async()=>{
     setTitleTo('注册新用户')
     api = injectApi();
     pop = injectPop();
-    applyWay.value = await api.etc.utils.applyBeingMember() || "暂不开放申请"
+    applyWay.value = guideInfo.applyMember || "暂不开放申请"
 })
 onUnmounted(()=>{recoverTitle()})
 </script>

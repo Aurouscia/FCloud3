@@ -14,6 +14,7 @@ import Footer from '@/components/Footer.vue';
 import { saveLocalConfig, readLocalConfig } from '@/utils/localConfig/localConfig';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { authConfigDefault, AuthLocalConfig } from '@/utils/localConfig/models/auth';
+import { guideInfo } from '@/utils/guideInfo';
 
 const props = defineProps<{
     backAfterSuccess:string
@@ -52,7 +53,7 @@ async function Login(){
             router.push("/")
         }
     }else{
-        const way = await api.etc.utils.applyBeingMember() || "请联系管理员重置"
+        const way = guideInfo.resetPassword || "请联系管理员重置"
         failedGuide.value = "如果忘记密码，" + way
     }
 };
