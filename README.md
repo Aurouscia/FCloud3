@@ -48,7 +48,7 @@ http://wiki.jowei19.com
     - **必须**更改总密码（MasterAdminCode）
     - **必须**更改jwt密钥（Jwt:SecretKey）
 5. 点击顶部绿色启动按钮启动调试，检查是否正常
-6. 在浏览器地址栏访问`调试域名/init/{配置文件内的总密码}/initDb`以初始化数据库
+6. 在浏览器地址栏访问`调试域名/init/<配置文件内的总密码>/initDb`以初始化数据库
 7. 停止调试，点击顶部栏`生成-发布`即可选择位置导出
 8. 准备服务器环境
     - windows服务器上安装[.net8.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0) (8.0内尽可能新版)，
@@ -56,7 +56,12 @@ http://wiki.jowei19.com
     - linux服务器上安装docker，使用`docker build .`命令取用项目根目录的Dockerfile构建本项目镜像，run时将项目中Data文件夹mount或设为volumn
     （慎用，docker部署未经试验）
 9. 尝试启动并进入网站
-10. 在浏览器地址栏访问`域名/init/{配置文件内的总密码}/initDb`以初始化数据库
+10. （如果数据库与调试时不是同一个）在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initDb`以初始化数据库
+11. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initUser`以注册初始用户
+    - 用户名为`admin`
+    - 密码为`fcloud987123`
+    - 权限为超级管理员
+    - **立即登录和修改密码，不要保留原始密码**
 
 ## 注意
 本项目暂不成熟，不建议直接投入生产环境  

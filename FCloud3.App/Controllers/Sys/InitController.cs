@@ -82,52 +82,20 @@ namespace FCloud3.App.Controllers.Sys
             }
             return this.ApiResp();
         }
-        public IActionResult InitUsers()
+        public IActionResult InitUser()
         {
-            bool anyUsers = _context.Users.Any();
-            bool anyGroups = _context.UserGroups.Any();
-            if (!anyUsers && !anyGroups)
+            var initUserName = "admin";
+            var initPassword = "fcloud987123";
+            bool anyUsersNamedThis = _context.Users.Any(x=>x.Name == initUserName);
+            if (!anyUsersNamedThis)
             {
                 User u1 = new User()
                 {
-                    Name = "user1",
-                    PwdEncrypted = new UserPwdEncryption().Run("user1")
+                    Name = initUserName,
+                    Type = UserType.SuperAdmin,
+                    PwdEncrypted = new UserPwdEncryption().Run(initPassword)
                 };
-                User u2 = new User()
-                {
-                    Name = "user2",
-                    PwdEncrypted = new UserPwdEncryption().Run("user2")
-                };
-                User u3 = new User()
-                {
-                    Name = "user3",
-                    PwdEncrypted = new UserPwdEncryption().Run("user3")
-                };
-                _context.Users.AddRange(u1,u2,u3);
-                _context.SaveChanges();
-                UserGroup g1 = new UserGroup()
-                {
-                    Name = "群组1",
-                    OwnerUserId = u1.Id,
-                };
-                UserGroup g2 = new UserGroup()
-                {
-                    Name = "群组2",
-                    OwnerUserId = u2.Id,
-                };
-                _context.UserGroups.AddRange(g1, g2);
-                _context.SaveChanges();
-                UserToGroup r1 = new UserToGroup()
-                {
-                    GroupId = g1.Id,
-                    UserId = u1.Id
-                };
-                UserToGroup r2 = new UserToGroup()
-                {
-                    GroupId = g2.Id,
-                    UserId = u2.Id
-                };
-                _context.UserToGroups.AddRange(r1, r2);
+                _context.Users.AddRange(u1);
                 _context.SaveChanges();
             }
             return this.ApiResp();
