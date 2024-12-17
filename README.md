@@ -24,13 +24,20 @@ http://wiki.jowei19.com
 7. 资源文件可选择存储在自己的服务器或[阿里云OSS](https://www.aliyun.com/product/oss)
 
 ## 安装
+**注意：docker部署暂时无法使用，有未解决的问题（目录创建）**
+https://gitee.com/au114514/fcloud3/issues/IBBYOU
+https://gitee.com/au114514/fcloud3/issues/IBBYN6
+
 ### 前提条件
 1. [Visual Studio](https://visualstudio.microsoft.com/zh-hans/) 尽可能新版 + web应用开发负载
 2. [node客户端](https://nodejs.org/en) 尽可能新版，并确认命令行中有npm命令可用
 3. [git客户端](https://git-scm.com/downloads) 用来下载代码和记录改动
 4. （可选）visual studio code用来编辑前端代码
 5. 关于网页应用的基本常识
-6. 对IIS或docker基本用法的理解
+6. 对`IIS`(Windows)或`docker`+`nginx/apache`(Linux)基本用法的理解，知道怎么把域名指向服务器上特定服务
+7. 一台有公网ip的服务器，一个域名
+
+注意：visual studio和node客户端是装在自己电脑上的，除非你的服务器特别强，否则请不要往服务器上装
 
 ### 步骤
 1. 在命令行中输入`git clone 【本仓库链接】`
@@ -41,22 +48,25 @@ http://wiki.jowei19.com
     npm run build
     ```
     如果需要调试前端项目，见前端文件夹内的Readme文件
-3. 双击项目根目录的sln文件，进入vs
+3. 双击项目根目录的sln文件，进入`Visual Studio`
 4. 按appsettings.json中的注释调整配置文件
     - （如果需要）更改数据库连接字符串，不作配置默认使用sqlite
     - （如果需要）阿里云OSS账号密码，不作配置默认使用服务器本地文件存储（Data/FileStorage文件夹）
     - **必须**更改总密码（MasterAdminCode）
     - **必须**更改jwt密钥（Jwt:SecretKey）
-5. 点击顶部绿色启动按钮启动调试，检查是否正常
+5. 点击`Visual Studio`顶部绿色启动按钮启动调试，检查是否正常
 6. 在浏览器地址栏访问`调试域名/init/<配置文件内的总密码>/initDb`以初始化数据库
-7. 停止调试，点击顶部栏`生成-发布`即可选择位置导出
-8. 准备服务器环境
-    - windows服务器上安装[.net8.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0) (8.0内尽可能新版)，
+7. 准备服务器环境
+    - windows服务器：安装[.net8.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0) (8.0内尽可能新版)，
     在IIS中新建网站并指向程序目录，为程序目录添加Users用户组完全控制授权（或者折腾iis权限，让程序能读写当前目录就行）
-    - linux服务器上安装docker，使用`docker build .`命令取用项目根目录的Dockerfile构建本项目镜像，run时将项目中Data文件夹mount或设为volumn
-    （慎用，docker部署未经试验）
+    - linux服务器：安装docker
+8. 停止调试，导出程序文件
+    - windows服务器：点击`Visual Studio`顶部栏`生成-发布`即可选择位置导出，将导出的程序文件移动到服务器上（建议使用webDeploy）
+    - linux服务器：使用`docker build . -t fcloud3`命令取用项目根目录的Dockerfile构建本项目镜像
 9. 尝试启动并进入网站
-10. （如果数据库与调试时不是同一个）在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initDb`以初始化数据库
+    - linux服务器：注意使用`docker run -d -v fcloud3data:/app/Data fcloud3`命令，
+    有其中的`-v fcloud3data:/app/Data`才能持久化数据。
+10. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initDb`以初始化数据库
 11. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initUser`以注册初始用户
     - 用户名为`admin`
     - 密码为`fcloud987123`
