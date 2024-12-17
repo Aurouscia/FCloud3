@@ -1,7 +1,7 @@
 # docker部署仍在开发中，不确定是否有问题，**请勿使用**
 
 # 构建vue前端
-FROM atomhub.openatom.cn/amd64/node:18-buster-slim AS febuild
+FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS febuild
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/package-lock.json" "./package-lock.json"
