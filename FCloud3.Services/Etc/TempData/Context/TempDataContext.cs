@@ -1,4 +1,5 @@
-﻿using FCloud3.Services.Etc.TempData.EditLock;
+﻿using FCloud3.DbContexts.Utils;
+using FCloud3.Services.Etc.TempData.EditLock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,10 @@ namespace FCloud3.Services.Etc.TempData.Context
     {
         public static IServiceCollection AddTempDataContext(this IServiceCollection services, string connStr)
         {
+            var path = SqliteConnStrParser.GetDataSource(connStr);
+            FileInfo f = new(path);
+            if (f.Directory is { } && !f.Directory.Exists)
+                f.Directory.Create();
             services.AddDbContext<TempDataContext>(opt =>
             {
                 opt.UseSqlite(connStr);

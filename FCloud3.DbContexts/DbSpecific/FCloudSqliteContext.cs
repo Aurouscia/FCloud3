@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FCloud3.DbContexts.Utils;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,10 @@ namespace FCloud3.DbContexts.DbSpecific
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            var path = SqliteConnStrParser.GetDataSource(_options.ConnStr);
+            FileInfo f = new(path);
+            if (f.Directory is { } && !f.Directory.Exists)
+                f.Directory.Create();
             optionsBuilder.UseSqlite(_options.ConnStr);
         }
     }
