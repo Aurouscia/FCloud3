@@ -101,9 +101,9 @@ onMounted(async() => {
         <div class="question">?</div>
         <div class="questionBody">
             <p>只有在这里显示的词条标题才会在本段被自动生成链接。</p>
-            <p>手动删除的词条标题将不再会被自动添加。</p>
-            <p>链接在同一段落内只生成一次（预览时无法看到）。</p>
-            <p>被隐藏的词条不会生成链接。</p>
+            <p>手动删除的将不再会被自动添加，需通过下方搜索框添加。</p>
+            <p>本列表会在段落内容编辑保存时自动更新一次。</p>
+            <p>链接在同一段落内只生成一次，被隐藏的词条不会生成链接。</p>
         </div>
     </div>
     <div>
@@ -148,14 +148,20 @@ onMounted(async() => {
     align-items: center;
     justify-content: flex-start;
     min-height: 340px;
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
 .list>div{
-    width: 240px;
+    width: 230px;
+    flex-shrink: 0;
+    flex-grow: 0;
     display: flex;
     justify-content: space-between;
     padding: 5px;
     border-bottom: 1px solid #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .list .serial{
     font-size: 14px;

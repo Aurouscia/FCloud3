@@ -422,7 +422,7 @@ onUnmounted(()=>{
     </SideBar>
     <WikiParaInfo :para="editingPara"
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
-    <SideBar ref="titleContainEdit">
+    <SideBar ref="titleContainEdit"  @extend="disposeListeners" @fold="initLisenters()">
         <WikiTitleContain v-if="titleContainEditing" :type="titleContainEditing.type" :object-id="titleContainEditing.objId"></WikiTitleContain>
     </SideBar>
 </template>
