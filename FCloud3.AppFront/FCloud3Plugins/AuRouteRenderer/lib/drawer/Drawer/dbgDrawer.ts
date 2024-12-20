@@ -210,6 +210,7 @@ export class DbgDrawer extends DrawerBase{
             this.cvs.lineTo(c.x, c.y)
             this.cvs.closePath()
             this.cvs.fillStyle = color
+            this.cvs.strokeStyle = color
             this.cvs.lineWidth = this.ctx.lineWidth * (config?.lineWidthRatio||0)
             this.cvs.lineJoin = 'miter'
             this.cvs.stroke()
