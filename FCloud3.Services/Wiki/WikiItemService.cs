@@ -103,6 +103,14 @@ namespace FCloud3.Services.Wiki
             List<int> tableIds = paras.Where(x => x.Type == WikiParaType.Table).Select(x => x.ObjectId).ToList();
             List<FreeTableMeta> tableParaObjs = _freeTableRepo.GetMetaRangeByIds(tableIds);
 
+            var validContainWikiIds = _wikiRepo.CachedNotSealed().Select(x => x.Id).ToList();
+            int itsValidContainCount(WikiTitleContainType containType, int objId)
+            {
+                return _wikiTitleContainRepo
+                        .CachedContainsWithin(containType, objId, validContainWikiIds.Contains, true)
+                        .Count();
+            }
+
             List<WikiParaDisplay> paraObjs = paras.ConvertAll(x =>
             {
                 WikiParaType type = x.Type;
@@ -110,9 +118,8 @@ namespace FCloud3.Services.Wiki
                 if (type == WikiParaType.Text)
                 {
                     var obj = textParaObjs.Find(p => p.Id == x.ObjectId);
-                    var itsContainsCount = _wikiTitleContainRepo
-                        .CachedContains(WikiTitleContainType.TextSection, x.ObjectId, true)
-                        .Count();
+                    var itsContainsCount = itsValidContainCount(
+                        WikiTitleContainType.TextSection, x.ObjectId);
                     if(obj is not null)
                         paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Title,
                             obj.ContentBrief, x.NameOverride, WikiParaType.Text, 0, itsContainsCount);
@@ -127,9 +134,8 @@ namespace FCloud3.Services.Wiki
                 else if(type == WikiParaType.Table)
                 {
                     var obj = tableParaObjs.Find(p => p.Id == x.ObjectId);
-                    var itsContainsCount = _wikiTitleContainRepo
-                        .CachedContains(WikiTitleContainType.FreeTable, x.ObjectId, true)
-                        .Count();
+                    var itsContainsCount = itsValidContainCount(
+                        WikiTitleContainType.FreeTable, x.ObjectId);
                     if (obj is not null)
                         paraDisplay = new WikiParaDisplay(x, obj.Id, obj.Name,
                             obj.Brief, x.NameOverride, WikiParaType.Table, 0, itsContainsCount);

@@ -137,6 +137,16 @@ namespace FCloud3.Repos.Wiki
             return res;
         }
 
+        public IEnumerable<WikiTitleContainCacheModel> CachedContainsWithin(
+            WikiTitleContainType type, int objId, Func<int, bool> withinWikiIds, bool noBlackList = true)
+        {
+            var res = CachedItemsByPred(x => x.ObjId == objId && x.Type == type);
+            if (noBlackList)
+                res = res.Where(x => !x.BlackListed);
+            res = res.Where(x => withinWikiIds(x.WikiId));
+            return res;
+        }
+
         protected override IQueryable<WikiTitleContainCacheModel> ConvertToCacheModel(IQueryable<WikiTitleContain> q)
         {
             return q.Select(x => new WikiTitleContainCacheModel(

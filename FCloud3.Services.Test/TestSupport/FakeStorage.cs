@@ -21,6 +21,11 @@ namespace FCloud3.Services.Test.TestSupport
             throw new NotImplementedException();
         }
 
+        public string GetUrlBase()
+        {
+            throw new NotImplementedException();
+        }
+
         public Stream? Read(string pathName)
         {
             throw new NotImplementedException();

@@ -158,6 +158,8 @@ namespace FCloud3.Repos.Wiki
             return q.Select(x => new WikiItemCacheModel(
                 x.Id, x.Updated, x.Sealed, x.OwnerUserId, x.Title, x.UrlPathName));
         }
+        public IEnumerable<WikiItemCacheModel> CachedNotSealed()
+            => CachedItemsByPred(x => !x.Sealed);
     }
 
     public class WikiItemCacheModel(
