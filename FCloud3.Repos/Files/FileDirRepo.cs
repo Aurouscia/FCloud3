@@ -3,6 +3,7 @@ using FCloud3.Entities.Files;
 using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
 using FCloud3.Repos.Sys;
+using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
 namespace FCloud3.Repos.Files
@@ -72,6 +73,7 @@ namespace FCloud3.Repos.Files
             return res;
         }
 
+        private const string loopDetectedExceptionMsg = "目录结构异常，请联系管理员";
         public List<int>? GetChainIdsById(int id)
         {
             if (id == 0)
@@ -90,7 +92,7 @@ namespace FCloud3.Repos.Files
                     break;
                 safety--;
                 if (safety <= 0)
-                    throw new Exception("目录结构异常，请联系管理员");
+                    throw new Exception(loopDetectedExceptionMsg);
             }
             return res;
         }
@@ -287,6 +289,51 @@ namespace FCloud3.Repos.Files
                 base.Update(item);
             }
             return id;
+        }
+
+        public List<int> ManualLoopFix()
+        {
+            List<int> detectedLoopEntries = new List<int>();
+            bool problematic;
+            do
+            {
+                problematic = false;
+                var allIds = AllCachedItems().Select(x => x.Id);
+                foreach (var id in allIds)
+                {
+                    try
+                    {
+                        GetChainIdsById(id);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex.Message == loopDetectedExceptionMsg)
+                        {
+                            Existing.Where(x => x.Id == id)
+                                .ExecuteUpdate(spc => spc.SetProperty(x => x.ParentDir, 0));
+                            detectedLoopEntries.Add(id);
+                            problematic = true;
+                            break;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+                if (problematic)
+                {
+                    ClearCache();
+                }
+            }
+            while (problematic);
+            if (detectedLoopEntries.Count > 0)
+            {
+                ClearCache();
+                _ctx.ChangeTracker.Clear();
+                ManualFixInfoForAll(out var _);
+            }
+            return detectedLoopEntries;
         }
 
         public bool InfoCheck(FileDir item, out string? errmsg)

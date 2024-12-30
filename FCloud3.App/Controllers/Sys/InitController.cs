@@ -204,6 +204,13 @@ namespace FCloud3.App.Controllers.Sys
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp("已完成");
         }
+        public IActionResult FileDirSystemLoopFix()
+        {
+            var foundIds = _fileDirService.ManualLoopFix();
+            if (foundIds.Count == 0)
+                return this.ApiResp("未发现循环结构");
+            return this.ApiResp("已发现并修复循环结构：" + string.Join(", ", foundIds));
+        }
 
         public IActionResult NameLengthFix()
         {

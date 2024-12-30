@@ -550,6 +550,8 @@ namespace FCloud3.Services.Files
 
         public bool ManualFixInfoForAll(out string? errmsg) 
             => _fileDirRepo.ManualFixInfoForAll(out errmsg);
+        public List<int> ManualLoopFix()
+            => _fileDirRepo.ManualLoopFix();
 
         private const string homelessItems = "homeless-items";
         private static List<string> PreservedUrlPathNames()
