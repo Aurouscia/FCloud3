@@ -78,6 +78,7 @@ namespace FCloud3.Repos.Files
                 return [];
             List<int> res = new();
             var targetId = id;
+            int safety = 32;
             while (true)
             {
                 var target = base.CachedItemById(targetId);
@@ -87,6 +88,9 @@ namespace FCloud3.Repos.Files
                 targetId = target.ParentDir;
                 if (targetId == 0)
                     break;
+                safety--;
+                if (safety <= 0)
+                    throw new Exception("目录结构异常，请联系管理员");
             }
             return res;
         }
