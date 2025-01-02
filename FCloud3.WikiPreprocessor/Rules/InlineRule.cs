@@ -255,7 +255,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         private const string partsSep = "|";
         private const string defaultHeight = "5em";
         public InlineObjectRule() 
-            : base("[", "]", "", "", "", "行内float对象", false)
+            : base("[", "]", "", "", "", "行内外链对象", false)
         {
         }
 

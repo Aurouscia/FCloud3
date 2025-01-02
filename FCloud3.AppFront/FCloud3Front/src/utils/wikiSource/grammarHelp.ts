@@ -104,8 +104,16 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         title:"嵌入素材",
         desc:"素材在本站指行内小图片，可用来表示国籍等。\n需先在素材管理页上传，然后使用大括号({xxx})引用。\n"+
         "如果需要控制图片尺寸，可写{xxx:3}（3倍行高）或{xxx:20px}来指定其高度",
-        code:"欢迎使用fcloud3{fcloud3}内容管理系统。",
+        code:"欢迎使用fcloud3{fcloud3:4}内容管理系统。",
         demo:"欢迎使用fcloud3<img class=\"wikiInlineImg\" src=\"/fcloud.svg\" style=\"height:2rem\">内容管理系统。"
+    },
+    {
+        title:"网络资源",
+        desc:"如果有指向图片/视频/音频文件的链接，可写在中括号内，例如：\n[http://wiki.jowei19.com/fcloud.svg]\n\n"+
+        "如果需要控制资源尺寸，可写[xxx|3]（3倍行高）或[xxx|20px]来指定其高度。\n"+
+        "如果需要控制资源位置，可写[xxx|3|left]\n（其中left表示靠左浮动，right表示靠右浮动(默认)，block表示占整行并居中，inline表示行内）",
+        code:"各位女士们先生们，欢迎 [http://wiki.jowei19.com/fcloud.svg|100px|block] 欢迎使用fcloud3内容管理系统。",
+        demo:"欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
     },
     {
         title:"上角标/下角标",

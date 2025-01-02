@@ -125,17 +125,25 @@ namespace FCloud3.WikiPreprocessor.Models
             Command = command;
         }
 
+        private const string cmdFloatLeft = "left";
+        private const string cmdBlock = "block";
+        private const string cmdInline = "inline";
         public override string ToHtml()
         {
-            string style1;
-            if (Command is not null && Command.ToLower() == "left")
-                style1 = "float:left;";
-            else
-                style1 = "float:right;";
+            string style1 = "float:right"; //默认行为（向后兼容）
+            if (Command is not null) {
+                var cmd = Command.ToLower();
+                if (cmd == cmdFloatLeft)
+                    style1 = "float:left";
+                else if (cmd == cmdBlock)
+                    style1 = "display:block;margin:auto";
+                else if (cmd == cmdInline)
+                    style1 = "display:inline;vertical-align:middle";
+            }
             string style2 = $"height:{Height};";
 
             if (UrlUtil.IsImage(Src))
-                return $"<img src=\"{Src}\" style=\"{style1}{style2}\"/>";
+                return $"<img src=\"{Src}\" style=\"{style1};{style2}\"/>";
             else if (UrlUtil.IsAudio(Src))
                 return $"<audio controls src=\"{Src}\" style=\"{style1}{style2}\"></audio>";
             else if (UrlUtil.IsVideo(Src))
