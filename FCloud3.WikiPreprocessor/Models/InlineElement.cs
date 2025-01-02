@@ -145,9 +145,9 @@ namespace FCloud3.WikiPreprocessor.Models
             if (UrlUtil.IsImage(Src))
                 return $"<img src=\"{Src}\" style=\"{style1};{style2}\"/>";
             else if (UrlUtil.IsAudio(Src))
-                return $"<audio controls src=\"{Src}\" style=\"{style1}{style2}\"></audio>";
+                return $"<audio controls src=\"{Src}\" style=\"{style1};{style2}\"></audio>";
             else if (UrlUtil.IsVideo(Src))
-                return $"<video controls src=\"{Src}\" style=\"{style1}{style2}\"></video>";
+                return $"<video controls src=\"{Src}\" style=\"{style1};{style2}\"></video>";
             return "";
         }
         public override void WriteHtml(StringBuilder sb)
