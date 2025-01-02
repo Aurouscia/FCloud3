@@ -1,4 +1,5 @@
-# docker部署仍在开发中，不确定是否有问题，**请勿使用**
+# 请启动时务必将/app/Data目录mount到宿主机，或设为volumn
+# docker部署遇到任何问题请提出issue，或加入readme中的qq群反馈
 
 # 构建vue前端
 FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS febuild
@@ -34,8 +35,11 @@ RUN dotnet publish "./FCloud3.App/FCloud3.App.csproj" -c Release -o /app/publish
 
 # 组合进.net8.0运行环境
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# 设置系统时区为上海
+ENV TZ=Asia/Shanghai
+RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
 # 绕过老版sqlserver协议问题 A connection was successfully established with the server, but then an error occurred during the pre-login handshake. (provider: SSL Provider, error: 31 - Encryption(ssl/tls) handshake failed)
-# 如果不使用sqlserver或者新版sqlserver，注释掉下面这行
+# 如果不使用sqlserver或者使用的是新版sqlserver，可注释掉下面这行
 RUN sed -i 's|\[openssl_init\]|&\nssl_conf = ssl_configuration\n[ssl_configuration]\nsystem_default = tls_system_default\n[tls_system_default]\nMinProtocol = TLSv1\nCipherString = DEFAULT@SECLEVEL=0|' /etc/ssl/openssl.cnf
 WORKDIR "/app"
 COPY --from=bebuild /app/publish .
