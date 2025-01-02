@@ -324,6 +324,7 @@ namespace FCloud3.Repos.Files
                 if (problematic)
                 {
                     ClearCache();
+                    _ctx.ChangeTracker.Clear();
                 }
             }
             while (problematic);

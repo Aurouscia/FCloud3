@@ -158,7 +158,7 @@ namespace FCloud3.Services.TextSec
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return res;
         }
-        public string Brief(int id, string content, int briefLength = 30, int parseLength = 100)
+        public string Brief(int id, string content, int briefLength = 64, int parseLength = 128)
         {
             var parser = GetPreviewParser(id);
             parser.SetDataSource(wikiParserDataSource);
