@@ -21,7 +21,7 @@ namespace FCloud3.Services.Test.TestSupport
                 new Dictionary<string, string?>
                 {
                     ["Db:Type"] = "memory",
-                    ["TempData:ConnStr"] = "Filename=:memory:",
+                    ["TempData:ConnStr"] = "Data Source=:memory:",
                     ["FileStorage:Type"] = "NoNeed"
                 }).Build();
             services.AddSingleton(config);
