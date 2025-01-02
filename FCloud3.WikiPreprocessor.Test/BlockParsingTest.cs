@@ -140,6 +140,18 @@ namespace FCloud3.WikiPreprocessor.Test
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
+        [TestMethod]
+        [DataRow(
+            "AAA\n//BBB\nCCC",
+            "<p>AAA</p><p>CCC</p>")]
+        [DataRow(
+            "AAA\n \t //BBB\nCCC",
+            "<p>AAA</p><p>CCC</p>")]
+        public void CommentTest(string content, string answer)
+        {
+            string html = _parser.RunToPlain(content);
+            Assert.AreEqual(answer, html);
+        }
 
         [TestMethod]
         [DataRow(

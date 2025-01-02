@@ -122,6 +122,12 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         demo:"18m<sup>2</sup>，H<sub>2</sub>SO<sub>4</sub>",
     },
     {
+        title: "注释行",
+        desc: "行开头处添加//（左侧可以有空格）则该行会被忽略，不会显示在词条展示页。",
+        code: "此处的动能为1.8MJ\n   //由E=mv^2算出\n十分恐怖",
+        demo: "此处的动能为1.8MJ\n十分恐怖"
+    },
+    {
         title:"自定义色字体/色块",
         desc:"可使用\"#颜色#\"创建指定颜色的色块，使用\"#颜色\\@文本#\"创建指定颜色的文字\n"+
         "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>\n"+

@@ -204,6 +204,42 @@ namespace FCloud3.WikiPreprocessor.Rules
 
     }
 
+    public class LineCommentRule : BlockRule
+    {
+        public const string lineCommentPrefix = "//";
+        public override string UniqueName => "行注释";
+
+        public override bool Equals(IBlockRule? other)
+            => other is LineCommentRule;
+
+        public override string GetPureContentOf(string line)
+            => string.Empty;
+
+        public override bool LineMatched(string line)
+        {
+            var firstNoWhite = -1;
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (!char.IsWhiteSpace(line[i]))
+                {
+                    firstNoWhite = i; break;
+                }
+            }
+            if(firstNoWhite >= 0)
+            {
+                ReadOnlySpan<char> trimmed = line.AsSpan(firstNoWhite);
+                return trimmed.StartsWith(lineCommentPrefix);
+            }
+            return false;
+        }
+
+        public override IHtmlable MakeBlockFromLines(
+            IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
+        {
+            return new EmptyElement();
+        }
+    }
+
     /// <summary>
     /// 表示一个分隔线，一行内只有"---"
     /// </summary>
@@ -470,17 +506,17 @@ namespace FCloud3.WikiPreprocessor.Rules
     {
         public static List<IBlockRule> GetInstances()
         {
-            return new List<IBlockRule>()
-            {
+            return [
                 new ListBlockRule(),
                 new SepBlockRule(),
+                new LineCommentRule(),
                 new MiniTableBlockRule(),
                 new PrefixBlockRule("&gt;","<div class=\"quote\">","</div>","引用"),
                 new PrefixBlockRule("＞","<div class=\"quote\">","</div>","引用"),
                 new PrefixBlockRule(".   ","<div style=\"text-align:center\">","</div>","中对齐"),
                 new PrefixBlockRule("...   ","<div style=\"text-align:right\">","</div>","右对齐"),
                 new FootNoteBodyRule()
-            };
+            ];
         }
     }
 }
