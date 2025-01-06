@@ -13,7 +13,7 @@ namespace FCloud3.Repos.Wiki
         ICommitingUserIdProvider userIdProvider) 
         : RepoBaseCache<WikiItem, WikiItemCacheModel>(context, userIdProvider)
     {
-        private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-]{1,}$";
+        private const string validUrlPathNamePattern = @"^[A-Za-z0-9\-_]{1,}$";
 
         public IQueryable<WikiItem> ExistingAndNotSealed => Existing.Where(x => !x.Sealed);
         public IQueryable<WikiItem> ExistingAndNotSealedAndEdited
@@ -95,7 +95,7 @@ namespace FCloud3.Repos.Wiki
             }
             if (!Regex.IsMatch(item.UrlPathName,validUrlPathNamePattern))
             {
-                errmsg = "路径名只能有英文字母，数字和\"-\"";
+                errmsg = "路径名只能有英文字母，数字、下划线和\"-\"";
                 return false;
             }
             string? conflict = null;
