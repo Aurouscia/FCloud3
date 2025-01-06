@@ -69,7 +69,8 @@ http://wiki.jowei19.com
     - linux服务器：使用`docker run -d -v fcloud3data:/app/Data -p 33442:8080 -p 33443:8081 fcloud3`命令，
         - `-v fcloud3data:/app/Data`将会把`/app/Data`数据持久化保存在名为`fcloud3data`的volumn内。
         - `-p 33442:8080`将会把容器内的8080端口映射到宿主机的`33442`端口
-10. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initDb`以初始化数据库
+        - 如果容器启动后立刻自己关了，检查json配置文件的json语法是否有误
+10. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initDb`以初始化数据库（即使调试时做过，这时也必须做）
 11. 在浏览器地址栏访问`域名/init/<配置文件内的总密码>/initUser`以注册初始用户
     - 用户名为`admin`
     - 密码为`fcloud987123`
