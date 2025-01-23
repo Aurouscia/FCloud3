@@ -1,3 +1,5 @@
+import { truncate } from "lodash";
+import md5 from "md5";
 import { CSSProperties } from "vue";
 
 export type FileType = "image"|"video"|"audio"|"text"|"unknown";
@@ -50,6 +52,26 @@ export function fileSizeStr(bytes:number){
     }
     return (Math.round(bytes/(1000*100)))/10+"M"
 }
+export async function jsFileObjectMd5(file:File){
+    const reader = file.stream().getReader();
+    const chunks = [];
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    const totalBytes = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    if(totalBytes===0)
+        return undefined
+    const uint8Array = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      uint8Array.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return md5(uint8Array)
+}
 
 export function getFileExt(str:string, truncate = true, withDot = false):string{
     var parts = str.split('.');
@@ -69,6 +91,12 @@ export function getFileExt(str:string, truncate = true, withDot = false):string{
 }
 export function fileNameWithoutExt(str:string):string{
     return str.replace(/\.[^/.]+$/, "")
+}
+export function fileNameTruncateKeepingExt(str:string, maxLength:number = 10){
+    const displayNameWithoutExt = fileNameWithoutExt(str)
+    const displayNameExt = getFileExt(str)
+    const nameTruncated = truncate(displayNameWithoutExt, {length:maxLength}) + displayNameExt
+    return nameTruncated
 }
 export function getFileIconStyle(fileName:string):CSSProperties{
     var type = getFileType(fileName);

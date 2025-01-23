@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Ref, inject, nextTick, onMounted, ref } from 'vue';
-import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt } from '../utils/fileUtils';
+import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt, jsFileObjectMd5, fileNameTruncateKeepingExt } from '../utils/fileUtils';
 import { StagingFile, FileUploadDist, fileUploadMaxSize} from '../models/files/fileItem';
-import md5 from 'md5'
 import _ from 'lodash'
 import Pop from './Pop.vue';
 import { Api } from '../utils/com/api';
@@ -25,17 +24,20 @@ async function inputChange(e:Event){
         const sf:StagingFile[] = [];
         for(let i=0;i<newFiles.length;i++){
             let x = newFiles[i];
+            const nameNow = fileNameTruncateKeepingExt(x.name)
             const displayNameWithoutExt = fileNameWithoutExt(x.name)
-            const uint8Arr = (await x.stream().getReader().read()).value
-            const nameNow = _.truncate(x.name, {length:8})
-            if(!uint8Arr){
-                pop.value.show(`${nameNow}读取失败`,"warning")
-                continue;
+            if(x.size > fileUploadMaxSize){
+                pop.value.show(`${nameNow}过大，请改为放网盘链接`,"failed")
+                continue
             }
-            const md5Str = md5(uint8Arr)
+            const md5Str = await jsFileObjectMd5(x)
+            if(!md5Str){
+                pop.value.show(`${nameNow}读取失败`, 'failed')
+                continue
+            }
             const same = fileList.value.find(f=>f.md5===md5Str)
             if(same){
-                const nameFound = _.truncate(same.displayName, {length:8})
+                const nameFound = fileNameTruncateKeepingExt(same.displayName)
                 pop.value.show(`${nameNow}与列表中${nameFound}内容完全相同`,"warning")
                 continue;
             } //如果暂存区已经有md5相同的文件，则不添加
@@ -60,7 +62,7 @@ async function commit(idx:number){
     const target = fileList.value[idx];
     if(!target){return;}
     if(target.file.size > fileUploadMaxSize){
-        pop.value.show("文件过大，请压缩或改为放网盘链接","failed")
+        pop.value.show("文件过大，请改为放网盘链接","failed")
         return;
     }
     const resp = await api.files.fileItem.save(target,props.dist);
