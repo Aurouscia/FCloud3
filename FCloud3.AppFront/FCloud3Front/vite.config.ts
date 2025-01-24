@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import checker from 'vite-plugin-checker'
 import { resolve } from 'path'
 import { appVersionMark, ViteAppVersionConfig } from '@aurouscia/vite-app-version'
 const versionConfig:ViteAppVersionConfig = {filePath: 'feVersion.txt'}
@@ -9,7 +8,6 @@ const versionConfig:ViteAppVersionConfig = {filePath: 'feVersion.txt'}
 export default defineConfig({
   plugins: [
     vue(),
-    checker({vueTsc: true}),
     appVersionMark(versionConfig),
   ],
   define: {
