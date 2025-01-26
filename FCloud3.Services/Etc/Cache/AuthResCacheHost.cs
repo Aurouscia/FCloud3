@@ -14,7 +14,9 @@ namespace FCloud3.Services.Etc.Cache
         : NewestEnsuredCacheHost<bool>(lastUpdateRepo)
     {
         protected override LastUpdateType[] LuTypes => [
-            LastUpdateType.AuthGrant, LastUpdateType.UserToGroup, LastUpdateType.UserGroup];
+            LastUpdateType.AuthGrant, LastUpdateType.UserToGroup, LastUpdateType.UserGroup,
+            LastUpdateType.WikiItem //词条发生转让 应造成AuthRes缓存丢弃
+        ];
         private static string CacheKey(AuthGrantOn on, int onId, int userId)
             => $"authres_{(int)on}_{onId}_{userId}";
         public void SetCache(AuthGrantOn on, int onId, int userId, bool canAccess)

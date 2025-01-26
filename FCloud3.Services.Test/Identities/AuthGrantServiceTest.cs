@@ -13,6 +13,7 @@ using FCloud3.Services.Etc.Cache;
 using FCloud3.Services.Identities;
 using FCloud3.Services.Messages;
 using FCloud3.Services.Test.TestSupport;
+using FCloud3.Services.Wiki;
 
 namespace FCloud3.Services.Test.Identities
 {
@@ -24,6 +25,7 @@ namespace FCloud3.Services.Test.Identities
         private readonly FCloudContext _ctx;
         private readonly UserGroupService _userGroupService;
         private readonly AuthGrantRepo _authGrantRepo;
+        private readonly WikiItemService _wikiItemService;
         public AuthGrantServiceTest()
         {
             var provider = new TestingServiceProvider(1);
@@ -34,6 +36,7 @@ namespace FCloud3.Services.Test.Identities
             _ctx = provider.Get<FCloudContext>();
             _userGroupService = provider.Get<UserGroupService>();
             _authGrantRepo = provider.Get<AuthGrantRepo>();
+            _wikiItemService = provider.Get<WikiItemService>();
 
             _authGrantRepo.ClearCache();
             provider.Get<AuthResCacheHost>().Clear();
@@ -60,9 +63,9 @@ namespace FCloud3.Services.Test.Identities
             ];
             List<WikiItem> wikiItems =
             [
-                new() { OwnerUserId = 1, Updated = time },
-                new() { OwnerUserId = 2, Updated = time },
-                new() { OwnerUserId = 3, Updated = time },
+                new() { OwnerUserId = 1, Updated = time, Title = "a", UrlPathName = "a" },
+                new() { OwnerUserId = 2, Updated = time, Title = "b", UrlPathName = "b" },
+                new() { OwnerUserId = 3, Updated = time, Title = "c", UrlPathName = "c" },
             ];
             _ctx.AddRange(userList); _ctx.AddRange(userGroups);
             _ctx.AddRange(userToGroups); _ctx.AddRange(wikiItems);
@@ -217,6 +220,31 @@ namespace FCloud3.Services.Test.Identities
             _userIdProvider.UserId = loginUid;
             Assert.AreEqual(expected, _svc.CheckAccess(AuthGrantOn.WikiItem, 1));
             Assert.AreEqual(1, _authGrantRepo.RepoCacheDictSyncTimes);
+        }
+
+        [TestMethod]
+        [DataRow(1, 1)]
+        [DataRow(1, 2)]
+        [DataRow(1, 3)]
+        [DataRow(2, 1)]
+        [DataRow(2, 2)]
+        [DataRow(2, 3)]
+        public void Transferred(int loginUserId, int wikiId)
+        {
+            int originalOwner = wikiId;
+            bool originalAccess = loginUserId == originalOwner;
+            _userIdProvider.UserId = originalOwner;
+            Assert.IsTrue(_svc.CheckAccess(AuthGrantOn.WikiItem, wikiId));
+            _userIdProvider.UserId = loginUserId;
+            Assert.AreEqual(originalAccess, _svc.CheckAccess(AuthGrantOn.WikiItem, wikiId));
+
+            _wikiItemService.Transfer(wikiId, loginUserId, true, out _);
+            _ctx.ChangeTracker.Clear(); //模拟scope结束
+
+            _userIdProvider.UserId = originalOwner;
+            Assert.AreEqual(originalAccess, _svc.CheckAccess(AuthGrantOn.WikiItem, wikiId));
+            _userIdProvider.UserId = loginUserId;
+            Assert.IsTrue(_svc.CheckAccess(AuthGrantOn.WikiItem, wikiId));
         }
     }
 }
