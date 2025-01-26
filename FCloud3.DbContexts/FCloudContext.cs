@@ -42,5 +42,5 @@ namespace FCloud3.DbContexts
         public DbSet<LastUpdate> LastUpdates { get; set; }
     }
 
-    //add-migration xxx -Context FCloudSqliteDevContext -OutputDir Migrations/SqliteDevMigrations
+    //add-migration xxx -Context FCloudSqliteContext -OutputDir Migrations/SqliteMigrations
 }

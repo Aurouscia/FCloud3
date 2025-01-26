@@ -32,10 +32,6 @@ namespace FCloud3.DbContexts
             {
                 services.AddDbContext<FCloudContext, FCloudSqliteContext>();
             }
-            else if (dbType == "sqlitedev")
-            {
-                services.AddDbContext<FCloudContext, FCloudSqliteDevContext>();
-            }
             else if (dbType == "sqlserver")
             {
                 services.AddDbContext<FCloudContext, FCloudSqlServerContext>();
