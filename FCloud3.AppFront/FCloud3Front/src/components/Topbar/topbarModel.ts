@@ -69,5 +69,11 @@ export async function getTopbarModel(): Promise<TopbarModel> {
             }
         ]
     }
+    if(import.meta.env.VITE_ShowTopbarTools === 'true'){
+        model.Items.push(            {
+            Title: "工具",
+            Link: "/Tools"
+        })
+    }
     return model;
 }
