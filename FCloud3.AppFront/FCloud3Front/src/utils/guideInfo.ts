@@ -1,4 +1,5 @@
 export const guideInfo = {
+    welcome: import.meta.env.VITE_GuideWelcome,
     applyMember: import.meta.env.VITE_GuideApplyMember,
     resetPassword: import.meta.env.VITE_GuideResetPassword,
     createWiki: import.meta.env.VITE_GuideCreateWiki,
