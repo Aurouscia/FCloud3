@@ -32,6 +32,7 @@ import { WikiDisplayInfo } from '@/models/wikiParsing/wikiDisplayInfo';
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
+import { WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
 
 
 export class Api{
@@ -1310,6 +1311,18 @@ export class Api{
                 )
                 if(resp.success){
                     return resp.data as MyWikisOverallResp
+                }
+            }
+        },
+        wikiTopBriefsOfDir:{
+            get: async(dirId:number, count:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/WikiTopBriefsOfDir/Get",
+                    "get",
+                    {dirId, count}
+                )
+                if(resp.success){
+                    return resp.data as WikiTopBriefOfDirResponse
                 }
             }
         }
