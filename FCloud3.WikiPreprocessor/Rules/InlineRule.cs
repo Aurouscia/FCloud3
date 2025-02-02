@@ -188,11 +188,12 @@ namespace FCloud3.WikiPreprocessor.Rules
                     // ↓ (转换规则可自定义)
                     // <a href="/w/wuhan">武汉市</a>
                     string replacement = context.Options.Link.ConvertFn(link, null);
-                    return new TextElement(replacement);
+                    return new TextConvertedElement(trimmedSpan, replacement);
                 }
                 else
                 {
-                    return new TextElement(
+                    return new TextConvertedElement(
+                        trimmedSpan,
                         $"<a class=\"{Consts.redLinkClassName}\" " +
                         $"{Consts.redLinkItemUrlAttr}=\"{trimmedSpan}\">{trimmedSpan}</a>");
                 }
@@ -237,11 +238,12 @@ namespace FCloud3.WikiPreprocessor.Rules
                     // ↓ (转换规则可自定义)
                     // <a href="/w/wuhan">武汉介绍</a>
                     string replacement = context.Options.Link.ConvertFn(link, trimmedPart1);
-                    return new TextElement(replacement);
+                    return new TextConvertedElement(trimmedPart1, replacement);
                 }
                 else
                 {
-                    return new TextElement(
+                    return new TextConvertedElement(
+                        trimmedPart1,
                         $"<a class=\"{Consts.redLinkClassName}\" " +
                         $"{Consts.redLinkItemUrlAttr}=\"{trimmedPart2}\">{trimmedPart1}</a>");
                 }
