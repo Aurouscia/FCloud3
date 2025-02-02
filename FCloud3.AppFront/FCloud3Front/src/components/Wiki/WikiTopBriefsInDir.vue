@@ -3,6 +3,7 @@ import { WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { injectApi } from '@/provides';
 import { onMounted, ref } from 'vue';
+import Loading from '../Loading.vue';
 
 const props = defineProps<{
     dirId:number
@@ -24,7 +25,7 @@ onMounted(async()=>{
 </script>
 
 <template>
-<div class="wikiTopBriefsInDir">
+<div v-if="data" class="wikiTopBriefsInDir">
     <div v-for="item in data?.Items" :key="item.Id" class="item">
         <div class="topBriefTitle">
             <div class="time">{{ item.Time }}</div>
@@ -33,6 +34,7 @@ onMounted(async()=>{
         <div class="topBriefContent">{{item.Brief}}</div>
     </div>
 </div>
+<Loading v-else></Loading>
 </template>
 
 <style lang="scss" scoped>

@@ -106,7 +106,10 @@ function toggleFold(){
     display: flex;
     justify-content: left;
     align-items: center;
-    background-color: white;
+    background-color: red;
+    *{
+        color: yellow;
+    }
 }
 .topbarParentShadow{
     position: fixed;
