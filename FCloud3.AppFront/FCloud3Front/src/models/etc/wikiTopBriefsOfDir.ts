@@ -4,6 +4,8 @@ export interface WikiTopBriefOfDirResponse
 }
 
 export interface WikiTopBriefOfDirItem {
+    Id: number
+    PathName?:string
     Title?: string;
     Time?: string;
     OwnerName?: string;

@@ -25,9 +25,6 @@ function toggleSidebar(){
 const introPathName = ref<string|null|undefined>();
 onMounted(async()=>{
     introPathName.value = guideInfo.siteIntro
-
-    const resp = await api.etc.wikiTopBriefsOfDir.get(19615, 3)
-    console.log(resp)
 })
 </script>
 

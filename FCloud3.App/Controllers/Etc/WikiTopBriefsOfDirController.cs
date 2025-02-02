@@ -67,6 +67,8 @@ namespace FCloud3.App.Controllers.Etc
                 if(firstTextBrief is { })
                     resp.Items.Add(new()
                     {
+                        Id = w.Id,
+                        PathName = w.UrlPathName,
                         OwnerName = w.OwnerName,
                         Brief = firstTextBrief,
                         Time = w.LastActive.ToString("MM/dd"),
@@ -80,6 +82,8 @@ namespace FCloud3.App.Controllers.Etc
             public List<WikiTopBriefOfDirItem> Items { get; set; } = [];
             public class WikiTopBriefOfDirItem
             {
+                public int Id { get; set; }
+                public string? PathName { get; set; }
                 public string? Title { get; set; }
                 public string? Time { get; set; }
                 public string? OwnerName { get; set; }
