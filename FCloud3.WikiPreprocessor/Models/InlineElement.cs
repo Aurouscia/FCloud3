@@ -82,6 +82,31 @@ namespace FCloud3.WikiPreprocessor.Models
                 sb.Append(Content.AsSpan()[..leftLength]);
         }
     }
+    public class TextConvertedElement(
+        string originalText, string convertedText) 
+        : InlineElement
+    {
+        public string OriginalText { get; set; } = originalText;
+        public string ConvertedText { get; set; } = convertedText;
+        public override string ToHtml()
+        {
+            return ConvertedText;
+        }
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append(ConvertedText);
+        }
+        public override void WriteBody(StringBuilder sb, int maxLength)
+        {
+            int leftLength = maxLength - sb.Length;
+            if (leftLength <= 0)
+                return;
+            if (OriginalText.Length <= leftLength)
+                sb.Append(OriginalText);
+            else
+                sb.Append(OriginalText.AsSpan()[..leftLength]);
+        }
+    }
     public class EmptyElement : InlineElement
     {
         public override string ToHtml() => string.Empty;

@@ -1,5 +1,6 @@
 ﻿using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
+using FCloud3.WikiPreprocessor.Test.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,16 @@ namespace FCloud3.WikiPreprocessor.Test
         public WriteBodyTest()
         {
             var pb = new ParserBuilder();
+            pb.AutoReplace.AddReplacingTargets(["abc", "efg"], false);
             _parser = pb.BuildParser();
+            _parser.SetDataSource(new DataSourceWithReplace());
+        }
+        internal class DataSourceWithReplace : DataSourceBase
+        {
+            public override string? Replace(string replaceTarget)
+            {
+                return $"<a>{replaceTarget}</a>";
+            }
         }
 
         [TestMethod]
@@ -66,6 +76,17 @@ namespace FCloud3.WikiPreprocessor.Test
             var sb = new StringBuilder();
             var obj = _parser.RunToObject(input);
             obj.WriteBody(sb, maxLength);
+            Assert.AreEqual(expectBody, sb.ToString());
+        }
+
+        [TestMethod]
+        [DataRow("123abc456", "123abc456")]
+        [DataRow("123abcefg456", "123abcefg456")]
+        public void AutoReplace(string input, string expectBody)
+        {
+            var sb = new StringBuilder();
+            var obj = _parser.RunToObject(input);
+            obj.WriteBody(sb, int.MaxValue);
             Assert.AreEqual(expectBody, sb.ToString());
         }
     }
