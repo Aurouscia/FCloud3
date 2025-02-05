@@ -82,9 +82,8 @@ namespace FCloud3.Repos.Sys
             {
                 var res = ctx.LastUpdates
                     .Where(x => x.Type == type)
-                    .Select(x => x.LastUpdateTime)
                     .FirstOrDefault();
-                if (res == default)
+                if (res is null)
                 {
                     var initVal = init is { } ? init() : defaultTime;
                     LastUpdate model = new()
@@ -96,7 +95,7 @@ namespace FCloud3.Repos.Sys
                     ctx.SaveChanges();
                     return initVal;
                 }
-                return res;
+                return res.LastUpdateTime;
             }
         }
         public static DateTime GetLastUpdateFor(FCloudContext ctx, LastUpdateType[] types, Func<DateTime>? init = null)
