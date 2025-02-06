@@ -148,7 +148,7 @@ function autoMove(){
 function calWidth(){
     const parent = outerDiv.value?.parentElement
     if(parent){
-        unitWidth.value = parent.clientWidth - 40
+        unitWidth.value = parent.clientWidth
     }
     else
         unitWidth.value = defaultWidth
@@ -214,7 +214,6 @@ onUnmounted(()=>{
 }
 .swiper{
     box-sizing: border-box;
-    margin: 15px;
     overflow: hidden;
     border-radius: 10px;
     position: relative;
