@@ -110,10 +110,11 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"网络资源",
         desc:"如果有指向图片/视频/音频文件的链接，可写在中括号内，例如：\n[http://wiki.jowei19.com/fcloud.svg]\n\n"+
-        "如果需要控制资源尺寸，可写[xxx|3]（3倍行高）或[xxx|20px]来指定其高度。\n"+
-        "如果需要控制资源位置，可写[xxx|3|left]\n（其中left表示靠左浮动，right表示靠右浮动(默认)，block表示占整行并居中，inline表示行内）",
+        "如果需要控制资源尺寸，可写<u>[xxx|3]</u>（3倍行高）或<u>[xxx|20px]</u>来指定其高度。\n"+
+        "如果需要控制资源位置，可写<u>[xxx|3|left]</u>。注意中括号内三个部分之间的分隔符是竖杠（ | ）\n"+
+        "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）",
         code:"各位女士们先生们，欢迎 [http://wiki.jowei19.com/fcloud.svg|100px|block] 欢迎使用fcloud3内容管理系统。",
-        demo:"欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
+        demo:"各位女士们先生们，欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
     },
     {
         title:"上角标/下角标",
