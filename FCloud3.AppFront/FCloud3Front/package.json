@@ -12,7 +12,7 @@
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.5.9",
     "@aurouscia/keyboard-shortcut": "^0.0.3",
-    "@aurouscia/vite-app-version": "^0.1.1",
+    "@aurouscia/vite-app-version": "^0.1.2",
     "axios": "^1.7.9",
     "js-file-download": "^0.4.12",
     "lodash": "^4.17.21",
@@ -22,14 +22,14 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.14",
+    "@types/lodash": "^4.17.15",
     "@types/md5": "^2.3.5",
-    "@types/node": "^22.10.10",
+    "@types/node": "^22.13.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "execa": "^9.5.2",
-    "sass": "^1.83.4",
+    "sass": "^1.84.0",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11",
+    "vite": "^6.1.0",
     "vue-tsc": "^2.2.0"
   }
 }
