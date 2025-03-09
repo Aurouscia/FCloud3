@@ -1,3 +1,5 @@
+import { isFireFox } from "../browserInfo";
+
 export class WikiSourceHighlighter {
     t:Text|undefined = undefined;
     tContent:string|undefined = undefined;
@@ -5,6 +7,8 @@ export class WikiSourceHighlighter {
     private styleTagPattern = new RegExp("<style>(.|\n)*?</style>", "g");
 
     run(t:Text){
+        if(isFireFox)
+            return;
         CSS.highlights.clear();
         this.ranges = []
         this.t = t;

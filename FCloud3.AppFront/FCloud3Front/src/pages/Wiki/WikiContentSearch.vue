@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { injectApi } from '@/provides';
+import { isFireFox } from '@/utils/browserInfo';
 import { nextTick } from 'vue';
 import { ref } from 'vue';
 
@@ -36,8 +37,10 @@ async function search(){
             wCounter++;
         })
         const addedHighlight = new Highlight(...ranges);
-        console.log(ranges.length)
-        CSS.highlights.set('target', addedHighlight);
+        if(!isFireFox){
+            CSS.highlights.clear()
+            CSS.highlights.set('target', addedHighlight);
+        }
     }
 }
 function domId(widx:number, pIdx:number, tIdx:number){

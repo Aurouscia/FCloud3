@@ -2,6 +2,7 @@
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { TimedLock } from '@/utils/timeStamp';
+import { isFireFox } from '@/utils/browserInfo';
 
 const props = defineProps<{
     display:DiffContentStepDisplay|undefined
@@ -57,9 +58,11 @@ async function refreshDisplay(){
     })
     const addedHighlight = new Highlight(...addedRanges);
     const removedHighlight = new Highlight(...removedRanges);
-    CSS.highlights.clear()
-    CSS.highlights.set('added', addedHighlight);
-    CSS.highlights.set('removed', removedHighlight);
+    if(!isFireFox){
+        CSS.highlights.clear()
+        CSS.highlights.set('added', addedHighlight);
+        CSS.highlights.set('removed', removedHighlight);
+    }
     ensureSameHeight();
 }
 function ensureSameHeight(){
