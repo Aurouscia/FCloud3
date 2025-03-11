@@ -10,10 +10,10 @@
     "toggleEnvLocal": "node env/toggleLocalEnvFile.cjs"
   },
   "dependencies": {
-    "@aurouscia/au-table-editor": "^0.5.9",
+    "@aurouscia/au-table-editor": "^0.6.0",
     "@aurouscia/keyboard-shortcut": "^0.0.3",
     "@aurouscia/vite-app-version": "^0.1.2",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "bowser": "^2.11.0",
     "js-file-download": "^0.4.12",
     "lodash": "^4.17.21",
@@ -23,7 +23,7 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.15",
+    "@types/lodash": "^4.17.16",
     "@types/md5": "^2.3.5",
     "@types/node": "^22.13.10",
     "@vitejs/plugin-vue": "^5.2.1",

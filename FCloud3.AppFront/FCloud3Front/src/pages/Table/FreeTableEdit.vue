@@ -165,4 +165,7 @@ const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWa
         margin-top: 2px;
         align-self: flex-start;
     }
+    .freeTableEditPage .ateStickyOptionPanel{
+        top: 40px;
+    }
 </style>

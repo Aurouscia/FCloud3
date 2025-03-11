@@ -318,13 +318,13 @@ onUnmounted(()=>{
                 <div v-if="!p.Content || p.Content.endsWith('\n')" style="height: 20px;">.</div>
                 <textarea v-model="p.Content" @input="paraChanged(p)" spellcheck="false"></textarea>
             </div>
-            <div v-else-if="p.Type == WikiParaType.Table" class="table" :style="{height:p.height}">
+            <div v-else-if="p.Type == WikiParaType.Table" class="table" :style="{height:p.height, maxHeight:'65vh'}">
                 <AuTableEditor v-if="p.tableData"
                     :table-data="p.tableData" 
                     :no-shortcut="true"
                     @changed="()=>paraChanged(p)"
                     @save="(val, cb)=>tableSave(val, cb, p)"
-                    :size-change-callback="(s)=>{p.height = s.height}"
+                    :size-change-callback="(s)=>{p.height = s.height - 40}"
                     :external-save-callback-provide="(s)=>registerActiveSave(s,p)"></AuTableEditor>
             </div>
             <div v-else-if="p.Type == WikiParaType.File" class="file">
