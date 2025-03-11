@@ -10,7 +10,7 @@
     "toggleEnvLocal": "node env/toggleLocalEnvFile.cjs"
   },
   "dependencies": {
-    "@aurouscia/au-table-editor": "^0.6.0",
+    "@aurouscia/au-table-editor": "^0.6.2",
     "@aurouscia/keyboard-shortcut": "^0.0.3",
     "@aurouscia/vite-app-version": "^0.1.2",
     "axios": "^1.8.2",

@@ -425,6 +425,7 @@ onUnmounted(()=>{
     }
 }
 .cover{
+    z-index: 100;
     display: none;
 }
 .wikiView{

@@ -205,9 +205,10 @@ namespace FCloud3.Repos.Table
             return JsonConvert.SerializeObject(briefData, jsonSettings);
         }
 
-        private static JsonSerializerSettings jsonSettings = new()
+        private static readonly JsonSerializerSettings jsonSettings = new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore
         };
     }
 }
