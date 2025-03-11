@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 
 namespace FCloud3.Services.Etc
 {
+    //TODO：可能因为网络IO造成线程阻塞？
     public class LatestWikiExchangeService
     {
         public const string pullRoute = "/api/LatestWikiExchange/Pull";
@@ -54,6 +55,10 @@ namespace FCloud3.Services.Etc
         }
         private static List<ExchangeItem> Items { get; set; } = [];
         private static readonly object itemsListLockObj = new();
+        private static readonly object getItemsLockObj = new();
+        //TODO：这两个timeout值合不合适？
+        private static readonly TimeSpan pushTimeout = TimeSpan.FromSeconds(1);
+        private static readonly TimeSpan pullTimeout = TimeSpan.FromSeconds(1);
         public static bool Inited { get; set; }
         public static DateTime MyLastPush { get; private set; }
         public bool Enabled => ExConfig.Enabled;
@@ -64,13 +69,16 @@ namespace FCloud3.Services.Etc
         /// <returns></returns>
         public IEnumerable<ExchangeItem> GetItems()
         {
-            if (Inited)
-                return Items;
-            else
+            lock (getItemsLockObj)
             {
-                Pull();
-                Inited = true;
-                return Items;
+                if (Inited)
+                    return Items;
+                else
+                {
+                    Pull();
+                    Inited = true;
+                    return Items;
+                }
             }
         }
 
@@ -168,6 +176,7 @@ namespace FCloud3.Services.Etc
                 if (domain is { })
                 {
                     RestRequest rr = new($"{domain}{pushRoute}");
+                    rr.Timeout = pushTimeout;
                     var reqObj = new ExchangePushRequest()
                     {
                         PusherCode = ExConfig.MyCode,
@@ -215,6 +224,7 @@ namespace FCloud3.Services.Etc
                     {
                         List<ExchangeItem>? items = null;
                         RestRequest rr = new($"{domain}{pullRoute}");
+                        rr.Timeout = pullTimeout;
                         var reqObj = new ExchangePullRequest()
                         {
                             PullerCode = ExConfig.MyCode,
@@ -287,6 +297,7 @@ namespace FCloud3.Services.Etc
         {
             lock (itemsListLockObj)
             {
+                Items = Items.DistinctBy(x => x.Url).ToList();
                 Items.Sort((x, y) => DateTime.Compare(y.Time, x.Time));
                 if (Items.Count > itemsMaxCount)
                 {
