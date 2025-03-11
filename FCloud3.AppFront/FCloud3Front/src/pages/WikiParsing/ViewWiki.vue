@@ -36,6 +36,7 @@ import { userDefaultAvatar } from '@/models/files/material';
 import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
 import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 import _ from 'lodash';
+import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -253,6 +254,7 @@ async function init(changedPathName?:boolean){
         viewAreaScrollHandler(true)
     }
 
+    stickyContainTableRestrict()
     runPluginsByWiki(data.value?.Paras.map(x=>x.Content).join())
 }
 onUnmounted(()=>{
