@@ -61,7 +61,7 @@ http://wiki.jowei19.com
     - linux服务器：安装`docker`和`nginx或apache`(之类的反向代理)
         - 在`nginx或apache`新建站点，并指向`33442`/`33443`端口
 8. 停止调试，导出程序文件
-    - windows服务器：点击`Visual Studio`顶部栏`生成-发布`即可选择位置导出，将导出的程序文件移动到服务器上（建议使用webDeploy）
+    - windows服务器：找到`Visual Studio`右侧`解决方案管理器`最底部的`9.App/FCloud3.App`并右键点击它，点击弹出菜单的`发布(B)`即可选择位置导出，将导出的程序文件移动到服务器上（建议使用webDeploy，也可以直接远程桌面粘贴过去）
     - linux服务器：使用`docker build . -t fcloud3`命令取用项目根目录的Dockerfile构建本项目镜像
         - 注：使用的镜像源均无需梯子可直连
 9. 尝试启动并进入网站
