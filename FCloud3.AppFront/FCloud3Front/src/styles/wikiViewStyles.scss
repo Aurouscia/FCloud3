@@ -283,19 +283,19 @@
             line-height: 1.5em;
             text-indent: 0px;
         }
-        td[data-autb-sticky-top]{
+        *[data-autb-sticky-top]{
             position: sticky;
             top: 0px;
             z-index: 8;
-            box-shadow: 0px 0px 3px 2px white;
+            box-shadow: 0px 0px 1px 2px white;
         }
-        td[data-autb-sticky-left]{
+        *[data-autb-sticky-left]{
             position: sticky;
             left: 0px;
             z-index: 7;
-            box-shadow: 0px 0px 3px 2px white;
+            box-shadow: 0px 0px 1px 2px white;
         }
-        td[data-autb-sticky-left][data-autb-sticky-top]{
+        *[data-autb-sticky-left][data-autb-sticky-top]{
             z-index: 9;
         }
     }
