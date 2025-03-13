@@ -5,7 +5,7 @@ import pluginsFound from '@/build/plugin/pluginsFound.json'
 export const consolePrefix = '[f3-plugin]'
 
 export class PluginExe{
-    private state:"checking"|"notAvailable"|"ready"
+    private state:"checking"|"notAvailable"|"ready" = "checking"
     private initContainer:HTMLDivElement
     private runContainer:HTMLDivElement
     public pluginName:string
@@ -17,29 +17,33 @@ export class PluginExe{
         container.innerHTML = ''
         container.appendChild(this.initContainer)
         container.appendChild(this.runContainer)
+    }
+    async init(exeImmediately:boolean = true){
         this.state = "checking";
-        this.pluginName = pluginName
+        this.pluginName = this.pluginName
         const pluginList = pluginsFound as PluginsFound
-        const plugin = pluginList.find(x=>x.name===pluginName)
+        const plugin = pluginList.find(x=>x.name===this.pluginName)
         this.pluginPath = plugin?.entry
         if(this.pluginPath){
-            runJsFile(this.pluginPath, this.initContainer).then(_=>{
-                this.state = "ready";
-                console.log(`${consolePrefix}插件${pluginName}已初始化`)
-                this.execute()
-            })
+            await runJsFile(this.pluginPath, this.initContainer)
+            this.state = "ready";
+            console.log(`${consolePrefix}插件${this.pluginName}已初始化`)
+            if(exeImmediately)
+                await this.execute()
         }else{
             this.state = "notAvailable";
-            console.log(`${consolePrefix}插件${pluginName}未能找到`)
+            console.log(`${consolePrefix}插件${this.pluginName}未能找到`)
         }
     }
-    execute(){
+    async execute(){
         if(this.pluginPath && this.state == 'ready'){
-            const code = `
+            const codeImport = `
                 import {run} from '${this.pluginPath}'
+            `
+            const code = `
                 run()
             `
-            runJs(code, this.runContainer)
+            await runJs(code, this.runContainer, codeImport)
             console.log(`${consolePrefix}插件${this.pluginName}已执行`)
         }
     }

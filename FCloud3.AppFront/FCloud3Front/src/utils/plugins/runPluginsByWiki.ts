@@ -2,13 +2,13 @@ import { PluginsFound } from "@/build/plugin/pluginsFound"
 import { consolePrefix, PluginExe } from "./common/pluginExe"
 import pluginsFound from '@/build/plugin/pluginsFound.json'
 
-export function runPluginsByWiki(wikiStringData:string|undefined){
-    if(!wikiStringData)
+export async function runPluginsByWiki(wikiStringData:(string|undefined)[]|undefined){
+    if(!wikiStringData || wikiStringData.length==0)
         return
     const exes:PluginExe[] = [];
     const pluginList = pluginsFound as PluginsFound
-    pluginList.forEach(plugin=>{
-        if(wikiStringData.includes(plugin.trigger)){
+    for(const plugin of pluginList){
+        if(wikiStringData.some(x=>!!x && x.includes(plugin.trigger))){
             const name = plugin.name
             const eleId = containerDivId(name)
             let ele = document.getElementById(eleId) as HTMLDivElement
@@ -19,9 +19,10 @@ export function runPluginsByWiki(wikiStringData:string|undefined){
                 document.body.appendChild(ele)
             }
             const exe = new PluginExe(ele, name)
+            await exe.init()
             exes.push(exe)
         }
-    })
+    }
     if(exes.length>0)
         console.log(`${consolePrefix}检测到插件调用：${exes.map(x=>x.pluginName).join(', ')}`)
     else
