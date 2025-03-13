@@ -254,8 +254,10 @@ async function init(changedPathName?:boolean){
         viewAreaScrollHandler(true)
     }
 
-    stickyContainTableRestrict()
     runPluginsByWiki(data.value?.Paras.map(x=>x.Content).join())
+    setTimeout(()=>{
+        stickyContainTableRestrict()
+    }, 100)
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()

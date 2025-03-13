@@ -1,0 +1,13 @@
+{
+  "name": "au-table-cell-stickifier",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1"
+  }
+}
