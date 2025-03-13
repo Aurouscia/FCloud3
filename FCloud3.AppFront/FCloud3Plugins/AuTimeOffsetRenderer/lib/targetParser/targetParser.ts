@@ -100,7 +100,6 @@ function parseYMD(str:string):{y:number|'&'|'+', m:number, d:number}|undefined{
     if(parts.length==3){
         const first = parts[0]
         let y:'&'|'+'|number
-        console.log(first)
         if(first=='&' || first=='+')
             y = first
         else{

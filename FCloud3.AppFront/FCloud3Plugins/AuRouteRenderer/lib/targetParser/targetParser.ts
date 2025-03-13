@@ -67,7 +67,6 @@ export function parseTargets(area:HTMLElement):Target[]{
             })
         }
     }
-    console.log(targets)
     return targets
 }
 
