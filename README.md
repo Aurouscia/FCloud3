@@ -78,10 +78,10 @@ http://wiki.jowei19.com
     - **立即登录和修改密码，不要保留原始密码**
 
 ## 注意
-本项目暂不成熟，不建议直接投入生产环境  
-**部署或使用遇到问题欢迎提出issue或者PR**  
-需要帮助请加qq群：798877093  
-<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=4oMUQMONpSEqiV8up23fZ_vUn5OjD9JI&jump_from=webapi&authKey=dJxZX5kBCr46IASe9YH6V9aBvwHG/CNs13kgTm6k4nKYrVcsWI+zndBiypF5H4lW"><img src="//pub.idqqimg.com/wpa/images/group.png" alt="Au的软件开发交流群" title="Au的软件开发交流群"></a>
+- 本项目暂不成熟，不建议直接投入生产环境  
+- **部署或使用遇到问题欢迎提出issue或者PR**  
+- 需要帮助请加qq群：798877093 <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=4oMUQMONpSEqiV8up23fZ_vUn5OjD9JI&jump_from=webapi&authKey=dJxZX5kBCr46IASe9YH6V9aBvwHG/CNs13kgTm6k4nKYrVcsWI+zndBiypF5H4lW"><img src="//pub.idqqimg.com/wpa/images/group.png" alt="Au的软件开发交流群" title="Au的软件开发交流群"></a>
+- `robots.txt`位于`/FCloud3.AppFront/FCloud3Front/public`中，默认情况下不允许任何爬虫，请按需自行修改
 
 ## 主要缺陷
 - 只能单实例部署
