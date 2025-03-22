@@ -26,7 +26,6 @@ const props = defineProps<{
 
 
 const history = ref<DiffContentHistoryResult>()
-const selectedHistoryIdx = ref<number>(-1)
 const { iden } = useIdentityInfoStore()
 const { jumpToUserCenterRoute } = useIdentityRoutesJump()
 const mainDivDisplayStore = useMainDivDisplayStore()
@@ -35,7 +34,6 @@ let displays:DiffContentStepDisplay[] = []
 const displaying = ref<DiffContentStepDisplay>()
 const detailSidebar = ref<InstanceType<typeof SideBar>>()
 async function switchDetail(id:number){
-    selectedHistoryIdx.value = id;
     if(!displays.some(d=>d.Id == id)){
         const resp = (await api.diff.diffContent.detail(id))?.Items || [];
         _.pullAllWith(displays, resp, (x,y)=>x.Id==y.Id)
@@ -58,6 +56,39 @@ function tooNarrowOrNot(width:number){
     tooNarrow.value = width<800;
 }
 
+function arrowKeyHandler(event:KeyboardEvent){
+    event.preventDefault()
+    const id = displaying.value?.Id
+    if(!id){
+        const firstHistory = history.value?.Items.at(0)
+        if(firstHistory)
+            switchDetail(firstHistory.Id)
+        return;
+    }
+    const idx = history.value?.Items.findIndex(x=>x.Id == id);
+    const maxIdx = (history.value?.Items.length||0)-1;
+    if(idx===undefined || idx<0)
+        return;
+    if('key' in event){
+        let newIdx = -1
+        if(event.key == 'ArrowUp'){
+            if(idx>0){
+                newIdx = idx-1;
+            }
+        }
+        else if(event.key == 'ArrowDown'){
+            if(idx<maxIdx){
+                newIdx = idx+1;
+            } 
+        }
+        if(newIdx>=0){
+            const target = history.value?.Items[newIdx]
+            if(target)
+                switchDetail(target.Id)
+        }
+    }
+}
+
 let api:Api;
 let disposeWidthWatch:undefined|(()=>void)
 const pop = injectPop();
@@ -77,12 +108,14 @@ onMounted(async()=>{
         pop.value.show('页面参数错误','failed')
     }
     
+    window.addEventListener('keydown', arrowKeyHandler)
     disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
     tooNarrowOrNot(window.innerWidth)
 })
 onUnmounted(async()=>{
     mainDivDisplayStore.resetToDefault()
     recoverTitle()
+    window.removeEventListener('keydown', arrowKeyHandler)
     disposeWidthWatch?.()
 })
 </script>
@@ -100,7 +133,7 @@ onUnmounted(async()=>{
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="i in history.Items" :class="{selected:selectedHistoryIdx==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
+                <tr v-for="i in history.Items" :class="{selected:displaying?.Id==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
                     <td class="t">
                         {{ i.T }}
                     </td>
