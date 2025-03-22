@@ -83,9 +83,29 @@ function arrowKeyHandler(event:KeyboardEvent){
         }
         if(newIdx>=0){
             const target = history.value?.Items[newIdx]
-            if(target)
+            if(target){
                 switchDetail(target.Id)
+                centralizeHistoryTrInList(target.Id)
+            }
         }
+    }
+}
+
+const historyList = ref<HTMLElement>()
+function trEleId(historyId:number){
+    return `history-${historyId}`
+}
+function centralizeHistoryTrInList(id:number){
+    const listEle = historyList.value
+    const ele = document.getElementById(trEleId(id))
+    if(ele && listEle){
+        const eleTop = ele.offsetTop
+        const eleHeight = ele.offsetHeight
+        const listHeight = listEle.clientHeight
+        listEle.scrollTo({
+            top: eleTop-listHeight/2+eleHeight/2,
+            behavior: 'smooth'
+        })
     }
 }
 
@@ -122,7 +142,7 @@ onUnmounted(async()=>{
 
 <template>
 <div class="diffContentHistory">
-    <div class="historyList" :class="{grow:tooNarrow}">
+    <div class="historyList" :class="{grow:tooNarrow}" ref="historyList">
         <table v-if="history">
             <thead>
                 <tr>
@@ -133,7 +153,8 @@ onUnmounted(async()=>{
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="i in history.Items" :class="{selected:displaying?.Id==i.Id, hidden:i.H}" @click="switchDetail(i.Id)">
+                <tr v-for="i in history.Items" :class="{selected:displaying?.Id==i.Id, hidden:i.H}"
+                    @click="switchDetail(i.Id)" :id="trEleId(i.Id)">
                     <td class="t">
                         {{ i.T }}
                     </td>
