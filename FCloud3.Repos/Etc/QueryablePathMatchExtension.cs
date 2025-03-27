@@ -4,8 +4,10 @@ using System.Reflection;
 
 namespace FCloud3.Repos.Etc
 {
+    [Obsolete]
     public static class QueryablePathMatchExtension
     {
+        [Obsolete]
         public static int GetIdByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             if (path.Length == 0)
@@ -28,6 +30,7 @@ namespace FCloud3.Repos.Etc
             }
             return -1;
         }
+        [Obsolete]
         public static List<int>? GetChainIdsByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             if (path.Length == 0)
@@ -53,6 +56,7 @@ namespace FCloud3.Repos.Etc
             }
             return null;
         }
+        [Obsolete]
         public static List<T>? GetChainByPath<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             if (path.Length == 0)
@@ -79,6 +83,7 @@ namespace FCloud3.Repos.Etc
             return null;
         }
 
+        [Obsolete]
         private static IQueryable<T> PathMatch<T>(this IQueryable<T> q, string[] path) where T : IPathable
         {
             Type t = typeof(T);

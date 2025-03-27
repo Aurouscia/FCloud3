@@ -85,7 +85,7 @@ namespace FCloud3.Services.Files
                 }
             }
             errmsg = null;
-            var chain = _fileDirRepo.GetChainByPath(path);
+            var chain = _fileDirRepo.GetChainItemsByPath(path);
             if (chain is null) {
                 errmsg = "找不到指定路径的文件夹";
                 return null;

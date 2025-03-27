@@ -2,7 +2,6 @@
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Sys;
 using FCloud3.Repos.Etc;
-using FCloud3.Repos.Sys;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
@@ -96,10 +95,35 @@ namespace FCloud3.Repos.Files
             }
             return res;
         }
-        public List<int>? GetChainIdsByPath(string[] path)
-            => Existing.GetChainIdsByPath(path);
-        public List<FileDir>? GetChainByPath(string[] path)
-            => Existing.GetChainByPath(path);
+        public List<FileDirCacheModel>? GetChainItemsByPath(string[] path)
+        {
+            if (path.Length == 0)
+                return [];
+            var all = AllCachedItems();
+            var res = new List<FileDirCacheModel>();
+            var first = path[0];
+            var ances = all.Where(x => x.ParentDir == 0 && x.PathName == first).FirstOrDefault();
+            if (ances is null)
+                return null;
+            res.Add(ances);
+            for(int i=1; i<path.Length; i++)
+            {
+                var parent = res.Last();
+                int parentId;
+                if(parent.AsDir > 0)
+                    parentId = parent.AsDir;
+                else
+                    parentId = parent.Id;
+                var targetName = path[i];
+                var target = all
+                    .Where(x => x.ParentDir == parentId && x.PathName == targetName)
+                    .FirstOrDefault();
+                if (target is null)
+                    return null;
+                res.Add(target);
+            }
+            return res;
+        }
         
         /// <summary>
         /// 将指定目录及其父目录，爷目录直到顶级目录全部更新时间设为现在
@@ -186,7 +210,8 @@ namespace FCloud3.Repos.Files
                 {
                     var rootDir = x.Id;//顶级目录的rootDir应该是自己
                     var depth = 0;//顶级目录的depth应该是0
-                    var changing = new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, rootDir, depth);
+                    var changing = new FileDirCacheModel(x.Id, x.Updated,
+                        x.ParentDir, rootDir, depth, x.Name, x.PathName, x.AsDir);
                     changings.Add(changing);
                     masterDataCorrect.Add(changing);
                 }
@@ -209,7 +234,8 @@ namespace FCloud3.Repos.Files
                     if (depthChanged || rootChanged)
                     {
                         var correctX = new FileDirCacheModel(
-                            x.Id, x.Updated, x.ParentDir, shouldBeRoot, shouldBeDepth);
+                            x.Id, x.Updated, x.ParentDir, shouldBeRoot,
+                            shouldBeDepth, x.Name, x.PathName, x.AsDir);
                         changings.Add(correctX);
                         setChildrenDepth(correctX, safety + 1);
                     }
@@ -396,16 +422,26 @@ namespace FCloud3.Repos.Files
         protected override IQueryable<FileDirCacheModel> ConvertToCacheModel(IQueryable<FileDir> q)
         {
             return q.Select(x => 
-                new FileDirCacheModel(x.Id, x.Updated, x.ParentDir, x.RootDir, x.Depth));
+                new FileDirCacheModel(x.Id, x.Updated, x.ParentDir,
+                    x.RootDir, x.Depth, x.Name, x.UrlPathName, x.AsDir));
+        }
+
+        public IEnumerable<FileDirCacheModel> CachedItemsByPathNames(string[] pathNames)
+        {
+            return CachedItemsByPred(x => x.PathName is { } && pathNames.Contains(x.PathName));
         }
     }
 
     public class FileDirCacheModel(
-        int id, DateTime updated, int parentDir, int rootDir, int depth)
+        int id, DateTime updated, int parentDir, int rootDir,
+        int depth, string? name, string? pathName, int asDir)
         : CacheModelBase<FileDir>(id, updated)
     {
         public int ParentDir { get; } = parentDir;
         public int RootDir { get; } = rootDir;
         public int Depth { get; } = depth;
+        public string? Name { get; } = name;
+        public string? PathName { get; } = pathName;
+        public int AsDir { get; } = asDir;
     }
 }
