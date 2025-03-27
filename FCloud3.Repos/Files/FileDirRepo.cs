@@ -22,52 +22,24 @@ namespace FCloud3.Repos.Files
 
         public List<string>? GetPathById(int id)
         {
-            var chain = GetChainIdsById(id);
-            if (chain is null)
-                return null;
-            return GetRangeByIdsOrdered<string>(chain, dirs =>
-            {
-                var list = dirs.Select(x => new { x.Id, x.UrlPathName }).ToList();
-                return list.ToDictionary(x => x.Id, x => x.UrlPathName ?? "???");
-            });
+            return GetChainItemsById(id)?.ConvertAll(x => x.PathName ?? "??");
         }
         public List<string>? GetFriendlyPathById(int id)
         {
-            var chain = GetChainIdsById(id);
-            if (chain is null)
-                return null;
-            return GetRangeByIdsOrdered<string>(chain, dirs =>
-            {
-                var list = dirs.Select(x => new { x.Id, x.Name }).ToList();
-                return list.ToDictionary(x => x.Id, x => x.Name ?? "???");
-            });
+            return GetChainItemsById(id)?.ConvertAll(x => x.Name??"??");
         }
         public List<(int id, List<string> nameChain)> GetNameChainsByIds(List<int> ids)
         {
             List<(int id, List<string>)> res = [];
             if (ids.Count == 0)
                 return res;
-            HashSet<int> relatedIds = [];
-            List<(int id, List<int> chain)> chains = [];
             foreach (var id in ids)
             {
-                var chain = GetChainIdsById(id);
+                var chain = GetChainItemsById(id);
                 if(chain is null) 
                     continue;
-                chain.ForEach(i => relatedIds.Add(i));
-                chains.Add((id,chain));
-            }
-            var names = GetRangeByIds(relatedIds.ToList())
-                .Select(x => new {x.Id, x.Name}).ToList();
-            foreach(var item in chains)
-            {
-                List<string> nameChain = [];
-                foreach(var dirId in item.chain)
-                {
-                    var name = names.Find(x => x.Id == dirId)?.Name ?? "??";
-                    nameChain.Add(name);
-                }
-                res.Add((item.id, nameChain));
+                var nameChainHere = chain.ConvertAll(x => x.Name ?? "??");
+                res.Add((id, nameChainHere));
             }
             return res;
         }
@@ -75,9 +47,13 @@ namespace FCloud3.Repos.Files
         private const string loopDetectedExceptionMsg = "目录结构异常，请联系管理员";
         public List<int>? GetChainIdsById(int id)
         {
+            return GetChainItemsById(id)?.ConvertAll(x => x.Id);
+        }
+        public List<FileDirCacheModel>? GetChainItemsById(int id)
+        {
             if (id == 0)
                 return [];
-            List<int> res = new();
+            List<FileDirCacheModel> res = new();
             var targetId = id;
             int safety = 32;
             while (true)
@@ -85,7 +61,7 @@ namespace FCloud3.Repos.Files
                 var target = base.CachedItemById(targetId);
                 if (target is null)
                     return null;
-                res.Insert(0, target.Id);
+                res.Insert(0, target);
                 targetId = target.ParentDir;
                 if (targetId == 0)
                     break;
