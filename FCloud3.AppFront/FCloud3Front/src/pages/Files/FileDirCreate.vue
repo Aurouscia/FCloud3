@@ -11,6 +11,8 @@ const props = defineProps<{
 
 const {name:creatingDirName, converted:creatingDirUrlPathName, run:runAutoUrl} = useUrlPathNameConverter();
 
+const showMoreOptions = ref<boolean>(false);
+
 const asDirId = ref<number>(0);
 const asDirFullName = ref<string>();
 function asDirSearchDone(value:string, id:number, desc?:string){
@@ -57,11 +59,19 @@ var api = injectApi()
                         <input v-model="creatingDirUrlPathName" placeholder="必填"/>
                     </td>
                 </tr>
-                <tr>
-                    <td>作为<br/>快捷<br/>方式</td>
+                <tr v-if="!showMoreOptions">
+                    <td colspan="2">
+                        <button class="lite" @click="showMoreOptions=true">显示更多选项</button>
+                    </td>
+                </tr>
+                <tr v-if="showMoreOptions">
+                    <td>设为<br/>快捷<br/>方式</td>
                     <td>
                         <div v-if="asDirId>0" class="asDirSelectedPath">
                             已设置：{{ asDirFullName }}
+                        </div>
+                        <div v-else class="asDirSelectedPath">
+                            若设为快捷方式，该目录就无法拥有自己的内容，而是显示目标目录的内容。
                         </div>
                         <Search :source="api.etc.quickSearch.fileDir" @done="asDirSearchDone"
                             :done-when-click-cand="true" :compact="true"></Search>
