@@ -144,7 +144,7 @@ namespace FCloud3.Repos.Files
         }
 
 
-        public IQueryable<FileDir>? GetChildrenById(int id)
+        public IQueryable<FileDir> GetChildrenById(int id)
             => Existing.Where(x => x.ParentDir == id);
 
         /// <summary>

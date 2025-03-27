@@ -944,11 +944,12 @@ export class Api{
                     return data
                 }
             },
-            create:async(parentDir:number,name:string,urlPathName:string)=>{
+            create:async(parentDir:number,name:string,urlPathName:string,asDir:number)=>{
                 const reqData:FileDirCreateRequest = {
                     ParentDir:parentDir,
                     Name:name,
-                    UrlPathName:urlPathName
+                    UrlPathName:urlPathName,
+                    AsDir:asDir
                 };
                 const res = await this.httpClient.request(
                     "/api/FileDir/Create",

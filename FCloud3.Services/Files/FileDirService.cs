@@ -95,12 +95,29 @@ namespace FCloud3.Services.Files
             if (chain.Count > 0)
                 thisDirId = chain.Last().Id;
 
-            var ownerId = _fileDirRepo.GetOwnerIdById(thisDirId);
+            int ownerId = 0;
+            int asDirId = 0;
+            List<string>? asDirFriendlyPath = null;
+            if (thisDirId > 0)
+            {
+                var info = _fileDirRepo.GetqById(thisDirId)
+                    .Select(x => new { x.CreatorUserId, x.AsDir })
+                    .FirstOrDefault();
+                if (info != null) {
+                    ownerId = info.CreatorUserId;
+                    asDirId = info.AsDir;
+                    if(asDirId > 0)
+                        asDirFriendlyPath = 
+                            _fileDirRepo.GetFriendlyPathById(asDirId)
+                            ?? ["目标目录已被删除"];
+                }
+            }
             var ownerName = "";
             Func<int, string> getUserName = x => _userRepo.CachedItemById(x)?.Name ?? "??";
             if (ownerId > 0)
                 ownerName = getUserName(ownerId);
 
+            int getUsingId = asDirId > 0 ? asDirId : thisDirId;
 
             List<FileDirContentItem> contents = [];
             static string keyReplaceForWikiItem(string k)
@@ -117,19 +134,17 @@ namespace FCloud3.Services.Files
             }
 
 
-            var subDirsQ = _fileDirRepo.GetChildrenById(thisDirId);
-            if (subDirsQ is null)
-                return null;
+            var subDirsQ = _fileDirRepo.GetChildrenById(getUsingId);
             subDirsQ = _fileDirRepo.IndexFilterOrder(subDirsQ, q);
             contents.AddRange(subDirsQ.Select(x => 
                 new FileDirContentItem(x.Id, x.CreatorUserId, FileDirContentItemType.Dir, x.Updated)).ToList());
 
-            if (thisDirId > 0)
+            if (getUsingId > 0)
             {
                 var wikiFrom = isAdmin ? _wikiItemRepo.Existing : _wikiItemRepo.ExistingAndNotSealed;
                 var wikisQ = from wiki in wikiFrom
                              from relation in _wikiToDirRepo.Existing
-                             where relation.DirId == thisDirId
+                             where relation.DirId == getUsingId
                              where wiki.Id == relation.WikiId
                              select wiki;
                 wikisQ = _wikiItemRepo.IndexFilterOrder(wikisQ, q, keyReplaceForWikiItem);
@@ -137,7 +152,7 @@ namespace FCloud3.Services.Files
                     new FileDirContentItem(x.Id, x.OwnerUserId, FileDirContentItemType.WikiItem, x.Updated)).ToList());
             
 
-                var filesQ = _fileItemRepo.GetByDirId(thisDirId);
+                var filesQ = _fileItemRepo.GetByDirId(getUsingId);
                 filesQ = _fileItemRepo.IndexFilterOrder(filesQ, q, keyReplaceForFileItem);
                 contents.AddRange(filesQ.Select(x => 
                     new FileDirContentItem(x.Id, x.CreatorUserId, FileDirContentItemType.FileItem, x.Updated)).ToList());
@@ -468,7 +483,7 @@ namespace FCloud3.Services.Files
             _fileDirRepo.SetUpdateTimeAncestrally(distDirId, out _);
             return true;
         }
-        public bool Create(int parentDir, string? name, string? urlPathName, out string? errmsg)
+        public bool Create(int parentDir, string? name, string? urlPathName, int asDir, out string? errmsg)
         {
             FileDir? parent = _fileDirRepo.GetById(parentDir);
             if(parent is null && parentDir != 0)
@@ -489,7 +504,8 @@ namespace FCloud3.Services.Files
                 Name = name,
                 UrlPathName = urlPathName,
                 Depth = depth,
-                RootDir = rootDir
+                RootDir = rootDir,
+                AsDir = asDir,
             };
             int created = _fileDirRepo.TryAddAndGetId(newDir, out errmsg);
             if (created > 0)

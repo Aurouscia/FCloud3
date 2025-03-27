@@ -97,7 +97,8 @@ namespace FCloud3.App.Controllers.Files
         [UserTypeRestricted]
         public IActionResult Create([FromBody] FileDirCreateRequest req)
         {
-            if(!_fileDirService.Create(req.ParentDir, req.Name, req.UrlPathName, out string? errmsg))
+            if(!_fileDirService.Create(
+                req.ParentDir, req.Name, req.UrlPathName, req.AsDir, out string? errmsg))
             {
                 return this.ApiFailedResp(errmsg);
             }
@@ -148,6 +149,7 @@ namespace FCloud3.App.Controllers.Files
             public int ParentDir { get; set; }
             public string? Name { get; set; }
             public string? UrlPathName { get; set; }
+            public int AsDir { get; set; }
             public int AuthGrantOnId => ParentDir;
         }
     }

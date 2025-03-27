@@ -13,6 +13,7 @@ export interface FileDirCreateRequest{
     ParentDir:number,
     Name:string,
     UrlPathName:string,
+    AsDir:number
 }
 
 export interface FileDirIndexResult{
