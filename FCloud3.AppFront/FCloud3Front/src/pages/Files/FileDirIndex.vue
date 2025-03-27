@@ -11,7 +11,7 @@ import settingsImg from '@/assets/settings.svg';
 import newDirImg from '@/assets/newDir.svg';
 import authgrantsImg from '@/assets/authgrants.svg';
 import FileDirEdit from './FileDirEdit.vue';
-import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '@/models/files/fileDir';
+import { FileDir,FileDirSubDir,FileDirItem, FileDirWiki } from '@/models/files/fileDir';
 import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItem, ClipBoardItemType, PutEmitCallBack } from '@/components/ClipBoard.vue';
 import Functions from '@/components/Functions.vue';
@@ -68,14 +68,21 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         thisDirId.value = res.ThisDirId || 0;
         thisOwnerId.value = res.OwnerId || 0;
         thisOwnerName.value = res.OwnerName;
-        items.value = getFileItemsFromIndexResult(res.Items)
-        subDirs.value = getSubDirsFromIndexResult(res.SubDirs)
-        wikis.value = getWikiItemsFromIndexResult(res.Wikis)
+        items.value = res.Items
+        subDirs.value = res.SubDirs
+        wikis.value = res.Wikis
         friendlyPath.value = res.FriendlyPath;
         setFriendlyPathData();
         hideFn.value = false;
         loading.value = false;
-        return res?.SubDirs;
+        const fetched:IndexResult = {
+            PageCount:res.PageCount,
+            PageIdx:res.PageIdx,
+            TotalCount:res.TotalCount,
+            Data:[],
+            ColumnNames:[]
+        }
+        return fetched
     }
 }
 

@@ -7,7 +7,7 @@ import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItemType } from '@/components/ClipBoard.vue';
 import Functions from '@/components/Functions.vue';
 import Loading from '@/components/Loading.vue';
-import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki, getFileItemsFromIndexResult, getSubDirsFromIndexResult, getWikiItemsFromIndexResult } from '@/models/files/fileDir';
+import { FileDirIndexResult, FileDirItem, FileDirSubDir, FileDirWiki } from '@/models/files/fileDir';
 import { IndexQuery, indexQueryDefault } from '@/components/Index';
 import { Api } from '@/utils/com/api';
 import { storeToRefs } from 'pinia';
@@ -62,11 +62,11 @@ async function loadData(){
     var path = _.filter(props.path, x=>!!x)
     var data = await props.fetchFrom(indexQueryDefault(), path);    
     if(data){
-        showLoading.value = false;
-        items.value = getFileItemsFromIndexResult(data.Items)
-        subDirs.value = getSubDirsFromIndexResult(data.SubDirs)
-        wikis.value = getWikiItemsFromIndexResult(data.Wikis)
-        more.value = data.SubDirs.PageCount > 1
+        showLoading.value = false
+        items.value = data.Items
+        subDirs.value = data.SubDirs
+        wikis.value = data.Wikis
+        more.value = data.PageCount > 1
     }
 }
 

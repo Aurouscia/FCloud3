@@ -167,23 +167,19 @@ namespace FCloud3.Services.Files
                 ids: itemsPaged.Where(x => x.Type == FileDirContentItemType.FileItem).Select(x => x.Id).ToList(),
                 converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl, getUserName));
 
-            var subDirData = new IndexResult<FileDirIndexResult.FileDirSubDir>(subDirList, 0, 0, 0);
-            var wikiData = new IndexResult<FileDirIndexResult.FileDirWiki>(wikiList, 0, 0, 0);
-            var fileData = new IndexResult<FileDirIndexResult.FileDirItem>(fileList, 0, 0, 0);
-
             //subDirs会被用来显示页数
-            subDirData.PageCount = pageCount;
-            subDirData.TotalCount = totalCount;
-            subDirData.PageIdx = pageIdx;
 
             return new() { 
-                Items = fileData,
-                SubDirs = subDirData,
-                Wikis = wikiData,
+                Items = fileList,
+                SubDirs = subDirList,
+                Wikis = wikiList,
                 ThisDirId = thisDirId,
                 OwnerId = ownerId,
                 OwnerName = ownerName,
-                FriendlyPath = friendlyPath
+                FriendlyPath = friendlyPath,
+                PageCount = pageCount,
+                TotalCount = totalCount,
+                PageIdx = pageIdx,
             };
         }
         public FileDirIndexResult? GetHomelessItems(IndexQuery q, string[] path, out string? errmsg)
@@ -222,24 +218,24 @@ namespace FCloud3.Services.Files
                 return k;
             }
             var items = _fileItemRepo.IndexFilterOrder(homelessFiles, q, keyReplaceForFileItem);
-            IndexResult<FileDirIndexResult.FileDirItem>? itemsData = null;
-            itemsData = items.TakePageAndConvertOneByOne(q, x => 
-                new FileDirIndexResult.FileDirItem(x.Id,x.DisplayName,x.Updated,userName,x.ByteCount, _storage.FullUrl(x.StorePathName ?? "??"))
-            );
+            items = items.TakePage(q, out int totalCount, out int pageIdx, out int pageCount);
+            var itemList = _fileItemRepo.GetRangeByIdsOrdered(
+                ids: items.Select(x => x.Id).ToList(),
+                converter: x => FileDirIndexResult.FileDirItem.Converter(x, _storage.FullUrl, x=>userName));
 
             FileDirIndexResult res = new()
             {
-                Wikis = new(new(),1,1,1),
-                Items = itemsData,
-                SubDirs = new(new(),1,1,1),
+                Wikis = [],
+                Items = itemList,
+                SubDirs = [],
                 FriendlyPath = new List<string> { $"无归属文件(属于 {userName})" },
                 ThisDirId = -1
             };
-            
+
             //subDirs会被用来显示页数
-            res.SubDirs.PageCount = itemsData.PageCount;
-            res.SubDirs.PageIdx = itemsData.PageIdx;
-            res.SubDirs.TotalCount = itemsData.TotalCount;
+            res.PageCount = pageCount;
+            res.PageIdx = pageIdx;
+            res.TotalCount = totalCount;
             errmsg = null;
             return res;
         }
@@ -562,13 +558,16 @@ namespace FCloud3.Services.Files
 
     public class FileDirIndexResult
     {
-        public IndexResult<FileDirSubDir>? SubDirs { get; set; }
-        public IndexResult<FileDirItem>? Items { get; set; }
-        public IndexResult<FileDirWiki>? Wikis { get; set; }
+        public required List<FileDirSubDir> SubDirs { get; set; }
+        public required List<FileDirItem> Items { get; set; }
+        public required List<FileDirWiki> Wikis { get; set; }
         public int ThisDirId { get; set; }
         public int OwnerId { get; set; }
         public string? OwnerName { get; set; }
         public List<string>? FriendlyPath { get; set; }
+        public int TotalCount { get; set; }
+        public int PageCount { get; set; }
+        public int PageIdx { get; set; }
 
         public class FileDirSubDir(int id, string? name, string? urlPathName, DateTime updated, string ownerName)
         {
