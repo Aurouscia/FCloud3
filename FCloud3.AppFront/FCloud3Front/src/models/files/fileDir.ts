@@ -24,7 +24,7 @@ export interface FileDirIndexResult{
     OwnerId:number,
     OwnerName:string,
     AsDirId:number,
-    AsDirFriendlyPath:string[]
+    AsDirFriendlyPath?:string[]
     FriendlyPath:string[],
     TotalCount:number,
     PageCount:number,

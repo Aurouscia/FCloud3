@@ -58,7 +58,7 @@ const friendlyPathThisName = ref<string>();
 const thisOwnerName = ref<string>();
 const asDirId = ref<number>(0);
 const asDirFriendlyPath = ref<string[]>([]);
-const notAsDir = computed(()=>asDirId.value==0);
+const notAsDir = computed<boolean>(()=>!asDirId.value);
 const showAsDirInfo = ref(false);
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
@@ -77,7 +77,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         wikis.value = res.Wikis
         friendlyPath.value = res.FriendlyPath;
         asDirId.value = res.AsDirId;
-        asDirFriendlyPath.value = res.AsDirFriendlyPath;
+        asDirFriendlyPath.value = res.AsDirFriendlyPath || [];
         setFriendlyPathData();
         hideFn.value = false;
         loading.value = false;
@@ -262,6 +262,10 @@ function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemTyp
     },e)
 }
 async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCallBack){
+    if(!notAsDir.value){
+        putEmitCallBack([],'此处为快捷方式目录，不能放入')
+        return;
+    }
     const fileItemIds = move.filter(x=>x.type=='fileItem').map(x=>x.id);
     const fileDirIds = move.filter(x=>x.type=='fileDir').map(x=>x.id);
     const wikiItemIds = move.filter(x=>x.type=='wikiItem').map(x=>x.id);
@@ -303,11 +307,11 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                 <button v-if="!notAsDir" class="minor asDirIcon" @click="showAsDirInfo=true">
                     快捷方式
                 </button>
-                <div v-if="showAsDirInfo" class="asDirInfo">
+                <div v-if="showAsDirInfo && asDirFriendlyPath" class="asDirInfo">
                     <button class="lite asDirInfoClose" @click="showAsDirInfo=false">×</button>
                     <div>本目录是<b>快捷方式</b></div>
                     <div>实际位置：</div>
-                    <RouterLink :to="jumpToDirFromIdRoute(asDirId)">{{ asDirFriendlyPath.join('/') }}</RouterLink>
+                    <RouterLink :to="jumpToDirFromIdRoute(asDirId)">{{ asDirFriendlyPath?.join('/') }}</RouterLink>
                 </div>
             </div>
             <div v-else-if="thisDirId==0" class="thisName">
@@ -368,7 +372,8 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     </div>    
     <Footer></Footer>
     <SideBar ref="sidebar">
-        <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
+        <FileDirEdit v-if="thisDirId!=0" :id="thisDirId" :path="pathThis" :is-as-dir="!notAsDir"
+            @info-updated="infoUpdated" @added-new-file="index?.reloadData"></FileDirEdit>
     </SideBar>
     <SideBar ref="newDirSidebar">
         <FileDirCreate :dir-id="thisDirId" :dir-name="friendlyPathThisName||''" @created="dirCreated"></FileDirCreate>

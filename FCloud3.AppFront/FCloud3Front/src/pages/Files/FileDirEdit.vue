@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Api } from '@/utils/com/api';
 import { FileDir } from '@/models/files/fileDir';
 import Loading from '@/components/Loading.vue';
@@ -12,14 +12,22 @@ import AuthProblem from '@/components/AuthProblem.vue';
 import { useFilesRoutesJump } from './routes/routesJump';
 import LongPress from '@/components/LongPress.vue';
 import CreateWiki from '@/components/Wiki/CreateWiki.vue';
+import { injectApi } from '@/provides';
 
 const data = ref<FileDir>();
 const props = defineProps<{
     id:number,
-    path:string[]
+    path:string[],
+    isAsDir?:boolean
 }>()
-var api:Api;
+const tabsTexts = computed<string[]>(()=>{
+    if(props.isAsDir){
+        return ['设置'] 
+    }
+    return ['新词条','放词条','传文件','设置']
+})
 
+var api:Api = injectApi()
 const { jumpToDir } = useFilesRoutesJump();
 
 async function saveEdit(){
@@ -65,7 +73,6 @@ const emit = defineEmits<{
 
 
 onMounted(async()=>{
-    api = inject('api') as Api;
     data.value = await api.files.fileDir.edit(props.id);
     editingDirName.value = data.value?.Name;
     editingDirUrlPathName.value = data.value?.UrlPathName;
@@ -78,14 +85,14 @@ onMounted(async()=>{
             <h1>{{ data.Name }}</h1>
         </div>
         <div class="section">
-            <SwitchingTabs :texts="['新词条','放词条','传文件','设置']">
-                <div>
+            <SwitchingTabs :texts="tabsTexts">
+                <div v-if="!isAsDir">
                     <div v-if="data.CanPutThings">
                         <CreateWiki :in-dir-id="data.Id" :no-h1="true"></CreateWiki>
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
-                <div>
+                <div v-if="!isAsDir">
                     <div v-if="data.CanPutThings">
                         <Search ref="moveSearch" :source="s=>api.etc.quickSearch.wikiItem(s, data?.Id)" :placeholder="'词条标题'" :allow-free-input="false"
                             :no-result-notice="'无搜索结果'" @done="moveInWiki" ></Search>
@@ -93,7 +100,7 @@ onMounted(async()=>{
                     </div>
                     <AuthProblem v-else></AuthProblem>
                 </div>
-                <div>
+                <div v-if="!isAsDir">
                     <div v-if="data.CanPutThings">
                         <FileUpload @uploaded="newFile" dist="upload"></FileUpload>
                         <Notice type="info">文件不能同时放在多个目录内</Notice>
