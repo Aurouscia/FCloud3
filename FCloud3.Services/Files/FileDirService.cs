@@ -98,6 +98,7 @@ namespace FCloud3.Services.Files
             int ownerId = 0;
             int asDirId = 0;
             List<string>? asDirFriendlyPath = null;
+            List<string>? asDirPath = null;
             if (thisDirId > 0)
             {
                 var info = _fileDirRepo.GetqById(thisDirId)
@@ -106,10 +107,16 @@ namespace FCloud3.Services.Files
                 if (info != null) {
                     ownerId = info.CreatorUserId;
                     asDirId = info.AsDir;
-                    if(asDirId > 0)
-                        asDirFriendlyPath = 
-                            _fileDirRepo.GetFriendlyPathById(asDirId)
+                    if (asDirId > 0)
+                    {
+                        var asChain = _fileDirRepo.GetChainItemsById(asDirId);
+                        asDirFriendlyPath =
+                            asChain?.ConvertAll(x => x.Name??"??")
                             ?? ["目标目录已被删除"];
+                        asDirPath =
+                            asChain?.ConvertAll(x => x.PathName ?? "??")
+                            ?? ["目标目录已被删除"];
+                    }
                 }
             }
             var ownerName = "";
@@ -193,7 +200,8 @@ namespace FCloud3.Services.Files
                 OwnerId = ownerId,
                 OwnerName = ownerName,
                 AsDirId = asDirId,
-                AsDirFriendlyPath = asDirFriendlyPath,
+                AsDirFriendlyPath = asDirFriendlyPath ?? [],
+                AsDirPath = asDirPath ?? [],
                 FriendlyPath = friendlyPath,
                 PageCount = pageCount,
                 TotalCount = totalCount,
@@ -586,6 +594,7 @@ namespace FCloud3.Services.Files
         public List<string> FriendlyPath { get; set; } = [];
         public int AsDirId { get; set; }
         public List<string> AsDirFriendlyPath { get; set; } = [];
+        public List<string> AsDirPath { get; set; } = [];
         public int TotalCount { get; set; }
         public int PageCount { get; set; }
         public int PageIdx { get; set; }

@@ -58,6 +58,7 @@ const friendlyPathThisName = ref<string>();
 const thisOwnerName = ref<string>();
 const asDirId = ref<number>(0);
 const asDirFriendlyPath = ref<string[]>([]);
+const asDirPath = ref<string[]>([]);
 const notAsDir = computed<boolean>(()=>!asDirId.value);
 const showAsDirInfo = ref(false);
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
@@ -67,6 +68,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         if(p==''){p=[]}
         else{p = [p];}
     }
+    showAsDirInfo.value = false
     const res = await api.files.fileDir.index(q,p)
     if(res){
         thisDirId.value = res.ThisDirId || 0;
@@ -78,6 +80,7 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         friendlyPath.value = res.FriendlyPath;
         asDirId.value = res.AsDirId;
         asDirFriendlyPath.value = res.AsDirFriendlyPath || [];
+        asDirPath.value = res.AsDirPath || [];
         setFriendlyPathData();
         hideFn.value = false;
         loading.value = false;
@@ -190,7 +193,7 @@ function windowResizeHandler(){
     }, 500)
 }
 
-const { jumpToViewFileItemRoute, jumpToDirFromId, jumpToDirFromIdRoute } = useFilesRoutesJump()
+const { jumpToViewFileItemRoute, jumpToDirFromId, jumpToDirRoute } = useFilesRoutesJump()
 const fileSearchSidebar = ref<InstanceType<typeof SideBar>>()
 const dirSearchSidebar = ref<InstanceType<typeof SideBar>>()
 function fileSearchDone(id:number){
@@ -311,7 +314,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                     <button class="lite asDirInfoClose" @click="showAsDirInfo=false">×</button>
                     <div>本目录是<b>快捷方式</b></div>
                     <div>实际位置：</div>
-                    <RouterLink :to="jumpToDirFromIdRoute(asDirId)">{{ asDirFriendlyPath?.join('/') }}</RouterLink>
+                    <RouterLink :to="jumpToDirRoute(asDirPath)">{{ asDirFriendlyPath?.join('/') }}</RouterLink>
                 </div>
             </div>
             <div v-else-if="thisDirId==0" class="thisName">
