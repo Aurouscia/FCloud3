@@ -8,7 +8,8 @@ const props = defineProps<{
     noResultNotice?:string,
     source:(s:string)=>Promise<QuickSearchResult|undefined>,
     dontClearAfterDone?:boolean,
-    compact?:boolean
+    compact?:boolean,
+    doneWhenClickCand?:boolean
 }>()
 
 const doneBtnStatus = ref<boolean>(false);
@@ -54,6 +55,9 @@ function clickCand(c:QuickSearchResultItem){
     isFreeInput.value = false;
     if(cands.value){
         cands.value.Items = [];
+    }
+    if(props.doneWhenClickCand){
+        done()
     }
 }
 function done(){
@@ -152,7 +156,8 @@ onUnmounted(()=>{
 <style scoped lang="scss">
 .desc{
     font-size: 10px;
-    color:#888
+    color:#888;
+    white-space: wrap;
 }
 .candItem:hover{
     background-color: #ccc;
