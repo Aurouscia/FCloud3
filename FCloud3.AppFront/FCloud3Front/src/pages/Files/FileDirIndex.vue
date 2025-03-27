@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import IndexMini, { IndexColumn } from '@/components/Index/IndexMini.vue';
 import { Api } from '@/utils/com/api';
 import { IndexQuery, IndexResult } from '@/components/Index';
@@ -56,6 +56,10 @@ const friendlyPath = ref<string[]>([]);
 const friendlyPathAncestors = ref<string[]>([]);
 const friendlyPathThisName = ref<string>();
 const thisOwnerName = ref<string>();
+const asDirId = ref<number>(0);
+const asDirFriendlyPath = ref<string[]>([]);
+const notAsDir = computed(()=>asDirId.value==0);
+const showAsDirInfo = ref(false);
 //会在OnMounted下一tick被MiniIndex执行，获取thisDirId
 const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
     var p = props.path;
@@ -72,6 +76,8 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
         subDirs.value = res.SubDirs
         wikis.value = res.Wikis
         friendlyPath.value = res.FriendlyPath;
+        asDirId.value = res.AsDirId;
+        asDirFriendlyPath.value = res.AsDirFriendlyPath;
         setFriendlyPathData();
         hideFn.value = false;
         loading.value = false;
@@ -184,7 +190,7 @@ function windowResizeHandler(){
     }, 500)
 }
 
-const { jumpToViewFileItemRoute, jumpToDirFromId } = useFilesRoutesJump()
+const { jumpToViewFileItemRoute, jumpToDirFromId, jumpToDirFromIdRoute } = useFilesRoutesJump()
 const fileSearchSidebar = ref<InstanceType<typeof SideBar>>()
 const dirSearchSidebar = ref<InstanceType<typeof SideBar>>()
 function fileSearchDone(id:number){
@@ -292,8 +298,17 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
             <div v-else-if="friendlyPathThisName && thisDirId>0" class="thisName">
                 {{ friendlyPathThisName }}
                 <img class="settingsBtn" @click="startEditDirInfo" :src='settingsImg'/>
-                <img class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
-                <img v-show="iden.Id == thisOwnerId" class="settingsBtn paddedBtn" @click="startGrantingAuth" :src="authgrantsImg"/>
+                <img v-if="notAsDir" class="settingsBtn paddedBtn" @click="startCreatingDir" :src='newDirImg'/>
+                <img v-if="notAsDir" v-show="iden.Id == thisOwnerId" class="settingsBtn paddedBtn" @click="startGrantingAuth" :src="authgrantsImg"/>
+                <button v-if="!notAsDir" class="minor asDirIcon" @click="showAsDirInfo=true">
+                    快捷方式
+                </button>
+                <div v-if="showAsDirInfo" class="asDirInfo">
+                    <button class="lite asDirInfoClose" @click="showAsDirInfo=false">×</button>
+                    <div>本目录是<b>快捷方式</b></div>
+                    <div>实际位置：</div>
+                    <RouterLink :to="jumpToDirFromIdRoute(asDirId)">{{ asDirFriendlyPath.join('/') }}</RouterLink>
+                </div>
             </div>
             <div v-else-if="thisDirId==0" class="thisName">
                 根目录
@@ -375,6 +390,41 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 
 <style scoped lang="scss">
 @use '@/styles/globalValues';
+
+.asDirIcon{
+    font-size: 14px;
+}
+.asDirInfo{
+    position: fixed;
+    inset: 0px;
+    top: calc(globalValues.$topbar-height + 10px);
+    width: 220px;
+    height: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0px 0px 10px 0px black;
+    padding: 10px;
+    font-size: 16px;
+    background-color: white;
+    border-radius: 10px;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5px;
+    a{
+        font-size: 12px;
+    }
+    .asDirInfoClose{
+        color: plum;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        font-size: 22px;
+        cursor: pointer;
+    }
+}
 
 .ownerAndInfoType{
     display: flex;

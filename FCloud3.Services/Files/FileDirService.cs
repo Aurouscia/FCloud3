@@ -192,6 +192,8 @@ namespace FCloud3.Services.Files
                 ThisDirId = thisDirId,
                 OwnerId = ownerId,
                 OwnerName = ownerName,
+                AsDirId = asDirId,
+                AsDirFriendlyPath = asDirFriendlyPath,
                 FriendlyPath = friendlyPath,
                 PageCount = pageCount,
                 TotalCount = totalCount,
@@ -581,7 +583,9 @@ namespace FCloud3.Services.Files
         public int ThisDirId { get; set; }
         public int OwnerId { get; set; }
         public string? OwnerName { get; set; }
-        public List<string>? FriendlyPath { get; set; }
+        public List<string> FriendlyPath { get; set; } = [];
+        public int AsDirId { get; set; }
+        public List<string> AsDirFriendlyPath { get; set; } = [];
         public int TotalCount { get; set; }
         public int PageCount { get; set; }
         public int PageIdx { get; set; }
