@@ -1,8 +1,9 @@
-namespace FCloud3.Entities.Identities
+namespace FCloud3.Entities.Sys
 {
     public class UserConfig : IDbModel
     {
         public int Id { get; set; }
+        public UserConfigOn On { get; set; }
         public UserConfigType Type { get; set; }
         public string? ValueStr0 { get; set; }
         public int ValueNum0 { get; set; }
@@ -13,8 +14,11 @@ namespace FCloud3.Entities.Identities
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
     }
-
-    public enum UserConfigType
+    public enum UserConfigOn:byte
+    {
+        User = 11
+    }
+    public enum UserConfigType:byte
     {
         WikiStyle = 11,
         WikiCCLicense = 12

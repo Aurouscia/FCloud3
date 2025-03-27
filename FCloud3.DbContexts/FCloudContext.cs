@@ -35,11 +35,13 @@ namespace FCloud3.DbContexts
         public DbSet<Material> Materials { get; set; }
         public DbSet<DiffContent> DiffContents { get; set; }
         public DbSet<DiffSingle> DiffSingles { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<OpRecord> OpRecords { get; set; }
         public DbSet<WikiSelected> WikiSelecteds { get; set; }
         public DbSet<LastUpdate> LastUpdates { get; set; }
+        public DbSet<UserConfig> UserConfigs { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteContext -OutputDir Migrations/SqliteMigrations

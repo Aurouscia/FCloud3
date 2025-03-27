@@ -15,7 +15,7 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("FCloud3.Entities.Diff.DiffContent", b =>
                 {
@@ -82,6 +82,9 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AsDir")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ByteCount")
@@ -395,6 +398,42 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("FCloud3.Entities.Messages.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Content")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte>("ContentType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatorUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Read")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReceiverId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("FCloud3.Entities.Messages.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -485,6 +524,47 @@ namespace FCloud3.DbContexts.Migrations.SqliteMigrations
                     b.HasKey("Type");
 
                     b.ToTable("LastUpdates");
+                });
+
+            modelBuilder.Entity("FCloud3.Entities.Sys.UserConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatorUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte>("On")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ValueNum0")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ValueNum1")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ValueNum2")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ValueStr0")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserConfigs");
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Table.FreeTable", b =>
