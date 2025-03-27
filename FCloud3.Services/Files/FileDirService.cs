@@ -63,7 +63,9 @@ namespace FCloud3.Services.Files
 
         private enum FileDirContentItemType
         {
-            Dir, WikiItem, FileItem
+            Dir = 0,
+            WikiItem = 1,
+            FileItem = 2
         }
         private struct FileDirContentItem(int id, int owner, FileDirContentItemType type, DateTime updated)
         {
@@ -145,14 +147,13 @@ namespace FCloud3.Services.Files
             if(q.OrderBy is null)
                 contents.Sort((x, y) =>
                 {
+                    if (x.Type != y.Type)
+                        return x.Type - y.Type;
                     int xOwned = x.Owner == _userId ? 1 : 0;
                     int yOwned = y.Owner == _userId ? 1 : 0;
                     int owningDiff = yOwned - xOwned;
                     if (owningDiff != 0)
                         return owningDiff;
-                    int typeDiff = x.Type - y.Type;
-                    if (typeDiff != 0)
-                        return typeDiff;
                     return DateTime.Compare(y.Updated, x.Updated);
                 });
             var itemsPaged = contents.AsQueryable().TakePage(q, out int totalCount, out int pageIdx, out int pageCount).ToList();
