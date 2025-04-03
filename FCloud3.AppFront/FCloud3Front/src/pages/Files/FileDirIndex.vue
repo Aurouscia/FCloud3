@@ -401,6 +401,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 
 .asDirIcon{
     font-size: 14px;
+    line-height: 14px;
 }
 .asDirInfo{
     position: fixed;
