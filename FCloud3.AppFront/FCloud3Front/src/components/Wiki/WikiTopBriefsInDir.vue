@@ -6,15 +6,22 @@ import { onMounted, ref } from 'vue';
 import Loading from '../Loading.vue';
 
 const props = defineProps<{
-    dirId:number
-    count:number
+    dirId:number,
+    takeBriefAt?:number,
+    takeKvPairAt?:number
 }>()
 
 const api = injectApi()
 const data = ref<WikiTopBriefOfDirResponse>()
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 async function load(){
-    const resp = await api.etc.wikiTopBriefsOfDir.get(props.dirId, props.count)
+    const resp = await api.etc.wikiTopBriefsOfDir.get({
+        DirId: props.dirId,
+        Skip: 0,
+        Take: 100,
+        TakeBriefAt: props.takeBriefAt??0,
+        TakeKvPairAt: props.takeKvPairAt??0
+    })
     if(resp){
         data.value = resp
     }
