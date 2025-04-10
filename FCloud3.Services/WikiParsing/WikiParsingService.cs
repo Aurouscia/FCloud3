@@ -256,7 +256,8 @@ namespace FCloud3.Services.WikiParsing
                         string? errmsg = "解析失败";
                         if (stream is not null)
                         {
-                            var tableData = AuTableExcelConverter.FromXlsx(stream, out errmsg);
+                            var tableData = AuTableExcelConverter.FromXlsx(
+                                stream, CommonOptions.excelConvert, out errmsg);
                             if (tableData is not null)
                             {
                                 var resOfP = ParseTable(tableData, parser);

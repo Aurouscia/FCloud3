@@ -124,7 +124,8 @@ namespace FCloud3.Services.Wiki
             var stream = _storage.Read(file.StorePathName);
             if (stream is not null)
             {
-                var tableData = AuTableExcelConverter.FromXlsx(stream, out errmsg);
+                var tableData = AuTableExcelConverter.FromXlsx(
+                    stream, CommonOptions.excelConvert, out errmsg);
                 if (tableData is null || errmsg is { })
                 {
                     errmsg ??= "文件解析失败";
