@@ -13,8 +13,8 @@
   },
   "devDependencies": {
     "@types/color": "^3.0.6",
-    "typescript": "^5.8.2",
-    "vite": "^6.2.1"
+    "typescript": "^5.8.3",
+    "vite": "^6.2.6"
   },
   "dependencies": {
     "color": "^4.2.3"

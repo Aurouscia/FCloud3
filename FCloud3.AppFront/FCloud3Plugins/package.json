@@ -1,0 +1,6 @@
+{
+    "name": "fcloud3-plugins",
+    "workspaces":[
+        "./*"
+    ]
+}
