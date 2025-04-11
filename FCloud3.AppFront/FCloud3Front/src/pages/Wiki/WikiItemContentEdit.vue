@@ -324,7 +324,7 @@ onUnmounted(()=>{
                     :no-shortcut="true"
                     @changed="()=>paraChanged(p)"
                     @save="(val, cb)=>tableSave(val, cb, p)"
-                    :size-change-callback="(s)=>{p.height = s.height - 40}"
+                    :size-change-callback="(s)=>{p.height = s.height - 30}"
                     :external-save-callback-provide="(s)=>registerActiveSave(s,p)"></AuTableEditor>
             </div>
             <div v-else-if="p.Type == WikiParaType.File" class="file">
