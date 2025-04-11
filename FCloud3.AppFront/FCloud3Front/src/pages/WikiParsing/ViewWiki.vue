@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
-import { WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
+import { ParserTitleTreeNode, WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
@@ -129,8 +129,8 @@ function viewAreaScrollHandler(enforce?:boolean){
     lastScrollTime = Date.now();
     let currentTitleIdx = _.findLastIndex(titlesInContent, t=>
         !t.classList.contains(hiddenSubClassName) &&
-        t.offsetTop < st + 30); //50是玄学数字，未搞清楚作用机理
-    if(currentTitleIdx == -1){5
+        t.offsetTop < st + 30); //30是玄学数字，未搞清楚作用机理
+    if(currentTitleIdx == -1){
         return
     }
     let currentTitle = titlesInContent[currentTitleIdx];
@@ -204,6 +204,44 @@ function toggleSubtitlesSidebarFolded(force:"fold"|"extend"|"toggle"= "toggle"){
         swl = undefined;
     }
 }
+function subtitlesClean(){
+    //标题可能因为各种原因消失（解析器转换，插件操作）需要清理
+    if(!data.value)
+        return;
+    //移除所有找不到对应id元素的目录项
+    data.value.SubTitles = filterSubtitleByDomExistence(data.value.SubTitles)
+    //移除所有找不到对应id目录项的“滚动目标”
+    titlesInContent = titlesInContent.filter(t=>{
+        if(!t)
+            return;
+        const id = getIdFromElementId(t)
+        return subtitlesContainId(data.value?.SubTitles || [], id)
+    })
+}
+function filterSubtitleByDomExistence(filterTarget:ParserTitleTreeNode[]){
+    filterTarget = filterTarget.filter(x=>{
+        const titleEleId = titleElementId(x.Id)
+        if(!titleEleId)
+            return false
+        return !!document.getElementById(titleEleId)
+    })
+    filterTarget.forEach(t=>{
+        if(t.Subs)
+            t.Subs = filterSubtitleByDomExistence(t.Subs)
+    })
+    return filterTarget
+}
+function subtitlesContainId(searchIn:ParserTitleTreeNode[], id:number){
+    if(searchIn.some(x=>x.Id==id))
+        return true;
+    for(const node of searchIn){
+        if(!node.Subs)
+            continue
+        if(subtitlesContainId(node.Subs, id))
+            return true;
+    }
+    return false;
+}
 
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
@@ -256,6 +294,7 @@ async function init(changedPathName?:boolean){
 
     await runPluginsByWiki(data.value?.Paras.map(x=>x.Content))
     stickyContainTableRestrict()
+    subtitlesClean()
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()

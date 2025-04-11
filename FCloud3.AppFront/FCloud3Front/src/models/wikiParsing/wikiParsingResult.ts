@@ -31,5 +31,5 @@ export interface ParserTitleTreeNode {
     Text: string
     Id: number
     Level: number
-    Subs: ParserTitleTreeNode[]
+    Subs?: ParserTitleTreeNode[]
 }
