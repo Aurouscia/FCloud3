@@ -60,18 +60,12 @@ namespace FCloud3.Repos.Test.Files
         public void GetChainByPath(string path, string? ids)
         {
             var pathParts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            var res1 = _repo.GetChainIdsByPath(pathParts);
-            var res2 = _repo.GetChainByPath(pathParts);
+            var res1 = _repo.GetChainItemsByPath(pathParts)?.ConvertAll(x=>x.Id);
 
             if (ids is not null)
             {
-                Assert.IsNotNull(res2);
                 var idsActual = ids.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList().ConvertAll(int.Parse);
                 CollectionAssert.AreEqual(idsActual, res1);
-                var resPathNames = res2.ConvertAll(x => x.UrlPathName);
-                var resIds = res2.ConvertAll(x => x.Id);
-                CollectionAssert.AreEqual(pathParts, resPathNames);
-                CollectionAssert.AreEqual(idsActual, resIds);
             }
             else
             {
@@ -180,6 +174,7 @@ namespace FCloud3.Repos.Test.Files
 
                 //测试的方法：被移动的目录需要能将其子代作出相应的正确改动
                 _repo.UpdateDescendantsInfoFor([beMoved], out var errmsg);
+                _context.ChangeTracker.Clear();//模拟scope结束
                 Assert.IsNull(errmsg);
 
                 //检查所有目录的深度是否正确

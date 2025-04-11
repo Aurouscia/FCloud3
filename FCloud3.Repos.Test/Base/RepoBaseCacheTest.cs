@@ -12,14 +12,15 @@ namespace FCloud3.Repos.Test.Base
     [TestClass]
     public class RepoBaseCacheTest
     {
+        private readonly FCloudContextWithSomeClass _ctx;
         private readonly SomeClassRepo _repo;
         private readonly SomeClassRepo _repoAnother;
         public RepoBaseCacheTest()
         {
-            var ctx = FCloudContextWithSomeClass.Create();
+            _ctx = FCloudContextWithSomeClass.Create();
             var userIdProvider = new StubUserIdProvider(2);
-            _repo = new SomeClassRepo(ctx, userIdProvider);
-            _repoAnother = new SomeClassRepo(ctx, userIdProvider);
+            _repo = new SomeClassRepo(_ctx, userIdProvider);
+            _repoAnother = new SomeClassRepo(_ctx, userIdProvider);
 
             var time = new DateTime(2024, 1, 6);
             List<SomeClass> items = [
@@ -28,8 +29,8 @@ namespace FCloud3.Repos.Test.Base
                 new(){ Name = "Cu", Number1 = 128, Number2 = 31, Number3 = 32 },
                 ];
             //即使有的行的Update为默认值，也不影响缓存同步
-            ctx.AddRange(items);
-            ctx.SaveChanges();
+            _ctx.AddRange(items);
+            _ctx.SaveChanges();
             _repo.ClearCache();
         }
 
@@ -74,6 +75,7 @@ namespace FCloud3.Repos.Test.Base
             Assert.AreEqual(3, _repo.RepoCacheDictSyncFetchedRows);
 
             _repo.Add(new() { Number1 = 256 });
+            _ctx.ChangeTracker.Clear();//模拟scope结束
 
             var item1 = _repo.CachedItemById(4);
             AssertObjectStatus(item1!, 256);
@@ -86,6 +88,7 @@ namespace FCloud3.Repos.Test.Base
             Assert.AreEqual(4, _repo.RepoCacheDictSyncFetchedRows);
 
             _repo.Add(new() { Number1 = 512 });
+            _ctx.ChangeTracker.Clear();//模拟scope结束
 
             var items3 = _repo.AllCachedItems().ToList();
             AssertObjectsStatus(items3, [32, 64, 128, 256, 512]);
@@ -109,6 +112,7 @@ namespace FCloud3.Repos.Test.Base
             var first = _repo.GetByIdEnsure(1);
             first.Number1 = 16;
             _repo.Update(first);
+            _ctx.ChangeTracker.Clear();//模拟scope结束
 
             var item1 = _repo.CachedItemById(1);
             AssertObjectStatus(item1!, 16);
@@ -123,6 +127,7 @@ namespace FCloud3.Repos.Test.Base
             var second = _repo.GetByIdEnsure(2);
             second.Number1 = 32;
             _repo.Update(second);
+            _ctx.ChangeTracker.Clear();//模拟scope结束
 
             var items3 = _repo.AllCachedItems().ToList();
             AssertObjectsStatus(items3, [16, 32, 128]);
@@ -145,6 +150,7 @@ namespace FCloud3.Repos.Test.Base
             Assert.AreEqual(3, _repo.CachedItemsCount());
 
             _repo.Remove(1);
+            _ctx.ChangeTracker.Clear();//模拟scope结束
 
             var items2 = _repo.AllCachedItems().ToList();
             AssertObjectsStatus(items2, [64, 128]);

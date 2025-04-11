@@ -56,6 +56,7 @@ namespace FCloud3.Services.Test.Wiki
             var setParamList = TestStrParse.IntList(setParam);
             var expectedAllList = TestStrParse.IntList(expectedAll);
             _wikiTitleContainService.SetContains(WikiTitleContainType.TextSection, 1, setParamList);
+            _context.ChangeTracker.Clear();//模拟scope结束
             var nb = _wikiTitleContainRepo.NotBlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1)
                 .Select(x=>x.WikiId).ToList();
             var all = _wikiTitleContainRepo.Existing.WithTypeAndId(WikiTitleContainType.TextSection, 1)

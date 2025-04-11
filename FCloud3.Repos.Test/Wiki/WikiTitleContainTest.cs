@@ -9,9 +9,11 @@ namespace FCloud3.Repos.Test.Wiki
     public class WikiTitleContainTest
     {
         private readonly WikiTitleContainRepo _repo;
+        private readonly FCloudMemoryContext _context;
         public WikiTitleContainTest()
         {
             var ctx = FCloudMemoryContext.Create();
+            _context = ctx;
             _repo = new WikiTitleContainRepo(ctx, new StubUserIdProvider(1));
             _repo.ClearCache();
             List<WikiTitleContain> existing =
@@ -48,6 +50,7 @@ namespace FCloud3.Repos.Test.Wiki
         public void SetStatus()
         {
             _repo.SetStatus(WikiTitleContainType.TextSection, 1, [1, 3, 4, 5]);
+            _context.ChangeTracker.Clear();//Ä£Äâscope½áÊø
             var t1nb = _repo.GetByTypeAndObjId(WikiTitleContainType.TextSection, 1, true);
             CollectionAssert.AreEquivalent(new List<int>(){ 1, 3, 4, 5 }, t1nb.ConvertAll(x=>x.WikiId));
             var t1b = _repo.BlackListed.WithTypeAndId(WikiTitleContainType.TextSection, 1).ToList();
