@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
-import { pluginsEnabled } from './pluginsEnabled.mjs';
+import { pluginsEnabled } from './buildPluginsOptions.mjs';
 
 function getPluginsEnabledDirs(directory) {
     return fs.readdirSync(directory)
@@ -16,7 +16,6 @@ function getPluginsEnabledDirs(directory) {
 
 function runNpmBuild(directory) {
     console.log(`=========正在编译: ${directory}=========`);
-    execSync('npm ci', { cwd: directory, stdio: 'inherit' })
     execSync('npm run build', { cwd: directory, stdio: 'inherit' })
 }
 
@@ -28,6 +27,8 @@ async function main() {
         console.log('没有启用的插件');
         return;
     }
+    console.log('=========开始安装依赖=========')
+    execSync('npm install --workspaces', { cwd: currentDir, stdio: 'inherit' })
 
     console.log('=========开始编译所有插件=========');
     for (const subdir of pluginDirs) {
