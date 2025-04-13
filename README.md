@@ -55,7 +55,7 @@ http://wiki.jowei19.com
 5. 点击`Visual Studio`顶部绿色启动按钮启动调试，检查是否正常
 6. 在浏览器地址栏访问`调试域名/init/<配置文件内的总密码>/initDb`以初始化数据库
 7. 准备服务器环境
-    - windows服务器：安装[.net8.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0) (8.0内尽可能新版)
+    - windows服务器：安装[.net9.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/9.0) (9.0内尽可能新版)
         - 在IIS中新建站点，并指向程序目录
         - 为程序目录添加Users用户组完全控制授权（或者折腾iis权限，让程序能读写当前目录就行）
     - linux服务器：安装`docker`和`nginx或apache`(之类的反向代理)
