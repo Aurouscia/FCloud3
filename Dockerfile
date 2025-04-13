@@ -3,16 +3,20 @@
 
 # 构建vue前端
 FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS febuild
+RUN npm config set registry https://registry.npmmirror.com
+WORKDIR "/app/FCloud3.AppFront/FCloud3Plugins"
+COPY "./FCloud3.AppFront/FCloud3Plugins" "."
+RUN npm ci --workspaces
+RUN npm run build --workspaces
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/package-lock.json" "./package-lock.json"
-RUN npm config set registry https://registry.npmmirror.com
 RUN npm ci
 COPY "./FCloud3.AppFront/FCloud3Front" "."
 RUN npm run build-here
 
 # 构建.net后端
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS bebuild
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS bebuild
 WORKDIR "/src"
 COPY "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj" "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj"
 COPY "./FCloud3.Diff/FCloud3.Diff.csproj" "./FCloud3.Diff/FCloud3.Diff.csproj"
@@ -33,8 +37,8 @@ COPY "./FCloud3.Services" "./FCloud3.Services"
 COPY "./FCloud3.App" "./FCloud3.App"
 RUN dotnet publish "./FCloud3.App/FCloud3.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# 组合进.net8.0运行环境
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# 组合进.net9.0运行环境
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 # 设置系统时区为上海
 ENV TZ=Asia/Shanghai
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
