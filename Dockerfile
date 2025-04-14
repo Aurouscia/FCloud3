@@ -6,8 +6,7 @@ FROM mcr.microsoft.com/azurelinux/base/nodejs:20 AS febuild
 RUN npm config set registry https://registry.npmmirror.com
 WORKDIR "/app/FCloud3.AppFront/FCloud3Plugins"
 COPY "./FCloud3.AppFront/FCloud3Plugins" "."
-RUN npm ci --workspaces
-RUN npm run build --workspaces
+RUN node buildPlugins.mjs
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/package-lock.json" "./package-lock.json"
