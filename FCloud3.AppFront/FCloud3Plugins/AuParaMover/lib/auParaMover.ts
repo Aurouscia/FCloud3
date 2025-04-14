@@ -29,7 +29,9 @@ export function run(){
         }
     }
 
-    const titles = document.getElementsByTagName(searchInTitleTagName)
+    //getElementsByTagName返回的是一个动态集合，ChildNode.remove()之后集合会变化
+    //导致for循环跳过元素，因此需要使用数组来存储元素
+    const titles = [...document.getElementsByTagName(searchInTitleTagName)]
     for(const title of titles){
         const h1Text = title.innerText
         const target = targets.find(t=>{
