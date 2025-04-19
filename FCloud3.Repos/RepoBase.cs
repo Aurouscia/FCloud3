@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Org.BouncyCastle.Crypto;
 
 namespace FCloud3.Repos
 {

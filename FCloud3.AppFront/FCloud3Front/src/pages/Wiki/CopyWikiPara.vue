@@ -29,6 +29,10 @@ function searchDone(value:string, id:number){
     copyingTitle.value = value;
     copyingId.value = id;
 }
+function clear(){
+    copyingTitle.value = undefined
+    copyingId.value = 0
+}
 
 const sidebar = ref<InstanceType<typeof SideBar>>();
 const api = injectApi();
@@ -47,7 +51,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-<SideBar ref="sidebar" @extend="emit('open')" @fold="emit('close')">
+<SideBar ref="sidebar" @extend="emit('open')" @fold="clear();emit('close')">
     <h1>复制段落（{{copyingTypeText}}）</h1>
     <Search v-if="copyingType==='textSection'" :source="api.etc.quickSearch.copyableTextSection" :done-when-click-cand="true"
         @done="searchDone" :placeholder="'段落名称'"></Search>

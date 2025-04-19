@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos.Files;
+﻿using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
@@ -9,6 +10,7 @@ namespace FCloud3.Services.Etc
 {
     public class QuickSearchService(
         WikiItemRepo wikiItemRepo,
+        WikiParaRepo wikiParaRepo,
         UserRepo userRepo,
         UserGroupRepo userGroupRepo,
         FileItemRepo fileItemRepo,
@@ -104,22 +106,48 @@ namespace FCloud3.Services.Etc
         public QuickSearchResult SearchCopyableTextSection(string str)
         {
             var q = textSectionRepo.SearchCopyableName(str);
-            var items = q.Select(x => new {x.Id, x.Title}).Take(maxCount).ToList();
+            var items = (
+                from w in wikiItemRepo.Existing
+                from p in wikiParaRepo.WithType(WikiParaType.Text)
+                from t in q
+                where p.WikiItemId == w.Id && p.ObjectId == t.Id
+                select t)
+                .OrderBy(x => x.Title)
+                .Select(x => new {x.Id, x.Title})
+                .Take(maxCount)
+                .ToList();
+            HashSet<int> addedIds = [];
             QuickSearchResult res = new();
             items.ForEach(x =>
             {
+                if(addedIds.Contains(x.Id))
+                    return;
                 res.Items.Add(new(x.Title ?? "N/A", null, x.Id));
+                addedIds.Add(x.Id);
             });
             return res;
         }
         public QuickSearchResult SearchCopyableFreeTable(string str)
         {
             var q = freeTableRepo.SearchCopyableName(str);
-            var items = q.Select(x => new { x.Id, x.Name }).Take(maxCount).ToList();
+            var items = (
+                from w in wikiItemRepo.Existing
+                from p in wikiParaRepo.WithType(WikiParaType.Table)
+                from t in q
+                where p.WikiItemId == w.Id && p.ObjectId == t.Id
+                select t)
+                .OrderBy(x => x.Name)
+                .Select(x => new { x.Id, x.Name })
+                .Take(maxCount)
+                .ToList();
+            HashSet<int> addedIds = [];
             QuickSearchResult res = new();
             items.ForEach(x =>
             {
+                if (addedIds.Contains(x.Id))
+                    return;
                 res.Items.Add(new(x.Name ?? "N/A", null, x.Id));
+                addedIds.Add(x.Id);
             });
             return res;
         }
