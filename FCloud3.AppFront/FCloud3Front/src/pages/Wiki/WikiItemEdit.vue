@@ -32,6 +32,7 @@ import { useWikiRoutesJump } from './routes/routesJump';
 import Search from '@/components/Search.vue';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo'
 import { paraType2ContainType, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
+import CopyWikiPara from './CopyWikiPara.vue';
 
 const paras = ref<Array<WikiParaRendered>>([])
 const spaces = ref<Array<number>>([]);
@@ -116,14 +117,21 @@ async function endMoving(){
         }
     }
 }
-async function InsertPara(type:WikiParaType,afterOrder:number){
+async function InsertPara(type:WikiParaType,afterOrder:number,copySrc?:number){
     if(!info.value){return;}
     const resp = await api.wiki.wikiItem.insertPara({
         id:info.value.Id,
         afterOrder,
+        copySrc,
         type
     })
     refresh(resp);
+}
+async function InsertCopyingPara(type:'textSection'|'freeTable'|undefined, copySrc:number) {
+    if(!type)
+        return
+    let t:WikiParaType = type==='freeTable' ? WikiParaType.Table : WikiParaType.Text
+    await InsertPara(t, -1, copySrc)
 }
 const fileParaEdit = ref<InstanceType<typeof SideBar>>();
 const fileParaEditing = ref<WikiParaDisplay>();
@@ -280,7 +288,12 @@ async function transfer(uid:number) {
         dangerZoneOpen.value = false;
     }
 }
+const copyingType = ref<'textSection'|'freeTable'>()
+function openCopyPanel(type:'textSection'|'freeTable'){
+    copyingType.value = type;
+}
 
+const btnSectorSwitch = ref<boolean>(false)
 var offsetY = 0;
 var moving:boolean = false;
 var wide = ref<boolean>(false);
@@ -332,10 +345,17 @@ onUnmounted(()=>{
 
 <template>
     <h1 v-if="info">
-        {{ info?.Title }}
-        <div class="h1Btns">
+        <span class="nowrapEllipsis">{{ info?.Title }}</span>
+        <div v-if="!btnSectorSwitch" class="h1Btns">
+            <button class="minor" @click="btnSectorSwitch=!btnSectorSwitch">⇄</button>
             <button v-if="info" @click="jumpToWikiLocations(info?.UrlPathName)">位置</button>
-            <button v-if="info" @click="jumpToWikiContentEdit(info?.UrlPathName)">编辑</button>
+            <button v-if="info" @click="jumpToWikiContentEdit(info?.UrlPathName)">编辑器</button>
+            <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)" class="ok">完成</button>
+        </div>
+        <div v-else class="h1Btns">
+            <button class="minor" @click="btnSectorSwitch=!btnSectorSwitch">⇄</button>
+            <button v-if="info" class="lite" @click="openCopyPanel('textSection')">复制文本</button>
+            <button v-if="info" class="lite" @click="openCopyPanel('freeTable')">复制表格</button>
             <button v-if="info" @click="jumpToViewWiki(info?.UrlPathName)" class="ok">完成</button>
         </div>
     </h1>
@@ -425,6 +445,8 @@ onUnmounted(()=>{
     <SideBar ref="titleContainEdit"  @extend="disposeListeners" @fold="initLisenters()">
         <WikiTitleContain v-if="titleContainEditing" :type="titleContainEditing.type" :object-id="titleContainEditing.objId"></WikiTitleContain>
     </SideBar>
+    <CopyWikiPara :copying-type="copyingType" @close="initLisenters();copyingType=undefined" @open="disposeListeners()"
+        @done="id=>InsertCopyingPara(copyingType, id)"></CopyWikiPara>
 </template>
 
 <style scoped lang="scss">
@@ -434,10 +456,15 @@ h1{
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-bottom: 3px;
 }
 .h1Btns{
     flex-shrink: 0;
     font-size: medium;
+    .lite{
+        font-size: 12px;
+        margin-left: 4px;
+    }
 }
 
 .tabContainer{

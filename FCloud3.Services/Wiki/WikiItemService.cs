@@ -210,7 +210,7 @@ namespace FCloud3.Services.Wiki
             });
             return paraObjs;
         }
-        public int InsertPara(int wikiId, int afterOrder, WikiParaType type, out string? errmsg)
+        public int InsertPara(int wikiId, int afterOrder, WikiParaType type, int copySrc, out string? errmsg)
         {
             string? msg = null;
             int newlyCreatedParaId = 0;
@@ -224,11 +224,31 @@ namespace FCloud3.Services.Wiki
                 var underlyingId = 0;
                 if (type == WikiParaType.Text)
                 {
-                    underlyingId = _textSectionRepo.AddDefaultAndGetId();
+                    if(copySrc > 0)
+                    {
+                        underlyingId = _textSectionRepo.TryCopyAndGetId(copySrc, out var err);
+                        if(underlyingId <= 0)
+                        {
+                            msg = err;
+                            return false;
+                        }
+                    }
+                    else
+                        underlyingId = _textSectionRepo.AddDefaultAndGetId();
                 }
                 else if (type == WikiParaType.Table)
                 {
-                    underlyingId = _freeTableRepo.AddDefaultAndGetId();
+                    if (copySrc > 0)
+                    {
+                        underlyingId = _freeTableRepo.TryCopyAndGetId(copySrc, out var err);
+                        if (underlyingId <= 0)
+                        {
+                            msg = err;
+                            return false;
+                        }
+                    }
+                    else
+                        underlyingId = _freeTableRepo.AddDefaultAndGetId();
                 }
                 WikiPara p = new()
                 {

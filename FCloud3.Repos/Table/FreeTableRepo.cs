@@ -1,6 +1,7 @@
 ﻿using Aurouscia.TableEditor.Core;
 using FCloud3.DbContexts;
 using FCloud3.Entities.Table;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Etc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -27,6 +28,15 @@ namespace FCloud3.Repos.Table
         {
             return Existing.Where(x => x.Data != null && x.Data.Contains(str))
                 .OrderByDescending(x => x.Updated).Take(10).ToList();
+        }
+
+        public IQueryable<FreeTable> SearchCopyableName(string str)
+        {
+            return Existing
+                .Where(x => x.Name != null
+                    && x.Name.Contains(str)
+                    && x.Name.Contains(WikiPara.copyableMark))
+                .OrderBy(x => x.Name);
         }
         
         public bool TryEditInfo(int id, string name, out string? errmsg)
@@ -128,6 +138,25 @@ namespace FCloud3.Repos.Table
             return creating;
         }
 
+        public int TryCopyAndGetId(int copySrc, out string? errmsg)
+        {
+            var target = GetById(copySrc) ?? throw new Exception("找不到复制目标");
+            if (target.Name is null
+                || !target.Name.Contains(WikiPara.copyableMark))
+            {
+                errmsg = "不可复制";
+                return 0;
+            }
+            var nameWithoutMark = target.Name.Replace(WikiPara.copyableMark, "");
+            FreeTable copied = new()
+            {
+                Name = nameWithoutMark,
+                Data = target.Data,
+                Brief = target.Brief
+            };
+            errmsg = null;
+            return base.AddAndGetId(copied);
+        }
 
         private static bool NameCheck(string name, out string? errmsg)
         {

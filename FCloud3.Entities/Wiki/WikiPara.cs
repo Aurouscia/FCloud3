@@ -41,6 +41,7 @@ namespace FCloud3.Entities.Wiki
         public int RelationMainId => WikiItemId;
         public int RelationSubId => ObjectId;
         public const int nameOverrideMaxLength = 32;
+        public const string copyableMark = "（可复制）";
     }
 
     public enum WikiParaType

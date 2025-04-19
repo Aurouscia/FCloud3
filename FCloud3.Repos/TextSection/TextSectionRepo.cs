@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using FCloud3.Entities.TextSection;
 using FCloud3.Repos.Etc;
+using FCloud3.Entities.Wiki;
 
 namespace FCloud3.Repos.TextSec
 {
@@ -26,6 +27,15 @@ namespace FCloud3.Repos.TextSec
         {
             return Existing.Where(x => x.Content != null && x.Content.Contains(str))
                 .OrderByDescending(x => x.Updated).Take(10).ToList();
+        }
+
+        public IQueryable<TextSection> SearchCopyableName(string str)
+        {
+            return Existing
+                .Where(x => x.Title != null
+                    && x.Title.Contains(str)
+                    && x.Title.Contains(WikiPara.copyableMark))
+                .OrderBy(x => x.Title);
         }
 
         public bool TryChangeTitle(int id, string newTitle, out string? errmsg)
@@ -78,6 +88,26 @@ namespace FCloud3.Repos.TextSec
                 ContentBrief = ""
             };
             return newSection;
+        }
+
+        public int TryCopyAndGetId(int copySrc, out string? errmsg)
+        {
+            var target = GetById(copySrc) ?? throw new Exception("找不到复制目标");
+            if (target.Title is null
+                || !target.Title.Contains(WikiPara.copyableMark))
+            {
+                errmsg = "不可复制";
+                return 0;
+            }
+            var titleWithoutMark = target.Title.Replace(WikiPara.copyableMark, "");
+            TextSection copied = new()
+            {
+                Title = titleWithoutMark,
+                Content = target.Content,
+                ContentBrief = target.ContentBrief
+            };
+            errmsg = null;
+            return base.AddAndGetId(copied);
         }
 
         [Obsolete]

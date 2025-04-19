@@ -1,5 +1,7 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
+using FCloud3.Repos.Table;
+using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files.Storage.Abstractions;
 
@@ -13,6 +15,8 @@ namespace FCloud3.Services.Etc
         MaterialRepo materialRepo,
         FileDirRepo fileDirRepo,
         WikiToDirRepo wikiToDirRepo,
+        FreeTableRepo freeTableRepo,
+        TextSectionRepo textSectionRepo,
         IOperatingUserIdProvider userIdProvider,
         IStorage storage)
     {
@@ -94,6 +98,28 @@ namespace FCloud3.Services.Etc
                 var exceptLast = x.nameChain[..^1];
                 var path = string.Join('/', exceptLast);
                 res.Items.Add(new(last, path, x.id));
+            });
+            return res;
+        }
+        public QuickSearchResult SearchCopyableTextSection(string str)
+        {
+            var q = textSectionRepo.SearchCopyableName(str);
+            var items = q.Select(x => new {x.Id, x.Title}).Take(maxCount).ToList();
+            QuickSearchResult res = new();
+            items.ForEach(x =>
+            {
+                res.Items.Add(new(x.Title ?? "N/A", null, x.Id));
+            });
+            return res;
+        }
+        public QuickSearchResult SearchCopyableFreeTable(string str)
+        {
+            var q = freeTableRepo.SearchCopyableName(str);
+            var items = q.Select(x => new { x.Id, x.Name }).Take(maxCount).ToList();
+            QuickSearchResult res = new();
+            items.ForEach(x =>
+            {
+                res.Items.Add(new(x.Name ?? "N/A", null, x.Id));
             });
             return res;
         }

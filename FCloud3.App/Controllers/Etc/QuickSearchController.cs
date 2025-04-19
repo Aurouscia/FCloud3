@@ -45,5 +45,15 @@ namespace FCloud3.App.Controllers.Etc
             var res = _quickSearchService.SearchFileDir(s);
             return this.ApiResp(res);
         }
+        public IActionResult CopyableTextSection(string s)
+        {
+            var res = _quickSearchService.SearchCopyableTextSection(s);
+            return this.ApiResp(res);
+        }
+        public IActionResult CopyableFreeTable(string s)
+        {
+            var res = _quickSearchService.SearchCopyableFreeTable(s);
+            return this.ApiResp(res);
+        }
     }
 }

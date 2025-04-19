@@ -356,7 +356,7 @@ export class Api{
                     return res.data as Array<WikiParaDisplay>
                 }
             },
-            insertPara:async(req:{id:number,afterOrder:number,type:WikiParaType}) => {
+            insertPara:async(req:{id:number,afterOrder:number,copySrc?:number,type:WikiParaType}) => {
                 const res = await this.httpClient.request(
                     "/api/WikiItem/InsertPara",
                     "postForm",
@@ -1212,6 +1212,26 @@ export class Api{
             fileDir:async(s:string)=>{
                 const res = await this.httpClient.request(
                     "/api/QuickSearch/FileDir",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
+            copyableTextSection:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/CopyableTextSection",
+                    "get",
+                    {s}
+                )
+                if(res.success){
+                    return res.data as QuickSearchResult;
+                }
+            },
+            copyableFreeTable:async(s:string)=>{
+                const res = await this.httpClient.request(
+                    "/api/QuickSearch/CopyableFreeTable",
                     "get",
                     {s}
                 )
