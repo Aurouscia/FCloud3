@@ -443,7 +443,8 @@ onUnmounted(()=>{
     <WikiParaInfo :para="editingPara"
         @close="initLisenters" @need-reload="Load(false,true)" ref="wikiParaInfo"></WikiParaInfo>
     <SideBar ref="titleContainEdit"  @extend="disposeListeners" @fold="initLisenters()">
-        <WikiTitleContain v-if="titleContainEditing" :type="titleContainEditing.type" :object-id="titleContainEditing.objId"></WikiTitleContain>
+        <WikiTitleContain v-if="titleContainEditing" :type="titleContainEditing.type" :object-id="titleContainEditing.objId"
+            @changed="Load(false, true)"></WikiTitleContain>
     </SideBar>
     <CopyWikiPara :copying-type="copyingType" @close="initLisenters();copyingType=undefined" @open="disposeListeners()"
         @done="id=>InsertCopyingPara(copyingType, id)"></CopyWikiPara>
