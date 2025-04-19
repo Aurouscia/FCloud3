@@ -58,9 +58,6 @@ try
     app.UseAuthorization();
 
     app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller}/{action}");
-    app.MapControllerRoute(
         name: "api",
         pattern: "api/{controller}/{action}");
 
