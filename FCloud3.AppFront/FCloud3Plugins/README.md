@@ -3,7 +3,6 @@
 
 ## 编译
 在本目录内执行`node buildPlugins.mjs`即可编译所有启用的插件到前端目录内  
-*TODO：dockerfile那边还没加入这个*
 
 ## 配置
 - 在`pluginsEnabled.mjs`中配置哪些启用，禁用的将其`//`注释掉即可
@@ -14,7 +13,7 @@
 - 插件编译到`../FCloud3Front/public/plugins/<插件名>`目录下
     - 插件的入口：js文件（ecma标准）
         - **名称为 xxx.entry.js**
-        - **export一个名为`run`的函数**
+        - **export一个名为`run`的函数（可同步可异步）**
         - 文件名带哈希，避免客户端不更新
     - 插件的触发词：txt文件
         - **名称为 trigger.txt**

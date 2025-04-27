@@ -41,7 +41,7 @@ export class PluginExe{
                 import {run} from '${this.pluginPath}'
             `
             const code = `
-                run()
+                await run()
             `
             await runJs(code, this.runContainer, codeImport)
             console.log(`${consolePrefix}插件${this.pluginName}已执行`)
