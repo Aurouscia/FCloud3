@@ -2,6 +2,7 @@ export const pluginsEnabled = [
     'AuRouteRenderer',
     'AuTableCellStickifier',
     'AuTimeOffsetRenderer',
-    'AuParaMover'
+    'AuParaMover',
+    'AuParaLoader'
     //'AuChartLibCaller' 还未开发
 ]
