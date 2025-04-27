@@ -5,7 +5,10 @@ using System.ComponentModel.DataAnnotations;
 namespace FCloud3.Entities.Wiki
 {
     /// <summary>
-    /// 表示一个可以作为Wiki段落的对象
+    /// 表示一个可以作为Wiki段落的对象<br/>
+    /// 原计划：词条与文本/表格可以多对多关系<br/>
+    /// 已放弃：无法解决词条导出/导入、权限控制等问题<br/>
+    /// 替代方案：AuParaLoader插件
     /// </summary>
     public class WikiPara : IDbModel, IRelation
     {
