@@ -13,6 +13,7 @@ export class WikiLinkClick{
     listen(target?:HTMLDivElement){
         if(!target)return [];
         const links = target.getElementsByTagName(targetTagName);
+        let converted = 0
         for(const link of links){
             const attrs = readAttrs(link)
             if(attrs.isWikiLink){
@@ -21,9 +22,11 @@ export class WikiLinkClick{
                 }
                 else{
                     (link as HTMLAnchorElement).href = this.getHref(attrs.path)
-                }   
+                }
+                converted++
             }
         }
+        console.log(`转化 ${converted} 个pathName链接`)
     }
     redLinkClickHandler(e:MouseEvent){
         let ele = e.target as HTMLElement;
@@ -42,6 +45,7 @@ function readAttrs(ele:Element){
     if(attr && attr.value){
         path = attr.value;
         isWikiLink = true
+        ele.attributes.removeNamedItem(targetAttrName);
     }
     const isRedLink = ele.classList.contains(redLinkClassName);
     return{

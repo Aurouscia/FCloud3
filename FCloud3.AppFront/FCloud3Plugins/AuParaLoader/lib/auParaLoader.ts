@@ -2,7 +2,7 @@ const trigger = 'AuParaLoader'
 const pattern = `(?<=${trigger}\\().{1,80}(?=\\))`
 const targetCellPattern = new RegExp(pattern)
 
-export function run(){
+export async function run(){
     const targets:{
         target:HTMLTableElement,
         targetCell:HTMLTableCellElement,
@@ -40,8 +40,9 @@ export function run(){
             continue
         }
         const url = getFetchUrl(t.pathName, t.urlBase)
-        fetch(url).then(async res=>{
-            const obj = await res.json()
+        const fetchRes = await fetch(url)
+        try{
+            const obj = await fetchRes.json()
             const paras = obj['Paras'] as Array<any>
             let targetPara:any
             if(t.paraSelect){
@@ -61,15 +62,16 @@ export function run(){
             newEle.innerHTML = content
             t.target.parentElement!.insertBefore(newEle, t.target)
             t.target.remove()
-        }).catch(err=>{
+        }
+        catch(err){
             t.targetCell.innerHTML = errmsgHtml(t, 'http异常')
-            throw err
-        })
+            console.error(err)
+        }
     }
 }
 
 function getFetchUrl(pathName:string, base?:string){
-    return `${base}/api/WikiParsing/GetParsedWiki?pathName=${pathName}`
+    return `${base??''}/api/WikiParsing/GetParsedWiki?pathName=${pathName}`
 }
 function errmsgHtml(t:{pathName?:string, urlBase?:string}, msg:string){
     return `<b style="color:red">${trigger}：[${t.pathName??'??'} from ${t.urlBase??'/'}] 加载失败 [${msg}]</b>`

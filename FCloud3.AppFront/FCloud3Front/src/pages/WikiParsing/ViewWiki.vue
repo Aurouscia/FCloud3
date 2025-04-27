@@ -295,6 +295,7 @@ async function init(changedPathName?:boolean){
     await runPluginsByWiki(data.value?.Paras.map(x=>x.Content))
     stickyContainTableRestrict()
     subtitlesClean()
+    wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()
