@@ -316,4 +316,12 @@
         color: red;
         text-decoration: underline;
     }
+
+    code{
+        font-family: consolas, menlo, mono;
+        background-color: #eee;
+        padding: 1px;
+        border-radius: 5px;
+        color: #333;
+    }
 }

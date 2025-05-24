@@ -412,7 +412,7 @@ namespace FCloud3.WikiPreprocessor.Rules
     {
         public static List<IInlineRule> GetInstances()
         {
-            List<IInlineRule> instances = 
+            List<IInlineRule> instances =
             [
                 new FootNoteAnchorRule(),
                 new InlineObjectRule(),
@@ -423,11 +423,12 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
-                
+                new CustomInlineRule("`", "`", "<code>", "</code>", "行内代码块"),
+
                 new CustomInlineRule("_(", ")", "<sub>", "</sub>", "下角标"),
                 new CustomInlineRule("^(", ")", "<sup>", "</sup>", "上角标"),
                 new ColorTextRule(),
-                
+
                 new CustomInlineRule("\\bd","\\bd","<span class=\"bordered\">","</span>","逝者",".bordered{border:1px solid black;padding:2px}"),
                 new CustomInlineRule("\\hd","\\hd","<span class=\"hoverToDisplay\">","</span>","逝者",".hoverToDisplay{color:black !important;background-color:black;}.hoverToDisplay:hover{background-color:transparent;}"),
                 new CustomInlineRule("\\sub","\\sub","<sub>","</sub>","下角标（不推荐）"),
