@@ -48,6 +48,16 @@ onUnmounted(()=>{
             <a href="https://gitee.com/au114514/mapgen" target="_blank">项目源码</a>
         </div>
     </div>
+    <div class="toolItem">
+        <h2>图片转换器</h2>
+        <div class="author">作者 ImageResizer团队</div>
+        <div class="intro">在线对各种图片进行格式转换、裁剪、尺寸调整、压缩等操作</div>
+        <div class="links">
+            <a href="https://imageresizer.com/" target="_blank">
+                <button class="ok">进入使用</button>
+            </a>
+        </div>
+    </div>
 </div>
 </template>
 
