@@ -69,6 +69,12 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
         demo:"<table><tbody><tr><td>姓名</td><td>张三</td><td>李四</td></tr><tr><td>年龄</td><td>23</td><td>22</td></tr></tbody></table>"
     },
     {
+        title:"行内代码块",
+        desc:"可用于专有名称或车次号、航班号等，将以等宽字体显示，使用两个顿音符(`)将代码块部分包围",
+        code:"函数的第一个参数`username`表示用户名",
+        demo:"函数的第一个参数<code>username</code>表示用户名"
+    },
+    {
         title:"脚注",
         desc:"用于编写注释或引用出处，使用\"[^xx]\"表示文中的脚注锚点，在单独一行使用同名的\"[^xx]:\"表示脚注的本体",
         code:"我推荐使用vue[^1]编写网站。\n[^1]:一种web前端框架",
