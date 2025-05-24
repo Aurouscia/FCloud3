@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+import Footer from '@/components/Footer.vue'
 </script>
 
 <template>
@@ -20,11 +20,16 @@
         <a href="https://gitee.com/au114514/fcloud3" target="_blank">获取源码/反馈问题/提供建议</a>
     </div>
     <div>
-        源码贡献者：Au<br/>issue贡献者：滨蜀、旋头(按拼音排序)
+        ©源码版权所有：Au 2023-2025<br/>
+        源码贡献者：Au<br/>
+        issue贡献者：滨蜀、旋头(按拼音排序)
     </div>
     <div>
         技术支持(qq群)：798877093
     </div>
+</div>
+<div class="footer">
+    <Footer></Footer>
 </div>
 </template>
 
@@ -55,11 +60,20 @@ img{
     justify-content: center;
     align-items: center;
     gap:20px;
+    padding-bottom: 50px;
     &>*{
         text-align: center;
     }
 }
 a{
     text-decoration: underline;
+}
+.footer{
+    background-color: white;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    box-shadow: 0px 0px 5px 0px #ccc;
 }
 </style>
