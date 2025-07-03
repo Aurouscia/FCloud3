@@ -16,6 +16,7 @@ import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { storeToRefs } from 'pinia';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
+import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
 
 const props = defineProps<{
     username?:string
@@ -27,6 +28,7 @@ const ok = ref<boolean>(false);
 const { jumpToLogin, jumpToGlobalAuthGrants } = useIdentityRoutesJump();
 const { jumpToHomelessFiles } = useFilesRoutesJump();
 const { jumpToMyWikisOverall } = useWikiRoutesJump()
+const { checkAndPop } = useFeVersionChecker()
 
 
 watch(props, _newVal=>{
@@ -64,6 +66,7 @@ const {iden} = storeToRefs(idenStore)
 let pop: Ref<InstanceType<typeof Pop>>;
 const idenProvider = injectIdentityInfoProvider();
 onMounted(async()=>{
+    checkAndPop()
     api = injectApi();
     pop = injectPop();
     username = props.username;

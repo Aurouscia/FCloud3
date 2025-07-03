@@ -15,10 +15,12 @@ import { saveLocalConfig, readLocalConfig } from '@/utils/localConfig/localConfi
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { authConfigDefault, AuthLocalConfig } from '@/utils/localConfig/models/auth';
 import { guideInfo } from '@/utils/guideInfo';
+import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
 
 const props = defineProps<{
     backAfterSuccess:string
 }>();
+const { checkAndPop } = useFeVersionChecker()
 
 const userName = ref<string>("")
 const password = ref<string>("")
@@ -77,6 +79,7 @@ const leftTimeDisplay = computed<string>(()=>{
 
 let authLocalConfig:AuthLocalConfig = authConfigDefault();
 onMounted(async()=>{
+    checkAndPop()
     setTitleTo('登录')
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>
     httpClient = inject('http') as HttpClient;
