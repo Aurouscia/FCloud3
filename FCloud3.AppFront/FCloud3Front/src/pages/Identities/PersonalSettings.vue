@@ -4,16 +4,22 @@ import Pop from '@/components/Pop.vue';
 import {User} from '@/models/identities/user';
 import { Api } from '@/utils/com/api';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
-import { injectApi, injectPop } from '@/provides';
+import { injectApi, injectHttp, injectIdentityInfoProvider, injectPop } from '@/provides';
 import { random } from 'lodash';
 import Search from '@/components/Search.vue';
 import jsfd from 'js-file-download';
 import { truncate } from 'lodash';
 import { timeReadable } from '@/utils/timeStamp';
+import { useNotifCountStore } from '@/utils/globalStores/notifCount';
+import { useRouter } from 'vue-router';
 
 const user = ref<User>();
 var api:Api;
 var pop:Ref<InstanceType<typeof Pop>>
+const identityInfoProvider = injectIdentityInfoProvider()
+const httpClient = injectHttp()
+const notifCountStore = useNotifCountStore()
+const router = useRouter()
 
 const props = defineProps<{
     user:User
@@ -22,12 +28,20 @@ watch(props, (newVal)=>{
     user.value = newVal.user;
 })
 
+let editedNameOrPwd = false
 async function editUserInfo(){
     if(user.value){
         if(user.value.Name){
             const resp = await api.identites.user.editExe(user.value);
             if(resp){
-                emits('requireReload')
+                if(editedNameOrPwd){
+                    editedNameOrPwd = false
+                    httpClient.clearToken();
+                    identityInfoProvider.clearCache();
+                    notifCountStore.enforceRefresh()
+                    pop.value.show("立即重新登录", "warning");
+                    router.push({name:'login'})
+                }
             }
         }
         else{
@@ -104,17 +118,17 @@ onMounted(async()=>{
                 <tr>
                     <td>昵称</td>
                     <td>
-                        <input v-model="user.Name"/>
+                        <input v-model="user.Name" @input="editedNameOrPwd=true"/>
                     </td>
                 </tr>
                 <tr>
                     <td>密码</td>
                     <td>
-                        <input v-model="user.Pwd"/>
+                        <input v-model="user.Pwd" @input="editedNameOrPwd=true" type="password" autocomplete="new-password"/>
                     </td>
                 </tr>
                 <tr>
-                    <td>个人简介</td>
+                    <td>个人<br/>简介</td>
                     <td>
                         <textarea class="infoEditTextarea" v-model="user.Desc" rows="3"></textarea>
                     </td>
@@ -165,5 +179,8 @@ onMounted(async()=>{
 .wikiExportBtn{
     display: block;
     margin: auto;
+}
+input, textarea{
+    width: 180px;
 }
 </style>
