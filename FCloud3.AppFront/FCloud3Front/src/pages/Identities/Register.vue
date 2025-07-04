@@ -60,13 +60,13 @@ onUnmounted(()=>{recoverTitle()})
             <tr>
                 <td>密码</td>
                 <td>
-                    <input v-model="password" type="password"/>
+                    <input v-model="password" type="password" autocomplete="new-password"/>
                 </td>
             </tr>
             <tr>
                 <td>再次输入密码</td>
                 <td>
-                    <input v-model="passwordRepeat" type="password"/>
+                    <input v-model="passwordRepeat" type="password" autocomplete="new-password"/>
                 </td>
             </tr>
         </tbody></table>
