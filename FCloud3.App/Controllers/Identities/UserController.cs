@@ -22,12 +22,21 @@ namespace FCloud3.App.Controllers.Identities
             _user = user;
         }
 
+        private const int registerRestrictSecs = 30;
+        private static DateTime lastCreateRequest = DateTime.Now.AddSeconds(-registerRestrictSecs*2);
         public IActionResult Create(string? name,string? pwd)
         {
-            if(!_userService.TryCreate(name,pwd,out string? errmsg))
+            var lastCreatePassed = (int)(DateTime.Now - lastCreateRequest).TotalSeconds;
+            if (lastCreatePassed < registerRestrictSecs)
+            {
+                int wait = registerRestrictSecs - lastCreatePassed;
+                return this.ApiFailedResp($"【限流】请等待{wait}秒后重试");
+            }
+            if (!_userService.TryCreate(name, pwd, out string? errmsg))
             {
                 return this.ApiFailedResp(errmsg);
             }
+            lastCreateRequest = DateTime.Now;
             return this.ApiResp();
         }
 
