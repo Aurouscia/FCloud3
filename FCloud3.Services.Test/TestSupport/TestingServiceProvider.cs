@@ -7,6 +7,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RestSharp;
 using Serilog;
 
 namespace FCloud3.Services.Test.TestSupport
@@ -44,6 +45,7 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddLogging(builder => builder.AddSerilog(logger));
             services.AddSingleton<ILocatorHash, FakeLocatorHash>();
 
+            services.AddSingleton<RestClient>();
             services.AddFCloudServices(config);
 
             _serviceProvider = services.BuildServiceProvider();

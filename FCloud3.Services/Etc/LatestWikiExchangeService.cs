@@ -24,13 +24,15 @@ namespace FCloud3.Services.Etc
         private readonly IStorage _storage;
         private readonly IConfiguration _config;
         private readonly ILogger<LatestWikiExchangeService> _logger;
+        private readonly RestClient _rc;
         public LatestWikiExchangeService(
             WikiItemRepo wikiItemRepo,
             UserRepo userRepo,
             MaterialRepo materialRepo,
             IStorage storage,
             IConfiguration config,
-            ILogger<LatestWikiExchangeService> logger)
+            ILogger<LatestWikiExchangeService> logger,
+            RestClient rc)
         {
             _wikiItemRepo = wikiItemRepo;
             _userRepo = userRepo;
@@ -38,6 +40,7 @@ namespace FCloud3.Services.Etc
             _storage = storage;
             _config = config;
             _logger = logger;
+            _rc = rc;
         }
         
         private static ExchangeConfig? _exConfig;
@@ -167,7 +170,6 @@ namespace FCloud3.Services.Etc
                 _logger.LogDebug(pushErr + "：配置异常，未能运行");
                 return;
             }
-            RestClient rc = new();
             var domains = ExConfig.Targets
                 .Where(x => CanBeDownstream(x))
                 .Select(x => x.Domain);
@@ -186,7 +188,7 @@ namespace FCloud3.Services.Etc
                     rr.AddJsonBody(reqObj);
                     try
                     {
-                        var resp = rc.Post(rr);
+                        var resp = _rc.Post(rr);
                         if (resp.IsSuccessful && resp.Content is { })
                         {
                             _logger.LogDebug(pushSuccess + "{domain}", domain);
@@ -212,7 +214,6 @@ namespace FCloud3.Services.Etc
                 _logger.LogDebug(pullErr + "：配置异常，未能运行");
                 return;
             }
-            RestClient rc = new();
             var domains = ExConfig.Targets
                 .Where(x => CanBeUpstream(x))
                 .Select(x => x.Domain);
@@ -233,7 +234,7 @@ namespace FCloud3.Services.Etc
                         rr.AddJsonBody(reqObj);
                         try
                         {
-                            var resp = rc.Post(rr);
+                            var resp = _rc.Post(rr);
                             if (resp.IsSuccessful && resp.Content is { })
                             {
                                 items = JsonConvert.DeserializeObject<List<ExchangeItem>>(resp.Content);

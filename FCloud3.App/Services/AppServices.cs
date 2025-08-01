@@ -7,7 +7,7 @@ using FCloud3.Services;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using FCloud3.Repos.Etc;
-using Microsoft.AspNetCore.Http.Timeouts;
+using RestSharp;
 
 namespace FCloud3.App.Services
 {
@@ -37,7 +37,15 @@ namespace FCloud3.App.Services
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
-            
+            services.AddSingleton<RestClient>(sp =>
+            {
+                return new RestClient(new RestClientOptions
+                {
+                    ThrowOnAnyError = true,
+                    Timeout = TimeSpan.FromSeconds(3)
+                });
+            });
+
             return services;
         }
 
