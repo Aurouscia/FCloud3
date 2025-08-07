@@ -11,7 +11,7 @@ namespace FCloud3.App.Controllers.Files
     public class FileItemController : Controller, IAuthGrantTypeProvidedController
     {
         private readonly FileItemService _fileService;
-        private const int maxUploadLength = 10 * 1000 * 1000;
+        private const int maxUploadLength = 15 * 1024 * 1024;
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.FileItem;
 
         public FileItemController(FileItemService fileService)

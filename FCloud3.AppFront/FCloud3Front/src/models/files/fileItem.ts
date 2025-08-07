@@ -32,4 +32,4 @@ export interface FileUploadRequest
     Hash:string
 }
 
-export const fileUploadMaxSize = 10*1024*1024
+export const fileUploadMaxSize = 15*1024*1024
