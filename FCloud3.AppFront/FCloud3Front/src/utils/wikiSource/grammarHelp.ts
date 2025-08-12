@@ -135,6 +135,12 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         demo: "此处的动能为1.8MJ\n十分恐怖"
     },
     {
+        title: "带标题的列表",
+        desc: "若一个“#”标题下方只有一个“-”列表，那么它们将被一个框框起来。\n如果想阻止这个框出现，可在列表后添加一行空注释，即“//”",
+        code: "# 早餐\n- 每人一个煮鸡蛋\n- 每人两个馒头\n- 无限量供应豆浆",
+        demo: "<div class=\"titledList\"><div class=\"titledListTitle\">早餐</div><ul><li>每人一个煮鸡蛋</li><li>每人两个馒头</li><li>无限量供应豆浆</li></ul></div>"
+    },
+    {
         title:"自定义色字体/色块",
         desc:"可使用\"#颜色#\"创建指定颜色的色块，使用\"#颜色\\@文本#\"创建指定颜色的文字\n"+
         "具名颜色请参考<a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/named-color\" target=\"_blank\">此处</a>\n"+
