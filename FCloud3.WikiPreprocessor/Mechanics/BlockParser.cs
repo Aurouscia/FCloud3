@@ -149,16 +149,16 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 Level = 0;
                 if (!lineStr.StartsWith(Consts.titleLevelMark))
                     return;
-                foreach(var t in TitleMark.OrderedTitleMarks)
+                foreach(var t in TitleMark.OrderedTitleMarks.Value)
                 {
-                    if (lineStr.StartsWith(t.Value))
+                    if (lineStr.StartsWith(t.prefix))
                     {
-                        string pureContent = lineStr[t.Value.Length..].Trim();
+                        string pureContent = lineStr[t.prefix.Length..].Trim();
                         if (pureContent.Contains(Consts.titleLevelMark))
                             break;
                         else
                         {
-                            this.Level = t.Key;
+                            this.Level = t.level;
                             this.PureContent.Text = pureContent;
                             return;
                         }
@@ -168,24 +168,18 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         }
         public static class TitleMark
         {
-            private static List<KeyValuePair<int, string>>? titleMarks;
-            public static List<KeyValuePair<int, string>> OrderedTitleMarks
+            public static Lazy<List<(int level, string prefix)>> OrderedTitleMarks { get; } = new(() =>
             {
-                get
+                var res = new List<(int, string)>(6);
+                StringBuilder titleTemp = new();
+                for (int i = 1; i < 7; i++)
                 {
-                    if (titleMarks is not null)
-                        return titleMarks;
-                    titleMarks = new(6);
-                    StringBuilder titleTemp = new();
-                    for (int i = 1; i < 7; i++)
-                    {
-                        titleTemp.Append(Consts.titleLevelMark);
-                        titleMarks.Add(new(i, titleTemp.ToString()));
-                    }
-                    titleMarks.Reverse();
-                    return titleMarks;
+                    titleTemp.Append(Consts.titleLevelMark);
+                    res.Add(new(i, titleTemp.ToString()));
                 }
-            }
+                res.Reverse();
+                return res;
+            });
         }
     }
 
