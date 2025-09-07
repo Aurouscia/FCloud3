@@ -4,7 +4,7 @@
 ```
 npm config set registry https://registry.npmmirror.com （设置npm国内镜像）
 npm ci
-npm run prebuild （仅第一次run dev前需要）
+npm run build （仅第一次run dev前需要）
 npm run dev
 ```
 编译：

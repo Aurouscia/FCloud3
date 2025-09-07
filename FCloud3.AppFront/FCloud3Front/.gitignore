@@ -31,3 +31,4 @@ pluginsFound.json
 
 # 插件编译结果
 public/plugins/*
+!public/plugins/runPlugin.js
