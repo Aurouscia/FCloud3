@@ -6,9 +6,13 @@ import { useProvidesSetup } from './provides';
 import Wait from './components/Wait.vue';
 import { useMainDivDisplayStore } from './utils/globalStores/mainDivDisplay';
 import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
+import { useLocalStylesStore } from './utils/globalStores/localStyles';
 
 const { pop, displayTopbar, needMemberWarning, wait } = useProvidesSetup();
 const { restrictContentMaxWidth, displayMarginTop, enforceScrollY } = storeToRefs(useMainDivDisplayStore())
+const { applyStyles } = useLocalStylesStore()
+onMounted(()=>{ applyStyles() })
 </script>
 
 <template>

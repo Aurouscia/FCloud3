@@ -17,6 +17,7 @@ import { storeToRefs } from 'pinia';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
 import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
+import LocalStyles from './LocalStyles.vue';
 
 const props = defineProps<{
     username?:string
@@ -24,6 +25,7 @@ const props = defineProps<{
 const user = ref<User>();
 var api:Api;
 const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
+const localStylesSidebar = ref<InstanceType<typeof SideBar>>()
 const ok = ref<boolean>(false);
 const { jumpToLogin, jumpToGlobalAuthGrants } = useIdentityRoutesJump();
 const { jumpToHomelessFiles } = useFilesRoutesJump();
@@ -100,6 +102,7 @@ onUnmounted(()=>{
                 <button v-if="username==iden?.Name" @click="jumpToGlobalAuthGrants">授权设置</button>
                 <button @click="jumpToMyWikisOverall(user.Id)" class="minor">所有词条</button>
                 <button @click="jumpToHomelessFiles(user.Name)" class="minor">无归属文件</button>
+                <button v-if="username==iden?.Name" @click="localStylesSidebar?.extend" class="minor">样式设置</button>
             </div>
         </div>
         <SwitchingTabs style="width: 300px;height: 400px;" :texts="['最新作品','最近动态','自荐']">
@@ -111,6 +114,9 @@ onUnmounted(()=>{
     <div v-else><Loading></Loading></div>
     <SideBar ref="editInfoSidebar">
         <Personal v-if="user" :user="user" @require-reload="()=>load(true)"></Personal>
+    </SideBar>
+    <SideBar ref="localStylesSidebar">
+        <LocalStyles></LocalStyles>
     </SideBar>
 </template>
 
