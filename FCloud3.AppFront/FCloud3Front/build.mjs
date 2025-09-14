@@ -1,6 +1,6 @@
 import { execa } from 'execa'
 
-const execaOptions = {stdout:'inherit', reject:false}
+const execaOptions = {stdout:'inherit', reject:true}
 
 const firstParam = process.argv[2]
 const buildHere = firstParam?.toLowerCase() === '--here'
