@@ -306,7 +306,7 @@ onMounted(async()=>{
         previewArea.value?.scrollTo({top: top-150, behavior: 'smooth'})
     };
     listenFootNoteJump();
-    saveShortcut = new ShortcutListener(replaceContent, "s", true);
+    saveShortcut = new ShortcutListener(()=>{replaceContent()}, "s", true);
     saveShortcut.startListen();
     await init();
     await nextTick();

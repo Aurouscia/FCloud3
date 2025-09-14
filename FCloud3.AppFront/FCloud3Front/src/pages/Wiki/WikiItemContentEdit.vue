@@ -260,7 +260,7 @@ const ctrlZ = new ShortcutListener(()=>{
     pop.value.show("撤销功能暂未做", "failed")
 }, "z", true, false);
 const ctrlShiftZ = new ShortcutListener(()=>{}, "z", true, true);
-const ctrlS = new ShortcutListener(saveAll, "s", true, false);
+const ctrlS = new ShortcutListener(()=>{saveAll()}, "s", true, false);
 ctrlZ.startListen();
 ctrlShiftZ.startListen();
 ctrlS.startListen();    
