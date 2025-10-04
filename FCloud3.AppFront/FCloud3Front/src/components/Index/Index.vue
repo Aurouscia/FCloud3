@@ -165,9 +165,11 @@ onMounted(async()=>{
             <th v-for="c in cols">
                 <span v-if="c.searchText||c.editing">
                     <input class="search" v-model="c.searchText" ref="search" @blur="setSearch(c.name)" placeholder="搜索">
-                    <button class="clearSearch" @click="endEdit(c.name)">x</button>
+                    <button class="clearSearch" @click="endEdit(c.name)">×</button>
                 </span>
-                <span v-else class="colName" @click="startEdit(c.name)">{{ c.alias }}</span>
+                <span v-else class="colName" :class="{colCanSearch:c.canSearch}" @click="startEdit(c.name)">
+                    {{ c.alias }}<span v-if="c.canSearch">🔍</span>
+                </span>
                 <span class="order" v-if="c.canSetOrder">
                     <button class="queryAdjust" @click="setOrder(c.name,true)" :class="{highlight:query.OrderBy==c.name && query.OrderRev}">▲</button>
                     <button class="queryAdjust" @click="setOrder(c.name,false)" :class="{highlight:query.OrderBy==c.name && !query.OrderRev}">▼</button>
@@ -210,7 +212,7 @@ onMounted(async()=>{
     }
 }
 .order{
-    margin: 0px 0px 0px 5px;
+    margin: 0px 0px 0px 8px;
 }
 .search{
     width: 80px;
@@ -219,7 +221,7 @@ onMounted(async()=>{
     border-radius: 5px;
     text-align: center;
 }
-.colName{
+.colName.colCanSearch{
     cursor: pointer;
 }
 .colNamesTr{
