@@ -54,6 +54,7 @@ http://wiki.jowei19.com
     - **必须**更改jwt密钥（Jwt:SecretKey）
 5. 点击`Visual Studio`顶部绿色启动按钮启动调试，检查是否正常
 6. 在浏览器地址栏访问`调试域名/init/<配置文件内的总密码>/initDb`以初始化数据库
+    - 有点蠢...如果不是自己的电脑，记得删除浏览器历史记录，密码会留在里面
 7. 准备服务器环境
     - windows服务器：安装[.net9.0 hosting bundle](https://dotnet.microsoft.com/zh-cn/download/dotnet/9.0) (9.0内尽可能新版)
         - 在IIS中新建站点，并指向程序目录
@@ -78,7 +79,7 @@ http://wiki.jowei19.com
     - **立即登录和修改密码，不要保留原始密码**
 
 ## 注意
-- 本项目暂不成熟，不建议直接投入生产环境  
+- 命令行启动时，请确保命令行工作目录（pwd）和程序文件目录（exe所在的目录）一致，否则可能会出现各种问题
 - **部署或使用遇到问题欢迎提出issue或者PR**  
 - 需要帮助请加qq群：798877093 <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=4oMUQMONpSEqiV8up23fZ_vUn5OjD9JI&jump_from=webapi&authKey=dJxZX5kBCr46IASe9YH6V9aBvwHG/CNs13kgTm6k4nKYrVcsWI+zndBiypF5H4lW"><img src="//pub.idqqimg.com/wpa/images/group.png" alt="Au的软件开发交流群" title="Au的软件开发交流群"></a>
 - `robots.txt`位于`/FCloud3.AppFront/FCloud3Front/public`中，默认情况下不允许任何爬虫，请按需自行修改
