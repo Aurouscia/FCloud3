@@ -28,14 +28,14 @@ watch(props, (newVal)=>{
     user.value = newVal.user;
 })
 
-let editedNameOrPwd = false
+const editedNameOrPwd = ref<boolean>(false)
 async function editUserInfo(){
     if(user.value){
         if(user.value.Name){
             const resp = await api.identites.user.editExe(user.value);
             if(resp){
-                if(editedNameOrPwd){
-                    editedNameOrPwd = false
+                if(editedNameOrPwd.value){
+                    editedNameOrPwd.value = false
                     httpClient.clearToken();
                     identityInfoProvider.clearCache();
                     notifCountStore.enforceRefresh()

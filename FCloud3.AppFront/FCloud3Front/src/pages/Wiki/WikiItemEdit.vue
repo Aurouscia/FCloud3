@@ -98,7 +98,7 @@ async function endMoving(){
             x.Order = x.displayOrder||0;
         })
         calculatePosY();
-        moving = false;
+        moving.value = false;
         const list = paras.value.map(x=>{return{Id:x.ParaId,Order:x.Order}})
         list.sort((x,y)=>{
             return x.Order-y.Order
@@ -189,12 +189,12 @@ async function StartEditInfo(p:WikiParaDisplay) {
     wikiParaInfo.value?.comeout()
 }
 
-var editingFileParaChanged = false;
+const editingFileParaChanged = ref<boolean>(false);
 async function fileEditFold(){
-    if(editingFileParaChanged){
+    if(editingFileParaChanged.value){
         await Load(false,true);
     }
-    editingFileParaChanged = false;
+    editingFileParaChanged.value = false;
 }
 
 const titleContainEdit = ref<InstanceType<typeof SideBar>>()
@@ -295,7 +295,7 @@ function openCopyPanel(type:'textSection'|'freeTable'){
 
 const btnSectorSwitch = ref<boolean>(false)
 var offsetY = 0;
-var moving:boolean = false;
+const moving = ref<boolean>(false);
 var wide = ref<boolean>(false);
 var listenerOn = false;
 var disposeMouseListener:undefined|(()=>void|undefined);
@@ -312,7 +312,7 @@ function initLisenters(){
         (_x, _y)=>{
             endMoving();
         },
-        ()=>moving
+        ()=>moving.value
     );
     disposeResizeListener = watchWindowWidth((width)=>{
         wide.value = width>700;

@@ -10,6 +10,6 @@ const viteBuildArgs = buildHere ? ['--outDir', './dist'] : []
 await execa("node", ["src/build/prebuildEntry.cjs"], execaOptions)
 
 //vite和vue-tsc并行
-const viteBuild = execa("vite build", viteBuildArgs, execaOptions);
+const viteBuild = execa("vite", ["build", ...viteBuildArgs], execaOptions);
 const vueTsc = execa("vue-tsc", execaOptions)
 await Promise.all([vueTsc, viteBuild])

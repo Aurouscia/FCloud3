@@ -365,6 +365,9 @@ FodyWeavers.xsd
 # JetBrains IDE generated
 .idea/
 
+# macOs generated
+.DS_Store
+
 # Sqlite Files
 *.db
 *.db-shm
