@@ -42,18 +42,23 @@ namespace FCloud3.WikiPreprocessor.Context
                 this);
         }
 
-        private int initialFrameCount = 0;
-        private const int frameOffsetMax = 20;
+        private int _depth = 0;
+        private const int depthMax = 24;
         public void SetInitialFrameCount()
         {
-            initialFrameCount = new StackTrace(false).FrameCount;
+            // 废弃
         }
-        public IHtmlable? FrameCountCheck()
+        public IHtmlable DepthGuardedRun(Func<IHtmlable> next)
         {
-            var above = new StackTrace(initialFrameCount, false).FrameCount;
-            if (above > frameOffsetMax)
+            _depth++;
+            if (_depth > depthMax)
+            {
+                _depth--;
                 return new ErrorElement("规则嵌套层数过多");
-            return null;
+            }
+            var res = next();
+            _depth--;
+            return res;
         }
 
         /// <summary>

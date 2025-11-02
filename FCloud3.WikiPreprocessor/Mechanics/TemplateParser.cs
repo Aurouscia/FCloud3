@@ -21,11 +21,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             _slotInfo = ctx.TemplateSlotInfo;
         }
 
-
         public IHtmlable Run(string input)
         {
-            if (_ctx.FrameCountCheck() is IHtmlable err)
-                return err;
+            return _ctx.DepthGuardedRun(() => RunInner(input));
+        }
+        public IHtmlable RunInner(string input)
+        {
             SplittedByCalls splitted = SplitByCalls(input);
             var frags = splitted.Frags;
 

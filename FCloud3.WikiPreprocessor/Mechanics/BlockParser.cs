@@ -28,8 +28,11 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
         public IHtmlable Run(string input, bool enforceBlock = true, bool isMasterCall = false)
         {
-            if (_ctx.FrameCountCheck() is IHtmlable err)
-                return err;
+            return _ctx.DepthGuardedRun(()=>RunInner(input, enforceBlock, isMasterCall));
+        }
+        
+        private IHtmlable RunInner(string input, bool enforceBlock = true, bool isMasterCall = false)
+        {
             if (_useCache && !isMasterCall)
             {
                 var cache = _ctx.Caches.ReadParsedElement(input);
@@ -72,10 +75,13 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             List<LineWithTitleLevel> lines = inputLines.ConvertAll(x => new LineWithTitleLevel(x));
             return Run(lines);
         }
+
         private IHtmlable Run(List<LineWithTitleLevel> lines)
         {
-            if (_ctx.FrameCountCheck() is IHtmlable err)
-                return err;
+            return _ctx.DepthGuardedRun(()=>RunInner(lines));
+        }
+        private IHtmlable RunInner(List<LineWithTitleLevel> lines)
+        {
             //为每一行标记其标题（如果有）的等级
             if (lines.All(x => x.Level == 0))
             {
@@ -172,7 +178,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             {
                 var res = new List<(int, string)>(6);
                 StringBuilder titleTemp = new();
-                for (int i = 1; i < 7; i++)
+                for (int i = 1; i < 10; i++)
                 {
                     titleTemp.Append(Consts.titleLevelMark);
                     res.Add(new(i, titleTemp.ToString()));
@@ -203,10 +209,13 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             List<LineWithRule> lines = inputLines.ConvertAll(x => new LineWithRule(x,_ctx.Options.BlockParsingOptions.BlockRules));
             return Run(lines);
         }
+
         private IHtmlable Run(List<LineWithRule> lines)
         {
-            if (_ctx.FrameCountCheck() is IHtmlable err)
-                return err;
+            return _ctx.DepthGuardedRun(()=>RunInner(lines));
+        }
+        private IHtmlable RunInner(List<LineWithRule> lines)
+        {
             ElementCollection res = new();
             if (lines.All(x => x.Rule is null))
             {

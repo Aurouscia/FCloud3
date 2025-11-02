@@ -25,10 +25,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             _useCache = ctx.Options.CacheOptions.UseCache;
         }
 
-        public IHtmlable Run(string input,bool mayContainTemplateCall = true)
+        public IHtmlable Run(string input, bool mayContainTemplateCall = true)
         {
-            if (_ctx.FrameCountCheck() is { } err)
-                return err;
+            return _ctx.DepthGuardedRun(()=>RunInner(input, mayContainTemplateCall));
+        }
+        public IHtmlable RunInner(string input,bool mayContainTemplateCall = true)
+        {
             if (input.Length <= 5)
                 mayContainTemplateCall = false;
             if (_useCache && !mayContainTemplateCall)
