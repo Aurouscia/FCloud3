@@ -310,7 +310,9 @@ namespace FCloud3.Services.WikiParsing
             var colorParser = parser.Context.Options.ColorParser;
             List<IRule> usedRules = new();
             Func<string?, (string tdContent, string tdAttrs)> cellConverter;
-            if (data.Cells is not null && data.Cells.ConvertAll(x => x?.Count).Sum() <= 2000)
+            var totalCellCount = data.Cells?.Sum(r => r?.Count ?? 0);
+            var totalCharCount = data.Cells?.Sum(r => r?.Sum(c => c?.Length ?? 0) ?? 0) ?? 0;
+            if (totalCharCount < Parser.maxInputLength && totalCellCount < Parser.maxInputLength)
                 cellConverter = (s) =>
                 {
                     if (string.IsNullOrWhiteSpace(s))
