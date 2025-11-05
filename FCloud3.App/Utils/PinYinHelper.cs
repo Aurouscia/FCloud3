@@ -30,7 +30,10 @@ public static class PinYinHelper
         string res;
         if (resList.Sum(c => c.Length) + resList.Count > WikiItem.urlPathNameMaxLength)
         {
-            var firstLetters = resList.ConvertAll(c => c[0]).ToArray();
+            var firstLetters = resList
+                .Where(x => x.Length>0)
+                .Select(c => c[0])
+                .ToArray();
             res = new string(firstLetters);
         }
         else
