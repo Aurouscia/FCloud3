@@ -72,8 +72,19 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         }
         public IHtmlable Run(List<LineAndHash> inputLines)
         {
-            List<LineWithTitleLevel> lines = inputLines.ConvertAll(x => new LineWithTitleLevel(x));
+            List<LineWithTitleLevel> lines = inputLines.ConvertAll(
+                x => new LineWithTitleLevel(x, IsValidTitle));
             return Run(lines);
+        }
+
+        /// <summary>
+        /// 除了“开头为多个井号”外，还要满足特别的要求才能成为标题
+        /// </summary>
+        /// <param name="line"></param>
+        /// <returns></returns>
+        private bool IsValidTitle(string line)
+        {
+            return !ColorTextRule.IsColorTextAtLineStart(line, _ctx.Options.ColorParser);
         }
 
         private IHtmlable Run(List<LineWithTitleLevel> lines)
@@ -148,7 +159,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             /// 纯内容（如果有开头井号就去掉，没有就是原字符串）
             /// </summary>
             public LineAndHash PureContent { get; }
-            public LineWithTitleLevel(LineAndHash line)
+            public LineWithTitleLevel(LineAndHash line, Func<string, bool> isValidTitle)
             {
                 PureContent = line;
                 string lineStr = line.Text;
@@ -159,15 +170,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 {
                     if (lineStr.StartsWith(t.prefix))
                     {
-                        string pureContent = lineStr[t.prefix.Length..].Trim();
-                        if (pureContent.Contains(Consts.titleLevelMark))
-                            break;
-                        else
-                        {
-                            this.Level = t.level;
-                            this.PureContent.Text = pureContent;
+                        if (!isValidTitle(lineStr))
                             return;
-                        }
+                        string pureContent = lineStr[t.prefix.Length..].Trim();
+                        Level = t.level;
+                        PureContent.Text = pureContent;
+                        return;   
                     }
                 }
             }

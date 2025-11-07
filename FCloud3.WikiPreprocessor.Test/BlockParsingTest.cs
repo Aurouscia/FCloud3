@@ -58,8 +58,8 @@ namespace FCloud3.WikiPreprocessor.Test
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题2",
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
         [DataRow(
-            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题#2",//看起来像是标题，但其实不是标题的东西
-            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p>##二级标题#2</p></div></div>")]
+            "#一级标题\t\n 内容2\r\n ##二级标题1\n\n##二级标题#2",//看起来像“看起来像是标题，但其实不是标题的东西”，但其实是标题
+            "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"></div><h2>二级标题#2</h2><div class=\"indent\"></div></div>")]
         [DataRow(
             "#一级标题\t\n 内容2\r\n ##二级标题1\n\n#red#",//看起来像是标题，但其实不是标题的东西
             "<h1>一级标题</h1><div class=\"indent\"><p>内容2</p><h2>二级标题1</h2><div class=\"indent\"><p><span class=\"coloredBlock\" style=\"background-color:rgb(255,0,0)\"></span></p></div></div>")]
@@ -75,6 +75,12 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow(
             "内容1\n#一级*标*题\t\n 内容2\r\n ##二级**标**题1\n内容3\n##二级标题2",
             "<p>内容1</p><h1>一级<i>标</i>题</h1><div class=\"indent\"><p>内容2</p><h2>二级<b>标</b>题1</h2><div class=\"indent\"><p>内容3</p></div><h2>二级标题2</h2><div class=\"indent\"></div></div>")]
+        [DataRow(
+            "# #111111\\@标题1#",
+            "<h1><span class=\"coloredText\" style=\"color:rgb(17,17,17)\">标题1</span></h1><div class=\"indent\"></div>")]
+        [DataRow(
+            "# 标题111111\n内容1\n# 带有颜色块的标题测试#111111#",
+            "<h1>标题111111</h1><div class=\"indent\"><p>内容1</p></div><h1>带有颜色块的标题测试<span class=\"coloredBlock\" style=\"background-color:rgb(17,17,17)\"></span></h1><div class=\"indent\"></div>")]
         public void TitledBlockTest(string content, string answer)
         {
             string html = _parser.RunToPlain(content);

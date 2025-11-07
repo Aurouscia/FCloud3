@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DotNetColorParser;
 using FCloud3.WikiPreprocessor.Context;
@@ -406,6 +407,22 @@ namespace FCloud3.WikiPreprocessor.Rules
             }
         }
         public string UniqueName => "彩色字";
+
+        public static bool IsColorTextAtLineStart(string line, IColorParser colorParser)
+        {
+            var m = Regex.Match(line, "(?<=^#).{2,}?(?=#)");
+            if(!m.Success)
+                return false;
+            var val = m.Value;
+            if (val.StartsWith(' '))
+                return false;
+            if (val.Contains(sep))
+                val = val.Split(sep).FirstOrDefault();
+            if(string.IsNullOrWhiteSpace(val))
+                return false;
+            bool isColor = ConventionalHtmlColor.TryFormalize(val, colorParser, out _);
+            return isColor;
+        }
     }
 
     public static class InternalInlineRules
