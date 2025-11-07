@@ -2,12 +2,8 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using DotNetColorParser;
 
 namespace FCloud3.WikiPreprocessor.Rules
@@ -42,6 +38,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         /// <param name="lines">行内容</param>
         /// <param name="inlineParser">行内解析器</param>
         /// <param name="blockParser">块解析器</param>
+        /// <param name="context">上下文</param>
         /// <returns>按本规则解析得的块元素</returns>
         public IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines,IInlineParser inlineParser,IRuledBlockParser blockParser, ParserContext context);
     }
@@ -173,7 +170,7 @@ namespace FCloud3.WikiPreprocessor.Rules
     public class ListBlockRule:PrefixBlockRule
     {
         public ListBlockRule()
-            : base("-","<ul>","</ul>","列表","")
+            : base("-","<ul>","</ul>","列表")
         {
         }
         public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -268,7 +265,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             var res = new ElementCollection();
-            lines.ToList().ForEach(x => res.Add(new SepElement(this)));
+            lines.ToList().ForEach(_ => res.Add(new SepElement(this)));
             return res;
         }
         public class SepElement:BlockElement
@@ -276,7 +273,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             public const string htmlClassName = "sep";
             private readonly SepBlockRule _fromRule;
 
-            public SepElement(SepBlockRule fromRule) : base()
+            public SepElement(SepBlockRule fromRule)
             {
                 _fromRule = fromRule;
             }
@@ -288,7 +285,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             {
                 sb.Append($"<div class=\"{htmlClassName}\"></div>");
             }
-            public override List<IRule>? ContainRules()
+            public override List<IRule> ContainRules()
             {
                 return new() { _fromRule };
             }
@@ -318,7 +315,7 @@ namespace FCloud3.WikiPreprocessor.Rules
     {
         public const char tableSep = '|';
 
-        public MiniTableBlockRule() : base("<table>", "</table>", "") { }
+        public MiniTableBlockRule() : base("<table>", "</table>") { }
 
         public override bool LineMatched(string line)
         {
@@ -339,7 +336,6 @@ namespace FCloud3.WikiPreprocessor.Rules
             int headSepRowIndex = text.FindIndex(x => x.All(y => y.Length>=3 && y.All(c => c == '-')));
 
             var colorParser = context.Options.ColorParser;
-            var tempSb = new StringBuilder();
             for(int lineIndex=0; lineIndex<text.Count; lineIndex++)
             {
                 if (lineIndex == headSepRowIndex)
@@ -350,12 +346,13 @@ namespace FCloud3.WikiPreprocessor.Rules
                 ElementCollection rowCells = new();
                 foreach(var cell in line)
                 {
-                    var cellContent = inlineParser.Run(cell);
-                    rowCells.Add(new TableCellElement(cellContent, colorParser, tempSb, isHead ));
+                    var (cellStr, cellAttrs) = CellColorAttr(cell, colorParser);
+                    var cellContent = inlineParser.Run(cellStr);
+                    rowCells.Add(new TableCellElement(cellContent, cellAttrs, isHead ));
                 }
                 int left = width - rowCells.Count;
                 for (int i = 0; i < left; i++)
-                    rowCells.Add(new TableCellElement(null, colorParser, tempSb, isHead));
+                    rowCells.Add(new TableCellElement(null, null, isHead));
                 rows.Add(new TableRowElement(rowCells));
             }
             return new RuledBlockElement(rows, genByRule: this);
@@ -381,52 +378,33 @@ namespace FCloud3.WikiPreprocessor.Rules
             {
             }
         }
-        public class TableCellElement : BlockElement
+        public class TableCellElement(
+            IHtmlable? content,
+            string? attr,
+            bool isHead = false
+            ) : BlockElement(content)
         {
-            public bool IsHead { get; }
-
-            public string CellTagName => IsHead ? "th" : "td";
-
-            private readonly IColorParser _colorParser;
-            private readonly StringBuilder _tempSb;
-
-            public TableCellElement(
-                IHtmlable? content,
-                IColorParser colorParser,
-                StringBuilder tempSb,
-                bool isHead = false) : base(content)
-            {
-                IsHead = isHead;
-                _colorParser = colorParser;
-                _tempSb = tempSb;
-            }
+            private string CellTagName => isHead ? "th" : "td";
+            
             public override string ToHtml()
             {
                 string contentHtml = Content.ToHtml();
-                (string s, string attr) = CellColorAttr(contentHtml, _colorParser);
-                if (attr.Length > 0)
-                {
-                    return $"<{CellTagName} {attr}>{s}</{CellTagName}>";
-                }
-                return $"<{CellTagName}>{s}</{CellTagName}>";
+                if (attr is not null && attr.Length > 0)
+                    return $"<{CellTagName} {attr}>{contentHtml}</{CellTagName}>";
+                return $"<{CellTagName}>{contentHtml}</{CellTagName}>";
             }
 
             public override void WriteHtml(StringBuilder sb)
             {
-                _tempSb.Clear();
-                Content.WriteHtml(_tempSb);
-                var contentHtml = _tempSb.ToString();
-                (string s, string attr) = CellColorAttr(contentHtml, _colorParser);
-
                 sb.Append('<');
                 sb.Append(CellTagName);
-                if (attr.Length > 0)
+                if (attr is not null && attr.Length > 0)
                 {
                     sb.Append(' ');
                     sb.Append(attr);
                 }
                 sb.Append('>');
-                sb.Append(s);
+                Content.WriteHtml(sb);
                 sb.Append("</");
                 sb.Append(CellTagName);
                 sb.Append('>');

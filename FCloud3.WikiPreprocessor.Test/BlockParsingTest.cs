@@ -1,29 +1,41 @@
 ﻿using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
-using FCloud3.WikiPreprocessor.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
+    internal class CuteBunnyReplaceDataSource : DataSourceBase
+    {
+        public override string? Replace(string replaceTarget)
+        {
+            if (replaceTarget == "可爱兔兔")
+                return "cute-bunny";
+            if (replaceTarget == "114514")
+                return "恶臭";
+            return replaceTarget;
+        }
+
+        public static string[] Targets => ["可爱兔兔", "114514"];
+    }
+
     [TestClass]
     public class BlockParsingTest
     {
         private readonly Parser _parser;
+        private readonly CuteBunnyReplaceDataSource _dataSource;
 
         public BlockParsingTest()
         {
             var parserBuilder = new ParserBuilder()
                 .Block.AddMoreRule(
                     new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
+                ).AutoReplace.AddReplacingTargets(
+                    CuteBunnyReplaceDataSource.Targets,
+                    false
                 );
             _parser = parserBuilder.BuildParser();
+            _dataSource = new CuteBunnyReplaceDataSource();
         }
 
         [TestMethod]
@@ -113,8 +125,12 @@ namespace FCloud3.WikiPreprocessor.Test
             "|一号线/-c-/哼唧咪咕 | 89km |\n|二号线/-c-/rgb(255,190,190) | 130km |",
             "<table><tr><td>一号线/-c-/哼唧咪咕</td><td>89km</td></tr>" +
             "<tr><td style=\"background-color:rgb(255,190,190);color:black\">二号线</td><td>130km</td></tr></table>")]
+        [DataRow(
+            "|114514/-c-/#114514|", // 仅/-c-/左侧被解析，右侧不解析
+            "<table><tr><td style=\"background-color:rgb(17,69,20);color:white\">恶臭</td></tr></table>")]
         public void MiniTableTest(string content, string answer)
         {
+            _parser.SetDataSource(_dataSource);
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }
