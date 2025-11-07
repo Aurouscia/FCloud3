@@ -1,6 +1,12 @@
 # FCloud3
 <img src="https://gitee.com/au114514/fcloud3/raw/master/FCloud3.AppFront/FCloud3Front/public/fcloud.svg" height="200"/>
 
+## TODO
+- 将单元测试框架更换为`xUnit`或`nUnit`，当前测试的多DataRow用法无法更新到`MSTest`的4.x.x版本
+- 将CORS配置项移到配置文件中
+- 考虑修改更好看的语法后，启用“模板”语法
+- 替换掉”颜色字/块“、”边框“等丑陋的语法
+
 ## 概述
 本项目是一套基于`asp.netCore`和`vue3`和内容管理系统，其主要功能介于`博客/维基/贴吧`之间  
 - 用户可在线编辑文本内容（称为词条）、上传图片等文件。词条支持markdown语法，可插入图片或表格。
@@ -85,7 +91,7 @@ http://wiki.jowei19.com
 - `robots.txt`位于`/FCloud3.AppFront/FCloud3Front/public`中，默认情况下不允许任何爬虫，请按需自行修改
 
 ## 主要缺陷
-- 只能单实例部署
+- 只能单实例部署（内部的“编辑互斥锁”为sqlite实现，不能跨实例互斥）
 - 没有代码生成器和布局设计器，二次开发较为麻烦
 - 词条内容为动态加载，无法被搜索引擎抓取（完全没有SEO）
 
