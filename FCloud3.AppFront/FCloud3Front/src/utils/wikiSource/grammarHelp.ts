@@ -1,8 +1,8 @@
 export interface GrammarHelpItem{
     title:string,
     desc:string,
-    code:string,
-    demo:string
+    code?:string,
+    demo?:string
 }
 
 export const grammarHelpsStandard:GrammarHelpItem[] = [
@@ -92,6 +92,18 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
 ]
 
 export const grammarHelpsExtended:GrammarHelpItem[] = [
+    {
+        title:"标题默认折起",
+        desc:"在标题前方添加 ^ 符号可将标题后的段落默认折起。",
+    },
+    {
+        title:"标题隐藏(1)",
+        desc:"将标题设为两个斜杠 // 可将该标题隐藏（仅限段落的大标题）。",
+    },
+    {
+        title:"标题隐藏(2)",
+        desc:"将标题设为三个斜杠 /// 可将该标题隐藏，并保留段落上方的空隙（仅限段落的大标题）。",
+    },
     {
         title:"居中和靠右",
         desc:"行首一个英文句点和三个空格表示本行居中，行首三个英文句点和三个空格表示本行靠右。",

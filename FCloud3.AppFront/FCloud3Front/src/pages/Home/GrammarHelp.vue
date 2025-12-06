@@ -10,16 +10,16 @@ import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSour
             <div v-for="i in grammarHelpsStandard" class="item">
                 <div class="title">{{ i.title }}</div>
                 <div class="desc" v-html="i.desc"></div>
-                <div class="code">{{ i.code }}</div>
-                <div class="demo" v-html="i.demo"></div>
+                <div v-if="i.code" class="code">{{ i.code }}</div>
+                <div v-if="i.demo" class="demo" v-html="i.demo"></div>
             </div>
         </div>
         <div class="choose">
             <div v-for="i in grammarHelpsExtended" class="item">
                 <div class="title">{{ i.title }}</div>
                 <div class="desc" v-html="i.desc"></div>
-                <div class="code">{{ i.code }}</div>
-                <div class="demo" v-html="i.demo"></div>
+                <div v-if="i.code" class="code">{{ i.code }}</div>
+                <div v-if="i.demo" class="demo" v-html="i.demo"></div>
             </div>
             <div class="welcome">欢迎提出建议和问题反馈</div>
         </div>

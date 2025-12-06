@@ -37,6 +37,7 @@ import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
 import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 import _ from 'lodash';
 import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
+import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -208,6 +209,8 @@ function subtitlesClean(){
     //标题可能因为各种原因消失（解析器转换，插件操作）需要清理
     if(!data.value)
         return;
+    //移除所有隐藏的标题(仅段落大标题，有“titleHiddenClass”的)
+    data.value.SubTitles = data.value.SubTitles.filter(t=>!paraTitleHiddenClass(t.Text))
     //移除所有找不到对应id元素的目录项
     data.value.SubTitles = filterSubtitleByDomExistence(data.value.SubTitles)
     //移除所有找不到对应id目录项的“滚动目标”
@@ -342,9 +345,9 @@ onUnmounted(()=>{
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
         <div v-for="p in data.Paras" class="para">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
-                <h1 :id="titleElementId(p.TitleId)">
-                    <span v-html="p.Title"></span>
-                    <div class="h1Sep"></div>
+                <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
+                    <span v-html="p.Title" class="paraTitleText"></span>
+                    <div class="paraTitleSep"></div>
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
@@ -381,7 +384,7 @@ onUnmounted(()=>{
             词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
         </div>
         <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
-        <h1 :id="titleElementId(cmtTitleId)">评论区<div class="h1Sep"></div></h1>
+        <h1 :id="titleElementId(cmtTitleId)">评论区<div class="paraTitleSep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
             <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
