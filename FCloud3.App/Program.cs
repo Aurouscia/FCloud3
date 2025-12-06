@@ -4,6 +4,7 @@ using FCloud3.App.Services.Logging;
 using FCloud3.Services;
 using Serilog;
 using FCloud3.App.Services.Authentication;
+using FCloud3.App.Services.Utils;
 
 try
 {
@@ -24,27 +25,13 @@ try
     builder.Services.AddAppServices(c);
     //添加jwt鉴权(authentication)
     builder.Services.AddJwtAuthentication(c);
-
-    string localVueCors = "localVueCors";
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy(localVueCors, b =>
-        {
-            b.WithOrigins("http://127.0.0.1:5173")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-            b.WithOrigins("http://localhost:5173")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
-    });
+    //添加跨域配置
+    builder.Services.AddConfiguredCors(c);
 
     var app = builder.Build();
 
     //配置请求管道
-    app.UseCors(localVueCors);
+    app.UseConfiguredCors();
 
     app.UseFileServer();
 
