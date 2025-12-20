@@ -32,6 +32,16 @@ const editedNameOrPwd = ref<boolean>(false)
 async function editUserInfo(){
     if(user.value){
         if(user.value.Name){
+            if(user.value.Pwd){
+                if(!pwdRepeat.value){
+                    pop.value.show("请再次输入密码", "failed");
+                    return;
+                }
+                if(user.value.Pwd != pwdRepeat.value){
+                    pop.value.show("两次密码不一致", "failed");
+                    return;
+                }
+            }
             const resp = await api.identites.user.editExe(user.value);
             if(resp){
                 if(editedNameOrPwd.value){
@@ -103,6 +113,7 @@ async function exportAllWikis() {
     }
 }
 
+const pwdRepeat = ref<string>();
 onMounted(async()=>{
     pop = injectPop();
     api = injectApi();
@@ -125,6 +136,12 @@ onMounted(async()=>{
                     <td>密码</td>
                     <td>
                         <input v-model="user.Pwd" @input="editedNameOrPwd=true" type="password" autocomplete="new-password"/>
+                    </td>
+                </tr>
+                <tr v-if="user.Pwd">
+                    <td>再次<br/>输入</td>
+                    <td>
+                        <input v-model="pwdRepeat" type="password" autocomplete="new-password"/>
                     </td>
                 </tr>
                 <tr>
