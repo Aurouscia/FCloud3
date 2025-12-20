@@ -117,9 +117,12 @@ const recommendsLoaded = ref(false);
 function viewAreaScrollHandler(enforce?:boolean){
     if(!enforce)
         if(Date.now() - lastScrollTime < 50){return;}
-    const sh = wikiViewArea.value!.scrollHeight;
-    const st = wikiViewArea.value!.scrollTop;
-    const oh = wikiViewArea.value!.offsetHeight;
+    const sh = wikiViewArea.value?.scrollHeight;
+    const st = wikiViewArea.value?.scrollTop;
+    const oh = wikiViewArea.value?.offsetHeight;
+    if(typeof sh != "number" || typeof st != "number" || typeof oh != "number"){
+        return;
+    }
     if(sh - st < oh+1600){
         recommendsLoaded.value = true
     }
