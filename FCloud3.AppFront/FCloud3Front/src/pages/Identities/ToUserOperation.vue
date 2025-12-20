@@ -55,7 +55,7 @@ const emits = defineEmits<{
             <button @click="setType">确定</button>
         </div>
         <div v-if="iden.Type==UserType.SuperAdmin">
-            <input v-model="resetPwdTo" placeholder="新密码"/>
+            <input v-model="resetPwdTo" placeholder="新密码" type="password" autocomplete="new-password"/><br/>
             <button @click="resetPwd">重置密码</button>
         </div>
         <div>
