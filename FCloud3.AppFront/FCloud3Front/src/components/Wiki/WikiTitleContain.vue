@@ -111,8 +111,8 @@ onMounted(async() => {
         <button @click="()=>autoFill()" v-if="getContent" class="minor" style="width: 260px;margin: 5px 0px 0px 0px">自动添加</button>
     </div>
     <div v-if="data" class="list">
-        <div v-for="item,idx in data.Items" :key="item.WikiId">
-            <div>
+        <div v-for="item,idx in data.Items" :key="item.WikiId" class="listItem">
+            <div class="listItemBody">
                 <span class="serial">{{ idx+1 }}.</span>
                 {{ item.WikiTitle }}
             </div>
@@ -151,17 +151,22 @@ onMounted(async() => {
     max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
-.list>div{
+.listItem{
     width: 230px;
     flex-shrink: 0;
     flex-grow: 0;
     display: flex;
     justify-content: space-between;
+    gap: 5px;
     padding: 5px;
     border-bottom: 1px solid #ddd;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    .listItemBody{
+        flex-shrink: 1;
+        min-width: 0px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 .list .serial{
     font-size: 14px;
