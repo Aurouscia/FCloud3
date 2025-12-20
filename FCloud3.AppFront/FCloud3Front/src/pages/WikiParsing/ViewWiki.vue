@@ -16,6 +16,7 @@ import menuImg from '@/assets/menu.svg';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
+import { useWikiParsingRoutesJump } from './routes/routesJump';
 import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
@@ -41,7 +42,7 @@ import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 
 const props = defineProps<{
     wikiPathName: string;
-    viewCmt?: boolean;
+    viewCmt?: string|boolean;
 }>()
 watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
     wikiViewScrollMemory.save(oldVal, wikiViewArea.value)
@@ -174,6 +175,7 @@ let titlesInContent:HTMLElement[]
 const router = useRouter();
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } = useWikiRoutesJump();
+const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
 const { jumpToUserCenter, jumpToUserGroup } = useIdentityRoutesJump();
@@ -293,6 +295,7 @@ async function init(changedPathName?:boolean){
 
     if(props.viewCmt){
         moveToTitle(cmtTitleId)
+        router.replace(jumpToViewWikiRoute(props.wikiPathName)) // 去除路径中的viewCmt标记（确保其一次性）
     }else if(changedPathName){
         wikiViewScrollMemory.read(props.wikiPathName, wikiViewArea.value)
         viewAreaScrollHandler(true)

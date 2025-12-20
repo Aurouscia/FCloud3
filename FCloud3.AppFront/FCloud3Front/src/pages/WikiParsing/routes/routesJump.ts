@@ -24,12 +24,15 @@ export function useWikiParsingRoutesJump(){
     const jumpToViewWikiFromIdRoute = (wikiId:number|undefined)=>{
         return {name:"viewWikiFromId",params:{wikiId}}
     }
+    const jumpToViewWikiCmtRoute = (wikiPathName:string|undefined)=>{
+        return {name:"viewWikiCmt",params:{wikiPathName, viewCmt:'viewCmt'}}
+    }
     const jumpToViewWikiCmt = (wikiPathName:string|undefined)=>{
         if(!wikiPathName){
             return;
         }
         if(router){
-            router.push({name:"viewWikiCmt",params:{wikiPathName, viewCmt:'viewCmt'}});
+            router.push(jumpToViewWikiCmtRoute(wikiPathName));
         }
     }
     const jumpToWikiTemplateList = () => {
@@ -43,5 +46,5 @@ export function useWikiParsingRoutesJump(){
         }
     }
     return { jumpToViewWiki, jumpToViewWikiRoute, jumpToViewWikiFromId, jumpToViewWikiFromIdRoute,
-        jumpToViewWikiCmt, jumpToWikiTemplateEditor, jumpToWikiTemplateList }
+        jumpToViewWikiCmtRoute, jumpToViewWikiCmt, jumpToWikiTemplateEditor, jumpToWikiTemplateList }
 }

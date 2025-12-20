@@ -6,6 +6,8 @@ import { rateColor, rateText } from './rateTextColor';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import CommentItem from './CommentItem.vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 
 const props = defineProps<{
     type:CommentTargetType
@@ -49,10 +51,24 @@ async function inputKeyDown(e:KeyboardEvent){
     }
 }
 
+const route = useRoute()
+const router = useRouter()
+const { jumpToLoginRoute } = useIdentityRoutesJump();
+const { jumpToViewWikiCmtRoute } = useWikiParsingRoutesJump();
+const loginRoute = jumpToLoginRoute(true)
+async function goToLogin(){
+    if(route.name == "viewWiki" && "wikiPathName" in route.params){
+        const pathName = route.params["wikiPathName"]
+        if(typeof pathName == "string"){
+            await router.replace(jumpToViewWikiCmtRoute(pathName)) //确保从登录页面跳转回来时，是在评论区域
+        }
+    }
+    router.push(loginRoute)
+}
+
 let api = injectApi()
 let pop = injectPop()
 const iden = useIdentityInfoStore()
-const { jumpToLoginRoute } = useIdentityRoutesJump();
 onMounted(async ()=>{
     await load();
 })
@@ -74,7 +90,7 @@ onMounted(async ()=>{
         </div>
     </div>
     <div v-else class="give needLogin">
-        请<RouterLink :to="jumpToLoginRoute(true)">登录</RouterLink>后发表您的评论
+        请<span @click="goToLogin">登录</span>后发表您的评论
     </div>
     <div class="comments">
         <CommentItem v-for="c in comments" :c="c" :siblings="comments" :objType="type" :objId="objId" @needLoad="load"></CommentItem>
@@ -89,6 +105,13 @@ onMounted(async ()=>{
         color: #999;
         font-size: 18px;
         text-align: center;
+        span{
+            color: cornflowerblue;
+            cursor: pointer;
+            &:hover{
+                color: rgb(0, 49, 139)
+            }
+        }
     }
 }
 .write{
