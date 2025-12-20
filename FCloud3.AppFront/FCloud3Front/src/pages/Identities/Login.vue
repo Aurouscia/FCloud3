@@ -77,6 +77,12 @@ const leftTimeDisplay = computed<string>(()=>{
     return hours+'小时';
 })
 
+function handlePwdKeyDown(e:KeyboardEvent){
+    if(e.key=="Enter"){
+        Login()
+    }
+}
+
 let authLocalConfig:AuthLocalConfig = authConfigDefault();
 onMounted(async()=>{
     checkAndPop()
@@ -109,7 +115,7 @@ onUnmounted(()=>{
             <tr>
                 <td>密码</td>
                 <td>
-                    <input v-model="password" type="password"/>
+                    <input v-model="password" type="password" @keydown="handlePwdKeyDown"/>
                 </td>
             </tr>
         </tbody></table>
