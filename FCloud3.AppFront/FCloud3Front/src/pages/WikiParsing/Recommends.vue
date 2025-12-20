@@ -59,6 +59,6 @@ api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)
 .recs{
     margin: 20px 0px 20px 0px;
     padding: 10px;
-    background-color: #f8f8f8;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 </style>

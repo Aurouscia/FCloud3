@@ -2,6 +2,12 @@ import { useRouter } from "vue-router"
 
 export function useIdentityRoutesJump(){
     const router = useRouter();
+    const jumpToLoginRoute = (backAfterSuccess:boolean = true) => {
+        return {name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}}
+    }
+    const jumpToLogin = (backAfterSuccess:boolean = true) => {
+        router.push(jumpToLoginRoute(backAfterSuccess))
+    }
     const jumpToUserCenter = (username:string) => {
         router.push({name:'userCenter', params:{username}})
     }
@@ -14,9 +20,6 @@ export function useIdentityRoutesJump(){
     const jumpToSelfUserCenter = ()=>{
         router.push({name:'userCenter'})
     }
-    const jumpToLogin = (backAfterSuccess:boolean = true) => {
-        router.push({name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}})
-    }
     const jumpToRegister = () => {
         router.push({name:'register'})
     }
@@ -26,6 +29,6 @@ export function useIdentityRoutesJump(){
     const jumpToUserGroup = (id:number)=>{
         router.push({name:'userGroup',params:{id}})
     }
-    return { jumpToLogin, jumpToUserCenter, jumpToUserCenterRoute, jumpToUserCenterFromIdRoute,
+    return { jumpToLoginRoute, jumpToLogin, jumpToUserCenter, jumpToUserCenterRoute, jumpToUserCenterFromIdRoute,
         jumpToSelfUserCenter, jumpToRegister, jumpToGlobalAuthGrants, jumpToUserGroup }
 }

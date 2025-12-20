@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue';
 import { Comment, CommentTargetType, CommentViewResult } from '@/models/messages/comment';
 import { injectApi, injectPop } from '@/provides';
 import { rateColor, rateText } from './rateTextColor';
+import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import CommentItem from './CommentItem.vue';
 
 const props = defineProps<{
@@ -49,13 +51,15 @@ async function inputKeyDown(e:KeyboardEvent){
 
 let api = injectApi()
 let pop = injectPop()
+const iden = useIdentityInfoStore()
+const { jumpToLoginRoute } = useIdentityRoutesJump();
 onMounted(async ()=>{
     await load();
 })
 </script>
 
 <template>
-    <div class="give">
+    <div v-if="iden.isLoginValid" class="give">
         <div class="rate">
             <div class="rates">
                 <div @click="rate=0" style="width:38px;" :style="{backgroundColor: rateColor(rate)}">{{ rateText(rate) }}</div>
@@ -69,6 +73,9 @@ onMounted(async ()=>{
             <button class="ok" @click="send">发送</button>
         </div>
     </div>
+    <div v-else class="give needLogin">
+        请<RouterLink :to="jumpToLoginRoute(true)">登录</RouterLink>后发表您的评论
+    </div>
     <div class="comments">
         <CommentItem v-for="c in comments" :c="c" :siblings="comments" :objType="type" :objId="objId" @needLoad="load"></CommentItem>
     </div>
@@ -76,8 +83,13 @@ onMounted(async ()=>{
 
 <style scoped lang="scss">
 .give{
-    background-color: #f2f2f2;
+    background-color: rgba(0, 0, 0, 0.05);
     padding: 10px;
+    &.needLogin{
+        color: #999;
+        font-size: 18px;
+        text-align: center;
+    }
 }
 .write{
     margin: 10px 0px 0px 0px;
