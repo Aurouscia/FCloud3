@@ -94,7 +94,7 @@ async function inputKeyDown(e:KeyboardEvent){
     <div class="commentItem">
         <div class="info">
             <div class="sender">
-                <img :src="c.UserAvtSrc" class="smallAvatar"/>
+                <img :src="c.UserAvtSrc" class="smallAvatar" loading="lazy"/>
                 <div class="uname" @click="jumpToUserCenter(c.UserName)">{{ c.UserName }}</div>
                 <div class="time">{{ c.Time }}</div>
             </div>

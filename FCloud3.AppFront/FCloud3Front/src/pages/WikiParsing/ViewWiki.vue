@@ -360,14 +360,14 @@ onUnmounted(()=>{
             </div>
             <div v-if="p.ParaType==WikiParaType.File && p.Content">
                 <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
-                    <img :src="p.Content" :alt="p.Title"/>
+                    <img :src="p.Content" :alt="p.Title" loading="lazy"/>
                     <div>{{ p.Title }}</div>
                 </div>
                 <div v-else-if="getFileType(p.Content)=='audio'">
-                    <audio :src="p.Content" controls></audio>
+                    <audio :src="p.Content" controls loading="lazy" ></audio>
                 </div>
                 <div v-else-if="getFileType(p.Content)=='video'">
-                    <video :src="p.Content" controls></video>
+                    <video :src="p.Content" controls loading="lazy" ></video>
                 </div>
                 <div v-else class="filePara">
                     <span class="fileHint">点击下载文件：</span>
