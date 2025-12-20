@@ -9,6 +9,7 @@ export interface IdentityInfo{
     Name:string
     Id:number
     LeftHours:number
+    LeftSeconds:number
     Type: UserType,
     AvtSrc: string
 }
@@ -17,6 +18,7 @@ const defaultValue:IdentityInfo = {
     Name:"游客",
     Id:0,
     LeftHours:0,
+    LeftSeconds:0,
     Type: UserType.Tourist,
     AvtSrc: userDefaultAvatar
 }
@@ -78,5 +80,6 @@ export const useIdentityInfoStore = defineStore('iden', ()=>{
     const iden = ref(defaultValue)
     const isAdmin = computed<boolean>(()=>iden.value.Type>=UserType.Admin)
     const isSuperAdmin = computed<boolean>(()=>iden.value.Type>=UserType.SuperAdmin)
-    return { iden, isAdmin, isSuperAdmin }
+    const isLoginValid = computed<boolean>(()=>iden.value.Id>0&&iden.value.LeftSeconds>0)
+    return { iden, isAdmin, isSuperAdmin, isLoginValid }
 })

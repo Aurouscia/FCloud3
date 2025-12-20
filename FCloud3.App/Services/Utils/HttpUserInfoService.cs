@@ -13,6 +13,7 @@ namespace FCloud3.App.Services.Utils
         public string Name { get; } = "未登录";
         public UserType Type { get; } = UserType.Tourist;
         public int LeftHours { get; } = 0;
+        public int LeftSeconds { get; } = 0;
         public string? AvtSrc { get; }
         public bool IsAdmin => Type >= UserType.Admin;
         public bool IsSuperAdmin => Type >= UserType.SuperAdmin;
@@ -40,7 +41,8 @@ namespace FCloud3.App.Services.Utils
                 {
                     long now = DateTimeOffset.Now.ToUnixTimeSeconds();
                     long leftSeconds = exp - now;
-                    LeftHours = (int)TimeSpan.FromSeconds(leftSeconds).TotalHours;
+                    LeftSeconds = Math.Max(0, (int)leftSeconds);
+                    LeftHours = LeftSeconds / 3600;
                 }
             }
         }
