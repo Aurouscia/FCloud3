@@ -30,7 +30,7 @@ namespace FCloud3.Services.TextSec
         DbTransactionService dbTransactionService,
         ContentEditLockService contentEditLockService,
         WikiParserProviderService wikiParserProviderService,
-        WikiParserDataSource wikiParserDataSource,
+        WikiParserConvertingProvider wikiParserConvertingProvider,
         LatestWikiExchangeService latestWikiExchangeService,
         ILocatorHash locatorHash, 
         ILogger<TextSectionService> logger,
@@ -154,14 +154,14 @@ namespace FCloud3.Services.TextSec
         public TextSectionPreviewResponse Preview(int id, string content)
         {
             var parser = GetPreviewParser(id);
-            parser.SetDataSource(wikiParserDataSource);
+            parser.SetConvertingProvider(wikiParserConvertingProvider);
             var res = new TextSectionPreviewResponse(parser.RunToParserResult(content));
             return res;
         }
         public string Brief(int id, string content, int briefLength = 64, int parseLength = 128)
         {
             var parser = GetPreviewParser(id);
-            parser.SetDataSource(wikiParserDataSource);
+            parser.SetConvertingProvider(wikiParserConvertingProvider);
             if(content.Length > parseLength)
                 content = content.Substring(0, parseLength);
             try

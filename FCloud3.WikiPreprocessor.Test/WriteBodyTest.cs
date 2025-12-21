@@ -1,5 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.DataSource.Models;
-using FCloud3.WikiPreprocessor.Mechanics;
+﻿using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Test.Support;
 using System;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
@@ -19,9 +19,9 @@ namespace FCloud3.WikiPreprocessor.Test
             var pb = new ParserBuilder();
             pb.AutoReplace.AddReplacingTargets(["abc", "efg"], false);
             _parser = pb.BuildParser();
-            _parser.SetDataSource(new FakeDataSource());
+            _parser.SetConvertingProvider(new FakeConvertingProvider());
         }
-        internal class FakeDataSource : DataSourceBase
+        internal class FakeConvertingProvider : ConvertingProviderBase
         {
             public override string? Replace(string replaceTarget)
             {

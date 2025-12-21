@@ -1,10 +1,10 @@
 ﻿using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Context.SubContext;
-using FCloud3.WikiPreprocessor.DataSource;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
 using System.Text;
+using FCloud3.WikiPreprocessor.ConvertingProvider;
 
 namespace FCloud3.WikiPreprocessor.Mechanics
 {
@@ -182,8 +182,8 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             sb.Append("</div>");
         }
 
-        public void SetDataSource(IScopedDataSource dataSource)
-            => _ctx.SetDataSource(dataSource);
+        public void SetConvertingProvider(IScopedConvertingProvider convertingProvider)
+            => _ctx.SetConvertingProvider(convertingProvider);
     }
 
     public class ParserResult

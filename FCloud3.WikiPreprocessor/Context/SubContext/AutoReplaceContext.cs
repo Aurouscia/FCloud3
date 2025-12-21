@@ -74,7 +74,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
                 {
                     var rule = new LiteralInlineRule(
                         target: x.Text,
-                        getReplacement: () => _ctx.DataSource?.Replace(x.Text),
+                        getReplacement: () => _ctx.ConvertingProvider?.Replace(x.Text),
                         isSingle: x.IsSingleUse
                     );
                     res.Add((x, rule));

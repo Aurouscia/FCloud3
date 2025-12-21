@@ -46,7 +46,7 @@ namespace FCloud3.Services.WikiParsing.Support
             pb.Link.ReplaceConvertFn((link, name) =>
             {
                 name ??= link.Text;
-                return WikiParserDataSource.WikiReplacement(link.Url, name);
+                return WikiParserConvertingProvider.WikiReplacement(link.Url, name);
             });
             if (configure is not null)
                 configure(pb);

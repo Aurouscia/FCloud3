@@ -5,7 +5,7 @@ using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    internal class CuteBunnyReplaceDataSource : DataSourceBase
+    internal class CuteBunnyReplaceConvertingProvider : ConvertingProviderBase
     {
         public override string? Replace(string replaceTarget)
         {
@@ -23,7 +23,7 @@ namespace FCloud3.WikiPreprocessor.Test
     public class BlockParsingTest
     {
         private readonly Parser _parser;
-        private readonly CuteBunnyReplaceDataSource _dataSource;
+        private readonly CuteBunnyReplaceConvertingProvider _convertingProvider;
 
         public BlockParsingTest()
         {
@@ -31,11 +31,11 @@ namespace FCloud3.WikiPreprocessor.Test
                 .Block.AddMoreRule(
                     new PrefixBlockRule("&gt;", "<div q>", "</div>", "引用")
                 ).AutoReplace.AddReplacingTargets(
-                    CuteBunnyReplaceDataSource.Targets,
+                    CuteBunnyReplaceConvertingProvider.Targets,
                     false
                 );
             _parser = parserBuilder.BuildParser();
-            _dataSource = new CuteBunnyReplaceDataSource();
+            _convertingProvider = new CuteBunnyReplaceConvertingProvider();
         }
 
         [TestMethod]
@@ -136,7 +136,7 @@ namespace FCloud3.WikiPreprocessor.Test
             "<table><tr><td style=\"background-color:rgb(17,69,20);color:white\">恶臭</td></tr></table>")]
         public void MiniTableTest(string content, string answer)
         {
-            _parser.SetDataSource(_dataSource);
+            _parser.SetConvertingProvider(_convertingProvider);
             string html = _parser.RunToPlain(content);
             Assert.AreEqual(answer, html);
         }

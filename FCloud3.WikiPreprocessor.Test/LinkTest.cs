@@ -1,12 +1,12 @@
 using FCloud3.WikiPreprocessor.Context;
-using FCloud3.WikiPreprocessor.DataSource.Models;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    internal class ScopedDataSourceWithLink : DataSourceBase
+    internal class ScopedConvertingProviderWithLink : ConvertingProviderBase
     {
         private readonly static List<LinkItem> LinkSource = [
             new LinkItem("武汉市", "wuhan"),
@@ -27,12 +27,12 @@ namespace FCloud3.WikiPreprocessor.Test
 
         public LinkTest()
         {
-            var dataSource = new ScopedDataSourceWithLink();
+            var dataSource = new ScopedConvertingProviderWithLink();
 
             var options1 = new ParserBuilder()
                 .GetCurrentOptions();
             _ctxDefault = new(options1);
-            _ctxDefault.SetDataSource(dataSource);
+            _ctxDefault.SetConvertingProvider(dataSource);
 
             var options2 = new ParserBuilder()
                 .Link.ReplaceConvertFn((l, mustUseName) =>
@@ -43,7 +43,7 @@ namespace FCloud3.WikiPreprocessor.Test
                 })
                 .GetCurrentOptions();
             _ctxWithConvertFn = new(options2);
-            _ctxWithConvertFn.SetDataSource(dataSource);
+            _ctxWithConvertFn.SetConvertingProvider(dataSource);
         }
 
         [TestMethod]

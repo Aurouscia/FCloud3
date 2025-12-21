@@ -1,21 +1,21 @@
 ﻿using FCloud3.Repos.Files;
 using FCloud3.Repos.Wiki;
 using FCloud3.Services.Files;
-using FCloud3.WikiPreprocessor.DataSource;
-using FCloud3.WikiPreprocessor.DataSource.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.ConvertingProvider;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
 
 namespace FCloud3.Services.WikiParsing.Support
 {
-    public class WikiParserDataSource(
+    public class WikiParserConvertingProvider(
         WikiItemRepo wikiItemRepo,
         MaterialRepo materialRepo,
         MaterialService materialService) 
-        : IScopedDataSource
+        : IScopedConvertingProvider
     {
         public string? Implant(string implantSpan)
         {

@@ -1,4 +1,4 @@
-using FCloud3.WikiPreprocessor.DataSource.Models;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
 
 namespace FCloud3.WikiPreprocessor.Options.SubOptions
 {

@@ -181,7 +181,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             {
                 //不是http或斜杠开头才会进来
                 context.Ref.ReportRef(trimmedSpan);
-                var link = context.DataSource?.Link(trimmedSpan);
+                var link = context.ConvertingProvider?.Link(trimmedSpan);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}
@@ -231,7 +231,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             if (!UrlUtil.IsUrl(trimmedPart2))
             {
                 context.Ref.ReportRef(trimmedPart2);
-                var link = context.DataSource?.Link(trimmedPart2);
+                var link = context.ConvertingProvider?.Link(trimmedPart2);
                 if (link is not null)
                 {
                     // LinkItems存在 {Text:"武汉市", Url:"/w/wuhan"}

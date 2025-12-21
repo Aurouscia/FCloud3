@@ -4,7 +4,7 @@ using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    internal class ScopedDataSourceWithAutoReplace : DataSourceBase
+    internal class ScopedConvertingProviderWithAutoReplace : ConvertingProviderBase
     {
         public override string? Replace(string replaceTarget)
         {
@@ -37,36 +37,36 @@ namespace FCloud3.WikiPreprocessor.Test
         private readonly Parser _parser;
         private readonly Parser _parserWithCache;
         private readonly Parser _parserKeepUsage;
-        private readonly ScopedDataSourceWithAutoReplace _dataSource;
+        private readonly ScopedConvertingProviderWithAutoReplace _convertingProvider;
         public AutoReplaceTest()
         {
-            _dataSource = new ScopedDataSourceWithAutoReplace();
+            _convertingProvider = new ScopedConvertingProviderWithAutoReplace();
 
             var optionsBuilder = new ParserBuilder()
                 .AutoReplace.AddReplacingTargets(
-                    _dataSource.wikis_1.Select(x => x.Key).ToList(),
+                    _convertingProvider.wikis_1.Select(x => x.Key).ToList(),
                     true
                 );
             //“单次使用”与“缓存”不可能同时实现，这里不启用缓存机制
             _parser = optionsBuilder.BuildParser();
-            _parser.SetDataSource(_dataSource);
+            _parser.SetConvertingProvider(_convertingProvider);
             
             var optionsBuilder2 = new ParserBuilder()
                 .AutoReplace.AddReplacingTargets(
-                    _dataSource.wikis_1.Select(x => x.Key).ToList(),
+                    _convertingProvider.wikis_1.Select(x => x.Key).ToList(),
                     false
                 );
             optionsBuilder2.Cache.EnableCache();
             _parserWithCache = optionsBuilder2.BuildParser();
-            _parserWithCache.SetDataSource(_dataSource);
+            _parserWithCache.SetConvertingProvider(_convertingProvider);
 
             var optionsBuilder3 = new ParserBuilder()
                 .AutoReplace.AddReplacingTargets(
-                    _dataSource.wikis_1.Select(x => x.Key).ToList(),
+                    _convertingProvider.wikis_1.Select(x => x.Key).ToList(),
                     true
                 ).KeepRuleUsageBeforeCalling();
             _parserKeepUsage = optionsBuilder3.BuildParser();
-            _parserKeepUsage.SetDataSource(_dataSource);
+            _parserKeepUsage.SetConvertingProvider(_convertingProvider);
         }
 
         [TestMethod]
@@ -112,12 +112,12 @@ namespace FCloud3.WikiPreprocessor.Test
         public void ChangeTargets(string input, string answer, bool clear)
         {
             //更换目标，可选择是否去除旧目标
-            List<string?> targets = _dataSource.wikis_2.Keys
+            List<string?> targets = _convertingProvider.wikis_2.Keys
                 .ToList().ConvertAll(x => (string?)x);
             _parser.Context.AutoReplace.Register(targets, true, clear);
             string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
-            _parser.SetDataSource(_dataSource);
+            _parser.SetConvertingProvider(_convertingProvider);
             string res2 = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
         }
@@ -128,15 +128,15 @@ namespace FCloud3.WikiPreprocessor.Test
             "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，<a href=\"/w/5\">夜莺</a>会吃城市里的其他小鸟</p>")]
         public void NoSingleUse(string input, string answer)
         {
-            List<string?> targets = _dataSource.wikis_2.Keys
+            List<string?> targets = _convertingProvider.wikis_2.Keys
                 .ToList().ConvertAll(x => (string?)x);
             _parserWithCache.Context.AutoReplace.Register(targets, false, true);
             string res = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res);
-            _parserWithCache.SetDataSource(_dataSource);
+            _parserWithCache.SetConvertingProvider(_convertingProvider);
             string res2 = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res2);
-            _parserWithCache.SetDataSource(_dataSource);
+            _parserWithCache.SetConvertingProvider(_convertingProvider);
             string res3 = _parserWithCache.RunToPlain(input);
             Assert.AreEqual(answer, res3);
         }
@@ -148,15 +148,15 @@ namespace FCloud3.WikiPreprocessor.Test
             "<p>夜莺是人类伴生种，夜莺会吃城市里的其他小鸟</p>")]
         public void SingleUseAcrossCalling(string input, string answer1, string answer2)
         {
-            List<string?> targets = _dataSource.wikis_2.Keys
+            List<string?> targets = _convertingProvider.wikis_2.Keys
                 .ToList().ConvertAll(x => (string?)x);
             _parserKeepUsage.Context.AutoReplace.Register(targets, true, true);
             string res = _parserKeepUsage.RunToPlain(input);
             Assert.AreEqual(answer1, res);
-            _parserKeepUsage.SetDataSource(_dataSource);
+            _parserKeepUsage.SetConvertingProvider(_convertingProvider);
             string res2 = _parserKeepUsage.RunToPlain(input);
             Assert.AreEqual(answer2, res2);
-            _parserKeepUsage.SetDataSource(_dataSource);
+            _parserKeepUsage.SetConvertingProvider(_convertingProvider);
             string res3 = _parserKeepUsage.RunToPlain(input);
             Assert.AreEqual(answer2, res3);
         }

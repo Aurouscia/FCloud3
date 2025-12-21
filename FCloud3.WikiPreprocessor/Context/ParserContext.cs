@@ -1,9 +1,9 @@
 ﻿using FCloud3.WikiPreprocessor.Context.SubContext;
-using FCloud3.WikiPreprocessor.DataSource;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Util;
 using System.Diagnostics;
+using FCloud3.WikiPreprocessor.ConvertingProvider;
 
 namespace FCloud3.WikiPreprocessor.Context
 {
@@ -20,7 +20,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserTitleGatheringContext TitleGathering { get; }
         public ParserRefContext Ref { get; }
         public AutoReplaceContext AutoReplace { get; }
-        public IScopedDataSource? DataSource { get; private set; }
+        public IScopedConvertingProvider? ConvertingProvider { get; private set; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -80,15 +80,15 @@ namespace FCloud3.WikiPreprocessor.Context
         public void AfterParsing()
         {
             Caches.AfterParsing();
-            DataSource = null;
+            ConvertingProvider = null;
         }
         public void ClearRuleUsage()
         {
             RuleUsage.Reset();
         }
-        public void SetDataSource(IScopedDataSource dataSource)
+        public void SetConvertingProvider(IScopedConvertingProvider convertingProvider)
         {
-            DataSource = dataSource;
+            ConvertingProvider = convertingProvider;
         }
         public string DebugInfo()
         {

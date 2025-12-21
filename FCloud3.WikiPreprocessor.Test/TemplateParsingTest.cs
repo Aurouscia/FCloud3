@@ -6,7 +6,7 @@ using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    internal class DataSourceForTemplateTest : DataSourceBase
+    internal class ConvertingProviderForTemplateTest : ConvertingProviderBase
     {
         public override string? Implant(string implantSpan)
         {
@@ -44,7 +44,7 @@ namespace FCloud3.WikiPreprocessor.Test
                 .Template.AddTemplates(templates)
                 .GetCurrentOptions();
             _ctx = new(_options);
-            _ctx.SetDataSource(new DataSourceForTemplateTest());
+            _ctx.SetConvertingProvider(new ConvertingProviderForTemplateTest());
         }
         [TestMethod]
         [DataRow(

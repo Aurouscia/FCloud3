@@ -38,7 +38,7 @@ namespace FCloud3.Services.WikiParsing
         WikiParserProviderService wikiParserProvider,
         WikiParsedResultService wikiParsedResult,
         AuthGrantService authGrantService,
-        WikiParserDataSource wikiParserDataSource,
+        WikiParserConvertingProvider wikiParserConvertingProvider,
         WikiRefRepo wikiRefRepo,
         IStorage storage,
         IOperatingUserIdProvider userIdProvider,
@@ -195,7 +195,7 @@ namespace FCloud3.Services.WikiParsing
                     t = title;
                 if (!parse)
                     return t;
-                parser.SetDataSource(wikiParserDataSource);
+                parser.SetConvertingProvider(wikiParserConvertingProvider);
                 var resOft = parser.RunToParserResultRaw(t,false);
                 result.AddRules(resOft.UsedRules);
                 return resOft.Content;
@@ -302,7 +302,7 @@ namespace FCloud3.Services.WikiParsing
         private ParserResultRaw ParseText(TextSection model, Parser parser)
         {
             //parser解析一次就会丢掉scopedDataSource，重新给回去
-            parser.SetDataSource(wikiParserDataSource);
+            parser.SetConvertingProvider(wikiParserConvertingProvider);
             return parser.RunToParserResultRaw(model.Content);
         }
         private ParserResultRaw ParseTable(AuTable data, Parser parser)
@@ -319,7 +319,7 @@ namespace FCloud3.Services.WikiParsing
                         return ("　", "");
                     var colorRes = MiniTableBlockRule.CellColorAttr(s, colorParser);
                     //parser解析一次就会丢掉scopedDataSource，重新给回去
-                    parser.SetDataSource(wikiParserDataSource);
+                    parser.SetConvertingProvider(wikiParserConvertingProvider);
                     var res = parser.RunToParserResultRaw(colorRes.s, false);
                     usedRules.AddRange(res.UsedRules);
                     return (res.Content, colorRes.attrs);

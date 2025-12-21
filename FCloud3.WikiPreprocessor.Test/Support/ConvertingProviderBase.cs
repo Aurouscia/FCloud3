@@ -1,14 +1,14 @@
-﻿using FCloud3.WikiPreprocessor.DataSource;
-using FCloud3.WikiPreprocessor.DataSource.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FCloud3.WikiPreprocessor.ConvertingProvider;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
 
 namespace FCloud3.WikiPreprocessor.Test.Support
 {
-    internal class DataSourceBase : IScopedDataSource
+    internal class ConvertingProviderBase : IScopedConvertingProvider
     {
         public virtual string? Implant(string implantSpan)
         {
