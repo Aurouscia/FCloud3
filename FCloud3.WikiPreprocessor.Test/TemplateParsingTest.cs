@@ -2,18 +2,11 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FCloud3.WikiPreprocessor.Test.Support;
-using FCloud3.WikiPreprocessor.DataSource.Models;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
-    internal class ScopedDataSourceWithImplant : DataSourceBase
+    internal class DataSourceForTemplateTest : DataSourceBase
     {
         public override string? Implant(string implantSpan)
         {
@@ -51,7 +44,7 @@ namespace FCloud3.WikiPreprocessor.Test
                 .Template.AddTemplates(templates)
                 .GetCurrentOptions();
             _ctx = new(_options);
-            _ctx.SetDataSource(new ScopedDataSourceWithImplant());
+            _ctx.SetDataSource(new DataSourceForTemplateTest());
         }
         [TestMethod]
         [DataRow(
@@ -203,6 +196,9 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow(
             "123{哼哼}456",
             "123<a href=\"/w/114514\">恶臭</a>456")]
+        [DataRow(
+            "{哼哼}",
+            "<a href=\"/w/114514\">恶臭</a>")]
         [DataRow(
             "{{名称信息}\n中文名::充电宝\n &amp;&amp; 英文名：：Power{哼哼}Baby}",
             "<div><b>充电宝</b><i>Power<a href=\"/w/114514\">恶臭</a>Baby</i></div>")]

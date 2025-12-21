@@ -31,7 +31,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         }
         public IHtmlable RunInner(string input,bool mayContainTemplateCall = true)
         {
-            if (input.Length <= 5)
+            if (input.Length <= 2) // 至少需要形成“{a}”的结构，三个字符
                 mayContainTemplateCall = false;
             if (_useCache && !mayContainTemplateCall)
             {

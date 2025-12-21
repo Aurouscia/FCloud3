@@ -6,6 +6,20 @@ using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
+    internal class DataSourceForInlineTest : DataSourceBase
+    {
+        public override string? Implant(string implantSpan)
+        {
+            return GenLinkForWiki(implantSpan);
+        }
+        private static string? GenLinkForWiki(string name)
+        {
+            if (name == "哼")
+                return "<a href=\"/w/114514\">恶臭</a>";
+            return null;
+        }
+    }
+    
     [TestClass]
     public class InlineParsingTest
     {
@@ -15,7 +29,8 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             var options = new ParserBuilder()
                     .GetCurrentOptions();
-            _ctx = new(options);
+            _ctx = new ParserContext(options);
+            _ctx.SetDataSource(new DataSourceForInlineTest());
         }
 
         [TestMethod]
@@ -36,7 +51,6 @@ namespace FCloud3.WikiPreprocessor.Test
         [DataRow("12**34**56","12<b>34</b>56")]
         [DataRow("12\\*34\\*56", "12*34*56")]
         [DataRow("12\\\\*34\\\\*56", "12\\*34\\*56")]
-        [DataRow("12**34**56", "12<b>34</b>56")]
         [DataRow("1*2*34*5*6", "1<i>2</i>34<i>5</i>6")]
         [DataRow("1*2**34**5*6", "1<i>2<b>34</b>5</i>6")]
         [DataRow("1**2*34*5**6", "1<b>2<i>34</i>5</b>6")]
@@ -118,6 +132,21 @@ namespace FCloud3.WikiPreprocessor.Test
                 "%%", "%%", "<>", "</>","","", maxLengthBetween);
             _ctx.SetInitialFrameCount();
             _ctx.Options.InlineParsingOptions.AddMoreRule(customInlineRule);
+            InlineParser parser = new(_ctx);
+            var res = parser.Run(input);
+            var html = res.ToHtml();
+            Assert.AreEqual(answer, html);
+            var html2 = res.ToHtml();
+            Assert.AreEqual(answer, html2);
+            var html3 = res.ToHtml();
+            Assert.AreEqual(answer, html3);
+        }
+
+        [TestMethod]
+        [DataRow("1234{哼}5678", "1234<a href=\"/w/114514\">恶臭</a>5678")]
+        [DataRow("{哼}", "<a href=\"/w/114514\">恶臭</a>")]
+        public void ShortImplantTest(string input, string answer)
+        {
             InlineParser parser = new(_ctx);
             var res = parser.Run(input);
             var html = res.ToHtml();
