@@ -8,18 +8,32 @@ import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
 import externalLinkIcon from '@/assets/externalLink.svg'
 import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
+import { sleep } from '@/utils/sleep';
 
 const api = injectApi();
 const model = ref<WikiCenteredHomePage>();
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump();
 const { jumpToRootDirRoute } = useFilesRoutesJump();
 const { checkAndPop } = useFeVersionChecker();
+
 async function init(){
     const resp = await api.etc.wikiCenteredHomePage.get();
     if(resp){
         model.value = resp;
     }
 }
+
+const isRefreshing = ref(false)
+async function handleRefresh(){
+    if(isRefreshing.value)
+        return
+    isRefreshing.value = true
+    const sleepProm = sleep(800) // 与旋转动画的时长保持一致
+    const initProm = init()
+    await Promise.all([sleepProm, initProm]) // 至少拖住sleep的时长，避免用户点击过频繁
+    isRefreshing.value = false
+}
+
 function isExternal(path:string){
     return path.startsWith('http://') || path.startsWith('https://')
 }
@@ -35,6 +49,7 @@ onMounted(async()=>{
         <div class="list">
             <div class="listTitle">
                 最近更新
+                <div class="menuIcon"></div>
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt" class="avt">
@@ -49,6 +64,7 @@ onMounted(async()=>{
         <div class="list">
             <div class="listTitle">
                 随机看看
+                <div class="refreshIcon" :class="{isRefreshing}" @click="handleRefresh"></div>
             </div>
             <div v-for="w in model.RandomWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt" class="avt">
@@ -100,6 +116,8 @@ onMounted(async()=>{
     display: flex;
     flex-direction: column;
     .listItem,.listTitle{
+        height: 37.5px;
+        box-sizing: border-box;
         font-weight: bold;
         border-bottom: 1px solid #ccc;
         transition: 0.5s;
@@ -134,6 +152,32 @@ onMounted(async()=>{
     .listTitle{
         color: #aaa;
         font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        .menuIcon, .refreshIcon{
+            width: 18px;
+            height: 18px;
+            mask-repeat: no-repeat;
+            mask-size: contain;
+            mask-position: center center;
+            background-color: #aaa;
+            cursor: pointer;
+        }
+        .menuIcon{
+            mask-image: url('@/assets/menu.svg');
+        }
+        .refreshIcon {
+            mask-image: url('@/assets/refresh.svg');
+            mask-size: 80% 80%;
+            will-change: transform;
+            &.isRefreshing{
+                animation: spin-once 800ms linear forwards; // 时长与sleep时长保持一致
+                @keyframes spin-once {
+                    to { transform: rotate(360deg); }
+                }
+            }
+        }
         &:hover{
             text-decoration: none;
         }

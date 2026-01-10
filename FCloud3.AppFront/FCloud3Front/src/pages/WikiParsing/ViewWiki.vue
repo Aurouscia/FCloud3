@@ -12,7 +12,6 @@ import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
 import { CommentTargetType, cmtTitleId } from '@/models/messages/comment';
 import { updateScript } from '@/utils/wikiView/dynamicScriptUpdate';
-import menuImg from '@/assets/menu.svg';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
 import { useTextSectionRoutesJump } from '../TextSection/routes/routesJump';
 import { useWikiRoutesJump } from '../Wiki/routes/routesJump';
@@ -419,7 +418,7 @@ onUnmounted(()=>{
         <Loading v-else></Loading>
     </div>
     <div class="subTitlesFoldBtn" @click="()=>toggleSubtitlesSidebarFolded()">
-        <img :src="menuImg" alt="目录">
+        <div></div>
     </div>
 
     <ImageFocusView v-if="focusImg" :img-src="focusImg" :desc="focusImgDesc" 
@@ -478,8 +477,13 @@ onUnmounted(()=>{
     text-align: center;
     display: none;
     box-shadow: 0px 0px 3px 0px black;
-    img{
-        object-fit: contain;
+    div{
+        width: 100%;
+        height: 100%;
+        mask-image: url('@/assets/menu.svg');
+        mask-repeat: no-repeat;
+        mask-size: contain;
+        background-color: black;
     }
 }
 .cover{
