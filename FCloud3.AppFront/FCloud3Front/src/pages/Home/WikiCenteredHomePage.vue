@@ -142,7 +142,7 @@ onMounted(async()=>{
 .list{
     display: flex;
     flex-direction: column;
-    .listItem,.listTitle{
+    .listItem, .listTitle{
         height: 37.5px;
         box-sizing: border-box;
         font-weight: bold;
@@ -182,6 +182,7 @@ onMounted(async()=>{
         display: flex;
         align-items: center;
         gap: 4px;
+        user-select: none;
         .menuIcon, .refreshIcon{
             width: 18px;
             height: 18px;
@@ -207,6 +208,7 @@ onMounted(async()=>{
         }
         &:hover{
             text-decoration: none;
+            background-color: transparent;
         }
     }
 }
