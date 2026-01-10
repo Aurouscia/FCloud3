@@ -27,7 +27,7 @@ namespace FCloud3.Services.Etc
 
         public WikiCenteredHomePage Get()
         {
-            int latestCount = 8;
+            int latestCount = 12;
             int nearCount = 30;
             int randRange = 300;
             int sameOwnerMax = 2;
