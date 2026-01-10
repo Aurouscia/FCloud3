@@ -3,8 +3,14 @@ import { authConfigDefault } from "./models/auth";
 import { textSectionConfigDefault } from "./models/textSection";
 import { cloneDeep } from 'lodash'
 import { wikiContentEditConfigDefault } from "./models/wikiContentEdit";
+import { wikiCenteredHomePageLocalConfigDefault } from "./models/wikiCenteredHomePage";
 
-const defaultVals = [textSectionConfigDefault(), authConfigDefault(), wikiContentEditConfigDefault()];
+const defaultVals = [
+    textSectionConfigDefault(),
+    authConfigDefault(),
+    wikiContentEditConfigDefault(),
+    wikiCenteredHomePageLocalConfigDefault()
+];
 
 const key = (k:string) => `localConfig_${k}`
 export function readLocalConfig(type:LocalConfigType){

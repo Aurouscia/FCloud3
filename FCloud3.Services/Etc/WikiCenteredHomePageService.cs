@@ -25,9 +25,9 @@ namespace FCloud3.Services.Etc
         private readonly IOperatingUserIdProvider _userIdProvider = userIdProvider;
         private readonly IStorage _storage = storage;
 
-        public WikiCenteredHomePage Get()
+        public WikiCenteredHomePage Get(int latestCount)
         {
-            int latestCount = 12;
+            latestCount = Math.Clamp(latestCount, 3, 20);
             int nearCount = 30;
             int randRange = 300;
             int sameOwnerMax = 2;

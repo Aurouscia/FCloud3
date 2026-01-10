@@ -1241,10 +1241,11 @@ export class Api{
             }
         },
         wikiCenteredHomePage:{
-            get:async()=>{
+            get:async(latestCount:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/WikiCenteredHomePage/Get",
-                    "get"
+                    "get",
+                    {latestCount}
                 );
                 if(resp.success){
                     return resp.data as WikiCenteredHomePage

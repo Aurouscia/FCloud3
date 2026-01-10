@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Loading from '@/components/Loading.vue';
 import { WikiCenteredHomePage } from '@/models/etc/wikiCenteredHomePage';
-import { injectApi } from '@/provides';
+import { injectApi, injectPop } from '@/provides';
 import { onMounted, ref } from 'vue';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
@@ -9,17 +9,44 @@ import { useFeVersionChecker } from '@/utils/feVersionCheck/feVersionCheck';
 import externalLinkIcon from '@/assets/externalLink.svg'
 import WikiSelectedSwiperContainer from '../../components/Swiper/WikiSelectedSwiperContainer.vue';
 import { sleep } from '@/utils/sleep';
+import { readLocalConfig, saveLocalConfig } from '@/utils/localConfig/localConfig';
+import { WikiCenteredHomePageLocalConfig, wikiCenteredHomePageLocalConfigDefault } from '@/utils/localConfig/models/wikiCenteredHomePage';
 
 const api = injectApi();
 const model = ref<WikiCenteredHomePage>();
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump();
 const { jumpToRootDirRoute } = useFilesRoutesJump();
 const { checkAndPop } = useFeVersionChecker();
+const pop = injectPop()
 
 async function init(){
-    const resp = await api.etc.wikiCenteredHomePage.get();
+    const loadCount = getLoadCount()
+    const resp = await api.etc.wikiCenteredHomePage.get(loadCount);
     if(resp){
         model.value = resp;
+    }
+}
+
+function getLoadCount(): number{
+    let loadCount = 10
+    const cfg = readLocalConfig('wikiCenteredHomePage')
+    if(cfg && 'latestWikiCount' in cfg && typeof cfg.latestWikiCount == 'number'){
+        loadCount = cfg.latestWikiCount
+    }
+    return loadCount
+}
+function setLoadCount(){
+    const res = window.prompt('请设置当前浏览器的“最近更新”条数') ?? ''
+    const num = parseInt(res)
+    if(!isNaN(num)){
+        const cfg = readLocalConfig('wikiCenteredHomePage') ?? wikiCenteredHomePageLocalConfigDefault()
+        const newCfg: WikiCenteredHomePageLocalConfig = {...cfg, latestWikiCount: num}
+        saveLocalConfig(newCfg)
+        handleRefresh()
+        pop.value.show('设置成功', 'success')
+    }
+    else {
+        pop.value.show('请输入数字', 'failed')
     }
 }
 
@@ -49,7 +76,7 @@ onMounted(async()=>{
         <div class="list">
             <div class="listTitle">
                 最近更新
-                <div class="menuIcon"></div>
+                <div class="menuIcon" @click="setLoadCount"></div>
             </div>
             <div v-for="w in model.LatestWikis" :key="w.Path" class="listItem">
                 <img :src="w.Avt" class="avt">
