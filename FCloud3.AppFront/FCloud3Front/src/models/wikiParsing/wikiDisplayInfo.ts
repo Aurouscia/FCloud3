@@ -3,9 +3,10 @@ export interface WikiDisplayInfo
     WikiId: number
     UserName: string
     UserAvtSrc?: string
-    Sealed:boolean,
-    CurrentUserAccess:boolean,
-    UserGroupLabels:UserGroupLabel[]
+    Sealed: boolean
+    Created: string
+    CurrentUserAccess: boolean
+    UserGroupLabels: UserGroupLabel[]
 }
 export interface UserGroupLabel{
     Id:number,
@@ -17,6 +18,7 @@ export const wikiDisplayInfoDefault: WikiDisplayInfo = {
     UserName:'',
     UserAvtSrc:undefined,
     Sealed: false,
+    Created: 'N/A',
     CurrentUserAccess:false,
     UserGroupLabels:[]
 }

@@ -60,7 +60,8 @@ namespace FCloud3.Services.WikiParsing
                     UserId = u.Id,
                     UserName = u.Name,
                     UserAvtId = u.AvatarMaterialId,
-                    WikiSealed = w.Sealed
+                    WikiSealed = w.Sealed,
+                    WikiCreated = w.Created
                 }).FirstOrDefault();
             if(info is null)
                 return null;
@@ -95,7 +96,7 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
             var resp = new WikiDisplayInfo(
-                info.WikiId, info.UserName, avtSrc, info.WikiSealed, access);
+                info.WikiId, info.UserName, avtSrc, info.WikiSealed, info.WikiCreated, access);
             groupLabels.ForEach(l =>
             {
                 resp.UserGroupLabels.Add(new(l.Id, l.Name));
@@ -455,12 +456,13 @@ namespace FCloud3.Services.WikiParsing
         }
         public class WikiDisplayInfo(
             int wikiId, string userName, string? userAvtSrc,
-            bool @sealed, bool currentUserAccess)
+            bool @sealed, DateTime created, bool currentUserAccess)
         {
             public int WikiId { get; set; } = wikiId;
             public string UserName { get; set; } = userName;
             public string? UserAvtSrc { get; set; } = userAvtSrc;
             public bool Sealed { get; set; } = @sealed;
+            public string Created { get; set; } = created.ToString("yyyy-MM-dd HH:mm");
             public bool CurrentUserAccess { get; set; } = currentUserAccess;
             public List<UserGroupLabel> UserGroupLabels { get; set; } = [];
             public struct UserGroupLabel(int id, string name)

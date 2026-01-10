@@ -251,6 +251,11 @@ function subtitlesContainId(searchIn:ParserTitleTreeNode[], id:number){
     return false;
 }
 
+const timeViewMode = ref<'update'|'create'>('update')
+function toggleTimeViewMode(){
+    timeViewMode.value = timeViewMode.value == 'create' ? 'update' : 'create'
+}
+
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
 const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
@@ -328,8 +333,12 @@ onUnmounted(()=>{
         <div class="info" v-if="displayInfo">
             <div class="owner">
                 所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" :alt="displayInfo.UserName+' 头像'" class="smallAvatar"/>
-                <span @click="jumpToUserCenter(displayInfo?.UserName||'??')">{{ displayInfo.UserName }}</span>
-                <div class="updateTime">更新于 {{ data.Update }}</div>
+                <span class="ownerName" @click="jumpToUserCenter(displayInfo?.UserName||'??')">{{ displayInfo.UserName }}</span>
+                <div class="updateTime">
+                    <span v-if="timeViewMode=='update'">更新于 {{ data.Update }}</span>
+                    <span v-else>创建于 {{ displayInfo.Created }}</span>
+                    <span class="timeSwitchMark" @click="toggleTimeViewMode">⇄</span>
+                </div>
                 <div class="groupLabels">
                     <div v-for="label in displayInfo.UserGroupLabels" @click="jumpToUserGroup(label.Id)">
                         {{ label.Name }}
@@ -502,7 +511,7 @@ onUnmounted(()=>{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    .owner,.owner>span{
+    .owner{
         font-size: 16px;
         color: #666;
         white-space: nowrap;
@@ -512,7 +521,7 @@ onUnmounted(()=>{
             margin: 0px 5px 0px 5px;
             vertical-align: bottom;
         }
-        span{
+        .ownerName{
             cursor: pointer;
             &:hover{
                 text-decoration: underline;
@@ -521,6 +530,16 @@ onUnmounted(()=>{
     }
     .updateTime{
         margin-top: 6px;
+        .timeSwitchMark{
+            cursor: pointer;
+            user-select: none;
+            color: #aaa;
+            font-size: 14px;
+            margin-left: 5px;
+            &:hover{
+                text-decoration: underline;
+            }
+        }
     }
 }
 .btns{
