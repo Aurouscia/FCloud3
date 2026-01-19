@@ -4,5 +4,5 @@ export const pluginsEnabled = [
     'AuTimeOffsetRenderer',
     'AuParaMover',
     'AuParaLoader'
-    //'AuChartLibCaller' 还未开发
+    //'AuEChartsCaller' 还未开发
 ]

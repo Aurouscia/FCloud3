@@ -12,11 +12,11 @@ export default defineConfig(({command})=>{
     build: {
       lib: {
         formats: ['es'],
-        entry: './lib/auChartLibCaller.ts',
+        entry: './lib/AuEChartsCaller.ts',
         fileName: '[name]-[hash].entry',
       },
       emptyOutDir: true,
-      outDir:'../../FCloud3Front/public/plugins/AuChartLibCaller',
+      outDir:'../../FCloud3Front/public/plugins/AuEChartsCaller',
     },
     publicDir
   }

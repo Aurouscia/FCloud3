@@ -1,4 +1,4 @@
-import { run } from '../lib/auChartLibCaller'
+import { run } from '../lib/AuEChartsCaller'
 
 const sample = '/sandbox.html'
 const resp = await fetch(sample)
