@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref,Ref, watch } from 'vue';
 import Pop from '@/components/Pop.vue';
-import {User} from '@/models/identities/user';
+import {User, UserType} from '@/models/identities/user';
 import { Api } from '@/utils/com/api';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
 import { injectApi, injectHttp, injectIdentityInfoProvider, injectPop } from '@/provides';
@@ -104,20 +104,32 @@ const emits = defineEmits<{
     (e:'requireReload'):void
 }>()
 
-async function exportAllWikis() {
+async function exportMyWikis() {
     const data = await api.split.wikiImportExport.exportMyWikis()
     if(data){
         const nameTrun = truncate(user.value?.Name||'', {length:10, omission:''})
-        jsfd(data, `${nameTrun}_所有词条_${timeReadable('ymdhm')}.zip`)
+        jsfd(data, `${nameTrun}_我的词条_${timeReadable('ymdhm')}.zip`)
+        pop.value.show('获取成功，已下载', 'success')
+    }
+}
+async function exportAllWikis() {
+    const data = await api.split.wikiImportExport.exportAllWikis()
+    if(data){
+        jsfd(data, `所有词条_${timeReadable('ymdhm')}.zip`)
         pop.value.show('获取成功，已下载', 'success')
     }
 }
 
 const pwdRepeat = ref<string>();
+const isSuperAdmin = ref(false)
+const allowExportAll = import.meta.env.VITE_AllowExportAllWikis === 'true'
 onMounted(async()=>{
     pop = injectPop();
     api = injectApi();
     user.value = props.user
+    const info = await identityInfoProvider.getIdentityInfo()
+    const type = info.Type ?? UserType.Tourist
+    isSuperAdmin.value = type >= UserType.SuperAdmin
 })
 </script>
 
@@ -174,7 +186,10 @@ onMounted(async()=>{
         </div>
         <h1>导出所有词条</h1>
         <div class="section">
-            <button @click="exportAllWikis" class="wikiExportBtn">导出本账号所有词条</button>
+            <button @click="exportMyWikis" class="wikiExportBtn">导出本账号所有词条</button>
+        </div>
+        <div class="section" v-if="isSuperAdmin && allowExportAll">
+            <button @click="exportAllWikis" class="wikiExportBtn">导出本站所有词条（仅限超管）</button>
         </div>
     </div>
 </template>

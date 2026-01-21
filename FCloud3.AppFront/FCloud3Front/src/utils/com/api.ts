@@ -1360,6 +1360,16 @@ export class Api{
                 if(resp.success){
                     return resp.data as Blob
                 }
+            },
+            exportAllWikis:async()=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/ExportAllWikis',
+                    'download',
+                    undefined,undefined,true
+                )
+                if(resp.success){
+                    return resp.data as Blob
+                }
             }
         }
     }

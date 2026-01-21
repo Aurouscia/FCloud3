@@ -18,8 +18,7 @@ namespace FCloud3.Services.Etc.Split
         FileItemRepo fileItemRepo,
         WikiRefRepo wikiRefRepo,
         MaterialRepo materialRepo,
-        IStorage storage,
-        IOperatingUserIdProvider userIdProvider)
+        IStorage storage)
     {
         /// <summary>
         /// 导出当前用户的所有词条及其中引用的文件
@@ -27,13 +26,21 @@ namespace FCloud3.Services.Etc.Split
         /// 如果不能保证WikiRefs完整，应先让版主运行InitController中的EnforceParseAll方法
         /// </summary>
         /// <param name="memStream">zip写入的MemoryStream</param>
-        public void ExportMyWikis(MemoryStream memStream, int uid = 0)
+        /// <param name="uid">用户id，为0表示全部用户</param>
+        public void ExportMyWikis(MemoryStream memStream, int uid)
         {
-            if(uid==0)
-                uid = userIdProvider.Get();
-            var myWikis = wikiItemRepo.Existing
-                .Where(x => x.OwnerUserId == uid)
-                .ToList();
+            List<WikiItem> myWikis;
+            if (uid > 0)
+            {
+                myWikis = wikiItemRepo.Existing
+                    .Where(x => x.OwnerUserId == uid)
+                    .ToList();
+            }
+            else
+            {
+                myWikis = wikiItemRepo.Existing.ToList();
+            }
+            
             var allParas = wikiParaRepo.Existing
                 .Select(x => new { x.WikiItemId, x.NameOverride, x.ObjectId, x.Type, x.Order })
                 .ToList();
