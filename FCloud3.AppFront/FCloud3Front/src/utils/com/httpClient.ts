@@ -124,6 +124,12 @@ export class HttpClient{
                 this.httpCallBack("err", "操作频率过高，请稍后再试")
                 return defaultFailResp
             }
+            if (type=='download'){
+                if(!(res.data instanceof Blob) || !res.data.size){
+                    this.httpCallBack("err", "下载失败")
+                    return defaultFailResp
+                }
+            }
 
             let resp: ApiResponse|undefined = undefined;
             if (this.isApiResponseObj(res.data)) {
