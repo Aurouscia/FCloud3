@@ -6,14 +6,19 @@ namespace FCloud3.Diff.Test.String
     [TestClass]
     public class StringDiffRevertTest
     {
+        public static IEnumerable<object[]> SingleTestData()
+        {
+            yield return new object[] { "1234567", "12ABC67", "2-345-3" }; // length_same
+            yield return new object[] { "1234567", "12AB67", "2-345-2" }; // longer_ori_1
+            yield return new object[] { "1234567", "12ABCD67", "2-345-4" }; // longer_new_1
+            yield return new object[] { "1234567", "12A67", "2-345-1" }; // longer_ori_2
+            yield return new object[] { "1234567", "12ABCDE67", "2-345-5" }; // longer_new_2
+            yield return new object[] { "1234ABCDEFGHI", "12345", "4-ABCDEFGHI-1" }; // longer_ori_3
+            yield return new object[] { "12345", "1234ABCDEFGHI", "4-5-9" }; // longer_new_3
+        }
+
         [TestMethod]
-        [DataRow("1234567", "12ABC67", "2-345-3", DisplayName = "length_same")]
-        [DataRow("1234567", "12AB67", "2-345-2", DisplayName = "longer_ori_1")]
-        [DataRow("1234567", "12ABCD67", "2-345-4", DisplayName = "longer_new_1")]
-        [DataRow("1234567", "12A67", "2-345-1", DisplayName = "longer_ori_2")]
-        [DataRow("1234567", "12ABCDE67", "2-345-5", DisplayName = "longer_new_2")]
-        [DataRow("1234ABCDEFGHI", "12345", "4-ABCDEFGHI-1", DisplayName = "longer_ori_3")]
-        [DataRow("12345", "1234ABCDEFGHI", "4-5-9", DisplayName = "longer_new_3")]
+        [DynamicData(nameof(SingleTestData))]
         public void Single(string oldStr, string newStr, string strDiff)
         {
             var diff = StrStringDiff.Parse(strDiff);
@@ -35,21 +40,26 @@ namespace FCloud3.Diff.Test.String
             Assert.AreEqual(oldStr, reverted);
         }
 
+        public static IEnumerable<object[]> UpDownTestData()
+        {
+            yield return new object[] { "1234567", "1A345B7" };
+            yield return new object[] { "1234567", "1AAA345B7" };
+            yield return new object[] { "1234567", "1A5B7" };
+            yield return new object[] { "1234567", "1A4BBB7" };
+            yield return new object[] { "1234567", "1234\n567" };
+            yield return new object[] { "1234567", "1234567\n" };
+            yield return new object[] { "1234567", "123456X\n" };
+            yield return new object[] { "1234567", "\n1234567" };
+            yield return new object[] { "1234567", "\nX234567" };
+            yield return new object[] { "\n1234567", "1234567" };
+            yield return new object[] { "\n1234567", "X234567" };
+            yield return new object[] { "1234567\n", "1234567" };
+            yield return new object[] { "1234567\n", "123456X" };
+            yield return new object[] { "123ABC", "123\nX\nX\nABC" };
+        }
+
         [TestMethod]
-        [DataRow("1234567", "1A345B7")]
-        [DataRow("1234567", "1AAA345B7")]
-        [DataRow("1234567", "1A5B7")]
-        [DataRow("1234567", "1A4BBB7")]
-        [DataRow("1234567", "1234\n567")]
-        [DataRow("1234567", "1234567\n")]
-        [DataRow("1234567", "123456X\n")]
-        [DataRow("1234567", "\n1234567")]
-        [DataRow("1234567", "\nX234567")]
-        [DataRow("\n1234567", "1234567")]
-        [DataRow("\n1234567", "X234567")]
-        [DataRow("1234567\n", "1234567")]
-        [DataRow("1234567\n", "123456X")]
-        [DataRow("123ABC","123\nX\nX\nABC")]
+        [DynamicData(nameof(UpDownTestData))]
         public void UpDown(string oldStr, string newStr)
         {
             var diffs = StringDiffSearch.Run(oldStr, newStr);
@@ -57,9 +67,14 @@ namespace FCloud3.Diff.Test.String
             Assert.AreEqual(oldStr, reverted);
         }
 
+        public static IEnumerable<object[]> MutiStepsTestData()
+        {
+            yield return new object[] { "123456", "123AA56", "12CCA56" };
+            yield return new object[] { "123456789", "1AA4567AAA9", "12CC456CCCC" };
+        }
+
         [TestMethod]
-        [DataRow("123456", "123AA56", "12CCA56")]
-        [DataRow("123456789", "1AA4567AAA9", "12CC456CCCC")]
+        [DynamicData(nameof(MutiStepsTestData))]
         public void MutiSteps(string _1, string _2, string _3)
         {
             var diffs_1 = StringDiffSearch.Run(_1, _2, 1);

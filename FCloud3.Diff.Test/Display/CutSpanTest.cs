@@ -5,12 +5,17 @@ namespace FCloud3.Diff.Test.Display
     [TestClass]
     public class CutSpanTest
     {
+        public static IEnumerable<object[]> CreateTestData()
+        {
+            yield return new object[] { "1,3;7,9", 10, 1, "0,4~1,3|6,10~1,3" };
+            yield return new object[] { "0,2;7,9", 10, 2, "0,4~0,2|5,10~2,4" };
+            yield return new object[] { "0,2;6,8", 10, 2, "0,10~0,2;6,8" };
+            yield return new object[] { "1,3;6,8", 10, 2, "0,10~1,3;6,8" };
+            yield return new object[] { "1,4;5,8", 10, 2, "0,10~1,4;5,8" };
+        }
+
         [TestMethod]
-        [DataRow("1,3;7,9", 10, 1, "0,4~1,3|6,10~1,3")]
-        [DataRow("0,2;7,9", 10, 2, "0,4~0,2|5,10~2,4")]
-        [DataRow("0,2;6,8", 10, 2, "0,10~0,2;6,8")]
-        [DataRow("1,3;6,8", 10, 2, "0,10~1,3;6,8")]
-        [DataRow("1,4;5,8", 10, 2, "0,10~1,4;5,8")]
+        [DynamicData(nameof(CreateTestData))]
         public void Create(string input, int totalLength, int thickness, string expected)
         {
             var from = ParseInput(input);
