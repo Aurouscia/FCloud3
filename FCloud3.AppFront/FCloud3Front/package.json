@@ -13,25 +13,25 @@
     "@aurouscia/au-table-editor": "^0.6.3",
     "@aurouscia/keyboard-shortcut": "^1.0.0",
     "@aurouscia/vite-app-version": "^0.2.0",
-    "axios": "^1.13.1",
-    "bowser": "^2.12.1",
+    "axios": "^1.13.2",
+    "bowser": "^2.13.1",
     "js-file-download": "^0.4.12",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "md5": "^2.3.0",
-    "pinia": "^3.0.3",
-    "pinia-plugin-persistedstate": "^4.5.0",
-    "vue": "^3.5.22",
-    "vue-router": "^4.6.3"
+    "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "vue": "^3.5.27",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.20",
+    "@types/lodash": "^4.17.23",
     "@types/md5": "^2.3.6",
-    "@types/node": "^24.9.2",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "execa": "^9.6.0",
-    "sass": "^1.93.3",
+    "@types/node": "^25.0.10",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "execa": "^9.6.1",
+    "sass": "^1.97.3",
     "typescript": "^5.9.3",
-    "vite": "^7.1.12",
-    "vue-tsc": "^3.1.2"
+    "vite": "^7.3.1",
+    "vue-tsc": "^3.2.3"
   }
 }

@@ -12,11 +12,11 @@
     "build-here": "tsc && vite build --outDir ./dist --emptyOutDir"
   },
   "devDependencies": {
-    "@types/color": "^3.0.6",
-    "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "@types/color": "^4.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   },
   "dependencies": {
-    "color": "^4.2.3"
+    "color": "^5.0.3"
   }
 }
