@@ -28,11 +28,16 @@ namespace FCloud3.Diff.Test.String
             Assert.AreEqual(oldStr, reverted);
         }
 
+        public static IEnumerable<object[]> MutipleTestData()
+        {
+            yield return new object[] { "1234567", "1A345B7", "1-2-1|5-6-1" };
+            yield return new object[] { "1234567", "1AAA345B7", "1-2-3|5-6-1" };
+            yield return new object[] { "1234567", "1A5B7", "1-234-1|5-6-1" };
+            yield return new object[] { "1234567", "1A4BBB7", "1-23-1|4-56-3" };
+        }
+
         [TestMethod]
-        [DataRow("1234567","1A345B7", "1-2-1|5-6-1")]
-        [DataRow("1234567", "1AAA345B7", "1-2-3|5-6-1")]
-        [DataRow("1234567", "1A5B7", "1-234-1|5-6-1")]
-        [DataRow("1234567", "1A4BBB7", "1-23-1|4-56-3")]
+        [DynamicData(nameof(MutipleTestData))]
         public void Mutiple(string oldStr, string newStr, string strDiff)
         {
             var diffs = StrStringDiff.ParseList(strDiff);

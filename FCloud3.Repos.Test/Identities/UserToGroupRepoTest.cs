@@ -91,13 +91,18 @@ namespace FCloud3.Repos.Test.Identities
             Assert.AreEqual(expected, _repo.IsInSameGroup(userA, userB));
         }
 
+        public static IEnumerable<object[]> AddUserToGroupTestData()
+        {
+            yield return new object[] { 1, 2, true, false, UserToGroupType.Inviting }; // 已经邀请过应该失败
+            yield return new object[] { 2, 2, true, true, UserToGroupType.Inviting }; // 未邀请过应该成功，关系设为邀请中
+            yield return new object[] { 3, 2, true, false, UserToGroupType.Member }; // 已经是成员应该失败
+            yield return new object[] { 1, 2, false, false, UserToGroupType.Inviting }; // 超管：已经邀请过应该失败
+            yield return new object[] { 2, 2, false, true, UserToGroupType.Member }; // 超管：未邀请过应该成功，直接成为成员
+            yield return new object[] { 3, 2, false, false, UserToGroupType.Member }; // 超管：已经是成员应该失败
+        }
+
         [TestMethod]
-        [DataRow(1, 2, true, false, UserToGroupType.Inviting, DisplayName = "已经邀请过应该失败")]
-        [DataRow(2, 2, true, true, UserToGroupType.Inviting, DisplayName = "未邀请过应该成功，关系设为邀请中")]
-        [DataRow(3, 2, true, false, UserToGroupType.Member, DisplayName = "已经是成员应该失败")]
-        [DataRow(1, 2, false, false, UserToGroupType.Inviting, DisplayName = "超管：已经邀请过应该失败")]
-        [DataRow(2, 2, false, true, UserToGroupType.Member, DisplayName = "超管：未邀请过应该成功，直接成为成员")]
-        [DataRow(3, 2, false, false, UserToGroupType.Member, DisplayName = "超管：已经是成员应该失败")]
+        [DynamicData(nameof(AddUserToGroupTestData))]
         public void AddUserToGroup(int userId, int groupId, bool needAudit, bool shouldSuccess, UserToGroupType? expectedRelation)
         {
             bool actualSuccess = _repo.AddUserToGroup(userId, groupId, needAudit, out _);

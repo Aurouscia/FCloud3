@@ -144,16 +144,19 @@ namespace FCloud3.Repos.Test.Files
 
         #region 结构变化
 
+        public static IEnumerable<object[]> MoveDirTestData()
+        {
+            yield return new object[] { "6->5", "1|2,3|4,5|6", "1,2,3,4,5,6" }; // 表示6号目录移到5下后，1的depth应为0，23的depth应为1，45的depth应为2
+            yield return new object[] { "2->3", "1|3|2,6|4,5", "1,2,3,4,5,6" };
+            yield return new object[] { "6->5  2->3", "1|2,3|4,5|6  1|3|2|4,5|6", "1,2,3,4,5,6  1,2,3,4,5,6" };
+            yield return new object[] { "2->0", "1,2|3,4,5|6", "1,3,6|2,4,5" };
+            yield return new object[] { "2->0  6->4", "1,2|3,4,5|6  1,2|3,4,5|6", "1,3,6|2,4,5  1,3|2,4,5,6" };
+            yield return new object[] { "4->3  3->0", "1|2,3|4,5,6  1,3|2,4,6|5", "1,2,3,4,5,6  1,2,5||3,4,6" };
+            yield return new object[] { "3->0  2->0", "1,3|2,6|4,5  1,2,3|4,5,6", "1,2,4,5||3,6  1|2,4,5|3,6" }; // 表示2号目录移到0下后，12的depth应为0，345的depth应为1，6的depth应为2，136的root应该为1，245的root应该为2
+        }
+
         [TestMethod]
-        [DataRow("6->5", "1|2,3|4,5|6", "1,2,3,4,5,6")]
-        //表示6号目录移到5下后，1的depth应为0，23的depth应为1，45的depth应为2
-        [DataRow("2->3", "1|3|2,6|4,5", "1,2,3,4,5,6")]
-        [DataRow("6->5  2->3", "1|2,3|4,5|6  1|3|2|4,5|6", "1,2,3,4,5,6  1,2,3,4,5,6")]
-        [DataRow("2->0", "1,2|3,4,5|6", "1,3,6|2,4,5")]
-        [DataRow("2->0  6->4", "1,2|3,4,5|6  1,2|3,4,5|6", "1,3,6|2,4,5  1,3|2,4,5,6")]
-        [DataRow("4->3  3->0", "1|2,3|4,5,6  1,3|2,4,6|5", "1,2,3,4,5,6  1,2,5||3,4,6")]
-        [DataRow("3->0  2->0", "1,3|2,6|4,5  1,2,3|4,5,6", "1,2,4,5||3,6  1|2,4,5|3,6")]
-        //表示2号目录移到0下后，12的depth应为0，345的depth应为1，6的depth应为2，136的root应该为1，245的root应该为2
+        [DynamicData(nameof(MoveDirTestData))]
         public void MoveDir(string howMoveList, string expectedDepthsList, string expectedRootList)
         {
             string[] howMoveArr = howMoveList.Split("  ");
@@ -213,9 +216,14 @@ namespace FCloud3.Repos.Test.Files
             }
         }
 
+        public static IEnumerable<object[]> ManualFixTestData()
+        {
+            yield return new object[] { 2, 0, "1,2|3,4,5|6", "1,3,6|2,4,5" };
+            yield return new object[] { 5, 0, "1,5|2,3|4,6", "1,2,3,4,6||||5" };
+        }
+
         [TestMethod]
-        [DataRow(2, 0, "1,2|3,4,5|6", "1,3,6|2,4,5")]
-        [DataRow(5, 0, "1,5|2,3|4,6", "1,2,3,4,6||||5")]
+        [DynamicData(nameof(ManualFixTestData))]
         public void ManualFix(int moveDir, int to, string expectedDepthsList, string expectedRootList)
         {
             //在depths和rootDir全错的情况下，只要ParentDir还在，就可以全部重新算对
