@@ -83,11 +83,16 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(0, _authGrantRepo.RepoCacheDictSyncTimes);//所有者等于访问者的情况，会避免数据库查询
         }
 
+        public static IEnumerable<object[]> OnlySelfCanEditTestData()
+        {
+            yield return new object[] { 1, 1, true };
+            yield return new object[] { 1, 2, false };
+            yield return new object[] { 2, 1, false };
+            yield return new object[] { 2, 2, true };
+        }
+
         [TestMethod]
-        [DataRow(1, 1, true)]
-        [DataRow(1, 2, false)]
-        [DataRow(2, 1, false)]
-        [DataRow(2, 2, true)]
+        [DynamicData(nameof(OnlySelfCanEditTestData))]
         public void OnlySelfCanEdit(int loginUserId, int wikiId, bool expectSuccess)
         {
             _userIdProvider.UserId = loginUserId;
@@ -99,15 +104,20 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(expectSuccess, _svc.Remove(1, out _));
         }
 
+        public static IEnumerable<object[]> SingleUserGrantTestData()
+        {
+            yield return new object[] { 2, 2, true, true };
+            yield return new object[] { 3, 2, false, true };
+            yield return new object[] { 3, 3, true, true };
+            yield return new object[] { 2, 3, false, true };
+            yield return new object[] { 2, 2, true, false };
+            yield return new object[] { 3, 2, false, false };
+            yield return new object[] { 3, 3, true, false };
+            yield return new object[] { 2, 3, false, false };
+        }
+
         [TestMethod]
-        [DataRow(2, 2, true, true)]
-        [DataRow(3, 2, false, true)]
-        [DataRow(3, 3, true, true)]
-        [DataRow(2, 3, false, true)]
-        [DataRow(2, 2, true, false)]
-        [DataRow(3, 2, false, false)]
-        [DataRow(3, 3, true, false)]
-        [DataRow(2, 3, false, false)]
+        [DynamicData(nameof(SingleUserGrantTestData))]
         public void SingleUserGrant(int toUser, int loginUser, bool expected, bool notReject)
         {
             _userIdProvider.UserId = loginUser;
@@ -122,9 +132,14 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(2, _authGrantRepo.RepoCacheDictSyncTimes);//中间新增了一次，导致需要重新查询
         }
         
+        public static IEnumerable<object[]> EveryOneGrantTestData()
+        {
+            yield return new object[] { true };
+            yield return new object[] { false };
+        }
+
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
+        [DynamicData(nameof(EveryOneGrantTestData))]
         public void EveryOneGrant(bool isReject)
         {
             _userIdProvider.UserId = 2;
@@ -139,9 +154,14 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(2, _authGrantRepo.RepoCacheDictSyncTimes);//中间新增了一次，导致需要重新查询
         }
         
+        public static IEnumerable<object[]> UserGroupGrantTestData()
+        {
+            yield return new object[] { true };
+            yield return new object[] { false };
+        }
+
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
+        [DynamicData(nameof(UserGroupGrantTestData))]
         public void UserGroupGrant(bool isReject)
         {
             _userIdProvider.UserId = 3;
@@ -183,30 +203,35 @@ namespace FCloud3.Services.Test.Identities
             //一二次中间新增了一次，导致需要查询两次，二三四次中间并未新增/删除，Test需要的AuthGrant列表使用缓存
         }
 
+        public static IEnumerable<object[]> CascadingTestData()
+        {
+            yield return new object[] { "u2", "", 2, true };
+            yield return new object[] { "e!  u2", "", 2, true };
+            yield return new object[] { "e  u2!", "", 2, false };
+            yield return new object[] { "u2  e!", "", 2, false };
+            yield return new object[] { "u2!  e", "", 2, true };
+            yield return new object[] { "g2", "", 3, true };
+            yield return new object[] { "g2!  u3", "", 3, true };
+            yield return new object[] { "g2  u3!", "", 3, false };
+            yield return new object[] { "u3!  g2", "", 3, true };
+            yield return new object[] { "u3  g2!", "", 3, false };
+            yield return new object[] { "g2!  e  u3!", "", 3, false };
+            yield return new object[] { "g2  e!  u3", "", 3, true };
+            yield return new object[] { "e!  g2  u3!", "", 3, false };
+            yield return new object[] { "e!  g2  u3", "", 3, true };
+            yield return new object[] { "e  g2!  u3", "", 3, true };
+            yield return new object[] { "e  g2!  u3!", "", 3, false };
+            yield return new object[] { "", "e", 3, true };
+            yield return new object[] { "u3", "e", 3, true };
+            yield return new object[] { "u3!", "e", 3, false };
+            yield return new object[] { "", "g2", 3, true };
+            yield return new object[] { "u3", "g2", 3, true };
+            yield return new object[] { "u3!", "g2", 3, false };
+            yield return new object[] { "u3", "u3!", 3, true };
+        }
+
         [TestMethod]
-        [DataRow("u2", "", 2, true)]
-        [DataRow("e!  u2", "", 2, true)]
-        [DataRow("e  u2!", "", 2, false)]
-        [DataRow("u2  e!", "", 2, false)]
-        [DataRow("u2!  e", "", 2, true)]
-        [DataRow("g2", "", 3, true)]
-        [DataRow("g2!  u3", "", 3, true)]
-        [DataRow("g2  u3!", "", 3, false)]
-        [DataRow("u3!  g2", "", 3, true)]
-        [DataRow("u3  g2!", "", 3, false)]
-        [DataRow("g2!  e  u3!", "", 3, false)]
-        [DataRow("g2  e!  u3", "", 3, true)]
-        [DataRow("e!  g2  u3!", "", 3, false)]
-        [DataRow("e!  g2  u3", "", 3, true)]
-        [DataRow("e  g2!  u3", "", 3, true)]
-        [DataRow("e  g2!  u3!", "", 3, false)]
-        [DataRow("", "e", 3, true)]
-        [DataRow("u3", "e", 3, true)]
-        [DataRow("u3!", "e", 3, false)]
-        [DataRow("", "g2", 3, true)]
-        [DataRow("u3", "g2", 3, true)]
-        [DataRow("u3!", "g2", 3, false)]
-        [DataRow("u3", "u3!", 3, true)]
+        [DynamicData(nameof(CascadingTestData))]
         public void Cascading(string auths, string globalAuths, int loginUid, bool expected)
         {
             _userGroupService.AddUserToGroup(3, 2, false, out _);
@@ -222,13 +247,18 @@ namespace FCloud3.Services.Test.Identities
             Assert.AreEqual(1, _authGrantRepo.RepoCacheDictSyncTimes);
         }
 
+        public static IEnumerable<object[]> TransferredTestData()
+        {
+            yield return new object[] { 1, 1 };
+            yield return new object[] { 1, 2 };
+            yield return new object[] { 1, 3 };
+            yield return new object[] { 2, 1 };
+            yield return new object[] { 2, 2 };
+            yield return new object[] { 2, 3 };
+        }
+
         [TestMethod]
-        [DataRow(1, 1)]
-        [DataRow(1, 2)]
-        [DataRow(1, 3)]
-        [DataRow(2, 1)]
-        [DataRow(2, 2)]
-        [DataRow(2, 3)]
+        [DynamicData(nameof(TransferredTestData))]
         public void Transferred(int loginUserId, int wikiId)
         {
             int originalOwner = wikiId;

@@ -17,13 +17,18 @@ namespace FCloud3.Services.Test.TextSec
             var provider = new TestingServiceProvider();
             _textSectionService = provider.Get<TextSectionService>();
         } 
+        public static IEnumerable<object[]> BriefingTestData()
+        {
+            yield return new object[] { 101, "你好，很高兴认识你", "你好，很高兴认识你", 30, 100 };
+            yield return new object[] { 102, "你好，很**高兴**认识你", "你好，很高兴认识你", 30, 100 };
+            yield return new object[] { 103, "你好，很高兴认识你", "你好，很高...", 8, 100 };
+            yield return new object[] { 104, "你好，很**高兴**认识你", "你好，很高...", 8, 100 };
+            yield return new object[] { 105, "你好 \n 很高兴认识你", "你好 很高兴认识你", 30, 100 };
+            yield return new object[] { 106, "你好 \n 很高兴认识你", "你好 很高...", 8, 100 };
+        }
+
         [TestMethod]
-        [DataRow(101, "你好，很高兴认识你", "你好，很高兴认识你", 30, 100)]
-        [DataRow(102, "你好，很**高兴**认识你", "你好，很高兴认识你", 30, 100)]
-        [DataRow(103, "你好，很高兴认识你", "你好，很高...", 8, 100)]
-        [DataRow(104, "你好，很**高兴**认识你", "你好，很高...", 8, 100)]
-        [DataRow(105, "你好 \n 很高兴认识你", "你好 很高兴认识你", 30, 100)]
-        [DataRow(106, "你好 \n 很高兴认识你", "你好 很高...", 8, 100)]
+        [DynamicData(nameof(BriefingTestData))]
         public void Briefing(int tId, string content, string expectBrief, int briefLength, int parseLength)
         {
             var res = _textSectionService.Brief(tId, content, briefLength, parseLength);

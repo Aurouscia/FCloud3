@@ -44,13 +44,18 @@ namespace FCloud3.Services.Test.Wiki
             _context.AddRange(wikis);
             _context.SaveChanges();
         }
+        public static IEnumerable<object[]> SetContainsTestData()
+        {
+            yield return new object[] { "3,4", "1,2,3,4" };
+            yield return new object[] { "1,3,4", "1,2,3,4" };
+            yield return new object[] { "1,2", "1,2,3,4" };
+            yield return new object[] { "1,3", "1,2,3,4" };
+            yield return new object[] { "3,4,5", "1,2,3,4,5" };
+            yield return new object[] { "2,3,4,5,6", "1,2,3,4,5,6" };
+        }
+
         [TestMethod]
-        [DataRow("3,4", "1,2,3,4")]
-        [DataRow("1,3,4", "1,2,3,4")]
-        [DataRow("1,2", "1,2,3,4")]
-        [DataRow("1,3", "1,2,3,4")]
-        [DataRow("3,4,5", "1,2,3,4,5")]
-        [DataRow("2,3,4,5,6", "1,2,3,4,5,6")]
+        [DynamicData(nameof(SetContainsTestData))]
         public void SetContains(string setParam, string expectedAll)
         {
             var setParamList = TestStrParse.IntList(setParam);
