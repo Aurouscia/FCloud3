@@ -12,7 +12,7 @@ export class TitleClickFold{
     constructor(){
         this.clickHandlerBinded = this.clickHandler.bind(this)
     }
-    listen(target?:HTMLDivElement){
+    listen(target?:HTMLDivElement|null){
         window.addEventListener("click",this.clickHandlerBinded);
         if(!target)return [];
         const titles:HTMLElement[] = [];

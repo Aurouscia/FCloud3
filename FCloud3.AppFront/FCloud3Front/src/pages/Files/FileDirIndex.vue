@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, provide, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, provide, ref, useTemplateRef, watch } from 'vue';
 import IndexMini, { IndexColumn } from '@/components/Index/IndexMini.vue';
 import { Api } from '@/utils/com/api';
 import { IndexQuery, IndexResult } from '@/components/Index';
@@ -145,11 +145,11 @@ function setFriendlyPathData(){
         setTitleTo(friendlyPathThisName.value)
     }
 }
-const sidebar = ref<InstanceType<typeof SideBar>>();
+const sidebar = useTemplateRef('sidebar')
 function startEditDirInfo(){
     sidebar.value?.extend();
 }
-const newDirSidebar = ref<InstanceType<typeof SideBar>>();
+const newDirSidebar = useTemplateRef('newDirSidebar')
 function startCreatingDir(){
     newDirSidebar.value?.extend();
 }
@@ -163,7 +163,7 @@ async function deleteDir(dirId:number){
         await index.value?.reloadData();
     }
 }
-const authgrantsSidebar = ref<InstanceType<typeof SideBar>>();
+const authgrantsSidebar = useTemplateRef('authgrantsSidebar')
 function startGrantingAuth(){
     authgrantsSidebar.value?.extend()
 }
@@ -194,8 +194,8 @@ function windowResizeHandler(){
 }
 
 const { jumpToViewFileItemRoute, jumpToDirFromId, jumpToDirRoute } = useFilesRoutesJump()
-const fileSearchSidebar = ref<InstanceType<typeof SideBar>>()
-const dirSearchSidebar = ref<InstanceType<typeof SideBar>>()
+const fileSearchSidebar = useTemplateRef('fileSearchSidebar')
+const dirSearchSidebar = useTemplateRef('dirSearchSidebar')
 function fileSearchDone(id:number){
     router.push(jumpToViewFileItemRoute(id))
 }
@@ -203,7 +203,7 @@ function dirSearchDone(id:number){
     jumpToDirFromId(id)
 }
 
-const index = ref<InstanceType<typeof IndexMini>>();
+const index = useTemplateRef('index')
 let api:Api = injectApi();
 const iden = useIdentityInfoStore().iden
 const mainDivDisplayStore = useMainDivDisplayStore()
@@ -253,8 +253,8 @@ function hideFnUpdate(){
     }
 }
 
-const clip = ref<InstanceType<typeof ClipBoard>>();
-const fileItemEdit = ref<InstanceType<typeof FileItemEdit>>();
+const clip = useTemplateRef('clip')
+const fileItemEdit = useTemplateRef('fileItemEdit')
 provide('clipboard', clip)
 provide('fileItemEdit', fileItemEdit)
 function toClipBoard(e:MouseEvent, id:number, name:string, type:ClipBoardItemType){

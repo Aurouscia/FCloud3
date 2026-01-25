@@ -11,8 +11,6 @@ const props = defineProps<{
     single?:boolean
 }>();
 
-const fileInput = ref<HTMLInputElement>();
-const dirInput = ref<HTMLInputElement>();
 async function inputChange(e:Event){
     const tar = e.target as HTMLInputElement;
     if(!tar || !tar.files){
@@ -136,8 +134,8 @@ onMounted(()=>{
                 选择文件夹
             </label>
         </div>
-        <input @change="inputChange" ref="fileInput" :id="`fileInput_${randId}`" type="file" multiple/>
-        <input @change="inputChange" ref="dirInput" :id="`dirInput_${randId}`" type="file" webkitdirectory>
+        <input @change="inputChange" :id="`fileInput_${randId}`" type="file" multiple/>
+        <input @change="inputChange" :id="`dirInput_${randId}`" type="file" webkitdirectory>
         <div class="note">提示：点击文件名可上传前重命名</div>
     </div>
 </template>

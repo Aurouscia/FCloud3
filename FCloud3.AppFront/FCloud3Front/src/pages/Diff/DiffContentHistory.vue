@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { DiffContentType, diffContentTypeFromStr } from '@/models/diff/diffContentTypes';
@@ -32,7 +32,7 @@ const mainDivDisplayStore = useMainDivDisplayStore()
 
 let displays:DiffContentStepDisplay[] = []
 const displaying = ref<DiffContentStepDisplay>()
-const detailSidebar = ref<InstanceType<typeof SideBar>>()
+const detailSidebar = useTemplateRef('detailSidebar')
 async function switchDetail(id:number){
     if(!displays.some(d=>d.Id == id)){
         const resp = (await api.diff.diffContent.detail(id))?.Items || [];
@@ -91,7 +91,7 @@ function arrowKeyHandler(event:KeyboardEvent){
     }
 }
 
-const historyList = ref<HTMLElement>()
+const historyList = useTemplateRef('historyList')
 function trEleId(historyId:number){
     return `history-${historyId}`
 }

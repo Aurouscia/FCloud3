@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { Api } from '@/utils/com/api';
 import { injectApi, injectSetTopbar } from '@/provides';
 import { WikiTemplate } from '@/models/wikiParsing/wikiTemplate';
@@ -28,8 +28,8 @@ const previewOn = ref<boolean>(true);
 const stylesContent = ref<string>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 const previewContent = ref<string>();
-const preScriptsDiv = ref<HTMLDivElement>();
-const postScriptsDiv = ref<HTMLDivElement>();
+const preScriptsDiv = useTemplateRef('preScriptsDiv')
+const postScriptsDiv = useTemplateRef('postScriptsDiv')
 const writeAreaLineHeight = 25;
 
 async function refreshPreview() {
@@ -103,8 +103,7 @@ onUnmounted(()=>{
 <div v-if="data" class="background">
     <div class="invisible" v-html="styles"></div>
     <div ref="preScriptsDiv" class="invisible"></div>
-    <div v-show="previewOn"
-        ref="previewArea" class="preview wikiView" v-html="previewContent">
+    <div v-show="previewOn" class="preview wikiView" v-html="previewContent">
     </div>
     <div ref="postScriptsDiv" class="invisible"></div>
 

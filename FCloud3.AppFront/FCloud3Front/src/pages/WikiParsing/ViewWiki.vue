@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
 import { ParserTitleTreeNode, WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
@@ -54,8 +54,8 @@ watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
 
 const data = ref<WikiParsingResult>();
 const stylesContent = ref<string>("");
-const preScripts = ref<HTMLDivElement>();
-const postScripts = ref<HTMLDivElement>();
+const preScripts = useTemplateRef('preScripts')
+const postScripts = useTemplateRef('postScripts')
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 const displayInfo = ref<WikiDisplayInfo>()
 const currentUser = ref<IdentityInfo>();
@@ -81,8 +81,8 @@ async function load(){
     }
 }
 
-const titles = ref<InstanceType<typeof TitleTree>>();
-const subTitles = ref<HTMLDivElement>();
+const titles = useTemplateRef('titles')
+const subTitles = useTemplateRef('subTitles')
 let isActiveMoving = false;
 function titleElementId(id:number):string|undefined{
     if(id>0)
@@ -169,7 +169,7 @@ let clickFold:TitleClickFold|undefined;
 let wikiLinkClick:WikiLinkClick|undefined;
 let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
-const wikiViewArea = ref<HTMLDivElement>();
+const wikiViewArea = useTemplateRef('wikiViewArea')
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
@@ -257,7 +257,6 @@ function toggleTimeViewMode(){
 
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
-const imgFocusViewElement = ref<InstanceType<typeof ImageFocusView>>();
 const wikiViewScrollMemory = injectWikiViewScrollMemory()
 const pop = injectPop()
 
@@ -422,7 +421,7 @@ onUnmounted(()=>{
     </div>
 
     <ImageFocusView v-if="focusImg" :img-src="focusImg" :desc="focusImgDesc" 
-        :close="()=>{focusImg=undefined;focusImgDesc=undefined}" ref="imgFocusViewElement">
+        :close="()=>{focusImg=undefined;focusImgDesc=undefined}">
     </ImageFocusView>
 </div>
 </template>

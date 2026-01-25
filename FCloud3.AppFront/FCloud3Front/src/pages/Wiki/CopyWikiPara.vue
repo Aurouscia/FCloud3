@@ -3,7 +3,7 @@ import Notice from '@/components/Notice.vue';
 import Search from '@/components/Search.vue';
 import SideBar from '@/components/SideBar.vue';
 import { injectApi } from '@/provides';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
 
 const props = defineProps<{
     copyingType?:'textSection'|'freeTable'
@@ -34,7 +34,7 @@ function clear(){
     copyingId.value = 0
 }
 
-const sidebar = ref<InstanceType<typeof SideBar>>();
+const sidebar = useTemplateRef('sidebar')
 const api = injectApi();
 function confirmed(){
     if(!copyingId.value) return;

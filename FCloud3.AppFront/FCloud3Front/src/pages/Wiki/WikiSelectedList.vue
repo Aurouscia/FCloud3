@@ -4,7 +4,7 @@ import Search from '@/components/Search.vue';
 import SideBar from '@/components/SideBar.vue';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { injectApi } from '@/provides';
-import { onMounted, ref, nextTick } from 'vue';
+import { onMounted, ref, nextTick, useTemplateRef } from 'vue';
 
 const api = injectApi()
 const list = ref<WikiSelectedDto[]>([])
@@ -17,7 +17,7 @@ async function load(){
 
 const editing = ref<WikiSelectedDto>()
 const isCreating = ref(false);
-const wsEditSidebar = ref<InstanceType<typeof SideBar>>()
+const wsEditSidebar = useTemplateRef('wsEditSidebar')
 function startCreating(){
     isCreating.value = true;
     editing.value = {

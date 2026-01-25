@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { getTopbarModel } from './topbarModel';
 import itemsImg from '@/assets/items.svg';
 import { TopbarModel } from './topbarModel';
@@ -20,7 +20,7 @@ onMounted(async()=>{
     topbarModel.value = await getTopbarModel();
 })
 
-const topbarBodyVert = ref<InstanceType<typeof TopbarBodyVertical>>();
+const topbarBodyVert = useTemplateRef('topbarBodyVert')
 function toggleFold(){
     topbarBodyVert.value?.toggleFold();
 }

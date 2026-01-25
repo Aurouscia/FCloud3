@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { injectApi } from '@/provides';
 import { Api } from '@/utils/com/api';
 import Index, { IndexColumn } from '@/components/Index/Index.vue';
@@ -29,13 +29,13 @@ const columns:IndexColumn[] = [
 ]
 
 const users = ref<UserIndexItem[]>([]);
-const index = ref<InstanceType<typeof Index>>();
+const index = useTemplateRef('index')
 function onLoadData(res:IndexResult){
     users.value = getUserIndexItemsFromIndexResult(res);
 }
 
 const selectedUser = ref<UserIndexItem>();
-const toUserOperationSidebar = ref<InstanceType<typeof SideBar>>();
+const toUserOperationSidebar = useTemplateRef('toUserOperationSidebar')
 function selectUser(u:UserIndexItem){
     selectedUser.value = u;
     toUserOperationSidebar.value?.extend();

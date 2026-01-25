@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref} from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, useTemplateRef} from 'vue'
 import { WikiParaDisplay, WikiParaRendered, wikiParaDisplayPlaceholder} from '@/models/wiki/wikiPara'
 import { WikiParaType} from '@/models/wiki/wikiParaType'
 import { MouseDragListener } from '@/utils/eventListeners/mouseDrag';
@@ -133,7 +133,7 @@ async function InsertCopyingPara(type:'textSection'|'freeTable'|undefined, copyS
     let t:WikiParaType = type==='freeTable' ? WikiParaType.Table : WikiParaType.Text
     await InsertPara(t, -1, copySrc)
 }
-const fileParaEdit = ref<InstanceType<typeof SideBar>>();
+const fileParaEdit = useTemplateRef('fileParaEdit')
 const fileParaEditing = ref<WikiParaDisplay>();
 async function EnterEdit(paraId:number)
 {
@@ -181,7 +181,7 @@ async function RemovePara(paraId:number){
 }
 
 const editingPara = ref<WikiParaDisplay>(wikiParaDisplayPlaceholder);
-const wikiParaInfo = ref<InstanceType<typeof WikiParaInfo>>()
+const wikiParaInfo = useTemplateRef('wikiParaInfo')
 async function StartEditInfo(p:WikiParaDisplay) {
     disposeListeners()
     editingPara.value = p;
@@ -197,7 +197,7 @@ async function fileEditFold(){
     editingFileParaChanged.value = false;
 }
 
-const titleContainEdit = ref<InstanceType<typeof SideBar>>()
+const titleContainEdit = useTemplateRef('titleContainEdit')
 const titleContainEditing = ref<{type:WikiTitleContainType, objId:number}>()
 function editTitleContains(p:WikiParaDisplay){
     titleContainEditing.value = {
@@ -360,7 +360,7 @@ onUnmounted(()=>{
         </div>
     </h1>
     <SwitchingTabs v-if="loadComplete" :texts="['段落信息','基础信息','权限设置']" @switch="tabSwitched">
-    <div class="paras tabContainer" ref="parasDiv">
+    <div class="paras tabContainer">
         <div v-for="p in paras" :key="p.ParaId" class="para" :style="{top:p.posY+'px'}"
         :class="{moving:p.isMoveing}">
             <img @mousedown="p.isMoveing=true" @touchstart="p.isMoveing=true;moving=true"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { IndexQuery, IndexResult, indexQueryDefault } from './index.ts';
 import Loading from '../Loading.vue';
 
@@ -127,7 +127,7 @@ const query = ref<IndexQuery>(indexQueryDefault())
 const searchStrsAlias = ref<string[]>([]);
 const orderByAlias = ref<string>("");
 const cols = ref<IndexColumn[]>([]);
-const search = ref<HTMLInputElement[]>([]);
+const search = useTemplateRef('search')
 
 const searchPanelOpen = ref<boolean>(false);
 const orderPanelOpen = ref<boolean>(false);
@@ -136,7 +136,7 @@ function fnLeave(){
     clearTimeout(fnLeaveTimer)
     fnLeaveTimer = window.setTimeout(()=>{
         orderPanelOpen.value = false;
-        if(search.value.every(i=>i !== document.activeElement))
+        if(search.value?.every(i=>i !== document.activeElement))
             searchPanelOpen.value = false;
     }, 500)
 }
@@ -170,7 +170,7 @@ const highlightSearchBtn = computed<boolean>(()=>{
     return true;
 })
 const highlightOrderBtn = computed<boolean>(()=>orderPanelOpen.value || !!query.value.OrderBy)
-const pos = ref<HTMLElement>()
+const pos = useTemplateRef('pos')
 function getPosElement(){
     return pos.value
 }

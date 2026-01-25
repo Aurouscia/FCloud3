@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, Ref, ref, useTemplateRef, watch } from 'vue';
 import { Api } from '@/utils/com/api';
 import { injectApi, injectPop } from '@/provides';
 import Index, { IndexColumn } from '@/components/Index/Index.vue';
@@ -33,8 +33,8 @@ const qInit:IndexQuery = {
     Page: 1
 }
 
-const createSideBar = ref<InstanceType<typeof SideBar>>();
-const creatingFileInput = ref<HTMLInputElement>();
+const createSideBar = useTemplateRef('createSideBar')
+const creatingFileInput = useTemplateRef('creatingFileInput')
 const creatingName = ref<string>("")
 const creatingDesc = ref<string>("")
 const creatingFile = ref<File>();
@@ -66,7 +66,7 @@ async function create(){
     }
 }
 
-const detailSidebar = ref<InstanceType<typeof SideBar>>();
+const detailSidebar = useTemplateRef('detailSidebar')
 const detailId = ref<number>(0);
 const detailName = ref<string>("");
 const detailDesc = ref<string>("");
@@ -87,7 +87,7 @@ async function editInfo() {
         await index.value?.reloadData();
     }
 }
-const editingFileInput = ref<HTMLInputElement>();
+const editingFileInput = useTemplateRef('editingFileInput')
 const editingFile = ref<File>();
 function editingFileChange(e:Event){
     const tar = e.target as HTMLInputElement;
@@ -125,14 +125,14 @@ async function deleteMaterial(id:number){
 }
 
 const items = ref<MaterialIndexItem[]>([])
-const index = ref<InstanceType<typeof Index>>();
+const index = useTemplateRef('index')
 function setItems(r:IndexResult){
     items.value = getMaterialItemsFromIndexResult(r);
 }
 
 let api:Api;
 const injected = ref<boolean>(false);
-let pop = ref<InstanceType<typeof Pop>>();
+let pop:Ref<InstanceType<typeof Pop>>;
 onMounted(async()=>{
     api = injectApi();
     injected.value = true;

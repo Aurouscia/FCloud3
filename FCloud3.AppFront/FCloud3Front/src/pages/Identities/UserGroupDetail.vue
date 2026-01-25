@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, watch } from 'vue';
+import { inject, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { Api } from '@/utils/com/api';
 import { UserGroup, UserGroupDetailResult } from '@/models/identities/userGroup';
 import Loading from '@/components/Loading.vue';
@@ -32,7 +32,7 @@ async function loadData(){
         clearTimeout(timer);
     }
 }
-const inviteUserSearch = ref<InstanceType<typeof Search>>();
+const inviteUserSearch = useTemplateRef('inviteUserSearch')
 async function inviteUser(_name:string, userId:number){
     var res = await api.identites.userGroup.addUserToGroup(userId,props.id)
     if(res){

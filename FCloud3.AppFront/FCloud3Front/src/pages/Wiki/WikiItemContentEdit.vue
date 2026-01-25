@@ -2,7 +2,7 @@
 import { WikiItem } from '@/models/wiki/wikiItem';
 import { WikiParaDisplay, wikiParaDefaultFoldMark, wikiParaDisplayPlaceholder } from '@/models/wiki/wikiPara';
 import { injectApi, injectPop, injectSetTopbar } from '@/provides';
-import { onMounted, ref, nextTick, onUnmounted } from 'vue';
+import { onMounted, ref, nextTick, onUnmounted, useTemplateRef } from 'vue';
 import Loading from '@/components/Loading.vue';
 import { AuTableEditor,  AuTableData } from '@aurouscia/au-table-editor';
 import { WikiParaType } from '@/models/wiki/wikiParaType';
@@ -74,9 +74,9 @@ function registerActiveSave(fn:()=>Promise<boolean>, p:WikiParaDisplayEdit){
     p.save = fn;
 }
 
-const wikiParaInfo = ref<InstanceType<typeof WikiParaInfo>>(); 
+const wikiParaInfo = useTemplateRef('wikiParaInfo')
 const editingPara = ref<WikiParaDisplay>(wikiParaDisplayPlaceholder);
-const wikiFileParaEdit = ref<InstanceType<typeof SideBar>>();
+const wikiFileParaEdit = useTemplateRef('wikiFileParaEdit')
 async function startEditingInfo(p:WikiParaDisplay){
     editingPara.value = p;
     await nextTick();
@@ -221,7 +221,7 @@ function preleaveAction(){
     if(info.value?.Id)
         api.etc.heartbeat.releaseRangeForWiki(info.value.Id);
 }
-const titleContainEdit = ref<InstanceType<typeof SideBar>>()
+const titleContainEdit = useTemplateRef('titleContainEdit')
 const titleContainEditing = ref<{type:WikiTitleContainType, objId:number, getContent:()=>string}>()
 function editTitleContains(p:WikiParaDisplay){
     titleContainEditing.value = {
@@ -252,7 +252,7 @@ async function convertXlsx(paraId:number){
 
 let imgClickJump:ImageClickJump;
 const focusImg = ref<string>();
-const parasDiv = ref<HTMLDivElement>();
+const parasDiv = useTemplateRef('parasDiv')
 const setTopbar = injectSetTopbar();
 const pop = injectPop();
 const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWarning } = usePreventLeavingUnsaved()
@@ -351,7 +351,7 @@ onUnmounted(()=>{
 </div>
 <Loading v-else></Loading>
 <WikiParaInfo :para="editingPara"  ref="wikiParaInfo"></WikiParaInfo>
-<ImageFocusView v-if="focusImg" :img-src="focusImg" :close="()=>{focusImg=undefined}" ref="imgFocusViewElement">
+<ImageFocusView v-if="focusImg" :img-src="focusImg" :close="()=>{focusImg=undefined}">
 </ImageFocusView>
 <SideBar ref="wikiFileParaEdit">
     <WikiFileParaEdit :para-id="editingPara.ParaId" :file-id="editingPara.UnderlyingId" @file-id-set="load"></WikiFileParaEdit>

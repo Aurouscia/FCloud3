@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { Api } from '@/utils/com/api';
 import { UserGroupListResult } from '@/models/identities/userGroup';
 import Loading from '@/components/Loading.vue';
@@ -25,8 +25,8 @@ async function loadData(){
 }
 
 const lookingDetail = ref<number>();
-const sidebar = ref<InstanceType<typeof SideBar>>();
-const detail = ref<InstanceType<typeof UserGroupDetail>>();
+const sidebar = useTemplateRef('sidebar')
+const detail = useTemplateRef('detail')
 function lookDetail(id:number){
     lookingDetail.value = id;
     router.replace({name:'userGroup',params:{id:id}})
@@ -41,7 +41,7 @@ async function answerInvitation(id:number,accept:boolean){
 }
 
 
-const createSideber = ref<InstanceType<typeof SideBar>>();
+const createSideber = useTemplateRef('createSideber')
 const creatingName = ref<string>();
 async function create(){
     if(!creatingName.value){return;}

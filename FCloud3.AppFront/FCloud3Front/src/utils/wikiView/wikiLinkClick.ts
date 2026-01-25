@@ -10,7 +10,7 @@ export class WikiLinkClick{
         this.redLinkAction = redLinkAction;
         this.redLinkClickHandler = this.redLinkClickHandler.bind(this);
     }
-    listen(target?:HTMLDivElement){
+    listen(target?:HTMLDivElement|null){
         if(!target)return [];
         const links = target.getElementsByTagName(targetTagName);
         let converted = 0

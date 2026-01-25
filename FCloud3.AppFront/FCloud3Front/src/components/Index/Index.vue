@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 import { IndexQuery, IndexResult, indexQueryDefault, indexResultDefault } from './index.ts';
 import Loading from '../Loading.vue';
 
@@ -99,7 +99,7 @@ function startEdit(colName:string){
     if(!target || !target.canSearch){return;}
     target.editing = true;
     nextTick(()=>{
-        search.value[0].focus();
+        search.value?.at(0)?.focus();
     })
 }
 async function endEdit(colName:string){
@@ -120,7 +120,7 @@ const query = ref<IndexQuery>(indexQueryDefault())
 const searchStrsAlias = ref<string[]>([]);
 const orderByAlias = ref<string>("");
 const cols = ref<IndexColumn[]>([]);
-const search = ref<HTMLInputElement[]>([]);
+const search = useTemplateRef('search')
 onMounted(async()=>{
     if(props.qInit){
         query.value = props.qInit;

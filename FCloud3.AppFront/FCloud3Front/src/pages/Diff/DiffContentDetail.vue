@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, useTemplateRef, watch } from 'vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { TimedLock } from '@/utils/timeStamp';
 import { isFireFox } from '@/utils/browserInfo';
@@ -8,8 +8,8 @@ const props = defineProps<{
     display:DiffContentStepDisplay|undefined
 }>();
 
-const from = ref<HTMLDivElement>();
-const to = ref<HTMLDivElement>();
+const from = useTemplateRef('from')
+const to = useTemplateRef('to')
 let leftDoms:HTMLElement[] = [];
 let rightDoms:HTMLElement[] = [];
 

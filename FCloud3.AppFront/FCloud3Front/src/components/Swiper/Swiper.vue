@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { defaultHeight, defaultWidth, SwiperData } from './swiperData';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 
 const props = defineProps<{
     data:SwiperData
 }>()
-const outerDiv = ref<HTMLDivElement>()
+const outerDiv = useTemplateRef('outerDiv')
 const unitWidth = ref<number>(defaultWidth)
 const unitHeight = ref<number>(defaultHeight)
 const widthStyle = computed<string>(() => unitWidth.value+'px')

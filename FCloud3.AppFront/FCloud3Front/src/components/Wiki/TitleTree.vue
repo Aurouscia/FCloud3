@@ -51,7 +51,7 @@ defineExpose({
             <div class="currentMark"></div>
             <span v-html="removeDefaultFoldedMark(t.Text)"></span>
         </div>
-        <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)" ref="subs"></TitleTree>
+        <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)"></TitleTree>
     </div>
 </div>
 </template>

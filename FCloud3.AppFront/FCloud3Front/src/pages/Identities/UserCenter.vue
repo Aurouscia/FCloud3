@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, onMounted, onUnmounted, ref, watch } from 'vue';
+import { Ref, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import SideBar from '@/components/SideBar.vue';
 import Personal from './PersonalSettings.vue';
 import Loading from '@/components/Loading.vue';
@@ -24,8 +24,8 @@ const props = defineProps<{
 }>();
 const user = ref<User>();
 var api:Api;
-const editInfoSidebar = ref<InstanceType<typeof SideBar>>();
-const localStylesSidebar = ref<InstanceType<typeof SideBar>>()
+const editInfoSidebar = useTemplateRef('editInfoSidebar')
+const localStylesSidebar = useTemplateRef('localStylesSidebar')
 const ok = ref<boolean>(false);
 const { jumpToLogin, jumpToGlobalAuthGrants } = useIdentityRoutesJump();
 const { jumpToHomelessFiles } = useFilesRoutesJump();

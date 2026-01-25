@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AuTableEditor, AuTableData } from '@aurouscia/au-table-editor'
 import Loading from '@/components/Loading.vue';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { SetTopbarFunc, injectApi, injectSetTopbar } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { FreeTable } from '@/models/table/freeTable';
@@ -68,7 +68,7 @@ function preleaveAction(){
 let api:Api;
 let setTopBar: SetTopbarFunc|undefined;
 const loadComplete = ref<boolean>(false);
-const titleContainSidebar = ref<InstanceType<typeof SideBar>>();
+const titleContainSidebar = useTemplateRef('titleContainSidebar')
 let heartbeatSender:HeartbeatSender|undefined;
 const heartbeatReleaseStore = useHeartbeatReleaseStore()
 const { registerHeartbeatRelease } = heartbeatReleaseStore

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import SideBar from '@/components/SideBar.vue';
@@ -128,7 +128,7 @@ watch(nameOverride,(newVal)=>{
     }
 })
 
-const sidebar = ref<InstanceType<typeof SideBar>>()
+const sidebar = useTemplateRef('sidebar')
 let api:Api = injectApi();
 let pop = injectPop();
 onMounted(async()=>{

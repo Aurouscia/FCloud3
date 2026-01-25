@@ -6,14 +6,14 @@ import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import Footer from '@/components/Footer.vue'
 import SideBar from '@/components/SideBar.vue';
 import CreateWiki from '@/components/Wiki/CreateWiki.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, useTemplateRef } from 'vue';
 import { guideInfo } from '@/utils/guideInfo';
 import { RouterLink } from 'vue-router';
 
 const api = injectApi();
 const { jumpToViewWiki, jumpToViewWikiRoute } = useWikiParsingRoutesJump();
 const creatingWiki = ref(false);
-const createWikiSidebar = ref<InstanceType<typeof SideBar>>();
+const createWikiSidebar = useTemplateRef('createWikiSidebar')
 function toggleSidebar(){
     if(creatingWiki.value){
         createWikiSidebar.value?.fold();

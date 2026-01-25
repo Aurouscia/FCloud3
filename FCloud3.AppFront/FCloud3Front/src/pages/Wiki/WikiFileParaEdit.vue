@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onBeforeMount, ref } from 'vue';
+import { inject, onBeforeMount, ref, useTemplateRef } from 'vue';
 import FileUpload from '@/components/FileUpload.vue';
 import Search from '@/components/Search.vue';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
@@ -14,7 +14,7 @@ const props = defineProps<{
     fileId?:number,
 }>();
 
-const search = ref<InstanceType<typeof Search>>();
+const search = useTemplateRef('search')
 async function setFileId(id:number){
     if(!props.paraId){return;}
     const res = await api.wiki.wikiPara.setFileParaFileId(props.paraId, id);

@@ -10,7 +10,7 @@ export class WikiViewScrollMemory{
     constructor(){
         this.memory = {}
     }
-    read(wikiPathName:string, wikiView?:HTMLElement){
+    read(wikiPathName:string, wikiView?:HTMLElement|null){
         const now = getTimeStamp();
         if(!wikiView){
             return;
@@ -21,7 +21,7 @@ export class WikiViewScrollMemory{
                 wikiView.scrollTop = m.top;
         }
     }
-    save(wikiPathName:string, wikiView?:HTMLElement){
+    save(wikiPathName:string, wikiView?:HTMLElement|null){
         if(!wikiView){
             return;
         }

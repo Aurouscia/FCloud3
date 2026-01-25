@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, Ref, onMounted, computed, onUnmounted, nextTick} from 'vue'
+import {ref, Ref, onMounted, computed, onUnmounted, nextTick, useTemplateRef} from 'vue'
 import Pop from '@/components/Pop.vue';
 import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import Loading from '@/components/Loading.vue';
@@ -39,8 +39,8 @@ var api:Api
 var pop:Ref<InstanceType<typeof Pop>>;
 const router = useRouter();
 
-const preScriptsDiv = ref<HTMLDivElement>();
-const postScriptsDiv = ref<HTMLDivElement>();
+const preScriptsDiv = useTemplateRef('preScriptsDiv')
+const postScriptsDiv = useTemplateRef('postScriptsDiv')
 const stylesContent = ref<string>();
 const styles = computed(()=>`<style>${stylesContent.value}</style>`)
 
@@ -54,8 +54,8 @@ const data = ref<TextSection>({
 });
 const previewContent = ref<string>();
 const lines:Array<LineAndHash>=[];
-const writeArea = ref<HTMLDivElement>();
-const previewArea = ref<HTMLDivElement>();
+const writeArea = useTemplateRef('writeArea')
+const previewArea = useTemplateRef('previewArea')
 const writeAreaLineHeight = 25;
 
 async function togglePreview(){
@@ -397,9 +397,8 @@ let lastRightToLeftHash:string = "";
 let lastRightToLeftHashFadeTimer = 0;
 
 const { preventLeaving, releasePreventLeaving, preventingLeaving, showUnsavedWarning } = usePreventLeavingUnsaved();
-const wikiTitleContainSidebar = ref<InstanceType<typeof SideBar>>()
-const localConfigSidebar = ref<InstanceType<typeof SideBar>>()
-const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
+const wikiTitleContainSidebar = useTemplateRef('wikiTitleContainSidebar')
+const localConfigSidebar = useTemplateRef('localConfigSidebar')
 </script>
 
 <template>
@@ -434,7 +433,7 @@ const wikiTitleContain = ref<InstanceType<typeof WikiTitleContain>>()
     <div class="preventingLeaving" v-show="preventingLeaving"></div>
 </div>
 <SideBar ref="wikiTitleContainSidebar" :shrink-way="'v-if'">
-    <WikiTitleContain ref="wikiTitleContain" :type="WikiTitleContainType.TextSection" :object-id="textSecId" 
+    <WikiTitleContain :type="WikiTitleContainType.TextSection" :object-id="textSecId" 
         :get-content="()=>data.Content" @changed="refreshPreview">
     </WikiTitleContain>
 </SideBar>

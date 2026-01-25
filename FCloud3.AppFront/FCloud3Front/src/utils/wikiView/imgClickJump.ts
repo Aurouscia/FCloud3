@@ -14,7 +14,7 @@ export class ImageClickJump{
         this.requireClassOnly = !!requireClassOnly
     }
     private imgs:HTMLImageElement[] = [];
-    listen(area:HTMLElement|undefined){
+    listen(area:HTMLElement|undefined|null){
         if(!area){return}
         this.imgs = [];
         const imgsFound = area.getElementsByTagName("img")

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref,Ref, watch } from 'vue';
+import { onMounted, ref,Ref, useTemplateRef, watch } from 'vue';
 import Pop from '@/components/Pop.vue';
 import {User, UserType} from '@/models/identities/user';
 import { Api } from '@/utils/com/api';
@@ -61,7 +61,7 @@ async function editUserInfo(){
 }
 
 let uploadingAvatar:File|null|undefined
-const avatarFileInput = ref<HTMLInputElement>();
+const avatarFileInput = useTemplateRef('avatarFileInput')
 async function avatarFileInputChange(){
     if(avatarFileInput.value?.files){
         uploadingAvatar = avatarFileInput.value.files[0];

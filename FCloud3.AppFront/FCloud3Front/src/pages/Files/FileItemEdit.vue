@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, useTemplateRef } from 'vue';
 import { injectApi } from '@/provides';
 import { Api } from '@/utils/com/api';
 import SideBar from '@/components/SideBar.vue';
@@ -14,7 +14,7 @@ const editingFileName = ref<string>();
 const editingFileExt = ref<string>();
 const editingFileBytes = ref<number>();
 const editingFileUrl = ref<string>();
-const editFileSidebar = ref<InstanceType<typeof SideBar>>();
+const editFileSidebar = useTemplateRef('editFileSidebar')
 const owner = ref<string>();
 let ok:(newName:string|-1)=>void
 async function startEditingFile(f:FileDirItem, okCallBack:(newName:string|-1)=>void){

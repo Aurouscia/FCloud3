@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, useTemplateRef } from 'vue';
 import { Api } from '@/utils/com/api';
 import { FileDir } from '@/models/files/fileDir';
 import Loading from '@/components/Loading.vue';
@@ -47,7 +47,7 @@ async function newFile(newFileItemId:number) {
     }
 }
 
-const moveSearch = ref<InstanceType<typeof Search>>();
+const moveSearch = useTemplateRef('moveSearch')
 async function moveInWiki(_title:string, wikiId:number) {
     const resp = await api.files.fileDir.putInThings(props.id,[],[],[wikiId]);
     if(resp){
