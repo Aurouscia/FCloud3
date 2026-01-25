@@ -258,12 +258,12 @@ const pop = injectPop();
 const { preventLeaving, releasePreventLeaving, preventingLeaving , showUnsavedWarning } = usePreventLeavingUnsaved()
 const ctrlZ = new ShortcutListener(()=>{
     pop.value.show("撤销功能暂未做", "failed")
-}, "z", true, false);
-const ctrlShiftZ = new ShortcutListener(()=>{}, "z", true, true);
-const ctrlS = new ShortcutListener(()=>{saveAll()}, "s", true, false);
-ctrlZ.startListen();
-ctrlShiftZ.startListen();
-ctrlS.startListen();    
+}, {code:"KeyZ", ctrl:true});
+const ctrlShiftZ = new ShortcutListener(()=>{}, {code:"KeyZ", ctrl:true, shift:true});
+const ctrlS = new ShortcutListener(()=>{saveAll()}, {code:"KeyS", ctrl:true, shift:false});
+ctrlZ.start();
+ctrlShiftZ.start();
+ctrlS.start();    
 let heartbeat:HeartbeatSenderForWholeWiki|undefined = undefined;
 onMounted(async()=>{
     setTopbar(false);

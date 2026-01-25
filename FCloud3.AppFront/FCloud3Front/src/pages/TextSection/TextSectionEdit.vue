@@ -15,7 +15,7 @@ import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import SideBar from '@/components/SideBar.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';
 import UnsavedLeavingWarning from '@/components/Editor/UnsavedLeavingWarning.vue';
-import { ShortcutListener } from '@aurouscia/keyboard-shortcut';
+import { createShortCutListenerForSaving, ShortcutListener } from '@aurouscia/keyboard-shortcut';
 import { sleep } from '@/utils/sleep';
 import { HeartbeatObjType, HeartbeatSender } from '@/models/etc/heartbeat';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
@@ -306,8 +306,8 @@ onMounted(async()=>{
         previewArea.value?.scrollTo({top: top-150, behavior: 'smooth'})
     };
     listenFootNoteJump();
-    saveShortcut = new ShortcutListener(()=>{replaceContent()}, "s", true);
-    saveShortcut.startListen();
+    saveShortcut = createShortCutListenerForSaving(replaceContent)
+    saveShortcut.start()
     await init();
     await nextTick();
 })
