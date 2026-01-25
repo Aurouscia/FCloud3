@@ -19,8 +19,11 @@ const wikiViewScrollMemoryKey = 'wikiViewScrollMemory'
 
 export type SetTopbarFunc = (display:boolean)=>void
 
-export function useProvidesSetup() {
-    const pop = ref<InstanceType<typeof Pop> | null>(null);
+export function useProvidesSetup(
+    pop:Ref<InstanceType<typeof Pop>|null>,
+    wait:Ref<InstanceType<typeof Wait>|null>,
+    needMemberWarning:Ref<InstanceType<typeof NeedMemberWarning>|null>
+){
     const { jumpToLogin } = useIdentityRoutesJump();
     provide(popKey, pop)
     const httpCallBack: HttpCallBack = (result, msg) => {
@@ -29,12 +32,10 @@ export function useProvidesSetup() {
         else if (result == 'warn') { pop.value?.show(msg, 'warning') }
     }
 
-    const wait = ref<InstanceType<typeof Wait> | null>(null);
     const showWait = (s:boolean)=>{
         wait.value?.setShowing(s)
     }
 
-    const needMemberWarning = ref<InstanceType<typeof NeedMemberWarning> | null>(null)
     const loginJumpTimeLock:TimedLock = new TimedLock(30000);
     const httpClient = new HttpClient(
         httpCallBack,

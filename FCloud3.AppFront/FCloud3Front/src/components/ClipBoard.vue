@@ -119,7 +119,7 @@ const emit = defineEmits<{
         剪切板<b>({{ list.length }}个物品)</b> <span v-show="showBody" style="font-size: small;">点击收起</span>
     </div>
 </div>
-<div ref="movingThing" class="movingThing" :style="movingThingStyle">文件</div>
+<div class="movingThing" :style="movingThingStyle">文件</div>
 </template>
 
 <style scoped>
