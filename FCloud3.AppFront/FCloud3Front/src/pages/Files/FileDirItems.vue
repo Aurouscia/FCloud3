@@ -7,7 +7,7 @@ import FileItemEdit from './FileItemEdit.vue';
 import Functions from '@/components/Functions.vue';
 import { Api } from '@/utils/com/api';
 import { RouterLink, useRouter } from 'vue-router';
-import _ from 'lodash';
+import { pullAt } from 'lodash-es';
 import { useWantViewWikiStore } from '@/utils/globalStores/wantViewWiki';
 import { fileDownloadLink } from '@/utils/com/api';
 import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
@@ -59,7 +59,7 @@ function editFile(f:FileDirItem){
         else{
             if(props.items){
                 const delIdx = props.items.findIndex(x=>x.Id == f.Id);
-                _.pullAt(props.items, delIdx)
+                pullAt(props.items, delIdx)
             }
         }
     });

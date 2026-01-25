@@ -7,7 +7,7 @@ import { Api } from '@/utils/com/api';
 import { FreeTable } from '@/models/table/freeTable';
 import WikiTitleContain from '@/components/Wiki/WikiTitleContain.vue';
 import { WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
-import { join } from 'lodash';
+import { join } from 'lodash-es';
 import SideBar from '@/components/SideBar.vue';
 import UnsavedLeavingWarning from '@/components/Editor/UnsavedLeavingWarning.vue';
 import { usePreventLeavingUnsaved } from '@/utils/eventListeners/preventLeavingUnsaved';

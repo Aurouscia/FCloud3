@@ -1,4 +1,4 @@
-import { truncate } from "lodash";
+import { truncate } from 'lodash-es';
 import md5 from "md5";
 import { CSSProperties } from "vue";
 

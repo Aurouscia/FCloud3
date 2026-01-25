@@ -1,7 +1,7 @@
 import { LocalConfigModel, LocalConfigType } from "./localConfigModel";
 import { authConfigDefault } from "./models/auth";
 import { textSectionConfigDefault } from "./models/textSection";
-import { cloneDeep } from 'lodash'
+import { cloneDeep } from 'lodash-es'
 import { wikiContentEditConfigDefault } from "./models/wikiContentEdit";
 import { wikiCenteredHomePageLocalConfigDefault } from "./models/wikiCenteredHomePage";
 

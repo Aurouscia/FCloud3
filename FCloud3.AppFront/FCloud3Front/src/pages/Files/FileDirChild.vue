@@ -2,7 +2,7 @@
 import { Ref, inject, onMounted, ref } from 'vue';
 import FileDirChild from './FileDirChild.vue'
 import { useRouter } from 'vue-router';
-import _ from 'lodash';
+import { concat, filter } from 'lodash-es';
 import FileDirItems from './FileDirItems.vue';
 import ClipBoard, { ClipBoardItemType } from '@/components/ClipBoard.vue';
 import Functions from '@/components/Functions.vue';
@@ -16,8 +16,8 @@ import { useDirInfoTypeStore } from '@/utils/globalStores/dirInfoType';
 const router = useRouter();
 
 function jumpToSubDir(name:string){
-    var path =  _.concat(props.path,name);
-    path = _.filter(path, x=>!!x)
+    var path = concat(props.path,name);
+    path = filter(path, x=>!!x)
     router.push({name:'files',params:{path}});
 }
 
@@ -59,7 +59,7 @@ var clip:Ref<InstanceType<typeof ClipBoard>>
 var api:Api;
 
 async function loadData(){
-    var path = _.filter(props.path, x=>!!x)
+    var path = filter(props.path, x=>!!x)
     var data = await props.fetchFrom(indexQueryDefault(), path);    
     if(data){
         showLoading.value = false
@@ -106,7 +106,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                 </div>
             </div>
             <div class="detail" v-if="subdir.showChildren">
-                <FileDirChild :dir-id="subdir.Id" :path="_.concat(props.path, subdir.UrlPathName)" :fetch-from="props.fetchFrom">
+                <FileDirChild :dir-id="subdir.Id" :path="concat(props.path, subdir.UrlPathName)" :fetch-from="props.fetchFrom">
                 </FileDirChild>
             </div>
         </div>

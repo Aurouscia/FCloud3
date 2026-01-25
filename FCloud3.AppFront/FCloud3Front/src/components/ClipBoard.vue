@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash';
+import { pullAllWith } from 'lodash-es';
 import { CSSProperties, ref } from 'vue';
 
 const props = defineProps<{
@@ -79,7 +79,7 @@ function putDownAll(){
 }
 function putEmitCallBackHandler(success:ClipBoardItem[],failMessage?:string){
     if(success){
-        list.value = _.pullAllWith(list.value,success,isSameItem);
+        list.value = pullAllWith(list.value,success,isSameItem);
         failMsg.value = failMessage
     }else{
         failMsg.value = "操作失败"

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { CommentViewResult, Comment, CommentTargetType } from '@/models/messages/comment';
 import { injectApi, injectPop } from '@/provides';
-import { truncate } from 'lodash'; 
+import { truncate } from 'lodash-es'; 
 import { rateColor, rateText } from './rateTextColor';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';

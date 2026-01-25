@@ -1,5 +1,5 @@
 import axios, { Axios, AxiosResponse } from 'axios'
-import _ from 'lodash'
+import { has } from 'lodash-es'
 import {AxiosError} from 'axios'
 
 export type ApiResponse = {
@@ -182,7 +182,7 @@ export class HttpClient{
     }
     private isApiResponseObj(obj:any){
         const c = (propName:keyof ApiResponse)=>{
-            return _.has(obj, propName)
+            return has(obj, propName)
         }
         if(typeof obj == 'object'){
             return c('code') && c('success') && c('errmsg')

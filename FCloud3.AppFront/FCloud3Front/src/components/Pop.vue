@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue';
-import { pullAt } from 'lodash';
+import { pullAt } from 'lodash-es';
 
 const rightDefault = -200;
 const height = 70;

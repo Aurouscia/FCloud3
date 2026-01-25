@@ -35,7 +35,7 @@ import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
 import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
-import _ from 'lodash';
+import { findLastIndex } from 'lodash-es';
 import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 
@@ -131,7 +131,7 @@ function viewAreaScrollHandler(enforce?:boolean){
     }
 
     lastScrollTime = Date.now();
-    let currentTitleIdx = _.findLastIndex(titlesInContent, t=>
+    let currentTitleIdx = findLastIndex(titlesInContent, t=>
         !t.classList.contains(hiddenSubClassName) &&
         t.offsetTop < st + 30); //30是玄学数字，未搞清楚作用机理
     if(currentTitleIdx == -1){

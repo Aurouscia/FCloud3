@@ -1,4 +1,4 @@
-import { padStart } from "lodash"
+import { padStart } from 'lodash-es'
 
 export function getTimeStamp(){
     return (new Date()).getTime()/1000

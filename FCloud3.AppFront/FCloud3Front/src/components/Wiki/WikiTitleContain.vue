@@ -4,7 +4,7 @@ import { injectApi, injectPop } from '@/provides';
 import { Api } from '@/utils/com/api';
 import { WikiTitleContainListModel, WikiTitleContainListModelItem, WikiTitleContainType } from '@/models/wiki/wikiTitleContain';
 import Loading from '../Loading.vue';
-import { pullAt, unionBy } from 'lodash';
+import { pullAt, unionBy } from 'lodash-es';
 import Search from '../Search.vue';
 import Pop from '../Pop.vue';
 

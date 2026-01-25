@@ -1,7 +1,7 @@
 import { Ref, ref } from "vue";
 import { Api } from "../com/api";
 import { getTimeStamp } from "../timeStamp";
-import _ from 'lodash'
+import { has } from 'lodash-es'
 import { defineStore } from "pinia";
 import { useIdentityInfoStore } from "./identityInfo";
 
@@ -38,7 +38,7 @@ export const useNotifCountStore = defineStore('notifCount', ()=>{
             let cache = localStorage.getItem(key)
             if(cache){
                 const cachedObj = JSON.parse(cache)
-                if(_.has(cachedObj, 'count') && _.has(cachedObj, 'update')){
+                if(has(cachedObj, 'count') && has(cachedObj, 'update')){
                     obj = cachedObj as NotifInfo;
                     if(getTimeStamp() - obj.update < notifCountCacheExpireSec){
                         needRequest = false;

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { truncate } from 'lodash-es';
 import { IndexQuery, IndexResult } from "@/components/Index/index";
 import { User, UserType } from "@/models/identities/user";
 import { TextSection, TextSectionMeta, TextSectionPreviewResponse } from "@/models/textSection/textSection";
@@ -818,7 +818,7 @@ export class Api{
                     "/api/FileItem/Save",
                     "postForm",
                     req,
-                    `成功上传：${_.truncate(req.DisplayName,{length:8})}`,
+                    `成功上传：${truncate(req.DisplayName,{length:8})}`,
                     true);
                 if(res.success){
                     return res.data as {CreatedId:number};

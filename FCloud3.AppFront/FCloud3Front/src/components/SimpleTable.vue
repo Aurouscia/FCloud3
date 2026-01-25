@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import _ from 'lodash'
+import { isArray, every } from 'lodash-es'
 import { onMounted, ref, watch } from 'vue';
 
 const props = withDefaults(defineProps<{
@@ -22,8 +22,8 @@ function refresh(){
     if(props.json){
         try{
             var jsonData = JSON.parse(props.json) as string[][];
-            if(_.isArray(jsonData)){
-                if(_.every(jsonData, _.isArray)){
+            if(isArray(jsonData)){
+                if(every(jsonData, isArray)){
                     cells.value = jsonData;
                 }
             }

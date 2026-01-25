@@ -10,7 +10,7 @@ import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 import SideBar from '@/components/SideBar.vue';
 import Loading from '@/components/Loading.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
-import _ from 'lodash'
+import { pullAllWith } from 'lodash-es'
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import { useIdentityRoutesJump } from '../Identities/routes/routesJump';
@@ -36,7 +36,7 @@ const detailSidebar = useTemplateRef('detailSidebar')
 async function switchDetail(id:number){
     if(!displays.some(d=>d.Id == id)){
         const resp = (await api.diff.diffContent.detail(id))?.Items || [];
-        _.pullAllWith(displays, resp, (x,y)=>x.Id==y.Id)
+        pullAllWith(displays, resp, (x,y)=>x.Id==y.Id)
         displays.push(...resp);
     }
     displaying.value = displays.find(x=>x.Id == id);

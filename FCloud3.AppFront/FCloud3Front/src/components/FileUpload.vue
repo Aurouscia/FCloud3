@@ -2,7 +2,7 @@
 import { Ref, inject, nextTick, onMounted, ref } from 'vue';
 import { fileSizeStr, getFileIconStyle,getFileExt, fileNameWithoutExt, jsFileObjectMd5, fileNameTruncateKeepingExt } from '../utils/fileUtils';
 import { StagingFile, FileUploadDist, fileUploadMaxSize} from '../models/files/fileItem';
-import _ from 'lodash'
+import { pullAt, random } from 'lodash-es'
 import Pop from './Pop.vue';
 import { Api } from '../utils/com/api';
 
@@ -50,7 +50,7 @@ async function inputChange(e:Event){
     }
 }
 function delFile(idx:number){
-    _.pullAt(fileList.value,idx)
+    pullAt(fileList.value,idx)
 }
 
 const fileList = ref<StagingFile[]>([]);
@@ -98,7 +98,7 @@ const emit = defineEmits<{
 
 var pop: Ref<InstanceType<typeof Pop>>
 var api: Api;
-const randId = _.random(0,1000000);
+const randId = random(0,1000000);
 onMounted(()=>{
     pop = inject('pop') as Ref<InstanceType<typeof Pop>>;
     api = inject('api') as Api;

@@ -5,7 +5,7 @@ import { Api } from '@/utils/com/api';
 import { IndexQuery, IndexResult } from '@/components/Index';
 import FileDirChild from './FileDirChild.vue';
 import { useRouter } from 'vue-router';
-import _ from 'lodash';
+import { concat, filter, take, last } from 'lodash-es';
 import SideBar from '@/components/SideBar.vue';
 import settingsImg from '@/assets/settings.svg';
 import newDirImg from '@/assets/newDir.svg';
@@ -97,17 +97,17 @@ const fetchIndex:(q:IndexQuery)=>Promise<IndexResult|undefined>=async(q)=>{
 
 
 function jumpToSubDir(name:string){
-    var path =  _.concat(pathThis.value,name);
-    path = _.filter(path, x=>!!x)
+    var path = concat(pathThis.value,name);
+    path = filter(path, x=>!!x)
     router.push({name:'files',params:{path}});
 }
 function jumpToAncestor(idxInChain:number){
-    router.push({name:'files',params:{path: _.take(pathThis.value,idxInChain+1)}})
+    router.push({name:'files',params:{path: take(pathThis.value,idxInChain+1)}})
 }
 function infoUpdated(newInfo:FileDir){
     if(newInfo.UrlPathName && newInfo.UrlPathName!=pathThisName.value){
-        var path = _.concat(pathAncestors.value,newInfo.UrlPathName);
-        path = _.filter(path, x=>!!x)
+        var path = concat(pathAncestors.value,newInfo.UrlPathName);
+        path = filter(path, x=>!!x)
         router.replace({name:'files',params:{path}});
     }
     if(newInfo.Name && newInfo.Name!=friendlyPathThisName.value){
@@ -126,9 +126,9 @@ function setPathData(){
         pathThis.value = [props.path];
         isRoot.value = false;
     }else{
-        pathThis.value = _.filter(props.path, x=>!!x)
-        pathAncestors.value = _.take(pathThis.value,pathThis.value.length-1)
-        pathThisName.value = _.last(pathThis.value)||"";
+        pathThis.value = filter(props.path, x=>!!x)
+        pathAncestors.value = take(pathThis.value,pathThis.value.length-1)
+        pathThisName.value = last(pathThis.value)||"";
         isRoot.value = pathThis.value.length==0;
     }
 }
@@ -139,9 +139,9 @@ function setFriendlyPathData(){
         friendlyPathAncestors.value = [];
         setTitleTo('作品目录')
     }else{
-        friendlyPath.value = _.filter(friendlyPath.value, x=>!!x)
-        friendlyPathAncestors.value = _.take(friendlyPath.value,friendlyPath.value.length-1)
-        friendlyPathThisName.value = _.last(friendlyPath.value)||"";
+        friendlyPath.value = filter(friendlyPath.value, x=>!!x)
+        friendlyPathAncestors.value = take(friendlyPath.value,friendlyPath.value.length-1)
+        friendlyPathThisName.value = last(friendlyPath.value)||"";
         setTitleTo(friendlyPathThisName.value)
     }
 }
@@ -278,7 +278,7 @@ async function clipBoardAction(move:ClipBoardItem[], putEmitCallBack:PutEmitCall
         const fileDirSuccess:ClipBoardItem[] = res.FileDirSuccess?.map(x=>{return{id:x,type:'fileDir',name:''}})||[]
         const wikiItemSuccess:ClipBoardItem[] = res.WikiItemSuccess?.map(x=>{return{id:x,type:'wikiItem',name:''}})||[]
         console.log(fileItemSuccess,fileDirSuccess,wikiItemSuccess);
-        const success = _.concat(fileItemSuccess, fileDirSuccess, wikiItemSuccess)
+        const success = concat(fileItemSuccess, fileDirSuccess, wikiItemSuccess)
         console.log(success);
         putEmitCallBack(success,res.FailMsg)
         index.value?.reloadData();
@@ -357,7 +357,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
                         </div>
                     </div>
                     <div class="detail" v-if="item.showChildren">
-                        <FileDirChild :dir-id="item.Id" :path="_.concat(props.path, item.UrlPathName)" :fetch-from="api.files.fileDir.index"></FileDirChild>
+                        <FileDirChild :dir-id="item.Id" :path="concat(props.path, item.UrlPathName)" :fetch-from="api.files.fileDir.index"></FileDirChild>
                     </div>
                 </td>
             </tr>
