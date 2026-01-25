@@ -26,10 +26,15 @@ namespace FCloud3.Repos.Test.Wiki
             ctx.SaveChanges();
         }
 
+        public static IEnumerable<object[]> AddTestData()
+        {
+            yield return new object[] { 2, "4,5,6", "2,3,4,5,6" };
+            yield return new object[] { 1, "4,5,6", "1,2,3,4,5,6" };
+            yield return new object[] { 0, "4,5,6", "" };
+        }
+
         [TestMethod]
-        [DataRow(2, "4,5,6", "2,3,4,5,6")]
-        [DataRow(1, "4,5,6", "1,2,3,4,5,6")]
-        [DataRow(0, "4,5,6", "")]
+        [DynamicData(nameof(AddTestData))]
         public void Add(int dirId, string addIdsStr, string expectedIdsStr)
         {
             var addIds = TestStrParse.IntList(addIdsStr);
@@ -53,9 +58,14 @@ namespace FCloud3.Repos.Test.Wiki
             CollectionAssert.AreEquivalent(new List<int> { 1, 2 }, getDirs4);
         }
 
+        public static IEnumerable<object[]> RemoveTestData()
+        {
+            yield return new object[] { 1, "2,3,4", "1" };
+            yield return new object[] { 1, "3,4", "1,2" };
+        }
+
         [TestMethod]
-        [DataRow(1, "2,3,4", "1")]
-        [DataRow(1, "3,4", "1,2")]
+        [DynamicData(nameof(RemoveTestData))]
         public void Remove(int dirId, string removeIdsStr, string expectedIdsStr)
         {
             var removeIds = TestStrParse.IntList(removeIdsStr);

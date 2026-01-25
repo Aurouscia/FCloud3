@@ -53,12 +53,17 @@ namespace FCloud3.Repos.Test.Identities
         /// 如果是某个特定对象(onId != onIdForAll)，应该获取该对象所有者的全局设置(排前面)，加上该对象的本地设置(排后面)
         /// 如果是“所有我的”对象(onId == onIdForAll)，应该获取当前登录用户的该类型全局设置
         /// </summary>
+        public static IEnumerable<object[]> GetByOnTestData()
+        {
+            yield return new object[] { AuthGrantOn.WikiItem, 10, 1, "4,3,2,1" };
+            yield return new object[] { AuthGrantOn.WikiItem, 11, 1, "4,3,5,6,7" };
+            yield return new object[] { AuthGrantOn.WikiItem, AuthGrant.onIdForAll, 0, "4,3" };
+            yield return new object[] { AuthGrantOn.Dir, 10, 1, "12,13,10,11" };
+            yield return new object[] { AuthGrantOn.Dir, AuthGrant.onIdForAll, 1, "12,13" };
+        }
+
         [TestMethod]
-        [DataRow(AuthGrantOn.WikiItem, 10, 1, "4,3,2,1")]
-        [DataRow(AuthGrantOn.WikiItem, 11, 1, "4,3,5,6,7")]
-        [DataRow(AuthGrantOn.WikiItem, AuthGrant.onIdForAll, 0, "4,3")]
-        [DataRow(AuthGrantOn.Dir, 10, 1, "12,13,10,11")]
-        [DataRow(AuthGrantOn.Dir, AuthGrant.onIdForAll, 1, "12,13")]
+        [DynamicData(nameof(GetByOnTestData))]
         public void GetByOn(AuthGrantOn on, int onId, int owner, string expectedIdsStr)
         {
             var expectedIds = expectedIdsStr.Split(',').ToList().ConvertAll(int.Parse);
@@ -66,11 +71,16 @@ namespace FCloud3.Repos.Test.Identities
             CollectionAssert.AreEqual(expectedIds, actualIds);
         }
 
+        public static IEnumerable<object[]> InsertNewTestData()
+        {
+            yield return new object[] { AuthGrantOn.WikiItem, 10, 1, "4,3,2,1,14", 2 };
+            yield return new object[] { AuthGrantOn.WikiItem, AuthGrant.onIdForAll, 1, "4,3,14", 2 };
+            yield return new object[] { AuthGrantOn.Dir, 10, 1, "12,13,10,11,14", 2 };
+            yield return new object[] { AuthGrantOn.Dir, AuthGrant.onIdForAll, 1, "12,13,14", 2 };
+        }
+
         [TestMethod]
-        [DataRow(AuthGrantOn.WikiItem, 10, 1, "4,3,2,1,14", 2)]
-        [DataRow(AuthGrantOn.WikiItem, AuthGrant.onIdForAll, 1, "4,3,14", 2)]
-        [DataRow(AuthGrantOn.Dir, 10, 1, "12,13,10,11,14", 2)]
-        [DataRow(AuthGrantOn.Dir, AuthGrant.onIdForAll, 1, "12,13,14", 2)]
+        [DynamicData(nameof(InsertNewTestData))]
         public void InsertNew(AuthGrantOn on, int onId, int owner, string expectedIdsStr, int expectedInsertedOrder)
         {
             var expectedIds = expectedIdsStr.Split(',').ToList().ConvertAll(int.Parse);
@@ -86,14 +96,19 @@ namespace FCloud3.Repos.Test.Identities
             Assert.AreEqual(expectedInsertedOrder, inserted.Order);
         }
 
+        public static IEnumerable<object[]> RemoveTestData()
+        {
+            yield return new object[] { 2, 1, "4,3,1", "0,1,0" };
+            yield return new object[] { 1, 1, "4,3,2", "0,1,0" };
+            yield return new object[] { 4, 1, "3", "0" };
+            yield return new object[] { 3, 1, "4", "0" };
+            yield return new object[] { 5, 1, "4,3,6,7", "0,1,0,1" };
+            yield return new object[] { 6, 1, "4,3,5,7", "0,1,0,1" };
+            yield return new object[] { 7, 1, "4,3,5,6", "0,1,0,1" };
+        }
+
         [TestMethod]
-        [DataRow(2, 1, "4,3,1", "0,1,0")]
-        [DataRow(1, 1, "4,3,2", "0,1,0")]
-        [DataRow(4, 1, "3", "0")]
-        [DataRow(3, 1, "4", "0")]
-        [DataRow(5, 1, "4,3,6,7","0,1,0,1")]
-        [DataRow(6, 1, "4,3,5,7","0,1,0,1")]
-        [DataRow(7, 1, "4,3,5,6","0,1,0,1")]
+        [DynamicData(nameof(RemoveTestData))]
         public void Remove(int deleteTargetId, int owner, string expectedIdsStr, string expectedOrdersStr)
         {
             var expectedIds = expectedIdsStr.Split(',').ToList().ConvertAll(int.Parse);

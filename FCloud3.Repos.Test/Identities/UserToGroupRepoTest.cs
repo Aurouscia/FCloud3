@@ -42,9 +42,14 @@ namespace FCloud3.Repos.Test.Identities
             _context.SaveChanges();
         }
         
+        public static IEnumerable<object[]> GetMembersTestData()
+        {
+            yield return new object[] { 1, "1,2,3" };
+            yield return new object[] { 2, "3,4" };
+        }
+
         [TestMethod]
-        [DataRow(1, "1,2,3")]
-        [DataRow(2, "3,4")]
+        [DynamicData(nameof(GetMembersTestData))]
         public void GetMembers(int groupId, string expectedMemberIdsStr)
         {
             List<int> expectedMemberIds = TestStrParse.IntList(expectedMemberIdsStr);
@@ -52,10 +57,15 @@ namespace FCloud3.Repos.Test.Identities
             CollectionAssert.AreEqual(expectedMemberIds, actualMemberIds);
         }
         
+        public static IEnumerable<object[]> GetDictTestData()
+        {
+            yield return new object[] { "1", "1:1,2,3" };
+            yield return new object[] { "2", "2:3,4" };
+            yield return new object[] { "1,2", "1:1,2,3  2:3,4" };
+        }
+
         [TestMethod]
-        [DataRow("1","1:1,2,3")]
-        [DataRow("2","2:3,4")]
-        [DataRow("1,2", "1:1,2,3  2:3,4")]
+        [DynamicData(nameof(GetDictTestData))]
         public void GetDict(string groupIdsStr, string expectedDictStr)
         {
             List<int> groupIds = TestStrParse.IntList(groupIdsStr);
@@ -66,11 +76,16 @@ namespace FCloud3.Repos.Test.Identities
                 JsonConvert.SerializeObject(actualDict));
         }
 
+        public static IEnumerable<object[]> IsInSameGroupTestData()
+        {
+            yield return new object[] { false, 1, 4 }; // 邀请中的关系不算同组
+            yield return new object[] { true, 1, 2 }; // 是同组1
+            yield return new object[] { true, 3, 4 }; // 是同组2
+            yield return new object[] { false, 2, 4 }; // 不是同组
+        }
+
         [TestMethod]
-        [DataRow(false, 1, 4, DisplayName = "邀请中的关系不算同组")]
-        [DataRow(true, 1, 2, DisplayName = "是同组1")]
-        [DataRow(true, 3, 4, DisplayName = "是同组2")]
-        [DataRow(false, 2, 4 ,DisplayName = "不是同组")]
+        [DynamicData(nameof(IsInSameGroupTestData))]
         public void IsInSameGroup(bool expected, int userA, int userB)
         {
             Assert.AreEqual(expected, _repo.IsInSameGroup(userA, userB));
@@ -93,11 +108,16 @@ namespace FCloud3.Repos.Test.Identities
             Assert.AreEqual(1, relationCount);
         }
 
+        public static IEnumerable<object[]> InvitationAnswerTestData()
+        {
+            yield return new object[] { 2, 1, true, true, UserToGroupType.Member }; // 同意，成为成员
+            yield return new object[] { 2, 1, false, true, null }; // 拒绝，删除关系
+            yield return new object[] { 2, 2, true, false, null }; // 未邀请过，操作失败
+            yield return new object[] { 2, 3, true, false, UserToGroupType.Member }; // 本就是成员，操作失败
+        }
+
         [TestMethod]
-        [DataRow(2, 1, true, true, UserToGroupType.Member, DisplayName = "同意，成为成员")]
-        [DataRow(2, 1, false, true, null, DisplayName = "拒绝，删除关系")]
-        [DataRow(2, 2, true, false, null, DisplayName = "未邀请过，操作失败")]
-        [DataRow(2, 3, true, false, UserToGroupType.Member, DisplayName = "本就是成员，操作失败")]
+        [DynamicData(nameof(InvitationAnswerTestData))]
         public void InvitationAnswer(int groupId, int userId, bool accept, bool expectedSuccess, UserToGroupType? expectedRelation)
         {
             bool actualSuccess;
@@ -114,10 +134,15 @@ namespace FCloud3.Repos.Test.Identities
             Assert.AreEqual(expectedCount, relationCount);
         }
 
+        public static IEnumerable<object[]> RemoveUserFromGroupTestData()
+        {
+            yield return new object[] { 3, 1, true, 2 };
+            yield return new object[] { 4, 1, false, 3 };
+            yield return new object[] { 1, 2, true, 2 };
+        }
+
         [TestMethod]
-        [DataRow(3, 1, true, 2)]
-        [DataRow(4, 1, false, 3)]
-        [DataRow(1, 2, true, 2)]
+        [DynamicData(nameof(RemoveUserFromGroupTestData))]
         public void RemoveUserFromGroup(int userId, int groupId, bool expectedSuccess, int expectedMemberCount)
         {
             var actualSuccess = _repo.RemoveUserFromGroup(userId, groupId, out _);

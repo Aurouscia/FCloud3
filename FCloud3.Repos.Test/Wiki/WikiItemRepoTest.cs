@@ -35,20 +35,30 @@ namespace FCloud3.Repos.Test.Wiki
             CollectionAssert.AreEquivalent(expectUpdated, updated);
         }
         
+        public static IEnumerable<object[]> UpdateTimeSingleTestData()
+        {
+            yield return new object[] { 1 };
+            yield return new object[] { 2 };
+        }
+
         [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
+        [DynamicData(nameof(UpdateTimeSingleTestData))]
         public void UpdateTimeSingle(int id)
         {
             _repo.UpdateTime(id);
             CheckUpdated([id]);
         }
         
+        public static IEnumerable<object[]> UpdateTimeMutipleTestData()
+        {
+            yield return new object[] { "1" };
+            yield return new object[] { "1,2" };
+            yield return new object[] { "1,2,3" };
+            yield return new object[] { "1,2,3,4" };
+        }
+
         [TestMethod]
-        [DataRow("1")]
-        [DataRow("1,2")]
-        [DataRow("1,2,3")]
-        [DataRow("1,2,3,4")]
+        [DynamicData(nameof(UpdateTimeMutipleTestData))]
         public void UpdateTimeMutiple(string idsStr)
         {
             List<int> ids = TestStrParse.IntList(idsStr);
@@ -56,11 +66,16 @@ namespace FCloud3.Repos.Test.Wiki
             CheckUpdated(ids);
         }
         
+        public static IEnumerable<object[]> UpdateTimeMutipleAsQueryableTestData()
+        {
+            yield return new object[] { "1" };
+            yield return new object[] { "1,2" };
+            yield return new object[] { "1,2,3" };
+            yield return new object[] { "1,2,3,4" };
+        }
+
         [TestMethod]
-        [DataRow("1")]
-        [DataRow("1,2")]
-        [DataRow("1,2,3")]
-        [DataRow("1,2,3,4")]
+        [DynamicData(nameof(UpdateTimeMutipleAsQueryableTestData))]
         public void UpdateTimeMutipleAsQueryable(string idsStr)
         {
             List<int> ids = TestStrParse.IntList(idsStr);

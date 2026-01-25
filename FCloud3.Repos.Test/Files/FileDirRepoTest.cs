@@ -48,15 +48,20 @@ namespace FCloud3.Repos.Test.Files
         #endregion
 
         #region 关于路径的查询
+        public static IEnumerable<object[]> GetChainByPathTestData()
+        {
+            yield return new object[] { "", "" };
+            yield return new object[] { "dir-1/dir-2", "1,2" };
+            yield return new object[] { "dir-1/dir-3", "1,3" };
+            yield return new object[] { "dir-1/dir-2/aaa", "1,2,5" };
+            yield return new object[] { "dir-1/dir-3/aaa", "1,3,6" };
+            yield return new object[] { "dir-x", null };
+            yield return new object[] { "dir-1/dir-x", null };
+            yield return new object[] { "dir-1/dir-x/aaa", null };
+        }
+
         [TestMethod]
-        [DataRow("", "")]
-        [DataRow("dir-1/dir-2", "1,2")]
-        [DataRow("dir-1/dir-3", "1,3")]
-        [DataRow("dir-1/dir-2/aaa", "1,2,5")]
-        [DataRow("dir-1/dir-3/aaa", "1,3,6")]
-        [DataRow("dir-x", null)]
-        [DataRow("dir-1/dir-x", null)]
-        [DataRow("dir-1/dir-x/aaa", null)]
+        [DynamicData(nameof(GetChainByPathTestData))]
         public void GetChainByPath(string path, string? ids)
         {
             var pathParts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -73,13 +78,18 @@ namespace FCloud3.Repos.Test.Files
             }
         }
 
+        public static IEnumerable<object[]> GetChainByIdTestData()
+        {
+            yield return new object[] { 1, "1", "dir-1" };
+            yield return new object[] { 2, "1,2", "dir-1/dir-2" };
+            yield return new object[] { 3, "1,3", "dir-1/dir-3" };
+            yield return new object[] { 5, "1,2,5", "dir-1/dir-2/aaa" };
+            yield return new object[] { 6, "1,3,6", "dir-1/dir-3/aaa" };
+            yield return new object[] { 1000, null, null };
+        }
+
         [TestMethod]
-        [DataRow(1, "1", "dir-1")]
-        [DataRow(2, "1,2", "dir-1/dir-2")]
-        [DataRow(3, "1,3", "dir-1/dir-3")]
-        [DataRow(5, "1,2,5", "dir-1/dir-2/aaa")]
-        [DataRow(6, "1,3,6", "dir-1/dir-3/aaa")]
-        [DataRow(1000, null, null)]
+        [DynamicData(nameof(GetChainByIdTestData))]
         public void GetChainById(int id, string? ids, string? path)
         {
             var res = _repo.GetChainIdsById(id);
@@ -100,11 +110,16 @@ namespace FCloud3.Repos.Test.Files
         #endregion
 
         #region 级联设置更新时间
+        public static IEnumerable<object[]> SetUpdateTimeAncestrallyTestData()
+        {
+            yield return new object[] { "1", "1" };
+            yield return new object[] { "2", "1,2" };
+            yield return new object[] { "4", "1,2,4" };
+            yield return new object[] { "5,6", "1,2,3,5,6" };
+        }
+
         [TestMethod]
-        [DataRow("1", "1")]
-        [DataRow("2", "1,2")]
-        [DataRow("4", "1,2,4")]
-        [DataRow("5,6", "1,2,3,5,6")]
+        [DynamicData(nameof(SetUpdateTimeAncestrallyTestData))]
         public void SetUpdateTimeAncestrally(string targetIds, string updatedIds)
         {
             var items = _repo.All.ToList();
