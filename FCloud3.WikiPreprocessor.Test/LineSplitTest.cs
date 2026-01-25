@@ -23,23 +23,6 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(answer, res.Count);
         }
 
-        //[TestMethod]
-        [DataRow(
-            "\n123\n\r456\n789", 3)]
-        [DataRow(
-            "\n12<b>\n456\n</b>789", 1)]
-        [DataRow(
-            "\n12<b>\n4\n</b>\n5\n<b>\n6\n</b>\n789", 4)]
-        [DataRow(
-            "\n12<b>\n456<a href=\"666\">666</a>456\n</b>789", 1)]
-        [DataRow(
-            "\n12<b>\n456<img src=\"666\">456\n</b>789", 1)]
-        public void WithHtml(string content, int answer)
-        {
-            var res = LineSplitter.Split(content, null);
-            Assert.AreEqual(answer, res.Count);
-        }
-
         [TestMethod]
         [DataRow(
             "01234567890123456789", "", DisplayName = "无html")]
