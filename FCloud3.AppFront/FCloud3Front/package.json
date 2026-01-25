@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node build.mjs",
-    "build-here": "node build.mjs --here",
+    "build": "tsx build.ts",
+    "build-here": "tsx build.ts --here",
     "toggleEnvLocal": "node env/toggleLocalEnvFile.cjs"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "@vitejs/plugin-vue": "^6.0.3",
     "execa": "^9.6.1",
     "sass": "^1.97.3",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vue-tsc": "^3.2.3"
