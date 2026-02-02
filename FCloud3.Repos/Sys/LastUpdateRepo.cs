@@ -102,8 +102,9 @@ namespace FCloud3.Repos.Sys
         {
             lock (lockObj)
             {
+                // .net10中，enum数组不能使用Contains方法，需要使用Any方法
                 var res = ctx.LastUpdates
-                    .Where(x => types.Contains(x.Type))
+                    .Where(x => types.Any(t => t == x.Type))
                     .ToList();
                 if (res.Count > 0)
                     return res.Select(x => x.LastUpdateTime).Max();
