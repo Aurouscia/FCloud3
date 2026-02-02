@@ -10,9 +10,14 @@ namespace FCloud3.WikiPreprocessor.Test
     [TestClass]
     public class RefTest
     {
+        public static IEnumerable<object[]> RefsTestData()
+        {
+            yield return new object[] { true };
+            yield return new object[] { false };
+        }
+
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
+        [DynamicData(nameof(RefsTestData))]
         public void Refs(bool keep)
         {
             var pb = new ParserBuilder();

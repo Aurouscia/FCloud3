@@ -12,19 +12,28 @@ namespace FCloud3.WikiPreprocessor.Test
     [TestClass]
     public class RuleGatherTest
     {
+        public static IEnumerable<object[]> InlineTestData()
+        {
+            yield return new object[] {
+                "123*456*789",
+                "*"
+            };
+            yield return new object[] {
+                "12**34*5*67**89",
+                "**;*"
+            };
+            yield return new object[] {
+                "> 123*456*789\n123**456**789",
+                "**;*"
+            };
+            yield return new object[] {
+                "|12*34*56|78\\bd90\\bd00|\n",
+                "*;\\bd"
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "123*456*789",
-            "*")]
-        [DataRow(
-            "12**34*5*67**89",
-            "**;*")]
-        [DataRow(
-            "> 123*456*789\n123**456**789",
-            "**;*")]
-        [DataRow(
-            "|12*34*56|78\\bd90\\bd00|\n",
-            "*;\\bd")]
+        [DynamicData(nameof(InlineTestData))]
         public void Inline(string input,string answerStr)
         {
             var parser = new ParserBuilder()

@@ -48,16 +48,16 @@ namespace FCloud3.Repos.Test.Files
         #endregion
 
         #region 关于路径的查询
-        public static IEnumerable<object[]> GetChainByPathTestData()
+        public static IEnumerable<object?[]> GetChainByPathTestData()
         {
             yield return new object[] { "", "" };
             yield return new object[] { "dir-1/dir-2", "1,2" };
             yield return new object[] { "dir-1/dir-3", "1,3" };
             yield return new object[] { "dir-1/dir-2/aaa", "1,2,5" };
             yield return new object[] { "dir-1/dir-3/aaa", "1,3,6" };
-            yield return new object[] { "dir-x", null };
-            yield return new object[] { "dir-1/dir-x", null };
-            yield return new object[] { "dir-1/dir-x/aaa", null };
+            yield return new object?[] { "dir-x", null };
+            yield return new object?[] { "dir-1/dir-x", null };
+            yield return new object?[] { "dir-1/dir-x/aaa", null };
         }
 
         [TestMethod]
@@ -78,14 +78,14 @@ namespace FCloud3.Repos.Test.Files
             }
         }
 
-        public static IEnumerable<object[]> GetChainByIdTestData()
+        public static IEnumerable<object?[]> GetChainByIdTestData()
         {
             yield return new object[] { 1, "1", "dir-1" };
             yield return new object[] { 2, "1,2", "dir-1/dir-2" };
             yield return new object[] { 3, "1,3", "dir-1/dir-3" };
             yield return new object[] { 5, "1,2,5", "dir-1/dir-2/aaa" };
             yield return new object[] { 6, "1,3,6", "dir-1/dir-3/aaa" };
-            yield return new object[] { 1000, null, null };
+            yield return new object?[] { 1000, null, null };
         }
 
         [TestMethod]

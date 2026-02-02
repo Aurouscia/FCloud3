@@ -113,11 +113,11 @@ namespace FCloud3.Repos.Test.Identities
             Assert.AreEqual(1, relationCount);
         }
 
-        public static IEnumerable<object[]> InvitationAnswerTestData()
+        public static IEnumerable<object?[]> InvitationAnswerTestData()
         {
             yield return new object[] { 2, 1, true, true, UserToGroupType.Member }; // 同意，成为成员
-            yield return new object[] { 2, 1, false, true, null }; // 拒绝，删除关系
-            yield return new object[] { 2, 2, true, false, null }; // 未邀请过，操作失败
+            yield return new object?[] { 2, 1, false, true, null }; // 拒绝，删除关系
+            yield return new object?[] { 2, 2, true, false, null }; // 未邀请过，操作失败
             yield return new object[] { 2, 3, true, false, UserToGroupType.Member }; // 本就是成员，操作失败
         }
 

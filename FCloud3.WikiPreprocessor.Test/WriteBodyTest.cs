@@ -33,49 +33,68 @@ namespace FCloud3.WikiPreprocessor.Test
             }
         }
 
+        public static IEnumerable<object[]> CommonTestData()
+        {
+            yield return new object[] {
+                "你好，很高兴认识你",
+                "你好，很高兴认识你", 100
+            };
+            yield return new object[] {
+                "你好，很*高兴*认识你",
+                "你好，很高兴认识你", 100
+            };
+            yield return new object[] {
+                "你好\n很高兴认识你",
+                "你好 很高兴认识你", 100
+            };
+            yield return new object[] {
+                "你好\n很高兴认识你",
+                "你", 1
+            };
+            yield return new object[] {
+                "你好\n很高兴认识你",
+                "你好", 2
+            };
+            yield return new object[] {
+                "你好\n很高兴认识你",
+                "你好 ", 3
+            };
+            yield return new object[] {
+                "你好\n很高兴认识你",
+                "你好 很", 4
+            };
+            yield return new object[] {
+                "> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识你 ——朋友", 100
+            };
+            yield return new object[] {
+                "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识你 ——朋友", 100
+            };
+            yield return new object[] {
+                "# 来自*朋友*的问候\n> 你好\n > 很*高兴*认识你\n...   ——朋友",
+                "你好 很高兴认识你 ——朋友", 100
+            };
+            yield return new object[] {
+                "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识", 8
+            };
+            yield return new object[] {
+                "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识你", 9
+            };
+            yield return new object[] {
+                "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识你 ", 10
+            };
+            yield return new object[] {
+                "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
+                "你好 很高兴认识你 —", 11
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "你好，很高兴认识你",
-            "你好，很高兴认识你", 100)]
-        [DataRow(
-            "你好，很*高兴*认识你",
-            "你好，很高兴认识你", 100)]
-        [DataRow(
-            "你好\n很高兴认识你",
-            "你好 很高兴认识你", 100)]
-        [DataRow(
-            "你好\n很高兴认识你",
-            "你", 1)]
-        [DataRow(
-            "你好\n很高兴认识你",
-            "你好", 2)]
-        [DataRow(
-            "你好\n很高兴认识你",
-            "你好 ", 3)]
-        [DataRow(
-            "你好\n很高兴认识你",
-            "你好 很", 4)]
-        [DataRow(
-            "> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识你 ——朋友", 100)]
-        [DataRow(
-            "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识你 ——朋友", 100)]
-        [DataRow(
-            "# 来自*朋友*的问候\n> 你好\n > 很*高兴*认识你\n...   ——朋友",
-            "你好 很高兴认识你 ——朋友", 100)]
-        [DataRow(
-            "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识", 8)]
-        [DataRow(
-            "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识你", 9)]
-        [DataRow(
-            "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识你 ", 10)]
-        [DataRow(
-            "# 来自朋友的问候\n> 你好\n > 很高兴认识你\n...   ——朋友",
-            "你好 很高兴认识你 —", 11)]
+        [DynamicData(nameof(CommonTestData))]
         public void Common(string input, string expectBody, int maxLength)
         {
             var sb = new StringBuilder();
@@ -84,9 +103,14 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(expectBody, sb.ToString());
         }
 
+        public static IEnumerable<object[]> AutoReplaceTestData()
+        {
+            yield return new object[] {"123abc456", "123abc456"};
+            yield return new object[] {"123abcefg456", "123abcefg456"};
+        }
+
         [TestMethod]
-        [DataRow("123abc456", "123abc456")]
-        [DataRow("123abcefg456", "123abcefg456")]
+        [DynamicData(nameof(AutoReplaceTestData))]
         public void AutoReplace(string input, string expectBody)
         {
             var sb = new StringBuilder();
@@ -95,9 +119,14 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(expectBody, sb.ToString());
         }
 
+        public static IEnumerable<object[]> ManualLinkTestData()
+        {
+            yield return new object[] {"123[xxx]456", "123xxx456"};
+            yield return new object[] {"123[xxx](yyy)456", "123xxx456"};
+        }
+
         [TestMethod]
-        [DataRow("123[xxx]456", "123xxx456")]
-        [DataRow("123[xxx](yyy)456", "123xxx456")]
+        [DynamicData(nameof(ManualLinkTestData))]
         public void ManualLink(string input, string expectBody)
         {
             var sb = new StringBuilder();

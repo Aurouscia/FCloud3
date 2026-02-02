@@ -31,29 +31,41 @@ namespace FCloud3.WikiPreprocessor.Test
             _parser = parserBuilder.BuildParser();
         }
 
+        public static IEnumerable<object[]> TestOneTestData()
+        {
+            yield return new object[] {
+                "{{打招呼}内容::兄弟你好}很高兴认识你！",
+                "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>"
+            };
+            yield return new object[] {
+                "{{打招呼}兄弟你好}很高兴认识你！",
+                "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>"
+            };
+            yield return new object[] {
+                "{{打招呼}内容::兄弟 \\red 你好 \\red}很高兴认识你！",
+                "<style>.hello{font-size:large}.red{color:red}</style><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div>很高兴认识你！</p>"
+            };
+            yield return new object[] {
+                "他说：\r\n > {{打招呼}内容::兄弟 \\red 你好 \\red} \r\n >很高兴认识你！",
+                "<style>.hello{font-size:large}.quote{font-size:small}.red{color:red}</style>" +
+                "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div></p><p>很高兴认识你！</p></div>"
+            };
+            yield return new object[] {
+                "{{哼唧}}",
+                "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\"></div></p>"
+            };
+            yield return new object[] {
+                "{{哼唧}噜噜}",
+                "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜噜</div></p>"
+            };
+            yield return new object[] {
+                "{{哼唧}噜\\red噜\\red}",
+                "<style>.hj{color:gray}.red{color:red}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>"
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "{{打招呼}内容::兄弟你好}很高兴认识你！",
-            "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>")]
-        [DataRow(
-            "{{打招呼}兄弟你好}很高兴认识你！",
-            "<style>.hello{font-size:large}</style><p><div class=\"hello\">兄弟你好</div>很高兴认识你！</p>")]
-        [DataRow(
-            "{{打招呼}内容::兄弟 \\red 你好 \\red}很高兴认识你！",
-            "<style>.hello{font-size:large}.red{color:red}</style><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div>很高兴认识你！</p>")]
-        [DataRow(
-            "他说：\r\n > {{打招呼}内容::兄弟 \\red 你好 \\red} \r\n >很高兴认识你！",
-            "<style>.hello{font-size:large}.quote{font-size:small}.red{color:red}</style>" +
-            "<p>他说：</p><div class=\"quote\"><p><div class=\"hello\">兄弟 <span class=\"red\"> 你好 </span></div></p><p>很高兴认识你！</p></div>")]
-        [DataRow(
-            "{{哼唧}}",
-            "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\"></div></p>")]
-        [DataRow(
-            "{{哼唧}噜噜}",
-            "<style>.hj{color:gray}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜噜</div></p>")]
-        [DataRow(
-            "{{哼唧}噜\\red噜\\red}",
-            "<style>.hj{color:gray}.red{color:red}</style><script>console.log('哼唧')\n</script><p><div class=\"hj\">噜<span class=\"red\">噜</span></div></p>")]
+        [DynamicData(nameof(TestOneTestData))]
         public void TestOne(string input,string answer)
         {
             var res = _parser.RunToPlain(input,true);

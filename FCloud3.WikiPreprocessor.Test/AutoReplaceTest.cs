@@ -69,46 +69,63 @@ namespace FCloud3.WikiPreprocessor.Test
             _parserKeepUsage.SetConvertingProvider(_convertingProvider);
         }
 
+        public static IEnumerable<object[]> TestTestData()
+        {
+            yield return new object[] {
+                "更多有趣内容见3C教育体系大纲等词条",
+                "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条</p>"
+            };
+            yield return new object[] {
+                "更多有趣内容*见3C教育体系大纲等词条*吧",
+                "<p>更多有趣内容<i>见<a href=\"/w/6\">3C教育体系大纲</a>等词条</i>吧</p>"
+            };
+            yield return new object[] {
+                "更多有趣内容见3C教育体系大纲和3C教育体系大纲第二版等词条",
+                "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>和3C教育体系大纲第二版等词条</p>"
+            };
+            yield return new object[] {
+                "更多有趣内容*见3C教育体系大纲*和3C教育体系大纲第二版等词条",
+                "<p>更多有趣内容<i>见<a href=\"/w/6\">3C教育体系大纲</a></i>和3C教育体系大纲第二版等词条</p>"
+            };
+            yield return new object[] {
+                "Au一边喊着\"咪咪么么么么\"，一边把小兔子拍拍拍拿放",
+                "<p>Au一边喊着\"咪<a href=\"/w/14\">咪么么么</a>么\"，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>"
+            };
+            yield return new object[] {
+                "咪么",
+                "<p><a href=\"/w/28\">咪么</a></p>"
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条</p>")]
-        [DataRow(
-            "更多有趣内容*见3C教育体系大纲等词条*吧",
-            "<p>更多有趣内容<i>见<a href=\"/w/6\">3C教育体系大纲</a>等词条</i>吧</p>")]
-        [DataRow(
-            "更多有趣内容见3C教育体系大纲和3C教育体系大纲第二版等词条",
-            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>和3C教育体系大纲第二版等词条</p>")]
-        [DataRow(
-            "更多有趣内容*见3C教育体系大纲*和3C教育体系大纲第二版等词条",
-            "<p>更多有趣内容<i>见<a href=\"/w/6\">3C教育体系大纲</a></i>和3C教育体系大纲第二版等词条</p>")]
-        [DataRow(
-            "Au一边喊着\"咪咪么么么么\"，一边把小兔子拍拍拍拿放",
-            "<p>Au一边喊着\"咪<a href=\"/w/14\">咪么么么</a>么\"，一边把小兔子<a href=\"/w/73\">拍拍拍拿放</a></p>")]
-        [DataRow(
-            "咪么",
-            "<p><a href=\"/w/28\">咪么</a></p>")]
+        [DynamicData(nameof(TestTestData))]
         public void Test(string input, string answer)
         {
             string res = _parser.RunToPlain(input);
             Assert.AreEqual(answer, res);
         }
 
+        public static IEnumerable<object[]> ChangeTargetsTestData()
+        {
+            yield return new object[] {
+                "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
+                "<p>更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条</p>",
+                true
+            };
+            yield return new object[] {
+                "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
+                "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条，更多有趣内容见3C教育体系大纲等词条</p>",
+                false
+            };
+            yield return new object[] {
+                "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
+                "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
+                true
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条</p>",
-            true, 
-            DisplayName = "清除旧目标，什么链接都没有")]
-        [DataRow(
-            "更多有趣内容见3C教育体系大纲等词条，更多有趣内容见3C教育体系大纲等词条",
-            "<p>更多有趣内容见<a href=\"/w/6\">3C教育体系大纲</a>等词条，更多有趣内容见3C教育体系大纲等词条</p>",
-            false, 
-            DisplayName = "不清除旧目标，旧目标也生成链接")]
-        [DataRow(
-            "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
-            "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
-            true)]
+        [DynamicData(nameof(ChangeTargetsTestData))]
         public void ChangeTargets(string input, string answer, bool clear)
         {
             //更换目标，可选择是否去除旧目标
@@ -122,10 +139,16 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(answer, res);
         }
         
+        public static IEnumerable<object[]> NoSingleUseTestData()
+        {
+            yield return new object[] {
+                "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
+                "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，<a href=\"/w/5\">夜莺</a>会吃城市里的其他小鸟</p>"
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
-            "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，<a href=\"/w/5\">夜莺</a>会吃城市里的其他小鸟</p>")]
+        [DynamicData(nameof(NoSingleUseTestData))]
         public void NoSingleUse(string input, string answer)
         {
             List<string?> targets = _convertingProvider.wikis_2.Keys
@@ -141,11 +164,17 @@ namespace FCloud3.WikiPreprocessor.Test
             Assert.AreEqual(answer, res3);
         }
 
+        public static IEnumerable<object[]> SingleUseAcrossCallingTestData()
+        {
+            yield return new object[] {
+                "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
+                "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
+                "<p>夜莺是人类伴生种，夜莺会吃城市里的其他小鸟</p>"
+            };
+        }
+
         [TestMethod]
-        [DataRow(
-            "夜莺是人类伴生种，夜莺会吃城市里的其他小鸟",
-            "<p><a href=\"/w/5\">夜莺</a>是人类伴生种，夜莺会吃城市里的其他小鸟</p>",
-            "<p>夜莺是人类伴生种，夜莺会吃城市里的其他小鸟</p>")]
+        [DynamicData(nameof(SingleUseAcrossCallingTestData))]
         public void SingleUseAcrossCalling(string input, string answer1, string answer2)
         {
             List<string?> targets = _convertingProvider.wikis_2.Keys
