@@ -62,8 +62,15 @@ namespace FCloud3.Services.Files
                 errmsg = "找不到指定id的文件";
                 return false;
             }
+            var oldName = item.DisplayName;
             item.DisplayName = name;
-            return _fileItemRepo.TryUpdate(item, out errmsg);
+            bool success = _fileItemRepo.TryUpdate(item, out errmsg);
+            if (success)
+            {
+                _opRecordRepo.Record(OpRecordOpType.Edit, OpRecordTargetType.FileItem, id, 0,
+                    $"重命名“{oldName}”为“{name}”({item.StorePathName})");
+            }
+            return success;
         }
         public bool Delete(int id, out string? errmsg)
         {
@@ -79,6 +86,8 @@ namespace FCloud3.Services.Files
                     return false;
             }
             _fileItemRepo.Remove(item);
+            _opRecordRepo.Record(OpRecordOpType.Remove, OpRecordTargetType.FileItem, id, 0,
+                $"{item.DisplayName} ({item.StorePathName})");
             errmsg = null;
             return true;
         }
