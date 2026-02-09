@@ -8,6 +8,7 @@ import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump'
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 
 const props = defineProps<{
+    wikiId?: number,
     user?: number
 }>()
 const { jumpToDirFromIdRoute, jumpToViewFileItemRoute } = useFilesRoutesJump()
@@ -19,11 +20,18 @@ const loaded = ref(false)
 const pop = injectPop()
 
 async function load(active:boolean){
-    const resp = await api.messages.opRecord.get(records.value.length, props.user)
-    if(resp){
-        records.value.push(...resp);
-        if(resp.length === 0 && active)
-            pop.value.show("没有更多了", "warning")
+    if(props.wikiId){
+        const resp = await api.messages.opRecord.getRecordsOfWiki(props.wikiId)
+        if(resp){
+            records.value = resp
+        }
+    } else {
+        const resp = await api.messages.opRecord.get(records.value.length, props.user)
+        if(resp){
+            records.value.push(...resp);
+            if(resp.length === 0 && active)
+                pop.value.show("没有更多了", "warning")
+        }
     }
 }
 onMounted(async()=>{

@@ -29,8 +29,8 @@ namespace FCloud3.Repos.Messages
         }
 
         public IQueryable<OpRecord> TakeRange(int skip) 
-            => Existing.OrderByDescending(x => x.Created).Skip(skip).Take(20);
+            => Existing.OrderByDescending(x => x.Id).Skip(skip).Take(20);
         public IQueryable<OpRecord> TakeRange(int skip, int user)
-            => Existing.Where(x => x.CreatorUserId == user).OrderByDescending(x => x.Created).Skip(skip).Take(20);
+            => Existing.Where(x => x.CreatorUserId == user).OrderByDescending(x => x.Id).Skip(skip).Take(20);
     }
 }

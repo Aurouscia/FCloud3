@@ -16,6 +16,11 @@ namespace FCloud3.App.Controllers.Messages
             return this.ApiResp(_opRecordService.Get(req.Skip, req.User));
         }
 
+        public IActionResult GetRecordsOfWiki(int wikiId)
+        {
+            return this.ApiResp(_opRecordService.GetRecordsOfWiki(wikiId));
+        }
+
         public class OpRecordGetRequest
         {
             public int Skip { get; set; }

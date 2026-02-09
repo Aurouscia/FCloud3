@@ -38,6 +38,7 @@ import { useMainDivDisplayStore } from '@/utils/globalStores/mainDivDisplay';
 import { findLastIndex } from 'lodash-es';
 import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
+import Functions from '@/components/Functions.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -173,7 +174,7 @@ const wikiViewArea = useTemplateRef('wikiViewArea')
 let titlesInContent:HTMLElement[] 
 const router = useRouter();
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
-const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute } = useWikiRoutesJump();
+const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute } = useWikiRoutesJump();
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 const { jumpToFreeTableEdit } = useTableRoutesJump();
 const { jumpToTextSectionEdit } = useTextSectionRoutesJump();
@@ -344,8 +345,15 @@ onUnmounted(()=>{
                 </div>
             </div>
             <div class="btns">
-                <div>
-                    <RouterLink :to="jumpToDiffContentHistoryForWikiRoute(wikiPathName)" target="_blank"><button class="minor">历史</button></RouterLink>
+                <div class="btns-main">
+                    <Functions :button="{text:'历史', class:'minor'}" :entry-size="46" :entry-size-y="36.5">
+                        <RouterLink :to="jumpToDiffContentHistoryForWikiRoute(wikiPathName)" target="_blank">
+                            <button class="minor">编辑历史</button>
+                        </RouterLink>
+                        <RouterLink :to="jumpToWikiOpRecordRoute(displayInfo.WikiId)" target="_blank">
+                            <button class="minor">操作记录</button>
+                        </RouterLink>
+                    </Functions>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiEdit(wikiPathName)">设置</button>
                     <button v-if="displayInfo.CurrentUserAccess" @click="jumpToWikiContentEdit(wikiPathName)">编辑</button>
                 </div>
@@ -550,6 +558,9 @@ onUnmounted(()=>{
     flex-direction: column;
     gap: 2px;
     flex-shrink: 0;
+    .btns-main{
+        display: flex;
+    }
 }
 .sealed{
     color:red;

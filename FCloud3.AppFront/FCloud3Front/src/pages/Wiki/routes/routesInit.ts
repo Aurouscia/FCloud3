@@ -7,6 +7,7 @@ import WikiContentSearch from "../WikiContentSearch.vue";
 import MyWikisOverall from "../MyWikisOverall.vue";
 import ViewParaRawContent from "../ViewParaRawContent.vue";
 import WikiSelectedList from "../WikiSelectedList.vue";
+import WikiOpRecord from "../WikiOpRecord.vue";
 
 export function addWiki(r:Router){
     addToRouter(r,routes);
@@ -52,5 +53,11 @@ const routes = [
         path:"/WikiSelectedList",
         component:WikiSelectedList,
         name:'wikiSelectedList'
+    },
+    {
+        path:"/WikiOpRecord/:wikiId",
+        component:WikiOpRecord,
+        props: true,
+        name:'wikiOpRecord'
     }
 ]

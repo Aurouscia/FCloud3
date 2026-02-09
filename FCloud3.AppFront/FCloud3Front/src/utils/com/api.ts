@@ -1154,7 +1154,14 @@ export class Api{
                 )
                 if(resp.success)
                     return resp.data as Array<OpRecordViewModel>
-            }
+            },
+            getRecordsOfWiki: async(wikiId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/OpRecord/GetRecordsOfWiki", "get", {wikiId}, undefined, true
+                )
+                if(resp.success)
+                    return resp.data as Array<OpRecordViewModel>
+            },
         }
     }
     etc = {

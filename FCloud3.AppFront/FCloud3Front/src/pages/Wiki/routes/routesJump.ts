@@ -29,6 +29,11 @@ export function useWikiRoutesJump(){
     const jumpToViewParaRawContentRoute = (paraId:number)=>{
         return {name:"viewParaRawContent", params:{paraId}}
     }
+    const jumpToWikiOpRecordRoute = (wikiId:number)=>{
+        return {name:'wikiOpRecord', params:{wikiId}}
+    }
     return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations,
-        jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall, jumpToViewParaRawContentRoute}
+        jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall,
+        jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute
+    }
 }

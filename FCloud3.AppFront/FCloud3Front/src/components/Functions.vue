@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import menuIconSrc from '../assets/menu.svg';
-import {CSSProperties, ref} from 'vue';
+import {computed, CSSProperties, ref} from 'vue';
 const show = ref<boolean>(false);
 const opaque = ref<boolean>(false);
 const props = defineProps<{
@@ -8,31 +8,43 @@ const props = defineProps<{
     yAlign?:"up"|"down"
     imgSrc?:string,
     entrySize?:number,
-    leaveKeep?:boolean|undefined
+    entrySizeY?:number,
+    leaveKeep?:boolean|undefined,
+    button?:{
+        text?:string,
+        class?:string
+    }
 }>();
 const entrySizeDefault = 20;
-const entrySize = props.entrySize||entrySizeDefault;
+const entrySizeX = computed(() => props.entrySize || entrySizeDefault);
+const entrySizeY = computed(() => props.entrySizeY || props.entrySize || entrySizeDefault)
 
-var btnsStyle:CSSProperties;
-if(props.xAlign=="left"){btnsStyle={left:"0px"}}
-else if(props.xAlign=="right"){btnsStyle={right:"0px"}}
-else{btnsStyle={right:(-46+entrySize/2)+'px'}}
-if(props.yAlign=="up"){
-    btnsStyle.top='unset'
-    btnsStyle.bottom=(entrySize)+'px'
-}
-else{
-    btnsStyle.top=entrySize+'px'
-}
+const btnsStyle = computed<CSSProperties>(()=>{
+    const res:CSSProperties = {}
+    if(props.xAlign == 'left')
+        res.left = '0px' 
+    else if(props.xAlign == 'right')
+        res.right = '0px'
+    else
+        res.right = (-46 + entrySizeX.value / 2)+'px'
+    if(props.yAlign=="up"){
+        res.top = 'unset'
+        res.bottom = entrySizeY.value+'px'
+    }
+    else{
+        res.top = entrySizeY.value+'px'
+    }
+    return res
+})
 
-var outerStyle:CSSProperties = {
-    width:(entrySize)+'px',
-    height:(entrySize)+'px'
-}
-var entryStyle:CSSProperties = {
-    width:(entrySize)-2+'px',
-    height:(entrySize)-2+'px'
-}
+const outerStyle = computed<CSSProperties>(()=>({
+    width: entrySizeX.value+'px',
+    height: entrySizeY.value+'px'
+}))
+const entryStyle = computed<CSSProperties>(()=>({
+    width:(entrySizeX.value)-2+'px',
+    height:(entrySizeY.value)-2+'px'
+}))
 
 function toggleShow(){
     if(show.value){
@@ -65,7 +77,8 @@ function enter(){
 
 <template>
     <div class="functions" @click="toggleShow" @mouseleave="leave" @mouseenter="enter" :style="outerStyle">
-        <img class="menu" :class="{showing:opaque}" :src="imgSrc||menuIconSrc" :style="entryStyle"/>
+        <button v-if="button" :class="button.class">{{ button.text }}</button>
+        <img v-else class="menu" :class="{showing:opaque}" :src="imgSrc||menuIconSrc" :style="entryStyle"/>
         <div class="buttons" v-if="show" :class="{showing:opaque}" :style="btnsStyle">
             <slot></slot>
         </div>
