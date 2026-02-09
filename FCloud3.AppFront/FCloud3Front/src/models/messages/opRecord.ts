@@ -5,6 +5,7 @@ export interface OpRecordViewModel
     OpType: OpRecordOpType
     TargetType: OpRecordTargetType
     TargetObjId: number
+    OtherObjId: number
     UserId: number
     UserName: number
     Time: string

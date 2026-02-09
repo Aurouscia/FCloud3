@@ -569,6 +569,12 @@ onUnmounted(()=>{
     text-align: center;
 }
 
+@media screen and (max-width: 500px){
+    .info .owner{
+        font-size: 14px;
+    }
+}
+
 @media screen and (max-width: 1000px){
     .wikiView{
         margin-right: 0px;

@@ -9,20 +9,26 @@ import { useDiffRoutesJump } from '../Diff/routes/routesJump';
 import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
+import { useFilesRoutesJump } from '../Files/routes/routesJump';
+import { useRouter } from 'vue-router';
 
 const props = defineProps<{
     paraId:string
 }>()
+const { jumpToDiffContentHistoryRoute } = useDiffRoutesJump()
+const { jumpToViewFileItemRoute } = useFilesRoutesJump()
+const router = useRouter()
 
 const api = injectApi()
 const paraId = parseInt(props.paraId) || 0
 const data = ref<WikiParaRawContentRes>()
 async function load(){
     data.value = await api.wiki.wikiPara.viewParaRawContent(paraId)
+    if(data.value?.ParaType == WikiParaType.File){
+        router.replace(jumpToViewFileItemRoute(data.value.ObjId))
+    }
 }
 const userId = useIdentityInfoStore().iden.Id
-
-const { jumpToDiffContentHistoryRoute } = useDiffRoutesJump()
 
 onMounted(async()=>{
     setTitleTo('段落源码')

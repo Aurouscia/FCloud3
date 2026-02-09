@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable, OpRecordTargetType } from '@/models/messages/opRecord';
 import { injectApi, injectPop } from '@/provides';
 import Loading from '../Loading.vue';
 import { useFilesRoutesJump } from '@/pages/Files/routes/routesJump';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
+import { useWikiRoutesJump } from '@/pages/Wiki/routes/routesJump';
 
 const props = defineProps<{
     wikiId?: number,
     user?: number
 }>()
 const { jumpToDirFromIdRoute, jumpToViewFileItemRoute } = useFilesRoutesJump()
+const { jumpToViewParaRawContentRoute } = useWikiRoutesJump()
 const { jumpToViewWikiFromIdRoute } = useWikiParsingRoutesJump()
 const { jumpToUserCenterFromIdRoute } = useIdentityRoutesJump();
 const api = injectApi();
@@ -19,9 +21,11 @@ const records = ref<OpRecordViewModel[]>([])
 const loaded = ref(false)
 const pop = injectPop()
 
+const forWiki = computed(()=>!!props.wikiId)
+
 async function load(active:boolean){
-    if(props.wikiId){
-        const resp = await api.messages.opRecord.getRecordsOfWiki(props.wikiId)
+    if(forWiki.value){
+        const resp = await api.messages.opRecord.getRecordsOfWiki(props.wikiId ?? 0)
         if(resp){
             records.value = resp
         }
@@ -51,8 +55,12 @@ onMounted(async()=>{
             <div class="tarType">{{ TargetTypeReadable(r.TargetType) }}</div>
         </div>
         <div class="c">
-            <RouterLink v-if="r.TargetType==OpRecordTargetType.WikiItem" 
-                :to="jumpToViewWikiFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            <template v-if="r.TargetType==OpRecordTargetType.WikiItem">
+                <RouterLink v-if="r.OtherObjId"
+                    :to="jumpToViewParaRawContentRoute(r.OtherObjId)" target="_blank">{{ r.Content }}</RouterLink>
+                <RouterLink v-else 
+                    :to="jumpToViewWikiFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
+            </template>
             <RouterLink v-else-if="r.TargetType==OpRecordTargetType.FileDir" 
                 :to="jumpToDirFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
             <RouterLink v-else-if="r.TargetType==OpRecordTargetType.User"
@@ -63,7 +71,7 @@ onMounted(async()=>{
         </div>
         <div class="t">{{ r.Time }}</div>
     </div>
-    <div class="more" @click="load(true)">加载更多</div>
+    <div v-if="!forWiki" class="more" @click="load(true)">加载更多</div>
     <Loading v-if="!loaded"></Loading>
 </div>
 

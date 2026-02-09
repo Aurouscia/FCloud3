@@ -56,7 +56,7 @@ namespace FCloud3.Services.Wiki
         }
         public WikiParaRawContentRes? GetParaRawContent(int paraId, out string? errmsg)
         {
-            var p = _wikiParaRepo.GetById(paraId);
+            var p = _wikiParaRepo.All.FirstOrDefault(x => x.Id == paraId);
             if(p is null)
             {
                 errmsg = "找不到指定段落";
@@ -77,6 +77,12 @@ namespace FCloud3.Services.Wiki
                 var obj = _freeTableRepo.GetById(p.ObjectId);
                 name = obj?.Name;
                 content = obj?.Data;
+            }
+            else if (p.Type == WikiParaType.File)
+            {
+                var obj = _fileItemRepo.GetById(p.ObjectId);
+                name = obj?.DisplayName;
+                content = obj?.StorePathName;
             }
             else
             {

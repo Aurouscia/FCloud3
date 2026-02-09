@@ -33,6 +33,7 @@ onUnmounted(()=>{
 
 <template>
 <h1>操作记录<span class="wikiTitle">({{ wikiTitle }})</span></h1>
+<div class="note">请注意：点击查看的文本/表格段落内容都是最新版本，如果需要查看初版请使用段落编辑记录</div>
 <div v-if="wikiIdNum">
     <OpRecord :wiki-id="wikiIdNum"></OpRecord>
 </div>
@@ -45,5 +46,10 @@ onUnmounted(()=>{
 .wikiTitle{
     font-size: 0.8em;
     letter-spacing: unset;
+}
+.note{
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 14px;
 }
 </style>

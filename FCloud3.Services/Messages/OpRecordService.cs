@@ -43,6 +43,7 @@ namespace FCloud3.Services.Messages
                     OpType = op.OpType,
                     TargetType = op.TargetType,
                     TargetObjId = op.ObjA,
+                    OtherObjId = op.ObjB,
                     UserId = op.CreatorUserId,
                     UserName = u?.Name ?? "??",
                     Time = op.Created.ToString("yyyy-MM-dd HH:mm")
@@ -57,6 +58,7 @@ namespace FCloud3.Services.Messages
             public OpRecordOpType OpType { get; set; }
             public OpRecordTargetType TargetType { get; set; }
             public int TargetObjId { get; set; }
+            public int OtherObjId { get; set; }
             public int UserId { get; set; }
             public string? UserName { get; set; }
             public string? Time { get; set; }
