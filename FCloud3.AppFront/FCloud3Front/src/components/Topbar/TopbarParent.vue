@@ -92,6 +92,7 @@ function toggleFold(){
         .logoText2{
             font-size: 10px;
             letter-spacing: 4px;
+            padding-left: 4px;
         }
     }
 }
