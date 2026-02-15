@@ -22,7 +22,7 @@ namespace FCloud3.App.Controllers.Diff
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
         }
-        
+
         public IActionResult HistoryForWiki(string wikiPathName)
         {
             var res = _diffContentService.DiffHistoryForWiki(wikiPathName, out var errmsg);
@@ -48,6 +48,15 @@ namespace FCloud3.App.Controllers.Diff
             if (!res)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
+        }
+
+        public IActionResult GetDiffHistoriesByDays(int days)
+        {
+            days = Math.Clamp(days, 0, 7);
+            var res = _diffContentService.GetDiffHistoriesByDays(days, out string? errmsg);
+            if (res is null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(res);
         }
     }
 }

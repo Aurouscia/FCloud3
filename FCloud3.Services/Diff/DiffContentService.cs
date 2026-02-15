@@ -57,7 +57,7 @@ namespace FCloud3.Services.Diff
             return 0;
         }
 
-        public DiffContentHistoryResult? DiffHistory(DiffContentType type, int objId, out string? errmsg)
+        public DiffContentHistoryResult? DiffHistory(DiffContentType type, int objId, out string? errmsg, bool needObjInfo = false)
         {
             var list = (
                 from diff in _contentDiffRepo.GetDiffs(type, objId)
@@ -75,6 +75,15 @@ namespace FCloud3.Services.Diff
                     Hidden = diff.Hidden,
                 }).ToList();
             var res = new DiffContentHistoryResult();
+            if (needObjInfo)
+            {
+                var info = GetCurrentInfo(type, objId);
+                if (info.HasValue)
+                {
+                    res.WikiPathName = _wikiItemRepo.CachedItemById(info.Value.wikiId)?.UrlPathName;
+                    res.WikiParaName = info.Value.paraName;
+                }
+            }
             foreach ( var item in list )
             {
                 res.Add(item.DiffId, item.Time, item.UserId, item.UserName, item.Removed, item.Added, item.Hidden);
@@ -223,6 +232,44 @@ namespace FCloud3.Services.Diff
             return _contentDiffRepo.SetHidden(id, hidden, out errmsg);
         }
 
+        public List<DiffContentHistoryResult>? GetDiffHistoriesByDays(int days, out string? errmsg)
+        {
+            errmsg = null;
+            if (days < 0)
+            {
+                errmsg = "天数不能为负数";
+                return null;
+            }
+
+            // 计算日期范围（包含今天）
+            var endDate = DateTime.Now.AddDays(1).Date; // 明天的开始，即今天结束
+            var startDate = DateTime.Now.AddDays(-days).Date; // days天前的开始
+
+            // 获取在此范围内的所有 DiffContent 的 ObjectId 和 DiffType，去重
+            var distinctTargets = _contentDiffRepo.Existing
+                .Where(x => x.Created >= startDate && x.Created < endDate)
+                .Select(x => new { x.ObjectId, x.DiffType })
+                .Distinct()
+                .ToList();
+
+            var results = new List<DiffContentHistoryResult>();
+            foreach (var target in distinctTargets)
+            {
+                var history = DiffHistory(target.DiffType, target.ObjectId, out var historyErrmsg, needObjInfo: true);
+                if (historyErrmsg is not null)
+                {
+                    errmsg = historyErrmsg;
+                    return null;
+                }
+                if (history is not null)
+                {
+                    results.Add(history);
+                }
+            }
+
+            return results;
+        }
+
         private string? GetCurrentContent(DiffContentType type, int objId)
         {
             if(type == DiffContentType.TextSection)
@@ -241,6 +288,25 @@ namespace FCloud3.Services.Diff
             }
             throw new NotImplementedException();
         }
+        private (int wikiId, string? paraName)? GetCurrentInfo(DiffContentType type, int objId)
+        {
+            WikiPara? p = null;
+            string? name = null;
+            if (type == DiffContentType.TextSection)
+            {
+                p = _wikiParaRepo.Existing.Where(x => x.Type == WikiParaType.Text && x.ObjectId == objId).FirstOrDefault();
+                name = _textSectionRepo.GetqById(objId).Select(x => x.Title).FirstOrDefault();
+            }
+            else if (type == DiffContentType.FreeTable)
+            {
+                p = _wikiParaRepo.Existing.Where(x => x.Type == WikiParaType.Table && x.ObjectId == objId).FirstOrDefault();
+                name = _freeTableRepo.GetqById(objId).Select(x => x.Name).FirstOrDefault();
+            }
+            else
+                throw new NotImplementedException();
+            return p is not null ? (p.WikiItemId, p.NameOverride ?? name) : null;
+        }
+
         private static int ShouldRevertCount(int total, int requested)
         {
             if (requested < 10 || total < 10)
@@ -270,6 +336,8 @@ namespace FCloud3.Services.Diff
 
         public class DiffContentHistoryResult
         {
+            public string? WikiPathName { get; set; }
+            public string? WikiParaName { get; set; }
             public List<DiffContentHistoryResultItem> Items { get; set; } = [];
             public void Add(int id, DateTime time, int uid, string uname, int removed, int added, bool hidden)
             {
