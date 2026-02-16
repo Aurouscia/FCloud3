@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable, OpRecordTargetType } from '@/models/messages/opRecord';
+import { OpRecordViewModel, OpTypeReadable, OpTypeColor, TargetTypeReadable, OpRecordTargetType, OpRecordOpType } from '@/models/messages/opRecord';
 import { injectApi, injectPop } from '@/provides';
 import Loading from '../Loading.vue';
 import { useFilesRoutesJump } from '@/pages/Files/routes/routesJump';
@@ -56,7 +56,7 @@ onMounted(async()=>{
         </div>
         <div class="c">
             <template v-if="r.TargetType==OpRecordTargetType.WikiItem">
-                <RouterLink v-if="r.OtherObjId"
+                <RouterLink v-if="r.OtherObjId && r.OpType == OpRecordOpType.Edit"
                     :to="jumpToViewParaRawContentRoute(r.OtherObjId)" target="_blank">{{ r.Content }}</RouterLink>
                 <RouterLink v-else 
                     :to="jumpToViewWikiFromIdRoute(r.TargetObjId)" target="_blank">{{ r.Content }}</RouterLink>
