@@ -310,20 +310,19 @@ namespace FCloud3.Services.Diff
 
         private static int ShouldRevertCount(int total, int requested)
         {
-            if (requested < 10 || total < 10)
+            if (total < 10)
             {
-                if (total < 10)
-                    return total;
-                else
-                    return 10;
+                return total;
             }
-            while (true)
-            {
-                var half = total / 2;
-                if (half < requested)
-                    return total;
-                total = half;
-            }
+            return Math.Min(total, requested + 3);
+
+            //while (true)
+            //{
+            //    var half = total / 2;
+            //    if (half < requested)
+            //        return total;
+            //    total = half;
+            //}
         }
         private static StringDiffCollection ConvertToStringDiffCollection(List<DiffSingle> diffs)
         {
