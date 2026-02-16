@@ -39,6 +39,13 @@ namespace FCloud3.App.Controllers.Diff
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
         }
+        public IActionResult DetailExact(int diffId)
+        {
+            var res = _diffContentService.DiffDetail(diffId, out var errmsg, true, true);
+            if (res is null)
+                return this.ApiFailedResp(errmsg);
+            return this.ApiResp(res);
+        }
 
         [Authorize]
         [UserTypeRestricted(UserType.Admin)]

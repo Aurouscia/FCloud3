@@ -138,7 +138,8 @@ namespace FCloud3.Services.Diff
             return res;
         }
 
-        public DiffContentDetailResult? DiffDetail(int diffId, out string? errmsg, bool canViewHidden = false)
+        public DiffContentDetailResult? DiffDetail(int diffId, out string? errmsg,
+            bool canViewHidden = false, bool exactRevertCount = false)
         {
             var diff = _contentDiffRepo.GetById(diffId);
             if (diff is null)
@@ -157,11 +158,11 @@ namespace FCloud3.Services.Diff
             List<char> contentChars = [.. content];
             var diffs = _contentDiffRepo
                 .GetDiffs(type, objId)
-                .OrderByDescending(x=>x.Created)
-                .Select(x=>new{x.Id, x.Hidden}).ToList();
-            var targetIdx = diffs.FindIndex(d=>d.Id == diffId);
+                .OrderByDescending(x => x.Created)
+                .Select(x => new{x.Id, x.Hidden}).ToList();
+            var targetIdx = diffs.FindIndex(d => d.Id == diffId);
             var diffCount = diffs.Count;
-            var shouldRevertCount = ShouldRevertCount(diffCount, targetIdx + 1);
+            var shouldRevertCount = exactRevertCount ? targetIdx + 1 : ShouldRevertCount(diffCount, targetIdx + 1);
             diffs = diffs.GetRange(0, shouldRevertCount);
             var diffIds = diffs.ConvertAll(x => x.Id);
             var singles = (
