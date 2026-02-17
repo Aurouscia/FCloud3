@@ -233,7 +233,7 @@ namespace FCloud3.Services.Diff
             return _contentDiffRepo.SetHidden(id, hidden, out errmsg);
         }
 
-        public List<DiffContentHistoryResult>? GetDiffHistoriesByDays(int days, out string? errmsg)
+        public List<DiffContentHistoryResult>? GetDiffHistoriesByDays(DateTime date, int days, out string? errmsg)
         {
             errmsg = null;
             if (days < 0)
@@ -243,8 +243,8 @@ namespace FCloud3.Services.Diff
             }
 
             // 计算日期范围（包含今天）
-            var endDate = DateTime.Now.AddDays(1).Date; // 明天的开始，即今天结束
-            var startDate = DateTime.Now.AddDays(-days).Date; // days天前的开始
+            var endDate = date.AddDays(1).Date; // 明天的开始，即今天结束
+            var startDate = date.AddDays(-days).Date; // days天前的开始
 
             // 获取在此范围内的所有 DiffContent 的 ObjectId 和 DiffType，去重
             var distinctTargets = _contentDiffRepo.Existing

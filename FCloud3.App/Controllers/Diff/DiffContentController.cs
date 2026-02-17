@@ -57,10 +57,11 @@ namespace FCloud3.App.Controllers.Diff
             return this.ApiResp();
         }
 
-        public IActionResult GetDiffHistoriesByDays(int days)
+        public IActionResult GetDiffHistoriesByDays(string? date, int days)
         {
+            DateTime dateDate = date is not null ? DateTime.Parse(date) : DateTime.Now;
             days = Math.Clamp(days, 0, 7);
-            var res = _diffContentService.GetDiffHistoriesByDays(days, out string? errmsg);
+            var res = _diffContentService.GetDiffHistoriesByDays(dateDate, days, out string? errmsg);
             if (res is null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
