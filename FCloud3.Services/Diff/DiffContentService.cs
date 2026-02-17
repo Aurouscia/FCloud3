@@ -82,6 +82,8 @@ namespace FCloud3.Services.Diff
                 {
                     res.WikiPathName = _wikiItemRepo.CachedItemById(info.Value.wikiId)?.UrlPathName;
                     res.WikiParaName = info.Value.paraName;
+                    res.WikiParaId = info.Value.paraId;
+                    res.WikiParaType = info.Value.type;
                 }
             }
             foreach ( var item in list )
@@ -289,23 +291,26 @@ namespace FCloud3.Services.Diff
             }
             throw new NotImplementedException();
         }
-        private (int wikiId, string? paraName)? GetCurrentInfo(DiffContentType type, int objId)
+        private (int wikiId, string? paraName, int paraId, WikiParaType type)? GetCurrentInfo(DiffContentType type, int objId)
         {
             WikiPara? p = null;
             string? name = null;
+            WikiParaType pt = WikiParaType.Text;
             if (type == DiffContentType.TextSection)
             {
                 p = _wikiParaRepo.Existing.Where(x => x.Type == WikiParaType.Text && x.ObjectId == objId).FirstOrDefault();
                 name = _textSectionRepo.GetqById(objId).Select(x => x.Title).FirstOrDefault();
+                pt = WikiParaType.Text;
             }
             else if (type == DiffContentType.FreeTable)
             {
                 p = _wikiParaRepo.Existing.Where(x => x.Type == WikiParaType.Table && x.ObjectId == objId).FirstOrDefault();
                 name = _freeTableRepo.GetqById(objId).Select(x => x.Name).FirstOrDefault();
+                pt = WikiParaType.Table;
             }
             else
                 throw new NotImplementedException();
-            return p is not null ? (p.WikiItemId, p.NameOverride ?? name) : null;
+            return p is not null ? (p.WikiItemId, p.NameOverride ?? name, objId, pt) : null;
         }
 
         private static int ShouldRevertCount(int total, int requested)
@@ -338,6 +343,8 @@ namespace FCloud3.Services.Diff
         {
             public string? WikiPathName { get; set; }
             public string? WikiParaName { get; set; }
+            public int WikiParaId { get; set; }
+            public WikiParaType WikiParaType { get; set; }
             public List<DiffContentHistoryResultItem> Items { get; set; } = [];
             public void Add(int id, DateTime time, int uid, string uname, int removed, int added, bool hidden)
             {
