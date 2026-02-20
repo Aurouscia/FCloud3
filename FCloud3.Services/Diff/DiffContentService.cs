@@ -80,7 +80,9 @@ namespace FCloud3.Services.Diff
                 var info = GetCurrentInfo(type, objId);
                 if (info.HasValue)
                 {
-                    res.WikiPathName = _wikiItemRepo.CachedItemById(info.Value.wikiId)?.UrlPathName;
+                    var item = _wikiItemRepo.CachedItemById(info.Value.wikiId);
+                    res.WikiTitle = item?.Title;
+                    res.WikiPathName = item?.UrlPathName;
                     res.WikiParaName = info.Value.paraName;
                     res.WikiParaId = info.Value.paraId;
                 }
@@ -340,6 +342,7 @@ namespace FCloud3.Services.Diff
 
         public class DiffContentHistoryResult
         {
+            public string? WikiTitle { get; set; }
             public string? WikiPathName { get; set; }
             public string? WikiParaName { get; set; }
             public int WikiParaId { get; set; }
