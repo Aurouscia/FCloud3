@@ -28,7 +28,7 @@ async function main() {
         return;
     }
     console.log('=========开始安装依赖=========')
-    execSync('npm install --workspaces', { cwd: currentDir, stdio: 'inherit' })
+    execSync('pnpm install', { cwd: currentDir, stdio: 'inherit' })
 
     console.log('=========开始编译所有插件=========');
     for (const subdir of pluginDirs) {
