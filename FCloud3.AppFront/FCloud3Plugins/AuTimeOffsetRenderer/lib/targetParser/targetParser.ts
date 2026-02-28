@@ -1,4 +1,4 @@
-import { Target, TargetGroup, trigger } from "./target"
+import { Target, TargetGroup, triggers } from "./target"
 
 export function parseTargets():TargetGroup[]{
     const targetGroups:TargetGroup[] = []
@@ -25,7 +25,7 @@ export function parseTargets():TargetGroup[]{
     return targetGroups
 }
 
-const mainCellPattern = `(?<=${trigger}\\()[0-9-/:\\+& ]{0,32}(?=\\))`
+const mainCellPattern = `(?<=(${triggers.join('|')})\\()[0-9-/:\\+& ]{0,32}(?=\\))`
 const mainCellPatternRegex = new RegExp(mainCellPattern)
 export function parseTableRow(row:HTMLTableRowElement):Target|false{
     const cellCount = row.cells.length

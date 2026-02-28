@@ -1,4 +1,4 @@
-import { activationCode } from "../common/consts";
+import { triggers } from "../../public/publicBuild/options.json";
 import { marksDefined, seperator } from "../common/marks";
 
 type TargetValidationResult = {from:number, cells:string[], config?:string} | undefined
@@ -60,7 +60,7 @@ export function isValidTarget(t:HTMLTableElement):TargetValidationResult[]{
 
 function isValidTargetCell(cellTrimmed:string, validMarks:string[], started:boolean){
     if(!started){
-        if(!cellTrimmed.startsWith(activationCode)){
+        if(!triggers.some(t=>cellTrimmed.startsWith(t))){
             return false;
         }else{
             cellTrimmed = removeActivationCode(cellTrimmed)
@@ -77,7 +77,10 @@ function isValidTargetCell(cellTrimmed:string, validMarks:string[], started:bool
     return true
 }
 function removeActivationCode(cellTrimmed:string){
-    return cellTrimmed.substring(activationCode.length).trim()
+    triggers.forEach(t=>{
+        cellTrimmed = cellTrimmed.replace(t, '')
+    })
+    return cellTrimmed
 }
 function extractConfig(cellTrimmed:string):{otherVals:string, config?:string}{
     const res = /^\(.*?\)/.exec(cellTrimmed)

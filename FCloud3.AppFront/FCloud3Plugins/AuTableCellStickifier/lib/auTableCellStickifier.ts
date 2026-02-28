@@ -1,5 +1,8 @@
+import { triggers } from '../public/options.json'
+
 //匹配“AuTcs(below)”、“AuTcs(right)”、“AuTcs(right, below)”，括号内可以有空字符
-const callPattern = /^AuTcs\(\s?[a-z, ]{5,13}\s?\)/g
+const callPattern = `(?<=(${triggers.join('|')})\\()\\s?[a-z, ]{5,20}\\s?(?=\\))`
+const callPatternRegex = new RegExp(callPattern)
 const stickyContainAttr = "data-autb-sticky-contain"
 const stickyTopAttr = "data-autb-sticky-top"
 const stickyLeftAttr = "data-autb-sticky-left"
@@ -52,11 +55,11 @@ function callingMe(text?:string):{right:boolean, below:boolean, filtered:string}
     if(!text){
         return
     }
-    const res = callPattern.exec(text)
+    const res = callPatternRegex.exec(text)
     if(!res || res.length==0)
         return
     const matched = res[0]
-    const filtered = text.replace(callPattern, '').trim()
+    const filtered = text.replace(callPatternRegex, '').trim()
     const right = matched.includes('right')
     const below = matched.includes('below')
     return {right, below, filtered}

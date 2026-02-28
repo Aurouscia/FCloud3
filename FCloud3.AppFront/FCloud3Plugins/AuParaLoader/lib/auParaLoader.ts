@@ -1,5 +1,5 @@
-const trigger = 'AuParaLoader'
-const pattern = `(?<=${trigger}\\().{1,80}(?=\\))`
+import { triggers } from '../public/options.json'
+const pattern = `(?<=(${triggers.join('|')})\\().{1,80}(?=\\))`
 const targetCellPattern = new RegExp(pattern)
 
 export async function run(){
@@ -74,5 +74,5 @@ function getFetchUrl(pathName:string, base?:string){
     return `${base??''}/api/WikiParsing/GetParsedWiki?pathName=${pathName}`
 }
 function errmsgHtml(t:{pathName?:string, urlBase?:string}, msg:string){
-    return `<b style="color:red">${trigger}：[${t.pathName??'??'} from ${t.urlBase??'/'}] 加载失败 [${msg}]</b>`
+    return `<b style="color:red">段落加载器：[${t.pathName??'??'} from ${t.urlBase??'/'}] 加载失败 [${msg}]</b>`
 }

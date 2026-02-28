@@ -1,5 +1,5 @@
-const trigger = 'AuParaMover'
-const pattern = `(?<=${trigger}\\().{1,32}(?=\\))`
+import { triggers } from '../public/options.json';
+const pattern = `(?<=(${triggers.join('|')})\\().{1,32}(?=\\))`
 const targetCellPattern = new RegExp(pattern)
 
 const searchInTitleTagName = 'h1'
@@ -49,7 +49,7 @@ export function run(){
     }
     for(const target of targets){
         if(!target.resolved){
-            target.targetCell.innerHTML = `<b style="color:red">${trigger}：未找到包含[${target.param}]的段落标题</b>`
+            target.targetCell.innerHTML = `<b style="color:red">段落移动器：未找到包含[${target.param}]的段落标题</b>`
         }
     }
 }

@@ -15,9 +15,14 @@
         - **名称为 xxx.entry.js**
         - **export一个名为`run`的函数（可同步可异步）**
         - 文件名带哈希，避免客户端不更新
-    - 插件的触发词：txt文件
-        - **名称为 trigger.txt**
-        - 内容是插件触发词，没有其他东西
+    - 插件的配置：json文件
+        - **名称为 options.json**
+        - triggers属性为触发词数组，示例：
+            ```json
+            {
+                "triggers": ["AuTimeOffset", "au-time-offset"]
+            }
+            ```
         - 仅在词条内容包含触发词时，插件才会被加载
 
 ## 许可证
