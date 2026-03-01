@@ -38,7 +38,7 @@ onMounted(()=>{
     margin-bottom: 3px;
 }
 .notice.danger{
-    background-color: plum;
+    background-color: red;
     border: 2px solid red;
     color:white
 }
