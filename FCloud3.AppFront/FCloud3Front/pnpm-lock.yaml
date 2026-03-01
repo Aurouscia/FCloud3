@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@fickit/currency':
-        specifier: ^0.0.2
-        version: 0.0.2(pinia@3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))
+        specifier: ^0.0.4
+        version: 0.0.4(pinia@3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))
       axios:
         specifier: ^1.13.6
         version: 1.13.6
@@ -273,8 +273,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fickit/currency@0.0.2':
-    resolution: {integrity: sha512-lI0u2XVs03hLURkd1WbuCF8wZPwoitgsUzl6YQo3u0CFNo52RcvRVNlPOUczUofk0D3yi+b4oNbr2WJ3bXtiUA==}
+  '@fickit/currency@0.0.4':
+    resolution: {integrity: sha512-swrclAleoPlsb/lEC3RsKvwY3tzT8J8PW666xIImAscPLyteYnUBti4ZLby8+9JmR+yRXQ2IzAtQWHF+3tBWnA==}
     peerDependencies:
       pinia: ^3.0.0
       vue: ^3.4.0
@@ -1296,7 +1296,7 @@ snapshots:
   '@esbuild/win32-x64@0.27.3':
     optional: true
 
-  '@fickit/currency@0.0.2(pinia@3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))':
+  '@fickit/currency@0.0.4(pinia@3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       pinia: 3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3))
       vue: 3.5.29(typescript@5.9.3)

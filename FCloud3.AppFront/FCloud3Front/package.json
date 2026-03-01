@@ -23,7 +23,7 @@
     "@aurouscia/au-table-editor": "^0.6.3",
     "@aurouscia/keyboard-shortcut": "^3.0.0",
     "@aurouscia/vite-app-version": "^0.2.0",
-    "@fickit/currency": "^0.0.2",
+    "@fickit/currency": "^0.0.4",
     "axios": "^1.13.6",
     "bowser": "^2.14.1",
     "js-file-download": "^0.4.12",
