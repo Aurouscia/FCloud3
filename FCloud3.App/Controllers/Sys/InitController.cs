@@ -1,4 +1,4 @@
-﻿using FCloud3.App.Services;
+﻿using Aurouscia.FicKit.Currency.Database;
 using FCloud3.App.Services.Utils;
 using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
@@ -18,6 +18,7 @@ namespace FCloud3.App.Controllers.Sys
     {
         private readonly FCloudContext _context;
         private readonly TempDataContext _tempDataContext;
+        private readonly CurrencyContext _currencyContext;
         private readonly WikiTitleContainService _wikiTitleContainService;
         private readonly FileDirService _fileDirService;
         private readonly WikiParsingService _wikiParsingService;
@@ -25,6 +26,7 @@ namespace FCloud3.App.Controllers.Sys
         public InitController(
             FCloudContext context,
             TempDataContext tempDataContext,
+            CurrencyContext currencyContext,
             WikiTitleContainService wikiTitleContainService,
             FileDirService fileDirService,
             WikiParsingService wikiParsingService,
@@ -33,6 +35,7 @@ namespace FCloud3.App.Controllers.Sys
         {
             _context = context;
             _tempDataContext = tempDataContext;
+            _currencyContext = currencyContext;
             _wikiTitleContainService = wikiTitleContainService;
             _fileDirService = fileDirService;
             _wikiParsingService = wikiParsingService;
@@ -50,6 +53,7 @@ namespace FCloud3.App.Controllers.Sys
             {
                 _context.Database.Migrate();
                 _tempDataContext.Database.Migrate();
+                _currencyContext.Database.Migrate();
                 return this.ApiResp("已Migrate成功", true);
             }
         }

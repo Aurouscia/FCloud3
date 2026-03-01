@@ -9,6 +9,7 @@ import { addDiff } from './pages/Diff/routes/routesInit';
 import { addMessages } from './pages/Message/routes/routesInit';
 import NotFound from './pages/NotFoundPage.vue';
 import { Router } from 'vue-router';
+import { addFicKit } from './pages/FicKit/routes/routesInit';
 
 export function configureRoute(router:Router){
     router.addRoute({
@@ -24,4 +25,5 @@ export function configureRoute(router:Router){
     addFiles(router)
     addDiff(router)
     addMessages(router)
+    addFicKit(router)
 }

@@ -5,6 +5,8 @@ using FCloud3.Services;
 using Serilog;
 using FCloud3.App.Services.Authentication;
 using FCloud3.App.Services.Utils;
+using FCloud3.App.Services.FicKit;
+using Aurouscia.FicKit.Currency;
 
 try
 {
@@ -28,6 +30,8 @@ try
     //添加跨域配置
     builder.Services.AddConfiguredCors(c);
 
+    builder.SetupFicKitCurrency();
+
     var app = builder.Build();
 
     //配置请求管道
@@ -43,6 +47,8 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.MapFicKitCurrency();
 
     app.MapControllerRoute(
         name: "api",
