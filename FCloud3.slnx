@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/1.Infrastructure/">
+    <Project Path="FCloud3.Diff.Test/FCloud3.Diff.Test.csproj" />
+    <Project Path="FCloud3.Diff/FCloud3.Diff.csproj" />
+    <Project Path="FCloud3.WikiPreprocessor.Test/FCloud3.WikiPreprocessor.Test.csproj" />
+    <Project Path="FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj" />
+  </Folder>
+  <Folder Name="/2.Entities/">
+    <Project Path="FCloud3.DbContexts/FCloud3.DbContexts.csproj" />
+    <Project Path="FCloud3.Entities/FCloud3.Entities.csproj" />
+  </Folder>
+  <Folder Name="/3.Repositories/">
+    <Project Path="FCloud3.Repos.Test/FCloud3.Repos.Test.csproj" />
+    <Project Path="FCloud3.Repos/FCloud3.Repos.csproj" />
+  </Folder>
+  <Folder Name="/4.Services/">
+    <Project Path="FCloud3.Services.Test/FCloud3.Services.Test.csproj" />
+    <Project Path="FCloud3.Services/FCloud3.Services.csproj" />
+  </Folder>
+  <Folder Name="/9.App/">
+    <Project Path="FCloud3.App/FCloud3.App.csproj" />
+  </Folder>
+</Solution>
