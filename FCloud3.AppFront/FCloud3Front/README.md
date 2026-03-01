@@ -2,8 +2,8 @@
 请确保安装了node客户端（npm命令可用）  
 安装依赖项并开始调试：
 ```
-npm config set registry https://registry.npmmirror.com （设置npm国内镜像）
-npm ci
+npm install -g pnpm --registry=https://registry.npmmirror.com（如果没有pnpm需要）
+pnpm install（仅第一次run dev前需要）
 npm run build （仅第一次run dev前需要）
 npm run dev
 ```
@@ -12,6 +12,10 @@ npm run dev
 npm run build （到../../FCloud3.App/wwwroot目录）
 npm run build-here （到./dist目录）
 ```
+
+## 拉取代码后
+如果有包更新，需要重新 pnpm install
+
 ## 连接远程后端调试前端
 如果本地没有.netSDK，可在`./env`文件夹下创建名为`.env.development.local`的文件，内容写：
 ```
@@ -19,5 +23,6 @@ VITE_ApiUrlBase = "[你的后端域名]"
 例如：
 VITE_ApiUrlBase = "http://wiki.jowei19.com"
 ```
+
 ## 插件
 见`../FCloud3Plugins`目录的README.md

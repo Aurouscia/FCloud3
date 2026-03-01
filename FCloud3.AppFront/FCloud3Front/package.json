@@ -9,6 +9,13 @@
     "build-here": "tsx build.ts --here",
     "toggleEnvLocal": "node env/toggleLocalEnvFile.cjs"
   },
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@parcel/watcher", "esbuild"]
+  },
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.6.3",
     "@aurouscia/keyboard-shortcut": "^3.0.0",
