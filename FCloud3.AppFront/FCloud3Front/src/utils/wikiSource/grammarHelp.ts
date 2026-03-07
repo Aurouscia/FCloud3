@@ -1,3 +1,5 @@
+import { allowCopyParaTrigger } from "../wikiView/allowCopy"
+
 export interface GrammarHelpItem{
     title:string,
     desc:string,
@@ -145,6 +147,11 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         desc: "行开头处添加//（左侧可以有空格）则该行会被忽略，不会显示在词条展示页。",
         code: "此处的动能为1.8MJ\n   //由E=mv^2算出\n十分恐怖",
         demo: "此处的动能为1.8MJ\n十分恐怖"
+    },
+    {
+        title: "允许读者复制段落内容",
+        desc: `除了词条设置中允许整个词条可复制内容外，还可以允许单个段落。\n只要段落内准确包含“<b>${allowCopyParaTrigger}</b>”这几个字，该段落就会允许浏览器选中。\n如果要段落能在源码页面可复制，上述关键词是必须的（词条级设置无用）`,
+        code: `// ${allowCopyParaTrigger}（建议放在注释内）`,
     },
     {
         title: "带标题的列表",
