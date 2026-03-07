@@ -463,7 +463,10 @@ namespace FCloud3.Services.Wiki
             errmsg = null;
             return res;
         }
-        public bool EditInfo(int id, string? title,string? urlPathName, out string? errmsg)
+        public bool EditInfo(
+            int id, string? title,
+            string? urlPathName, byte allowCopy,
+            out string? errmsg)
         {
             var target = _wikiRepo.GetById(id);
             if (target is null)
@@ -473,7 +476,7 @@ namespace FCloud3.Services.Wiki
             }
             string? originalTitle = target.Title;
             string? originalUrlPathName = target.UrlPathName;
-            bool changed = originalTitle != title || originalUrlPathName != urlPathName;
+            bool vitalChanged = originalTitle != title || originalUrlPathName != urlPathName;
 
             string record = "";
             if (originalTitle != title)
@@ -483,7 +486,9 @@ namespace FCloud3.Services.Wiki
 
             target.Title = title;
             target.UrlPathName = urlPathName;
-            if (changed)
+            target.AllowCopy = allowCopy;
+
+            if (vitalChanged)
             {
                 if (_wikiRepo.TryUpdate(target, out errmsg))
                 {
@@ -497,8 +502,10 @@ namespace FCloud3.Services.Wiki
                 else
                     return false;
             }
-            errmsg = null;
-            return true;
+            else
+            {
+                return _wikiRepo.TryUpdate(target, out errmsg);
+            }
         }
 
         public bool Transfer(int id, int uid, bool isSuperAdmin, out string? errmsg)

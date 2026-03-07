@@ -93,7 +93,8 @@ namespace FCloud3.App.Controllers.Wiki
                 Id = w.Id,
                 Title = w.Title,
                 UrlPathName = w.UrlPathName,
-                OwnerId = w.OwnerUserId
+                OwnerId = w.OwnerUserId,
+                AllowCopy = w.AllowCopy,
             });
         }
         [Authorize]
@@ -102,7 +103,10 @@ namespace FCloud3.App.Controllers.Wiki
         public IActionResult EditExe([FromBody] WikiItemComModel model)
         {
             //并不使用model的ownerId属性，无overposting风险
-            if (!_wikiService.EditInfo(model.Id, model.Title, model.UrlPathName, out string? errmsg))
+            if (!_wikiService.EditInfo(
+                model.Id, model.Title,
+                model.UrlPathName, model.AllowCopy,
+                out string? errmsg))
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
         }
@@ -202,6 +206,7 @@ namespace FCloud3.App.Controllers.Wiki
             public string? Title { get; set; }
             public string? UrlPathName { get; set; }
             public int OwnerId { get; set; }
+            public byte AllowCopy { get; set; }
             public int AuthGrantOnId => Id;
         }
         public class WikiItemParaOrdersComModel : IAuthGrantableRequestModel

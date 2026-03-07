@@ -39,6 +39,7 @@ import { findLastIndex } from 'lodash-es';
 import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
+import { useAllowCopy } from '@/utils/wikiView/allowCopy';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -256,6 +257,8 @@ function toggleTimeViewMode(){
     timeViewMode.value = timeViewMode.value == 'create' ? 'update' : 'create'
 }
 
+const { allowCopyEachPara } = useAllowCopy(data)
+
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
 const wikiViewScrollMemory = injectWikiViewScrollMemory()
@@ -323,7 +326,7 @@ onUnmounted(()=>{
 <template>
 <div class="wikiViewFrame">
     <div v-if="data && currentUser && displayInfo" class="wikiView"
-        :class="{noCopy:data.OwnerId !== currentUser.Id}" ref="wikiViewArea">
+        :class="{noCopy:data.OwnerId !== currentUser.Id && displayInfo.AllowCopy !== 1}" ref="wikiViewArea">
         <div class="invisible" v-html="styles"></div>
         <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
@@ -364,7 +367,7 @@ onUnmounted(()=>{
             </div>
         </div>
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
-        <div v-for="p in data.Paras" class="para">
+        <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
                     <span v-html="p.Title" class="paraTitleText"></span>
@@ -511,6 +514,9 @@ onUnmounted(()=>{
 }
 .wikiView.noCopy .para{
     user-select: none;
+    &.allowCopy{
+        user-select: auto
+    }
 }
 .wikiView>*{
     max-width: 1100px;

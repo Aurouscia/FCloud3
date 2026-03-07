@@ -7,6 +7,7 @@ export interface WikiDisplayInfo
     Created: string
     CurrentUserAccess: boolean
     UserGroupLabels: UserGroupLabel[]
+    AllowCopy: number
 }
 export interface UserGroupLabel{
     Id:number,
@@ -20,5 +21,6 @@ export const wikiDisplayInfoDefault: WikiDisplayInfo = {
     Sealed: false,
     Created: 'N/A',
     CurrentUserAccess:false,
-    UserGroupLabels:[]
+    UserGroupLabels:[],
+    AllowCopy: 0
 }

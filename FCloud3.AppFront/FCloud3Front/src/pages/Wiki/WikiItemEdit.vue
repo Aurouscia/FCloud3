@@ -230,6 +230,7 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
         info.value = infoResp;
         editingWikiTitle.value = info.value.Title;
         editingUrlPathName.value = info.value.UrlPathName;
+        editingAllowCopy.value = info.value.AllowCopy ?? 0;
         setTitleTo("词条编辑 - " + editingWikiTitle.value)
     }
     if(loadParas){
@@ -253,6 +254,7 @@ async function refresh(p:WikiParaDisplay[]|undefined) {
 
 const info = ref<WikiItem>();
 const {name:editingWikiTitle, converted:editingUrlPathName, run:autoUrlName} = useUrlPathNameConverter();
+const editingAllowCopy = ref(0)
 
 async function saveInfoEdit(){
     if(!info.value){return;}
@@ -261,6 +263,7 @@ async function saveInfoEdit(){
     }
     info.value.Title = editingWikiTitle.value;
     info.value.UrlPathName = editingUrlPathName.value;
+    info.value.AllowCopy = editingAllowCopy.value;
     const resp = await api.wiki.wikiItem.editExe(info.value);
     if(resp){
         if(props.urlPathName != info.value.UrlPathName){
@@ -406,6 +409,15 @@ onUnmounted(()=>{
                     <td>
                         <button @click="autoUrlName" class="minor">由词条标题生成</button><br/>
                         <input v-model="editingUrlPathName"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>读者复制内容</td>
+                    <td>
+                        <select v-model="editingAllowCopy">
+                            <option :value="0">不允许</option>
+                            <option :value="1">允许</option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
