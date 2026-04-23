@@ -113,7 +113,7 @@ namespace FCloud3.Services.Test.Wiki
             _ctx.ChangeTracker.Clear();
  
             DateTime now = DateTime.Now;
-            _service.EditInfo(3, "冬枣", "winter-jujube", out _);
+            _service.EditInfo(3, "冬枣", "winter-jujube", 0, out _);
             //由于词条1和词条2都引用了冬枣（显式或者隐式）
             //所以冬枣词条的标题/链接名变化时必须让他们重新解析
             //无关词条不受影响
