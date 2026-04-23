@@ -30,6 +30,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <AssemblyAttribute Include="Microsoft.VisualStudio.TestTools.UnitTesting.DoNotParallelize" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\FCloud3.DbContexts\FCloud3.DbContexts.csproj" />
       <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
       <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />

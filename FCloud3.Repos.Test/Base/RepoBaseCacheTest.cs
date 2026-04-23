@@ -187,7 +187,7 @@ namespace FCloud3.Repos.Test.Base
 
         private static void AssertObjectsStatus(List<SomeClassCacheModel> items, List<int> num1s)
         {
-            Assert.AreEqual(num1s.Count, items.Count);
+            Assert.HasCount(num1s.Count, items);
             for(int i = 0; i < num1s.Count; i++)
             {
                 AssertObjectStatus(items[i], num1s[i]);

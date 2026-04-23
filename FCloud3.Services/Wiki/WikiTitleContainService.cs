@@ -18,7 +18,6 @@ namespace FCloud3.Services.Wiki
         private readonly TextSectionRepo _textSectionRepo = textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo = freeTableRepo;
 
-        [Obsolete]
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType, string? content)
         {
             WikiTitleContainAutoFillResult res = new();
@@ -44,7 +43,7 @@ namespace FCloud3.Services.Wiki
             });
             return res;
         }
-        [Obsolete]
+
         public WikiTitleContainAutoFillResult AutoFill(int objId, WikiTitleContainType containType)
         {
             string? content;
