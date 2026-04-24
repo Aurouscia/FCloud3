@@ -1,8 +1,19 @@
 import { execa, Options as ExecaOptions } from 'execa'
+import { exit } from 'process'
 
 const execaOptions:ExecaOptions = {stdout:'inherit', stderr:'inherit', reject:false}
 
 const firstParam = process.argv[2]
+
+const tsCheckOnly = firstParam?.toLowerCase() === '--ts-check-only'
+if(tsCheckOnly){
+    const res = await execa("vue-tsc", execaOptions)
+    if(res.exitCode == 0){
+        console.log('✔ type check passed')
+    }
+    exit(0)
+}
+
 const buildHere = firstParam?.toLowerCase() === '--here'
 const viteBuildArgs = buildHere ? ['--outDir', './dist'] : []
 
