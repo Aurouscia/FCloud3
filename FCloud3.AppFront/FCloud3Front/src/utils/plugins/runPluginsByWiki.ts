@@ -1,21 +1,22 @@
 import { PluginsFound } from "@/build/plugin/pluginsFound"
 import pluginsFound from '@/build/plugin/pluginsFound.json'
+import { nextTick } from "vue"
 
 const consolePrefix = '[f3-plugin]'
 
-export async function runPluginsByWiki(wikiStringData:(string|undefined)[]|undefined){
-    if(!wikiStringData || wikiStringData.length==0)
-        return
+export async function runPluginsByWiki(getWiki:()=>(string|undefined)){
     const pluginList = pluginsFound as PluginsFound
     const detectedPlugins:string[] = []
     for(const plugin of pluginList){
-        if(wikiStringData.some(x=>!!x && x.includes(plugin.trigger))){
+        const wiki = getWiki()
+        if(wiki?.includes(plugin.trigger)){
             detectedPlugins.push(plugin.name)
             const { name: pluginName, entry: pluginPath } = plugin
             if(pluginPath){
                 try{
                     if('runFCloud3Plugin' in window && typeof window.runFCloud3Plugin === 'function'){
                         await window.runFCloud3Plugin(pluginPath)
+                        await nextTick()
                         console.log(`${consolePrefix}插件${pluginName}已运行`)
                     }
                     else{
