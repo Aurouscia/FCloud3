@@ -22,6 +22,10 @@ export default defineConfig(({ mode }) => {
         '/api':{
           target: env.VITE_ProxyTarget,
           changeOrigin: true
+        },
+        '/fickit':{
+          target: env.VITE_ProxyTarget,
+          changeOrigin: true
         }
       }
     },
@@ -33,6 +37,8 @@ export default defineConfig(({ mode }) => {
           manualChunks: (id) => {
             if (id.includes('@aurouscia'))
               return 'au'
+            if (id.includes('@fickit'))
+              return 'fickit'
             if (id.includes('node_modules'))
               return 'libs'
           }
