@@ -7,6 +7,11 @@ namespace FCloud3.App.Services.FicKit
         HttpUserInfoService httpUserInfoService
         ) : IUserInfoProvider
     {
+        public string? GetUserAvatarUrl()
+        {
+            return httpUserInfoService.AvtSrc;
+        }
+
         public int GetUserId()
         {
             return httpUserInfoService.Id;
@@ -15,6 +20,11 @@ namespace FCloud3.App.Services.FicKit
         public int GetUserLevel()
         {
             return (int)httpUserInfoService.Type;
+        }
+
+        public string? GetUserName()
+        {
+            return httpUserInfoService.Name;
         }
     }
 }

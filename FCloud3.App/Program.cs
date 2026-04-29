@@ -7,6 +7,7 @@ using FCloud3.App.Services.Authentication;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Services.FicKit;
 using Aurouscia.FicKit.Currency;
+using Aurouscia.FicKit.Article;
 
 try
 {
@@ -30,7 +31,9 @@ try
     //添加跨域配置
     builder.Services.AddConfiguredCors(c);
 
+    builder.AddFicKitServices();
     builder.SetupFicKitCurrency();
+    builder.SetupFicKitArticle();
 
     var app = builder.Build();
 
@@ -48,7 +51,10 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
+    app.InitializeFicKitCurrencyDatabase();
+    app.InitializeFicKitArticleDatabase();
     app.MapFicKitCurrency();
+    app.MapFicKitArticle();
 
     app.MapControllerRoute(
         name: "api",

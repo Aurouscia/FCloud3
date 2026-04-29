@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import './style.scss'
 import '@aurouscia/au-table-editor/style.css'
 import '@fickit/currency/dist/index.css'
+import '@fickit/article/dist/index.css'
 import App from './App.vue'
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
