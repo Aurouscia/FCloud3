@@ -27,7 +27,7 @@ onUnmounted(()=>{
 
 <template>
 <div class="fickit-article" ref="articleOuter">
-    <HomeView :user-id="iden.Id" :user-level="iden.Type" :scroll-container="articleOuter"></HomeView>
+    <HomeView :user-id="iden.Id" :user-level="iden.Type" :scroll-container="articleOuter || undefined"></HomeView>
 </div>
 </template>
 
