@@ -26,6 +26,9 @@ const data = ref<WikiParaRawContentRes>()
 const allowCopyThisPara = computed(()=>{
     if(allowCopy(data.value?.Content))
         return true
+    return isOwner.value
+})
+const isOwner = computed(()=>{
     return userId && userId == data.value?.OwnerId
 })
 
@@ -56,7 +59,9 @@ onUnmounted(()=>{
             <button class="lite">查看编辑历史</button>
         </RouterLink>
     </div>
-    <div class="allowCopyNotice" v-if="allowCopyThisPara">本段落允许读者复制源码</div>
+    <div class="allowCopyNotice" v-if="allowCopyThisPara">
+        本段落允许复制源码 {{ isOwner ? '(因为你是所有者)':'' }}
+    </div>
     <div v-if="data.ParaType==WikiParaType.Text" class="textContent">
         {{ data.Content }}
     </div>
