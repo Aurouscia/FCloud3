@@ -26,6 +26,7 @@
 
 ## 前端
 
+- style 统一使用 `<style lang="scss" scoped>`
 - src/models 定义接口传输的数据结构（目录结构与后端 FCloud3.App/Controllers 大致保持一致，应 ls/dir 确认）
 - src/pages 所有页面（目录结构同上，应 ls/dir 确认）
     - 怎么注册路由：参考 src\pages\Diff\routes 目录的内容
@@ -35,6 +36,17 @@
     - 在页面中使用 const api = injectApi() 获取上述的 api 对象，进行数据交互
     - 在页面中使用 const pop = injectPop() 获取“信息显示”组件的引用
         - pop.value.show("不能提交空评论", "failed"); "success"|"failed"|"warning"|"info"
+
+## 从 upstream 同步
+
+如果用户要求“从 upstream 同步”：
+- 检查当前是否在非 master 分支
+- 检查当前是否有名为 upstream 的 git 远程，如果没有则创建它：https://gitee.com/au114514/fcloud3
+- 检查当前是否有名为 up-master 的 git 分支，如果没有则创建它，跟踪 upstream 的 master 分支
+- 对 up-master 运行一次 pull
+- 把 up-master 分支 merge 到当前分支
+- 如果出现意外情况，例如当前 origin 和 upstream 的 url 一样，或者当前在 master 分支，则不做任何操作，除非用户进一步指示
+- 如果遇到冲突，手动解决（尽量 upstream 优先）并告知用户有哪些改动丢失，询问需不需要补回来
 
 ### 注意事项
 
