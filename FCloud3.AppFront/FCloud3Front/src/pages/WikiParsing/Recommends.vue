@@ -18,14 +18,20 @@ api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)
 
 <template>
     <div v-if="model" class="recs">
-        <div class="list dirs">
-            <div v-for="d in model.Dirs" @click="jumpToDirFromId(d.Id)">
-                {{ d.Name }}
+        <div v-for="d in model.Dirs" :key="d.Id" class="dirBox">
+            <div class="dirTitle" @click="jumpToDirFromId(d.Id)">
+                <div class="dirTitleText">
+                    <div class="dirName">{{ d.Name }}</div>
+                    <div class="dirCount">共{{ d.TotalWikiCount }}个词条</div>
+                </div>
+                <svg class="dirArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
             </div>
-        </div>
-        <div class="list">
-            <div v-for="w in model.Wikis" @click="jumpToViewWiki(w.UrlPathName)">
-                {{ w.Title }}
+            <div class="wikiList">
+                <div v-for="w in d.Wikis" :key="w.UrlPathName" @click="jumpToViewWiki(w.UrlPathName)">
+                    {{ w.Title }}
+                </div>
             </div>
         </div>
     </div>
@@ -33,32 +39,76 @@ api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)
 </template>
 
 <style scoped lang="scss">
-.list{
+.recs{
+    margin: 20px 0px;
     display: flex;
-    gap: 10px;
     flex-wrap: wrap;
-    padding: 5px 0px 5px 0px;
+    gap: 15px;
     justify-content: center;
 }
-.list div{
-    padding: 6px;
-    background-color: #e8e8e8;
-    white-space: nowrap;
+.dirBox{
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 200px;
+    max-width: 400px;
+    flex-basis: 10px;
+    flex-grow: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.dirTitle{
+    padding: 10px 12px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid #f0f0f0;
     &:hover{
-        background-color: #ccc;
+        background-color: #f8f8f8;
     }
 }
-.dirs div{
-    background-color: #333;
-    color: white;
-    &:hover{
-        background-color: #666;
-    }
+.dirTitleText{
+    min-width: 0;
+    flex: 1;
 }
-.recs{
-    margin: 20px 0px 20px 0px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.05);
+.dirName{
+    font-weight: bold;
+    color: cornflowerblue;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dirCount{
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+.dirArrow{
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: cornflowerblue;
+    opacity: 0.7;
+}
+.wikiList{
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.wikiList div{
+    padding: 6px 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+    &:hover{
+        background-color: #e8e8e8;
+    }
 }
 </style>

@@ -65,6 +65,10 @@
             color:cornflowerblue;
             text-decoration: underline;
         }
+        &.smaller-h1{
+            font-size: 125%;
+            margin-top: 40px;
+        }
     }
 
     .paraTitleHidden, .paraTitleHiddenKeepingMargin{

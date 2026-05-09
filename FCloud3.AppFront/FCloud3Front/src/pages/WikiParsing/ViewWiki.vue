@@ -404,11 +404,12 @@ onUnmounted(()=>{
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
-        <div style="color:gray;text-align: center;margin-top: 20px;font-size: 14px;">
+        <div class="copyrightNotice">
             词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
         </div>
+        <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关词条<div class="paraTitleSep"></div></h1>
         <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
-        <h1 :id="titleElementId(cmtTitleId)">评论区<div class="paraTitleSep"></div></h1>
+        <h1 class="smaller-h1" :id="titleElementId(cmtTitleId)"><div class="paraTitleSep"></div>评论区<div class="paraTitleSep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
             <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
@@ -622,8 +623,15 @@ onUnmounted(()=>{
     }
 }
 
+.copyrightNotice{
+    color:gray;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 40px;
+    font-size: 14px;
+}
 .comments{
-    margin-top: 30px;
+    margin-top: 10px;
     margin-bottom: 40px;
 }
 .commentsNotLoaded{
