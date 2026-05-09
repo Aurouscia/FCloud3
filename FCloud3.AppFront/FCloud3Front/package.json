@@ -12,13 +12,7 @@
   },
   "engines": {
     "node": ">=24",
-    "pnpm": ">=10"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild"
-    ]
+    "pnpm": ">=11"
   },
   "dependencies": {
     "@aurouscia/au-table-editor": "^0.6.3",
