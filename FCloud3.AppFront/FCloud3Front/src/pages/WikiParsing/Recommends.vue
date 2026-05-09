@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
 import { injectApi } from '@/provides';
 import Loading from '@/components/Loading.vue';
@@ -9,11 +9,19 @@ import { useWikiParsingRoutesJump } from './routes/routesJump';
 const props = defineProps<{
     pathName:string
 }>()
+const emit = defineEmits<{
+    (e: 'hasContent', value: boolean): void
+}>()
 const { jumpToDirFromId } = useFilesRoutesJump();
 const { jumpToViewWiki } = useWikiParsingRoutesJump();
 const api = injectApi();
 const model = ref<WikiRecommendModel>()
 api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)
+watch(model, (m) => {
+    if (m) {
+        emit('hasContent', m.Dirs.length > 0)
+    }
+})
 </script>
 
 <template>

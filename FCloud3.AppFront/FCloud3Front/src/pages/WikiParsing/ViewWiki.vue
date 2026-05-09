@@ -116,6 +116,7 @@ function moveToTitle(titleId:number){
 let lastScrollTime = 0;
 const commentsLoaded = ref(false);
 const recommendsLoaded = ref(false);
+const recommendsAny = ref(false)
 function viewAreaScrollHandler(enforce?:boolean){
     if(!enforce)
         if(Date.now() - lastScrollTime < 50){return;}
@@ -407,8 +408,10 @@ onUnmounted(()=>{
         <div class="copyrightNotice">
             词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
         </div>
-        <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关词条<div class="paraTitleSep"></div></h1>
-        <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
+        <div v-show="recommendsAny">
+            <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关词条<div class="paraTitleSep"></div></h1>
+            <Recommends v-if="recommendsLoaded" :path-name="wikiPathName" @has-content="x=>recommendsAny=x"></Recommends>
+        </div>
         <h1 class="smaller-h1" :id="titleElementId(cmtTitleId)"><div class="paraTitleSep"></div>评论区<div class="paraTitleSep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>

@@ -35,7 +35,10 @@ namespace FCloud3.Services.Wiki.Support
                         .ConvertAll(x => new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
                     dir.Wikis.AddRange(RandomSelect(neighbors, 6));
                 }
-                res.Dirs.Add(dir);
+                if (dir.Wikis.Count > 0)
+                {
+                    res.Dirs.Add(dir);
+                }
             }
             return res;
         }
