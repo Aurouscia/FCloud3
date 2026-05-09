@@ -30,9 +30,9 @@ namespace FCloud3.Services.Wiki.Support
                 if (wikiIdsByDir.TryGetValue(dir.Id, out var neighborIds))
                 {
                     neighborIds.Remove(thisId);
-                    dir.TotalWikiCount = neighborIds.Count;
                     var neighbors = wikiItemRepo.CachedItemsByIds(neighborIds)
                         .ConvertAll(x => new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
+                    dir.TotalWikiCount = neighbors.Count;
                     dir.Wikis.AddRange(RandomSelect(neighbors, 6));
                 }
                 if (dir.Wikis.Count > 0)
