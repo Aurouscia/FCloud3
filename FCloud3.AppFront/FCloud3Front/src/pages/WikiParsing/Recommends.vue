@@ -94,8 +94,8 @@ api.wikiParsing.wikiParsing.getRecommend(props.pathName).then(x=>model.value=x)
 }
 .wikiList{
     padding: 8px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 4px;
 }
 .wikiList div{

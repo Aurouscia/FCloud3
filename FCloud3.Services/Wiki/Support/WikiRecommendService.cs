@@ -33,7 +33,7 @@ namespace FCloud3.Services.Wiki.Support
                     dir.TotalWikiCount = neighborIds.Count;
                     var neighbors = wikiItemRepo.CachedItemsByIds(neighborIds)
                         .ConvertAll(x => new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
-                    dir.Wikis.AddRange(RandomSelect(neighbors, 3));
+                    dir.Wikis.AddRange(RandomSelect(neighbors, 6));
                 }
                 res.Dirs.Add(dir);
             }
