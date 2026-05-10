@@ -92,6 +92,7 @@ namespace FCloud3.App.Controllers.Wiki
             {
                 Id = w.Id,
                 Title = w.Title,
+                Description = w.Description,
                 UrlPathName = w.UrlPathName,
                 OwnerId = w.OwnerUserId,
                 AllowCopy = w.AllowCopy,
@@ -104,7 +105,7 @@ namespace FCloud3.App.Controllers.Wiki
         {
             //并不使用model的ownerId属性，无overposting风险
             if (!_wikiService.EditInfo(
-                model.Id, model.Title,
+                model.Id, model.Title, model.Description,
                 model.UrlPathName, model.AllowCopy,
                 out string? errmsg))
                 return this.ApiFailedResp(errmsg);
@@ -204,6 +205,7 @@ namespace FCloud3.App.Controllers.Wiki
         {
             public int Id { get; set; }
             public string? Title { get; set; }
+            public string? Description { get; set; }
             public string? UrlPathName { get; set; }
             public int OwnerId { get; set; }
             public byte AllowCopy { get; set; }

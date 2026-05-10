@@ -229,6 +229,7 @@ async function Load(loadInfo:boolean=true, loadParas:boolean=true){
         }
         info.value = infoResp;
         editingWikiTitle.value = info.value.Title;
+        editingDesc.value = info.value.Description;
         editingUrlPathName.value = info.value.UrlPathName;
         editingAllowCopy.value = info.value.AllowCopy ?? 0;
         setTitleTo("词条编辑 - " + editingWikiTitle.value)
@@ -254,6 +255,8 @@ async function refresh(p:WikiParaDisplay[]|undefined) {
 
 const info = ref<WikiItem>();
 const {name:editingWikiTitle, converted:editingUrlPathName, run:autoUrlName} = useUrlPathNameConverter();
+const editingDesc = ref<string|null>()
+const descGuide = ref(false)
 const editingAllowCopy = ref(0)
 
 async function saveInfoEdit(){
@@ -262,6 +265,7 @@ async function saveInfoEdit(){
         return;
     }
     info.value.Title = editingWikiTitle.value;
+    info.value.Description = editingDesc.value || undefined;
     info.value.UrlPathName = editingUrlPathName.value;
     info.value.AllowCopy = editingAllowCopy.value;
     const resp = await api.wiki.wikiItem.editExe(info.value);
@@ -412,6 +416,22 @@ onUnmounted(()=>{
                     </td>
                 </tr>
                 <tr>
+                    <td>
+                        内容简介
+                        <button @click="descGuide=!descGuide" class="lite descGuide">该怎么写？</button>
+                    </td>
+                    <td>
+                        <input v-model="editingDesc" placeholder="尽量简短"/>
+                        <div v-if="descGuide" class="descGuide">
+                            简要介绍词条内容，示例：<br/>
+                            1. 位于某大陆东部的发达国家<br/>
+                            2. 某国生产的高速动车组<br/>
+                            3. 讲述某人旅行经历的长篇小说<br/>
+                            当词条同名时，用简介来区分
+                        </div>
+                    </td>
+                </tr>
+                <tr>
                     <td>读者复制内容</td>
                     <td>
                         <select v-model="editingAllowCopy">
@@ -494,7 +514,16 @@ h1{
 .wikiInfo>*{
     margin: 0px auto 0px auto;
 }
-
+.wikiInfo .descGuide{
+    display: block;
+    font-size: 13px;
+    color: #666;
+    text-align: left;
+    margin: 4px auto 0px;
+}
+.wikiInfo button.descGuide{
+    text-decoration: underline;
+}
 .wikiInfo .dangerZoneBtn{
     display: block;
     text-align: center;

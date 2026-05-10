@@ -1,6 +1,7 @@
 export interface WikiItem{
     Id:number,
     Title:string,
+    Description?:string,
     UrlPathName:string,
     OwnerId:number,
     AllowCopy:number

@@ -464,7 +464,7 @@ namespace FCloud3.Services.Wiki
             return res;
         }
         public bool EditInfo(
-            int id, string? title,
+            int id, string? title, string? description,
             string? urlPathName, byte allowCopy,
             out string? errmsg)
         {
@@ -485,6 +485,7 @@ namespace FCloud3.Services.Wiki
                 record += $"将路径名 {originalUrlPathName} 改为 {urlPathName}";
 
             target.Title = title;
+            target.Description = description;
             target.UrlPathName = urlPathName;
             target.AllowCopy = allowCopy;
 
