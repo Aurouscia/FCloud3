@@ -57,12 +57,14 @@ namespace FCloud3.Services.WikiParsing
                 select new
                 {
                     WikiId = w.Id,
+                    WikiTitle = w.Title,
+                    WikiDescription = w.Description,
                     UserId = u.Id,
                     UserName = u.Name,
                     UserAvtId = u.AvatarMaterialId,
                     WikiSealed = w.Sealed,
                     WikiCreated = w.Created,
-                    AllowCopy = w.AllowCopy
+                    WikiAllowCopy = w.AllowCopy
                 }).FirstOrDefault();
             if(info is null)
                 return null;
@@ -97,11 +99,22 @@ namespace FCloud3.Services.WikiParsing
                 }
             }
             var resp = new WikiDisplayInfo(
-                info.WikiId, info.UserName, avtSrc, info.WikiSealed, info.WikiCreated, info.AllowCopy, access);
+                info.WikiId, info.WikiTitle, info.WikiDescription, info.UserName, avtSrc, info.WikiSealed, info.WikiCreated, info.WikiAllowCopy, access);
             groupLabels.ForEach(l =>
             {
                 resp.UserGroupLabels.Add(new(l.Id, l.Name));
             });
+
+            var polysemyItems = (
+                from w in wikiItemRepo.ExistingAndNotSealed
+                join u in userRepo.All on w.OwnerUserId equals u.Id
+                where w.Title == info.WikiTitle
+                where w.Id != info.WikiId
+                select new WikiDisplayInfo.WikiPolysemyItem(
+                    w.Id, u.Name ?? "", w.Description ?? "", w.UrlPathName ?? "", "")
+                ).ToList();
+            resp.PolysemyItems.AddRange(polysemyItems);
+
             return resp;
         }
         
@@ -456,10 +469,12 @@ namespace FCloud3.Services.WikiParsing
             }
         }
         public class WikiDisplayInfo(
-            int wikiId, string userName, string? userAvtSrc,
+            int wikiId, string title, string description, string userName, string? userAvtSrc,
             bool @sealed, DateTime created, byte allowCopy, bool currentUserAccess)
         {
             public int WikiId { get; set; } = wikiId;
+            public string Title { get; set; } = title;
+            public string Description { get; set; } = description;
             public string UserName { get; set; } = userName;
             public string? UserAvtSrc { get; set; } = userAvtSrc;
             public bool Sealed { get; set; } = @sealed;
@@ -467,10 +482,19 @@ namespace FCloud3.Services.WikiParsing
             public byte AllowCopy { get; set; } = allowCopy;
             public bool CurrentUserAccess { get; set; } = currentUserAccess;
             public List<UserGroupLabel> UserGroupLabels { get; set; } = [];
+            public List<WikiPolysemyItem> PolysemyItems { get; set; } = [];
             public struct UserGroupLabel(int id, string name)
             {
                 public int Id { get; set; } = id;
                 public string Name { get; set; } = name;
+            }
+            public struct WikiPolysemyItem(int id, string author, string description, string pathName, string dirPath)
+            {
+                public int Id { get; set; } = id;
+                public string Author { get; set; } = author;
+                public string Description { get; set; } = description;
+                public string PathName { get; set; } = pathName;
+                public string DirPath { get; set; } = dirPath;
             }
         }
     }

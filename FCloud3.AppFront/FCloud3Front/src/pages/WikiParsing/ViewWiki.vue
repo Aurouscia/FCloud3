@@ -40,6 +40,7 @@ import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableR
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
 import { useAllowCopy } from '@/utils/wikiView/allowCopy';
+import PolysemySelector from '@/components/Wiki/PolysemySelector.vue';
 
 const props = defineProps<{
     wikiPathName: string;
@@ -333,6 +334,7 @@ onUnmounted(()=>{
         <div class="masterTitle">
             {{data.Title}}
         </div>
+        <PolysemySelector :description="displayInfo.Description" :items="displayInfo.PolysemyItems"></PolysemySelector>
         <div class="info" v-if="displayInfo">
             <div class="owner">
                 所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" :alt="displayInfo.UserName+' 头像'" class="smallAvatar"/>
@@ -532,6 +534,7 @@ onUnmounted(()=>{
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 20px;
     .owner{
         font-size: 16px;
         color: #666;
