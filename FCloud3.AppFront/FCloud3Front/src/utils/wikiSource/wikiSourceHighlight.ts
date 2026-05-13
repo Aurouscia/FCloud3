@@ -1,14 +1,18 @@
 import { isFireFox } from "../browserInfo";
+import { injectWikiSourceHighlightStyles } from "./wikiSourceHighlightStyles";
+
+
 
 export class WikiSourceHighlighter {
     t:Text|undefined = undefined;
     tContent:string|undefined = undefined;
     ranges:[number,number][] = [];
-    private styleTagPattern = new RegExp("<style>(.|\n)*?</style>", "g");
+    private styleTagPattern = new RegExp("<style>(.|\\n)*?</style>", "g");
 
     run(t:Text){
         if(isFireFox)
             return;
+        injectWikiSourceHighlightStyles();
         CSS.highlights.clear();
         this.ranges = []
         this.t = t;

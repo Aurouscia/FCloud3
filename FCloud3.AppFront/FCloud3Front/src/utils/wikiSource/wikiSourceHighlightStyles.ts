@@ -1,3 +1,4 @@
+const wikiSourceStyles = `
 ::highlight(bold) {
     color: rgb(65, 196, 100);
 }
@@ -60,4 +61,44 @@
 }
 ::highlight(inlineCode){
     color: rgb(155, 141, 219);
+}
+`;
+
+const diffStyles = `
+::highlight(added) {
+    background-color: green;
+    color: white;
+}
+::highlight(removed) {
+    background-color: red;
+    color: white;
+}
+`;
+
+const searchStyles = `
+::highlight(target) {
+    background-color: green;
+    color: white;
+}
+`;
+
+function injectStylesOnce(key: string, css: string) {
+    const id = `dynamic-highlight-${key}`;
+    if (document.getElementById(id)) return;
+    const styleEl = document.createElement("style");
+    styleEl.id = id;
+    styleEl.textContent = css;
+    document.head.appendChild(styleEl);
+}
+
+export function injectWikiSourceHighlightStyles() {
+    injectStylesOnce("wikiSource", wikiSourceStyles);
+}
+
+export function injectDiffHighlightStyles() {
+    injectStylesOnce("diff", diffStyles);
+}
+
+export function injectSearchHighlightStyles() {
+    injectStylesOnce("search", searchStyles);
 }
