@@ -35,10 +35,7 @@ namespace FCloud3.Services.Wiki.Support
                     dir.TotalWikiCount = neighbors.Count;
                     dir.Wikis.AddRange(RandomSelect(neighbors, 6));
                 }
-                if (dir.Wikis.Count > 0)
-                {
-                    res.Dirs.Add(dir);
-                }
+                res.Dirs.Add(dir);
             }
             return res;
         }

@@ -411,7 +411,7 @@ onUnmounted(()=>{
             词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
         </div>
         <div v-show="recommendsAny">
-            <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关词条<div class="paraTitleSep"></div></h1>
+            <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关内容<div class="paraTitleSep"></div></h1>
             <Recommends v-if="recommendsLoaded" :path-name="wikiPathName" @has-content="x=>recommendsAny=x"></Recommends>
         </div>
         <h1 class="smaller-h1" :id="titleElementId(cmtTitleId)"><div class="paraTitleSep"></div>评论区<div class="paraTitleSep"></div></h1>
