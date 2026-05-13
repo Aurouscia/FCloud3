@@ -36,6 +36,11 @@
     - 在页面中使用 const api = injectApi() 获取上述的 api 对象，进行数据交互
     - 在页面中使用 const pop = injectPop() 获取“信息显示”组件的引用
         - pop.value.show("不能提交空评论", "failed"); "success"|"failed"|"warning"|"info"
+- 包管理器应该使用 pnpm@11，如果本地没有 pnpm 或版本不对，从 npmmirror.com 安装指定版本的 pnpm
+
+### 构建前端
+
+当用户要求构建前端，运行 `node FCloud3.AppFront\buildFront.mjs`
 
 ## 从 upstream 同步
 

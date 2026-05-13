@@ -1,7 +1,9 @@
 import { execSync } from 'child_process'
+import { resolve } from 'path'
 
-const pluginsDir = './FCloud3Plugins'
-const mainDir = './FCloud3Front'
+const baseDir = import.meta.dirname
+const pluginsDir = resolve(baseDir, 'FCloud3Plugins')
+const mainDir = resolve(baseDir, 'FCloud3Front')
 
 console.log('=========开始编译插件=========')
 execSync(`node buildPlugins.mjs`, { cwd: pluginsDir, stdio: 'inherit' })
