@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue';
 import { WikiRecommendModel } from '@/models/wikiParsing/wikiRecommend';
 import { injectApi } from '@/provides';
-import Loading from '@/components/Loading.vue';
 import { useFilesRoutesJump } from '../Files/routes/routesJump';
 import { useWikiParsingRoutesJump } from './routes/routesJump';
 
@@ -29,7 +28,7 @@ watch(model, (m) => {
 </script>
 
 <template>
-    <template v-if="model">
+    <template v-if="model && dirsWithWiki.length > 0 && dirsWithoutWiki.length > 0">
         <div v-if="dirsWithWiki.length > 0" class="recs">
             <div v-for="d in dirsWithWiki" :key="d.Id" class="dirBox">
                 <div class="dirTitle" @click="jumpToDirFromId(d.Id)">
@@ -60,7 +59,6 @@ watch(model, (m) => {
             </div>
         </div>
     </template>
-    <Loading v-else></Loading>
 </template>
 
 <style scoped lang="scss">
