@@ -33,7 +33,7 @@ import { IdentityInfo } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import LongPress from '@/components/LongPress.vue';
 import Footer from '@/components/Footer.vue';
-import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
+import { ImageClickJump, imgClickJumpExcludeClassName } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
@@ -145,8 +145,11 @@ function moveToTitle(titleId:number){
         }
     }, 20)
 }
+function sanitizeTitleForQuery(titleText:string):string{
+    return titleText.replace(/\+/g, ' ');
+}
 function copyTitleUrl(para:WikiParsingResultItem){
-    const titleText = htmlToText(para.Title || '');
+    const titleText = sanitizeTitleForQuery(htmlToText(para.Title || ''));
     if(!titleText){
         pop.value.show('无法获取标题文字','failed');
         return;
@@ -161,12 +164,13 @@ function copyTitleUrl(para:WikiParsingResultItem){
     pop.value.show('链接已复制','success');
 }
 function moveToTitleByText(titleText:string):boolean{
-    const para = data.value?.Paras.find(p => htmlToText(p.Title || '') === titleText);
+    const sanitizedTitle = sanitizeTitleForQuery(titleText);
+    const para = data.value?.Paras.find(p => sanitizeTitleForQuery(htmlToText(p.Title || '')) === sanitizedTitle);
     if(para){
         moveToTitle(para.TitleId);
         return true;
     }
-    if(titleText === '评论区'){
+    if(sanitizedTitle === '评论区'){
         moveToTitle(cmtTitleId);
         return true;
     }
@@ -378,12 +382,12 @@ async function init(changedPathName?:boolean){
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
     startLazyImgWatcher();
 
-    const titleQuery = route.query.title;
+    const titleQuery = route.query['title'];
     if(typeof titleQuery === 'string' && titleQuery){
         const success = moveToTitleByText(titleQuery);
         if(success){
             router.replace({
-                name: 'viewWiki',
+                name: route.name,
                 params: { wikiPathName: props.wikiPathName }
             });
         }
@@ -453,7 +457,9 @@ onUnmounted(()=>{
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
-                    <div class="editBtn" @click.stop="copyTitleUrl(p)">#</div>
+                    <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
+                        <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                    </div>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
