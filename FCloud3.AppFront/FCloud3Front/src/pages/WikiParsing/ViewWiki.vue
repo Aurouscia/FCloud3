@@ -8,6 +8,8 @@ import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { htmlToText } from '@/utils/wikiView/htmlToText'
+import { customScrollTo } from '@/utils/wikiView/customScrollTo'
+import { useLazyImgLoadWatcher } from '@/utils/wikiView/useLazyImgLoadWatcher'
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
@@ -96,23 +98,52 @@ function titleElementId(id:number):string|undefined{
 function getIdFromElementId(ele:HTMLElement):number{
     return parseInt(ele.id.substring(2));
 }
-function moveToTitle(titleId:number){
+function moveToTitleInternal(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
-    if(title){
-        let top = title.offsetTop
-        if(title.classList.contains(hiddenSubClassName)){
-            const ances = findNearestUnhiddenAnces(title)
-            if(ances){
-                pop.value.show(`请展开“${ances.text}”以查看内容`,'info')
-                top = (ances.ances as HTMLElement).offsetTop
-            }
+    if(!title) return {
+        needUnhiddenText: ''
+    };
+    let top = title.offsetTop
+    let needUnhiddenText = ''
+    if(title.classList.contains(hiddenSubClassName)){
+        const ances = findNearestUnhiddenAnces(title)
+        if(ances){
+            top = (ances.ances as HTMLElement).offsetTop
+            needUnhiddenText = ances.text;
         }
-        isActiveMoving = true;
-        wikiViewArea.value?.scrollTo({top:top - 10, behavior: 'smooth'})
-        window.setTimeout(()=>{
-            isActiveMoving = false;
-        }, 1000)
     }
+    if(wikiViewArea.value){
+        customScrollTo(wikiViewArea.value, top - 10);
+    }
+    return {
+        needUnhiddenText
+    }
+}
+let moveToTitleTimer = 0
+function moveToTitle(titleId:number){
+    window.clearInterval(moveToTitleTimer);
+    isActiveMoving = true;
+    let {
+        needUnhiddenText
+    } = moveToTitleInternal(titleId);
+    if(needUnhiddenText){
+        pop.value.show(`请展开"${needUnhiddenText}"以查看内容`, "info")
+    }
+    let waitCount = 0;
+    const waitInterval = 20
+    const waitCountMax = 1000 / waitInterval
+    moveToTitleTimer = window.setInterval(()=>{
+        waitCount++;
+        if(anyImgLoaded.value){
+            anyImgLoaded.value = false;
+            moveToTitleInternal(titleId);
+            waitCount = 0;
+        }
+        if(waitCount >= waitCountMax){
+            window.clearInterval(moveToTitleTimer);
+            isActiveMoving = false;
+        }
+    }, 20)
 }
 function copyTitleUrl(para:WikiParsingResultItem){
     const titleText = htmlToText(para.Title || '');
@@ -203,6 +234,7 @@ let wikiLinkClick:WikiLinkClick|undefined;
 let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = useTemplateRef('wikiViewArea')
+const { anyImgLoaded, startWatching: startLazyImgWatcher, stopWatching: stopLazyImgWatcher } = useLazyImgLoadWatcher(() => wikiViewArea.value);
 let titlesInContent:HTMLElement[] 
 const route = useRoute();
 const router = useRouter();
@@ -344,6 +376,7 @@ async function init(changedPathName?:boolean){
     stickyContainTableRestrict()
     subtitlesClean()
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
+    startLazyImgWatcher();
 
     const titleQuery = route.query.title;
     if(typeof titleQuery === 'string' && titleQuery){
@@ -362,6 +395,7 @@ onUnmounted(()=>{
     imgClickJump?.dispose();
     disposeFootNoteJump();
     swl?.stopListen();
+    stopLazyImgWatcher();
     recoverTitle();
 })
 </script>
