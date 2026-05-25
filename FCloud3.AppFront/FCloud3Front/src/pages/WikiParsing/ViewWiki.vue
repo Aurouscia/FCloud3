@@ -2,11 +2,12 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
-import { ParserTitleTreeNode, WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
+import { ParserTitleTreeNode, WikiParsingResult, WikiParsingResultItem } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
+import { htmlToText } from '@/utils/wikiView/htmlToText'
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
@@ -21,7 +22,7 @@ import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
 import { canDisplayAsImage, getFileType } from '@/utils/fileUtils';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 import { sleep } from '@/utils/sleep';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
@@ -41,6 +42,7 @@ import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
 import { useAllowCopy } from '@/utils/wikiView/allowCopy';
 import PolysemySelector from '@/components/Wiki/PolysemySelector.vue';
+import copy from 'copy-to-clipboard'
 
 const props = defineProps<{
     wikiPathName: string;
@@ -112,6 +114,33 @@ function moveToTitle(titleId:number){
         }, 1000)
     }
 }
+function copyTitleUrl(para:WikiParsingResultItem){
+    const titleText = htmlToText(para.Title || '');
+    if(!titleText){
+        pop.value.show('无法获取标题文字','failed');
+        return;
+    }
+    const resolved = router.resolve({
+        name: 'viewWiki',
+        params: { wikiPathName: props.wikiPathName },
+        query: { title: titleText }
+    });
+    const url = window.location.origin + resolved.href;
+    copy(url);
+    pop.value.show('链接已复制','success');
+}
+function moveToTitleByText(titleText:string):boolean{
+    const para = data.value?.Paras.find(p => htmlToText(p.Title || '') === titleText);
+    if(para){
+        moveToTitle(para.TitleId);
+        return true;
+    }
+    if(titleText === '评论区'){
+        moveToTitle(cmtTitleId);
+        return true;
+    }
+    return false;
+}
 
 
 let lastScrollTime = 0;
@@ -175,6 +204,7 @@ let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = useTemplateRef('wikiViewArea')
 let titlesInContent:HTMLElement[] 
+const route = useRoute();
 const router = useRouter();
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute } = useWikiRoutesJump();
@@ -314,6 +344,17 @@ async function init(changedPathName?:boolean){
     stickyContainTableRestrict()
     subtitlesClean()
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
+
+    const titleQuery = route.query.title;
+    if(typeof titleQuery === 'string' && titleQuery){
+        const success = moveToTitleByText(titleQuery);
+        if(success){
+            router.replace({
+                name: 'viewWiki',
+                params: { wikiPathName: props.wikiPathName }
+            });
+        }
+    }
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()
@@ -378,9 +419,10 @@ onUnmounted(()=>{
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
+                    <div class="editBtn" @click.stop="copyTitleUrl(p)">#</div>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
-                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
                 </div>
