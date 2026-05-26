@@ -28,7 +28,7 @@ watch(model, (m) => {
 </script>
 
 <template>
-    <template v-if="model && dirsWithWiki.length > 0 && dirsWithoutWiki.length > 0">
+    <template v-if="model && (dirsWithWiki.length > 0 || dirsWithoutWiki.length > 0)">
         <div v-if="dirsWithWiki.length > 0" class="recs">
             <div v-for="d in dirsWithWiki" :key="d.Id" class="dirBox">
                 <div class="dirTitle" @click="jumpToDirFromId(d.Id)">
