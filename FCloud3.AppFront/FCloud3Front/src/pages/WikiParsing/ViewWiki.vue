@@ -242,6 +242,13 @@ const { anyImgLoaded, startWatching: startLazyImgWatcher, stopWatching: stopLazy
 let titlesInContent:HTMLElement[] 
 const route = useRoute();
 const router = useRouter();
+watch(()=>route.query['title'],async(newVal, oldVal)=>{
+    if(typeof newVal === 'string' && newVal && data.value){
+        moveToTitleByText(newVal);
+    }else if((typeof oldVal === 'string' && oldVal) && !newVal && wikiViewArea.value){
+        customScrollTo(wikiViewArea.value, 0);
+    }
+})
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute } = useWikiRoutesJump();
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
