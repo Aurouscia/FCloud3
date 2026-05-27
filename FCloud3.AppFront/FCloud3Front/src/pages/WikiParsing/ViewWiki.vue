@@ -6,6 +6,7 @@ import { ParserTitleTreeNode, WikiParsingResult, WikiParsingResultItem } from '@
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
+import { SamePageTitleLinkClick } from '@/utils/wikiView/samePageTitleLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { htmlToText } from '@/utils/wikiView/htmlToText'
 import { customScrollTo } from '@/utils/wikiView/customScrollTo'
@@ -235,6 +236,7 @@ const api:Api = injectApi();
 const iden = injectIdentityInfoProvider();
 let clickFold:TitleClickFold|undefined;
 let wikiLinkClick:WikiLinkClick|undefined;
+let samePageTitleLinkClick:SamePageTitleLinkClick|undefined;
 let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = useTemplateRef('wikiViewArea')
@@ -375,6 +377,12 @@ async function init(changedPathName?:boolean){
     );
     wikiLinkClick.listen(wikiViewArea.value);
 
+    const currentPathWithoutQuery = window.location.href.split('?')[0];
+    samePageTitleLinkClick = new SamePageTitleLinkClick(
+        currentPathWithoutQuery,
+        (titleText) => moveToTitleByText(titleText)
+    );
+
     if(props.viewCmt){
         moveToTitle(cmtTitleId)
         router.replace(jumpToViewWikiRoute(props.wikiPathName)) // 去除路径中的viewCmt标记（确保其一次性）
@@ -387,6 +395,7 @@ async function init(changedPathName?:boolean){
     stickyContainTableRestrict()
     subtitlesClean()
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
+    samePageTitleLinkClick.listen(wikiViewArea.value);//开始监听“同页面跳转”
     startLazyImgWatcher();
 
     const titleQuery = route.query['title'];
