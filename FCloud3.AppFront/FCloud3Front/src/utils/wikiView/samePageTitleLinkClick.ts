@@ -37,6 +37,10 @@ export class SamePageTitleLinkClick {
     }
 }
 
+function stripProtocol(url: string): string {
+    return url.replace(/^[^:]+:\/\//, '');
+}
+
 function extractTitleFromHref(href: string, currentPathWithoutQuery: string): string | null {
     try {
         const url = new URL(href, window.location.origin);
@@ -44,7 +48,7 @@ function extractTitleFromHref(href: string, currentPathWithoutQuery: string): st
         console.log('[SamePageTitleLinkClick] href:', href);
         console.log('[SamePageTitleLinkClick] pathWithoutQuery:', pathWithoutQuery);
         console.log('[SamePageTitleLinkClick] currentPathWithoutQuery:', currentPathWithoutQuery);
-        if (pathWithoutQuery !== currentPathWithoutQuery) {
+        if (stripProtocol(pathWithoutQuery) !== stripProtocol(currentPathWithoutQuery)) {
             console.log('[SamePageTitleLinkClick] 路径不匹配，跳过');
             return null;
         }
