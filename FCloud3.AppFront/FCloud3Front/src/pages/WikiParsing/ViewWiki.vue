@@ -391,13 +391,7 @@ async function init(changedPathName?:boolean){
 
     const titleQuery = route.query['title'];
     if(typeof titleQuery === 'string' && titleQuery){
-        const success = moveToTitleByText(titleQuery);
-        if(success){
-            router.replace({
-                name: route.name,
-                params: { wikiPathName: props.wikiPathName }
-            });
-        }
+        moveToTitleByText(titleQuery);
     }
 }
 onUnmounted(()=>{
