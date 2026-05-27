@@ -45,24 +45,17 @@ function extractTitleFromHref(href: string, currentPathWithoutQuery: string): st
     try {
         const url = new URL(href, window.location.origin);
         const pathWithoutQuery = url.href.split('?')[0];
-        console.log('[SamePageTitleLinkClick] href:', href);
-        console.log('[SamePageTitleLinkClick] pathWithoutQuery:', pathWithoutQuery);
-        console.log('[SamePageTitleLinkClick] currentPathWithoutQuery:', currentPathWithoutQuery);
         if (stripProtocol(pathWithoutQuery) !== stripProtocol(currentPathWithoutQuery)) {
-            console.log('[SamePageTitleLinkClick] 路径不匹配，跳过');
             return null;
         }
         const queryString = url.href.includes('?') ? url.href.split('?')[1] : '';
         const params = new URLSearchParams(queryString);
         const title = params.get(titleQueryKey);
-        console.log('[SamePageTitleLinkClick] title:', title);
         if (!title) {
-            console.log('[SamePageTitleLinkClick] 无title参数，跳过');
             return null;
         }
         return title;
     } catch (err) {
-        console.log('[SamePageTitleLinkClick] URL解析失败:', err);
         return null;
     }
 }
