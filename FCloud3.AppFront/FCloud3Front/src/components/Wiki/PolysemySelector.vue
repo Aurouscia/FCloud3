@@ -4,7 +4,7 @@ import { WikiPolysemyItem } from '@/models/wikiParsing/wikiDisplayInfo';
 import { useWikiParsingRoutesJump } from '@/pages/WikiParsing/routes/routesJump';
 
 const props = defineProps<{
-    description: string;
+    description?: string|null;
     items: WikiPolysemyItem[];
 }>()
 
