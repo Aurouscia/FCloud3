@@ -244,10 +244,15 @@ const { anyImgLoaded, startWatching: startLazyImgWatcher, stopWatching: stopLazy
 let titlesInContent:HTMLElement[] 
 const route = useRoute();
 const router = useRouter();
+let suppressScrollToTopOnTitleQueryClear = false;
 watch(()=>route.query['title'],async(newVal, oldVal)=>{
     if(typeof newVal === 'string' && newVal && data.value){
         moveToTitleByText(newVal);
     }else if((typeof oldVal === 'string' && oldVal) && !newVal && wikiViewArea.value){
+        if(suppressScrollToTopOnTitleQueryClear){
+            suppressScrollToTopOnTitleQueryClear = false;
+            return;
+        }
         customScrollTo(wikiViewArea.value, 0);
     }
 })
@@ -401,6 +406,8 @@ async function init(changedPathName?:boolean){
     const titleQuery = route.query['title'];
     if(typeof titleQuery === 'string' && titleQuery){
         moveToTitleByText(titleQuery);
+        suppressScrollToTopOnTitleQueryClear = true;
+        router.replace(jumpToViewWikiRoute(props.wikiPathName));
     }
 }
 onUnmounted(()=>{
