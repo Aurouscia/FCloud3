@@ -856,13 +856,13 @@ export class Api{
                     return res.data as string[]
                 }
             },
-            index:async(q: IndexQuery,path: string[])=>{
+            index:async(q: IndexQuery,path?: string[])=>{
                 const res = await this.httpClient.request(
                     "/api/FileDir/Index",
                     "postRaw",
                     {
                         Query:q,
-                        Path:path
+                        Path:path || []
                     },
                 )
                 if(res.success){
