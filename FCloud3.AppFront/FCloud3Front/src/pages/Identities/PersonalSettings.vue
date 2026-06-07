@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref,Ref, useTemplateRef, watch } from 'vue';
 import Pop from '@/components/Pop.vue';
+import Notice from '@/components/Notice.vue';
 import {User, UserType} from '@/models/identities/user';
 import { Api } from '@/utils/com/api';
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
@@ -193,8 +194,11 @@ onMounted(async()=>{
             <button @click="exportAllWikis" class="wikiExportBtn">导出本站所有词条（仅限超管）</button>
         </div>
         <h1>导入词条</h1>
-        <div class="section">
+        <div class="section" v-if="isSuperAdmin">
             <button @click="jumpToWikiImport" class="wikiExportBtn">前往词条导入页面</button>
+        </div>
+        <div class="section" v-else>
+            <Notice type="info">导入请联系本站超级管理员</Notice>
         </div>
     </div>
 </template>

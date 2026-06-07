@@ -38,6 +38,7 @@ namespace FCloud3.App.Controllers.Etc.Split
             return File(memStream, Application.Octet);
         }
 
+        [UserTypeRestricted(UserType.SuperAdmin)]
         [RateLimited(60000, 5)]
         public IActionResult PreviewImport(IFormFile file)
         {
@@ -56,6 +57,7 @@ namespace FCloud3.App.Controllers.Etc.Split
             return this.ApiFailedResp(errmsg ?? "预览失败");
         }
 
+        [UserTypeRestricted(UserType.SuperAdmin)]
         [RateLimited(60000, 5)]
         public IActionResult CheckFileStatus([FromBody] List<string> urls)
         {
@@ -65,6 +67,7 @@ namespace FCloud3.App.Controllers.Etc.Split
             return this.ApiResp(results);
         }
 
+        [UserTypeRestricted(UserType.SuperAdmin)]
         [RateLimited(60000, 1)]
         public IActionResult ImportWikis(IFormFile file)
         {
