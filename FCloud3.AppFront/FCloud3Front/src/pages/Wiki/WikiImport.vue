@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { ImportPreview } from '@/models/etc/wikiImportExport';
 import { injectApi, injectPop } from '@/provides';
+import textParaIcon from '@/assets/paraTypes/textPara.svg';
+import fileParaIcon from '@/assets/paraTypes/filePara.svg';
+import tableParaIcon from '@/assets/paraTypes/tablePara.svg';
 
 const api = injectApi();
 const pop = injectPop();
@@ -67,6 +70,15 @@ function reset() {
     selectedFile.value = null;
     preview.value = null;
 }
+
+function paraTypeIcon(type: number): string {
+    const map: Record<number, string> = {
+        0: textParaIcon,
+        1: fileParaIcon,
+        2: tableParaIcon
+    };
+    return map[type] || '';
+}
 </script>
 
 <template>
@@ -101,7 +113,15 @@ function reset() {
                             <span v-if="wiki.HasConflict" class="conflictBadge">冲突</span>
                             <span v-else class="okBadge">正常</span>
                         </td>
-                        <td>{{ wiki.ParaTypes.join('、') }}</td>
+                        <td>
+                            <div class="paraTypesCell">
+                                <img v-for="t in wiki.ParaTypes" :key="t"
+                                    :src="paraTypeIcon(t)"
+                                    :title="t.toString()"
+                                    class="paraTypeIcon"
+                                    alt="" />
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -168,7 +188,7 @@ function reset() {
 .previewTable td {
     text-align: left;
 }
-.previewTable tr.conflict {
+.previewTable tr.conflict > td {
     background: #fff3cd;
 }
 .previewTable td:nth-child(4) {
@@ -204,6 +224,15 @@ function reset() {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.paraTypesCell {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.paraTypeIcon {
+    width: 20px;
+    height: 20px;
 }
 .importActions {
     margin-top: 24px;

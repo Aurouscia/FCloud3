@@ -481,7 +481,7 @@ namespace FCloud3.Services.Etc.Split
 
                 foreach (var para in wiki.Paras)
                 {
-                    wikiPreview.ParaTypes.Add(WikiParaTypes.Readable(para.ParaType));
+                    wikiPreview.ParaTypes.Add((byte)para.ParaType);
                     if (para.ParaType == WikiParaType.File && !string.IsNullOrWhiteSpace(para.Data))
                     {
                         string fileUrl;
@@ -571,7 +571,7 @@ namespace FCloud3.Services.Etc.Split
             public string? OriginalUrlPathName { get; set; }
             public string? ResolvedUrlPathName { get; set; }
             public bool HasConflict { get; set; }
-            public List<string> ParaTypes { get; set; } = [];
+            public List<byte> ParaTypes { get; set; } = [];
         }
 
         public class FilePreviewItem

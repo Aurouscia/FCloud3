@@ -30,7 +30,7 @@ export interface WikiPreviewItem {
     OriginalUrlPathName: string;
     ResolvedUrlPathName: string;
     HasConflict: boolean;
-    ParaTypes: string[];
+    ParaTypes: number[];
 }
 
 export interface FilePreviewItem {

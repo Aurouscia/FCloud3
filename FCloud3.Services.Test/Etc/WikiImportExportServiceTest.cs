@@ -173,7 +173,7 @@ namespace FCloud3.Services.Test.Etc
             Assert.AreEqual("test-wiki", wikiPreview.OriginalUrlPathName);
             Assert.AreEqual("test-wiki", wikiPreview.ResolvedUrlPathName);
             Assert.IsFalse(wikiPreview.HasConflict, "新词条不应有冲突");
-            CollectionAssert.AreEqual(new[] { "文本", "表格" }, wikiPreview.ParaTypes.ToArray());
+            CollectionAssert.AreEqual(new byte[] { 0, 2 }, wikiPreview.ParaTypes.ToArray());
 
             Assert.AreEqual(0, preview.Files.Count, "没有文件段落时应无文件");
         }
