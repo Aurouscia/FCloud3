@@ -8,6 +8,7 @@ import MyWikisOverall from "../MyWikisOverall.vue";
 import ViewParaRawContent from "../ViewParaRawContent.vue";
 import WikiSelectedList from "../WikiSelectedList.vue";
 import WikiOpRecord from "../WikiOpRecord.vue";
+import WikiImport from "../WikiImport.vue";
 
 export function addWiki(r:Router){
     addToRouter(r,routes);
@@ -59,5 +60,10 @@ const routes = [
         component:WikiOpRecord,
         props: true,
         name:'wikiOpRecord'
+    },
+    {
+        path:"/WikiImport",
+        component:WikiImport,
+        name:'wikiImport'
     }
 ]

@@ -11,6 +11,7 @@ import jsfd from 'js-file-download';
 import { timeReadable } from '@/utils/timeStamp';
 import { useNotifCountStore } from '@/utils/globalStores/notifCount';
 import { useRouter } from 'vue-router';
+import { useWikiRoutesJump } from '@/pages/Wiki/routes/routesJump';
 
 const user = ref<User>();
 var api:Api;
@@ -19,6 +20,7 @@ const identityInfoProvider = injectIdentityInfoProvider()
 const httpClient = injectHttp()
 const notifCountStore = useNotifCountStore()
 const router = useRouter()
+const { jumpToWikiImport } = useWikiRoutesJump()
 
 const props = defineProps<{
     user:User
@@ -119,30 +121,6 @@ async function exportAllWikis() {
     }
 }
 
-let importingWikiFile:File|null|undefined
-const wikiImportFileInput = useTemplateRef('wikiImportFileInput')
-function wikiImportFileInputChange(){
-    if(wikiImportFileInput.value?.files){
-        importingWikiFile = wikiImportFileInput.value.files[0];
-    }else{
-        importingWikiFile = undefined;
-    }
-}
-async function importWikis() {
-    if(!importingWikiFile){
-        pop.value.show('请先选择文件', 'failed');
-        return;
-    }
-    const resp = await api.split.wikiImportExport.importWikis(importingWikiFile);
-    if(resp){
-        pop.value.show(`成功导入${resp.ImportedCount}个词条`, 'success');
-        if(wikiImportFileInput.value){
-            wikiImportFileInput.value.value = '';
-        }
-        importingWikiFile = undefined;
-    }
-}
-
 const pwdRepeat = ref<string>();
 const isSuperAdmin = ref(false)
 const allowExportAll = import.meta.env.VITE_AllowExportAllWikis === 'true'
@@ -216,8 +194,7 @@ onMounted(async()=>{
         </div>
         <h1>导入词条</h1>
         <div class="section">
-            <input type="file" accept=".zip" ref="wikiImportFileInput" @change="wikiImportFileInputChange"/>
-            <button @click="importWikis" class="wikiImportBtn">导入词条压缩包</button>
+            <button @click="jumpToWikiImport" class="wikiExportBtn">前往词条导入页面</button>
         </div>
     </div>
 </template>
@@ -236,7 +213,7 @@ onMounted(async()=>{
         border: 2px solid #eee
     }
 }
-.wikiExportBtn, .wikiImportBtn{
+.wikiExportBtn{
     display: block;
     margin: auto;
 }

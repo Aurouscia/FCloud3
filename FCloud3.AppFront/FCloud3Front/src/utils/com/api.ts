@@ -33,6 +33,7 @@ import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { WikiTopBriefOfDirRequest, WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
+import { ImportPreview, FileStatusResult } from '@/models/etc/wikiImportExport';
 
 
 export class Api{
@@ -1376,6 +1377,28 @@ export class Api{
                 )
                 if(resp.success){
                     return resp.data as Blob
+                }
+            },
+            previewImport:async(file:File)=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/PreviewImport',
+                    'postForm',
+                    {file},
+                    undefined,
+                    true
+                )
+                if(resp.success){
+                    return resp.data as ImportPreview
+                }
+            },
+            checkFileStatus:async(urls:string[])=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/CheckFileStatus',
+                    'postRaw',
+                    urls
+                )
+                if(resp.success){
+                    return resp.data as FileStatusResult[]
                 }
             },
             importWikis:async(file:File)=>{

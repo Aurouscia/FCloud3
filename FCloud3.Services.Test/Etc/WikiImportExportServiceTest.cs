@@ -196,10 +196,10 @@ namespace FCloud3.Services.Test.Etc
             exportedWiki.Paras.Add(new WikiImportExportService.ExportedWiki.ExportedWikiPara(
                 "测试文件", null, WikiParaType.File, filePathName));
 
-            return CreateZipWithWiki(exportedWiki);
+            return CreateZipWithWiki(exportedWiki, "");
         }
 
-        private static MemoryStream CreateZipWithWiki(WikiImportExportService.ExportedWiki wiki)
+        private static MemoryStream CreateZipWithWiki(WikiImportExportService.ExportedWiki wiki, string? urlBase = null)
         {
             var memStream = new MemoryStream();
             using (var archive = new ZipArchive(memStream, ZipArchiveMode.Create, true))
@@ -208,10 +208,24 @@ namespace FCloud3.Services.Test.Etc
                 jsonSerializer.Formatting = Formatting.Indented;
 
                 var entry = archive.CreateEntry("词条/test.f3w.json");
-                using var stream = entry.Open();
-                using var writer = new StreamWriter(stream);
-                jsonSerializer.Serialize(writer, wiki);
-                writer.Flush();
+                using (var stream = entry.Open())
+                {
+                    using var writer = new StreamWriter(stream);
+                    jsonSerializer.Serialize(writer, wiki);
+                    writer.Flush();
+                }
+
+                if (urlBase is not null)
+                {
+                    var attachmentsEntry = archive.CreateEntry("词条附件.json");
+                    using (var attachmentsStream = attachmentsEntry.Open())
+                    {
+                        using var attachmentsWriter = new StreamWriter(attachmentsStream);
+                        var attachments = new WikiImportExportService.AttachmentsSummary(urlBase);
+                        jsonSerializer.Serialize(attachmentsWriter, attachments);
+                        attachmentsWriter.Flush();
+                    }
+                }
             }
             return memStream;
         }

@@ -23,7 +23,8 @@ namespace FCloud3.Services.Etc.Split
         WikiRefRepo wikiRefRepo,
         MaterialRepo materialRepo,
         DbTransactionService transaction,
-        IStorage storage)
+        IStorage storage,
+        IFileItemHash fileItemHash)
     {
         /// <summary>
         /// 导出当前用户的所有词条及其中引用的文件
@@ -211,7 +212,8 @@ namespace FCloud3.Services.Etc.Split
             }
 
             int successCount = 0;
-            var urlBase = storage.GetUrlBase();
+            var urlBase = attachments?.UrlBase ?? storage.GetUrlBase();
+            var urlBaseSlashEnded = string.IsNullOrEmpty(urlBase) || urlBase.EndsWith('/') ? urlBase : urlBase + "/";
 
             foreach (var wiki in importedWikis)
             {
@@ -292,38 +294,32 @@ namespace FCloud3.Services.Etc.Split
                                 string fileUrl;
                                 if (filePathName.StartsWith("http://") || filePathName.StartsWith("https://"))
                                     fileUrl = filePathName;
+                                else if (!string.IsNullOrEmpty(urlBaseSlashEnded))
+                                    fileUrl = urlBaseSlashEnded + filePathName;
                                 else
-                                    fileUrl = urlBase + filePathName;
+                                    fileUrl = filePathName;
 
                                 try
                                 {
                                     byte[] fileBytes;
-                                    // 如果 URL 指向本地存储，直接读取
-                                    if (fileUrl.StartsWith(urlBase))
-                                    {
-                                        var localStream = storage.Read(filePathName);
-                                        if (localStream is not null)
-                                        {
-                                            using var ms = new MemoryStream();
-                                            localStream.CopyTo(ms);
-                                            fileBytes = ms.ToArray();
-                                        }
-                                        else
-                                        {
-                                            // 本地存储中不存在，尝试 HTTP 下载
-                                            using var httpClient = new System.Net.Http.HttpClient();
-                                            fileBytes = httpClient.GetByteArrayAsync(fileUrl).GetAwaiter().GetResult();
-                                        }
-                                    }
-                                    else
+                                    if (fileUrl.StartsWith("http://") || fileUrl.StartsWith("https://"))
                                     {
                                         using var httpClient = new System.Net.Http.HttpClient();
                                         fileBytes = httpClient.GetByteArrayAsync(fileUrl).GetAwaiter().GetResult();
                                     }
+                                    else
+                                    {
+                                        var localStream = storage.Read(filePathName);
+                                        if (localStream is null)
+                                            throw new Exception("本地存储中找不到文件");
+                                        using var ms = new MemoryStream();
+                                        localStream.CopyTo(ms);
+                                        fileBytes = ms.ToArray();
+                                    }
                                     using var fileStream = new MemoryStream(fileBytes);
                                     var displayName = para.ObjName ?? Path.GetFileName(filePathName) ?? "imported_file";
                                     var storePath = "wikiFile";
-                                    var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(fileBytes));
+                                    var hash = fileItemHash.Hash(fileBytes);
 
                                     var existingFile = fileItemRepo.Existing
                                         .Where(x => x.Hash == hash)
@@ -398,6 +394,119 @@ namespace FCloud3.Services.Etc.Split
             return successCount;
         }
 
+        /// <summary>
+        /// 预览导入内容，不实际创建任何数据
+        /// </summary>
+        public ImportPreview? PreviewImport(Stream stream, out string? errmsg)
+        {
+            errmsg = null;
+            List<ExportedWiki> importedWikis = [];
+            AttachmentsSummary? attachments = null;
+
+            try
+            {
+                using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+                var jsonSerializer = JsonSerializer.CreateDefault();
+
+                foreach (var entry in archive.Entries)
+                {
+                    if (entry.FullName.StartsWith(wikiDirNameInZip + "/") && entry.FullName.EndsWith(".f3w.json"))
+                    {
+                        using var entryStream = entry.Open();
+                        using var reader = new StreamReader(entryStream);
+                        var wiki = jsonSerializer.Deserialize<ExportedWiki>(new JsonTextReader(reader));
+                        if (wiki is not null)
+                            importedWikis.Add(wiki);
+                    }
+                    else if (entry.FullName == "词条附件.json")
+                    {
+                        using var entryStream = entry.Open();
+                        using var reader = new StreamReader(entryStream);
+                        attachments = jsonSerializer.Deserialize<AttachmentsSummary>(new JsonTextReader(reader));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errmsg = $"解析压缩包失败：{ex.Message}";
+                return null;
+            }
+
+            if (importedWikis.Count == 0)
+            {
+                errmsg = "压缩包中未找到词条文件";
+                return null;
+            }
+
+            var preview = new ImportPreview
+            {
+                UrlBase = attachments?.UrlBase ?? storage.GetUrlBase()
+            };
+
+            foreach (var wiki in importedWikis)
+            {
+                string? title = wiki.Info.Title;
+                string? urlPathName = wiki.Info.UrlPathName;
+                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(urlPathName))
+                    continue;
+
+                string originalUrlPathName = urlPathName;
+                string resolvedUrlPathName = urlPathName;
+                bool hasConflict = wikiItemRepo.GetByUrlPathName(urlPathName).Any();
+
+                if (hasConflict)
+                {
+                    int suffix = 1;
+                    while (wikiItemRepo.GetByUrlPathName(resolvedUrlPathName).Any())
+                    {
+                        resolvedUrlPathName = $"{originalUrlPathName}_{suffix}";
+                        suffix++;
+                        if (resolvedUrlPathName.Length > WikiItem.urlPathNameMaxLength)
+                        {
+                            resolvedUrlPathName = resolvedUrlPathName[..WikiItem.urlPathNameMaxLength];
+                            break;
+                        }
+                    }
+                }
+
+                var wikiPreview = new WikiPreviewItem
+                {
+                    Title = title,
+                    OriginalUrlPathName = originalUrlPathName,
+                    ResolvedUrlPathName = resolvedUrlPathName,
+                    HasConflict = hasConflict
+                };
+
+                foreach (var para in wiki.Paras)
+                {
+                    wikiPreview.ParaTypes.Add(WikiParaTypes.Readable(para.ParaType));
+                    if (para.ParaType == WikiParaType.File && !string.IsNullOrWhiteSpace(para.Data))
+                    {
+                        string fileUrl;
+                        if (para.Data.StartsWith("http://") || para.Data.StartsWith("https://"))
+                        {
+                            fileUrl = para.Data;
+                        }
+                        else
+                        {
+                            var urlBase = preview.UrlBase ?? "";
+                            fileUrl = urlBase.EndsWith('/') ? urlBase + para.Data : urlBase + "/" + para.Data;
+                        }
+                        preview.Files.Add(new FilePreviewItem
+                        {
+                            DisplayName = para.ObjName ?? Path.GetFileName(para.Data) ?? "unknown",
+                            StorePathName = para.Data,
+                            FullUrl = fileUrl
+                        });
+                    }
+                }
+
+                preview.Wikis.Add(wikiPreview);
+            }
+
+            return preview;
+        }
+
         private readonly static string fileNameInvalidChars
             = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
         private readonly static string fileNameRegexInvalidPattern
@@ -442,6 +551,61 @@ namespace FCloud3.Services.Etc.Split
             public string UrlBase { get; } = urlBase;
             public HashSet<string> Materials { get; } = [];
             public HashSet<string> FileItems { get; } = [];
+        }
+
+        public class ImportPreview
+        {
+            public List<WikiPreviewItem> Wikis { get; set; } = [];
+            public List<FilePreviewItem> Files { get; set; } = [];
+            public string? UrlBase { get; set; }
+        }
+
+        public class WikiPreviewItem
+        {
+            public string? Title { get; set; }
+            public string? OriginalUrlPathName { get; set; }
+            public string? ResolvedUrlPathName { get; set; }
+            public bool HasConflict { get; set; }
+            public List<string> ParaTypes { get; set; } = [];
+        }
+
+        public class FilePreviewItem
+        {
+            public string? DisplayName { get; set; }
+            public string? StorePathName { get; set; }
+            public string? FullUrl { get; set; }
+        }
+
+        public List<FileStatusResult> CheckFileStatus(List<string> urls)
+        {
+            var results = new List<FileStatusResult>();
+            using var httpClient = new System.Net.Http.HttpClient();
+            foreach (var url in urls)
+            {
+                try
+                {
+                    var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Head, url);
+                    var resp = httpClient.SendAsync(request).GetAwaiter().GetResult();
+                    results.Add(new FileStatusResult
+                    {
+                        Url = url,
+                        Accessible = resp.IsSuccessStatusCode,
+                        Size = resp.Content.Headers.ContentLength
+                    });
+                }
+                catch
+                {
+                    results.Add(new FileStatusResult { Url = url, Accessible = false });
+                }
+            }
+            return results;
+        }
+
+        public class FileStatusResult
+        {
+            public string? Url { get; set; }
+            public bool Accessible { get; set; }
+            public long? Size { get; set; }
         }
     }
 }

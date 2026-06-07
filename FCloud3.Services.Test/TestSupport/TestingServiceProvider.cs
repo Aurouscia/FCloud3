@@ -44,6 +44,7 @@ namespace FCloud3.Services.Test.TestSupport
                 .CreateLogger();
             services.AddLogging(builder => builder.AddSerilog(logger));
             services.AddSingleton<ILocatorHash, FakeLocatorHash>();
+            services.AddSingleton<IFileItemHash, FakeFileItemHash>();
 
             services.AddSingleton<RestClient>();
             services.AddFCloudServices(config);

@@ -32,8 +32,11 @@ export function useWikiRoutesJump(){
     const jumpToWikiOpRecordRoute = (wikiId:number)=>{
         return {name:'wikiOpRecord', params:{wikiId}}
     }
+    const jumpToWikiImport = ()=>{
+        router.push({name:'wikiImport'})
+    }
     return {jumpToWikiEdit, jumpToWikiContentEdit, jumpToWikiLocations,
         jumpToWikiLocationsRoute, jumpToWikiContentSearch, jumpToMyWikisOverall,
-        jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute
+        jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute, jumpToWikiImport
     }
 }
