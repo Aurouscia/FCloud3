@@ -122,6 +122,33 @@ async function exportAllWikis() {
     }
 }
 
+const specifiedUrlPathNames = ref('')
+async function exportSpecifiedWikis() {
+    const names = specifiedUrlPathNames.value.trim()
+    if(!names){
+        pop.value.show('请输入要导出的词条路径名', 'warning')
+        return
+    }
+    const data = await api.split.wikiImportExport.exportMyWikis(names)
+    if(data){
+        const nameTrun = truncate(user.value?.Name||'', {length:10, omission:''})
+        jsfd(data, `${nameTrun}_指定词条_${timeReadable('ymdhm')}.zip`)
+        pop.value.show('获取成功，已下载', 'success')
+    }
+}
+async function exportAllSpecifiedWikis() {
+    const names = specifiedUrlPathNames.value.trim()
+    if(!names){
+        pop.value.show('请输入要导出的词条路径名', 'warning')
+        return
+    }
+    const data = await api.split.wikiImportExport.exportAllWikis(names)
+    if(data){
+        jsfd(data, `指定词条_${timeReadable('ymdhm')}.zip`)
+        pop.value.show('获取成功，已下载', 'success')
+    }
+}
+
 const pwdRepeat = ref<string>();
 const isSuperAdmin = ref(false)
 const allowExportAll = import.meta.env.VITE_AllowExportAllWikis === 'true'
@@ -193,6 +220,12 @@ onMounted(async()=>{
         <div class="section" v-if="isSuperAdmin && allowExportAll">
             <button @click="exportAllWikis" class="wikiExportBtn">导出本站所有词条（仅限超管）</button>
         </div>
+        <h1>导出指定词条</h1>
+        <div class="section specifiedExportSection">
+            <input v-model="specifiedUrlPathNames" class="wikiExportInput" placeholder="多个路径名用逗号分隔"/>
+            <button @click="exportSpecifiedWikis" class="wikiExportBtn">导出本账号指定词条</button>
+            <button v-if="isSuperAdmin && allowExportAll" @click="exportAllSpecifiedWikis" class="wikiExportBtn">导出本站指定词条</button>
+        </div>
         <h1>导入词条</h1>
         <div class="section" v-if="isSuperAdmin">
             <button @click="jumpToWikiImport" class="wikiExportBtn">前往词条导入页面</button>
@@ -220,6 +253,13 @@ onMounted(async()=>{
 .wikiExportBtn{
     display: block;
     margin: auto;
+}
+.wikiExportInput{
+    display: block;
+    margin: auto;
+}
+.specifiedExportSection .wikiExportBtn{
+    margin-top: 10px;
 }
 input, textarea{
     width: 180px;

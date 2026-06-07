@@ -33,18 +33,34 @@ namespace FCloud3.Services.Etc.Split
         /// </summary>
         /// <param name="memStream">zip写入的MemoryStream</param>
         /// <param name="uid">用户id，为0表示全部用户</param>
-        public void ExportMyWikis(MemoryStream memStream, int uid)
+        /// <param name="urlPathNames">指定要导出的词条路径名列表，为空则导出全部</param>
+        public void ExportMyWikis(MemoryStream memStream, int uid, List<string>? urlPathNames = null)
         {
-            List<WikiItem> myWikis;
+            var query = wikiItemRepo.Existing;
             if (uid > 0)
             {
-                myWikis = wikiItemRepo.Existing
-                    .Where(x => x.OwnerUserId == uid)
-                    .ToList();
+                query = query.Where(x => x.OwnerUserId == uid);
             }
-            else
+            if (urlPathNames is { Count: > 0 })
             {
-                myWikis = wikiItemRepo.Existing.ToList();
+                query = query.Where(x => urlPathNames.Contains(x.UrlPathName));
+            }
+            var myWikis = query.ToList();
+
+            if (urlPathNames is { Count: > 0 })
+            {
+                var foundNames = myWikis
+                    .Select(x => x.UrlPathName)
+                    .Where(x => x is not null)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var notFound = urlPathNames
+                    .Where(n => !foundNames.Contains(n))
+                    .ToList();
+                if (notFound.Count > 0)
+                {
+                    throw new InvalidOperationException(
+                        $"找不到以下词条：{string.Join(", ", notFound)}");
+                }
             }
             
             var allParas = wikiParaRepo.Existing

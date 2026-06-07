@@ -60,6 +60,170 @@ namespace FCloud3.Services.Test.Etc
         }
 
         [TestMethod]
+        public void ExportMyWikis_FilterByUrlPathNames()
+        {
+            // 创建3个词条，用户2拥有
+            var wikis = new[]
+            {
+                new WikiItem { Title = "词条A", UrlPathName = "wiki-a", OwnerUserId = 2 },
+                new WikiItem { Title = "词条B", UrlPathName = "wiki-b", OwnerUserId = 2 },
+                new WikiItem { Title = "词条C", UrlPathName = "wiki-c", OwnerUserId = 2 }
+            };
+            foreach (var w in wikis)
+            {
+                _wikiItemRepo.TryAddAndGetId(w, out _);
+            }
+            _ctx.ChangeTracker.Clear();
+
+            // 只导出 wiki-a 和 wiki-c
+            using var memStream = new MemoryStream();
+            _service.ExportMyWikis(memStream, 2, ["wiki-a", "wiki-c"]);
+            memStream.Position = 0;
+
+            using var archive = new ZipArchive(memStream, ZipArchiveMode.Read);
+            var jsonEntries = archive.Entries
+                .Where(e => e.FullName.EndsWith(".f3w.json"))
+                .ToList();
+
+            Assert.AreEqual(2, jsonEntries.Count, "应只导出2个指定词条");
+
+            var jsonSerializer = JsonSerializer.CreateDefault();
+            var titles = new List<string>();
+            foreach (var entry in jsonEntries)
+            {
+                using var stream = entry.Open();
+                using var reader = new StreamReader(stream);
+                var wiki = jsonSerializer.Deserialize<WikiImportExportService.ExportedWiki>(new JsonTextReader(reader));
+                titles.Add(wiki?.Info?.Title);
+            }
+
+            CollectionAssert.Contains(titles, "词条A");
+            CollectionAssert.Contains(titles, "词条C");
+            CollectionAssert.DoesNotContain(titles, "词条B");
+        }
+
+        [TestMethod]
+        public void ExportMyWikis_FilterByUrlPathNames_EmptyList_ExportsAll()
+        {
+            var wikis = new[]
+            {
+                new WikiItem { Title = "词条A", UrlPathName = "wiki-a", OwnerUserId = 2 },
+                new WikiItem { Title = "词条B", UrlPathName = "wiki-b", OwnerUserId = 2 }
+            };
+            foreach (var w in wikis)
+            {
+                _wikiItemRepo.TryAddAndGetId(w, out _);
+            }
+            _ctx.ChangeTracker.Clear();
+
+            // 传入空列表，应导出全部
+            using var memStream = new MemoryStream();
+            _service.ExportMyWikis(memStream, 2, []);
+            memStream.Position = 0;
+
+            using var archive = new ZipArchive(memStream, ZipArchiveMode.Read);
+            var jsonEntries = archive.Entries
+                .Where(e => e.FullName.EndsWith(".f3w.json"))
+                .ToList();
+
+            Assert.AreEqual(2, jsonEntries.Count, "空列表时应导出全部词条");
+        }
+
+        [TestMethod]
+        public void ExportAllWikis_FilterByUrlPathNames()
+        {
+            // 创建跨用户的词条
+            var wikis = new[]
+            {
+                new WikiItem { Title = "词条A", UrlPathName = "wiki-a", OwnerUserId = 2 },
+                new WikiItem { Title = "词条B", UrlPathName = "wiki-b", OwnerUserId = 3 },
+                new WikiItem { Title = "词条C", UrlPathName = "wiki-c", OwnerUserId = 4 }
+            };
+            foreach (var w in wikis)
+            {
+                _wikiItemRepo.TryAddAndGetId(w, out _);
+            }
+            _ctx.ChangeTracker.Clear();
+
+            // uid=0 表示全部用户，但只过滤 urlPathName
+            using var memStream = new MemoryStream();
+            _service.ExportMyWikis(memStream, 0, ["wiki-b"]);
+            memStream.Position = 0;
+
+            using var archive = new ZipArchive(memStream, ZipArchiveMode.Read);
+            var jsonEntries = archive.Entries
+                .Where(e => e.FullName.EndsWith(".f3w.json"))
+                .ToList();
+
+            Assert.AreEqual(1, jsonEntries.Count, "应只导出1个指定词条");
+
+            var jsonSerializer = JsonSerializer.CreateDefault();
+            using var stream = jsonEntries[0].Open();
+            using var reader = new StreamReader(stream);
+            var wiki = jsonSerializer.Deserialize<WikiImportExportService.ExportedWiki>(new JsonTextReader(reader));
+            Assert.AreEqual("词条B", wiki?.Info?.Title);
+        }
+
+        [TestMethod]
+        public void ExportMyWikis_FilterByUrlPathNames_NotFound_Throws()
+        {
+            var wikis = new[]
+            {
+                new WikiItem { Title = "词条A", UrlPathName = "wiki-a", OwnerUserId = 2 },
+                new WikiItem { Title = "词条B", UrlPathName = "wiki-b", OwnerUserId = 2 }
+            };
+            foreach (var w in wikis)
+            {
+                _wikiItemRepo.TryAddAndGetId(w, out _);
+            }
+            _ctx.ChangeTracker.Clear();
+
+            using var memStream = new MemoryStream();
+            InvalidOperationException? caughtEx = null;
+            try
+            {
+                _service.ExportMyWikis(memStream, 2, ["wiki-a", "not-exist", "wiki-c"]);
+            }
+            catch (InvalidOperationException ex)
+            {
+                caughtEx = ex;
+            }
+
+            Assert.IsNotNull(caughtEx, "应抛出 InvalidOperationException");
+            StringAssert.Contains(caughtEx.Message, "not-exist");
+            StringAssert.Contains(caughtEx.Message, "wiki-c");
+            StringAssert.DoesNotMatch(caughtEx.Message, new System.Text.RegularExpressions.Regex("wiki-a"));
+        }
+
+        [TestMethod]
+        public void ExportMyWikis_FilterByUrlPathNames_PartialNotFound_Throws()
+        {
+            var wikis = new[]
+            {
+                new WikiItem { Title = "词条A", UrlPathName = "wiki-a", OwnerUserId = 2 }
+            };
+            foreach (var w in wikis)
+            {
+                _wikiItemRepo.TryAddAndGetId(w, out _);
+            }
+            _ctx.ChangeTracker.Clear();
+
+            using var memStream = new MemoryStream();
+            InvalidOperationException? caughtEx = null;
+            try
+            {
+                _service.ExportMyWikis(memStream, 2, ["wiki-a", "missing"]);
+            }
+            catch (InvalidOperationException ex)
+            {
+                caughtEx = ex;
+            }
+
+            Assert.IsNotNull(caughtEx, "应抛出 InvalidOperationException");
+            StringAssert.Contains(caughtEx.Message, "missing");
+        }
+
+        [TestMethod]
         public void ImportWikis()
         {
             var exportedZip = CreateExportedZip();

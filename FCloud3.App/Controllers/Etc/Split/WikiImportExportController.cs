@@ -15,13 +15,21 @@ namespace FCloud3.App.Controllers.Etc.Split
         : Controller
     {
         [RateLimited(60000, 1)]
-        public IActionResult ExportMyWikis()
+        public IActionResult ExportMyWikis(string? urlPathNames)
         {
             var userId = userInfoService.Id;
             if(userId <= 0)
                 return BadRequest();
+            var names = ParseUrlPathNames(urlPathNames);
             var memStream = new MemoryStream();
-            wikiImportExportService.ExportMyWikis(memStream, userId);
+            try
+            {
+                wikiImportExportService.ExportMyWikis(memStream, userId, names);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return this.ApiFailedResp(ex.Message);
+            }
             memStream.Flush();
             memStream.Position = 0;
             return File(memStream, Application.Octet);
@@ -29,10 +37,18 @@ namespace FCloud3.App.Controllers.Etc.Split
         
         [UserTypeRestricted(UserType.SuperAdmin)]
         [RateLimited(60000, 1)]
-        public IActionResult ExportAllWikis()
+        public IActionResult ExportAllWikis(string? urlPathNames)
         {
+            var names = ParseUrlPathNames(urlPathNames);
             var memStream = new MemoryStream();
-            wikiImportExportService.ExportMyWikis(memStream, 0);
+            try
+            {
+                wikiImportExportService.ExportMyWikis(memStream, 0, names);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return this.ApiFailedResp(ex.Message);
+            }
             memStream.Flush();
             memStream.Position = 0;
             return File(memStream, Application.Octet);
@@ -84,6 +100,15 @@ namespace FCloud3.App.Controllers.Etc.Split
             if (count > 0)
                 return this.ApiResp(new { ImportedCount = count });
             return this.ApiFailedResp(errmsg ?? "导入失败");
+        }
+
+        private static List<string>? ParseUrlPathNames(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return null;
+            return input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
         }
     }
 }

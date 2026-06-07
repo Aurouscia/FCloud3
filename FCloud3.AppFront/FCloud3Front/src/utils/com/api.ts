@@ -1359,21 +1359,21 @@ export class Api{
     }
     split = {
         wikiImportExport:{
-            exportMyWikis:async()=>{
+            exportMyWikis:async(urlPathNames?:string)=>{
                 const resp = await this.httpClient.request(
                     '/api/WikiImportExport/ExportMyWikis',
                     'download',
-                    undefined,undefined,true
+                    {urlPathNames},undefined,true
                 )
                 if(resp.success){
                     return resp.data as Blob
                 }
             },
-            exportAllWikis:async()=>{
+            exportAllWikis:async(urlPathNames?:string)=>{
                 const resp = await this.httpClient.request(
                     '/api/WikiImportExport/ExportAllWikis',
                     'download',
-                    undefined,undefined,true
+                    {urlPathNames},undefined,true
                 )
                 if(resp.success){
                     return resp.data as Blob
