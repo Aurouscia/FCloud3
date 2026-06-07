@@ -36,6 +36,10 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing.Where(x => x.UrlPathName == urlPathName);
         }
+        public WikiItemCacheModel? GetByUrlPathNameFromCache(string urlPathName)
+        {
+            return CachedItemByPred(x => x.UrlPathName == urlPathName);
+        }
 
         public override int GetOwnerIdById(int id)
         {

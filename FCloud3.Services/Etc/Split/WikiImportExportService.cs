@@ -225,7 +225,7 @@ namespace FCloud3.Services.Etc.Split
                 // 如果路径名已存在，尝试添加后缀
                 string originalUrlPathName = urlPathName;
                 int suffix = 1;
-                while (wikiItemRepo.GetByUrlPathName(urlPathName).Any())
+                while (wikiItemRepo.GetByUrlPathNameFromCache(urlPathName) is not null)
                 {
                     urlPathName = $"{originalUrlPathName}_{suffix}";
                     suffix++;
@@ -438,9 +438,11 @@ namespace FCloud3.Services.Etc.Split
                 return null;
             }
 
+            var urlBase = attachments?.UrlBase ?? storage.GetUrlBase();
+            var urlBaseSlashEnded = string.IsNullOrEmpty(urlBase) || urlBase.EndsWith('/') ? urlBase : urlBase + "/";
             var preview = new ImportPreview
             {
-                UrlBase = attachments?.UrlBase ?? storage.GetUrlBase()
+                UrlBase = urlBase
             };
 
             foreach (var wiki in importedWikis)
@@ -452,12 +454,12 @@ namespace FCloud3.Services.Etc.Split
 
                 string originalUrlPathName = urlPathName;
                 string resolvedUrlPathName = urlPathName;
-                bool hasConflict = wikiItemRepo.GetByUrlPathName(urlPathName).Any();
+                bool hasConflict = wikiItemRepo.GetByUrlPathNameFromCache(urlPathName) is not null;
 
                 if (hasConflict)
                 {
                     int suffix = 1;
-                    while (wikiItemRepo.GetByUrlPathName(resolvedUrlPathName).Any())
+                    while (wikiItemRepo.GetByUrlPathNameFromCache(resolvedUrlPathName) is not null)
                     {
                         resolvedUrlPathName = $"{originalUrlPathName}_{suffix}";
                         suffix++;
@@ -487,10 +489,13 @@ namespace FCloud3.Services.Etc.Split
                         {
                             fileUrl = para.Data;
                         }
+                        else if (!string.IsNullOrEmpty(urlBaseSlashEnded))
+                        {
+                            fileUrl = urlBaseSlashEnded + para.Data;
+                        }
                         else
                         {
-                            var urlBase = preview.UrlBase ?? "";
-                            fileUrl = urlBase.EndsWith('/') ? urlBase + para.Data : urlBase + "/" + para.Data;
+                            fileUrl = para.Data;
                         }
                         preview.Files.Add(new FilePreviewItem
                         {

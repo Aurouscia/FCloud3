@@ -207,6 +207,7 @@ function reset() {
 }
 .importActions {
     margin-top: 24px;
+    margin-bottom: 100px;
     text-align: center;
 }
 </style>

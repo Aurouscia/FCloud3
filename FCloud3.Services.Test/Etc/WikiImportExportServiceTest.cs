@@ -1,7 +1,9 @@
 ﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Files;
 using FCloud3.Entities.Table;
 using FCloud3.Entities.TextSection;
 using FCloud3.Entities.Wiki;
+using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
 using FCloud3.Repos.Wiki;
@@ -22,6 +24,7 @@ namespace FCloud3.Services.Test.Etc
         private readonly WikiParaRepo _wikiParaRepo;
         private readonly TextSectionRepo _textSectionRepo;
         private readonly FreeTableRepo _freeTableRepo;
+        private readonly FileItemRepo _fileItemRepo;
         private readonly FakeStorage _fakeStorage;
 
         public WikiImportExportServiceTest()
@@ -32,8 +35,11 @@ namespace FCloud3.Services.Test.Etc
             _wikiParaRepo = provider.Get<WikiParaRepo>();
             _textSectionRepo = provider.Get<TextSectionRepo>();
             _freeTableRepo = provider.Get<FreeTableRepo>();
+            _fileItemRepo = provider.Get<FileItemRepo>();
             _fakeStorage = (FakeStorage)provider.Get<IStorage>();
             _ctx = provider.Get<FCloudContext>();
+
+            _wikiItemRepo.ClearCache();
         }
 
         [TestMethod]
@@ -150,6 +156,177 @@ namespace FCloud3.Services.Test.Etc
             Assert.IsNotNull(errmsg);
         }
 
+        [TestMethod]
+        public void PreviewImport()
+        {
+            var exportedZip = CreateExportedZip();
+            exportedZip.Position = 0;
+
+            var preview = _service.PreviewImport(exportedZip, out string? errmsg);
+
+            Assert.IsNotNull(preview, $"预览失败：{errmsg}");
+            Assert.IsNull(errmsg);
+            Assert.AreEqual(1, preview.Wikis.Count, "应包含1个词条预览");
+
+            var wikiPreview = preview.Wikis[0];
+            Assert.AreEqual("测试词条", wikiPreview.Title);
+            Assert.AreEqual("test-wiki", wikiPreview.OriginalUrlPathName);
+            Assert.AreEqual("test-wiki", wikiPreview.ResolvedUrlPathName);
+            Assert.IsFalse(wikiPreview.HasConflict, "新词条不应有冲突");
+            CollectionAssert.AreEqual(new[] { "文本", "表格" }, wikiPreview.ParaTypes.ToArray());
+
+            Assert.AreEqual(0, preview.Files.Count, "没有文件段落时应无文件");
+        }
+
+        [TestMethod]
+        public void PreviewImport_WithConflict()
+        {
+            // 先创建同名词条
+            _wikiItemRepo.TryAddAndGetId(new WikiItem
+            {
+                Title = "已有词条",
+                UrlPathName = "test-wiki"
+            }, out _);
+            _ctx.ChangeTracker.Clear();
+
+            var exportedZip = CreateExportedZip();
+            exportedZip.Position = 0;
+
+            var preview = _service.PreviewImport(exportedZip, out string? errmsg);
+
+            Assert.IsNotNull(preview, $"预览失败：{errmsg}");
+            Assert.IsNull(errmsg);
+            Assert.AreEqual(1, preview.Wikis.Count);
+
+            var wikiPreview = preview.Wikis[0];
+            Assert.IsTrue(wikiPreview.HasConflict, "应有冲突标记");
+            Assert.AreEqual("test-wiki", wikiPreview.OriginalUrlPathName);
+            Assert.AreEqual("test-wiki_1", wikiPreview.ResolvedUrlPathName, "冲突时应显示解析后的路径名");
+        }
+
+        [TestMethod]
+        public void PreviewImport_WithFile()
+        {
+            var exportedZip = CreateExportedZipWithFile("wikiFile/test.png");
+            exportedZip.Position = 0;
+
+            var preview = _service.PreviewImport(exportedZip, out string? errmsg);
+
+            Assert.IsNotNull(preview, $"预览失败：{errmsg}");
+            Assert.IsNull(errmsg);
+            Assert.AreEqual(1, preview.Wikis.Count);
+            Assert.AreEqual(1, preview.Files.Count, "应包含1个文件预览");
+
+            var filePreview = preview.Files[0];
+            Assert.AreEqual("测试文件", filePreview.DisplayName);
+            Assert.AreEqual("wikiFile/test.png", filePreview.StorePathName);
+            Assert.IsNotNull(filePreview.FullUrl);
+        }
+
+        [TestMethod]
+        public void PreviewImport_EmptyZip()
+        {
+            using var emptyZip = new MemoryStream();
+            using (var archive = new ZipArchive(emptyZip, ZipArchiveMode.Create, true))
+            {
+            }
+            emptyZip.Position = 0;
+
+            var preview = _service.PreviewImport(emptyZip, out string? errmsg);
+
+            Assert.IsNull(preview);
+            Assert.IsNotNull(errmsg);
+        }
+
+        [TestMethod]
+        public void ImportWikis_FileHash_Deduplication()
+        {
+            // 预置文件到 FakeStorage
+            var testFilePath = "wikiFile/test.png";
+            var testFileBytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A };
+            _fakeStorage.StoreForTest(testFilePath, testFileBytes);
+
+            // 先导入一次，创建 FileItem
+            var exportedZip1 = CreateExportedZipWithFile(testFilePath);
+            exportedZip1.Position = 0;
+            int count1 = _service.ImportWikis(exportedZip1, 2, out string? errmsg1);
+            Assert.IsTrue(count1 > 0, $"第一次导入失败：{errmsg1}");
+
+            var importedWiki1 = _wikiItemRepo.GetByUrlPathName("file-wiki").FirstOrDefault();
+            Assert.IsNotNull(importedWiki1);
+            var filePara1 = _wikiParaRepo.GetParasByWikiId(importedWiki1.Id)
+                .FirstOrDefault(p => p.Type == WikiParaType.File);
+            Assert.IsNotNull(filePara1);
+            var firstFileId = filePara1.ObjectId;
+            Assert.IsTrue(firstFileId > 0);
+
+            // 再导入一次相同文件，应该复用已有 FileItem
+            var exportedZip2 = CreateExportedZipWithFile(testFilePath, "file-wiki-2");
+            exportedZip2.Position = 0;
+            int count2 = _service.ImportWikis(exportedZip2, 2, out string? errmsg2);
+            Assert.IsTrue(count2 > 0, $"第二次导入失败：{errmsg2}");
+
+            var importedWiki2 = _wikiItemRepo.GetByUrlPathName("file-wiki-2").FirstOrDefault();
+            Assert.IsNotNull(importedWiki2);
+            var filePara2 = _wikiParaRepo.GetParasByWikiId(importedWiki2.Id)
+                .FirstOrDefault(p => p.Type == WikiParaType.File);
+            Assert.IsNotNull(filePara2);
+            var secondFileId = filePara2.ObjectId;
+
+            // Hash 相同，应该复用同一个 FileItem
+            Assert.AreEqual(firstFileId, secondFileId, "相同Hash的文件应复用已有FileItem");
+
+            // 数据库中应该只有一个 FileItem
+            var fileItems = _fileItemRepo.Existing.ToList();
+            Assert.AreEqual(1, fileItems.Count, "相同Hash不应创建重复FileItem");
+        }
+
+        [TestMethod]
+        public void ImportWikis_FileHash_DifferentHashCreatesNew()
+        {
+            // 预置两个不同内容的文件
+            var testFilePath1 = "wikiFile/test1.png";
+            var testFileBytes1 = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A };
+            _fakeStorage.StoreForTest(testFilePath1, testFileBytes1);
+
+            var testFilePath2 = "wikiFile/test2.png";
+            var testFileBytes2 = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0B };
+            _fakeStorage.StoreForTest(testFilePath2, testFileBytes2);
+
+            // 导入第一个文件
+            var exportedZip1 = CreateExportedZipWithFile(testFilePath1, "wiki-1");
+            exportedZip1.Position = 0;
+            int count1 = _service.ImportWikis(exportedZip1, 2, out string? errmsg1);
+            Assert.IsTrue(count1 > 0, $"第一次导入失败：{errmsg1}");
+
+            var importedWiki1 = _wikiItemRepo.GetByUrlPathName("wiki-1").FirstOrDefault();
+            Assert.IsNotNull(importedWiki1);
+            var filePara1 = _wikiParaRepo.GetParasByWikiId(importedWiki1.Id)
+                .FirstOrDefault(p => p.Type == WikiParaType.File);
+            Assert.IsNotNull(filePara1);
+            var firstFileId = filePara1.ObjectId;
+
+            // 导入第二个文件（不同内容）
+            var exportedZip2 = CreateExportedZipWithFile(testFilePath2, "wiki-2");
+            exportedZip2.Position = 0;
+            int count2 = _service.ImportWikis(exportedZip2, 2, out string? errmsg2);
+            Assert.IsTrue(count2 > 0, $"第二次导入失败：{errmsg2}");
+
+            var importedWiki2 = _wikiItemRepo.GetByUrlPathName("wiki-2").FirstOrDefault();
+            Assert.IsNotNull(importedWiki2);
+            var filePara2 = _wikiParaRepo.GetParasByWikiId(importedWiki2.Id)
+                .FirstOrDefault(p => p.Type == WikiParaType.File);
+            Assert.IsNotNull(filePara2);
+            var secondFileId = filePara2.ObjectId;
+
+            // Hash 不同，应该创建不同的 FileItem
+            Assert.AreNotEqual(firstFileId, secondFileId, "不同Hash的文件应创建新的FileItem");
+
+            // 数据库中应该有两个 FileItem
+            var fileItems = _fileItemRepo.Existing.ToList();
+            Assert.AreEqual(2, fileItems.Count, "不同Hash应创建独立的FileItem");
+        }
+
         private void SeedTestData()
         {
             var wiki = new WikiItem
@@ -184,12 +361,12 @@ namespace FCloud3.Services.Test.Etc
             return CreateZipWithWiki(exportedWiki);
         }
 
-        private MemoryStream CreateExportedZipWithFile(string filePathName)
+        private MemoryStream CreateExportedZipWithFile(string filePathName, string? urlPathName = null)
         {
             var exportedWiki = new WikiImportExportService.ExportedWiki(new WikiItem
             {
                 Title = "文件词条",
-                UrlPathName = "file-wiki",
+                UrlPathName = urlPathName ?? "file-wiki",
                 Description = null,
                 LastActive = DateTime.Now
             });
