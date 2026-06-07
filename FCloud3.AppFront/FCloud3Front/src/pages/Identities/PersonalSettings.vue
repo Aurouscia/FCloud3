@@ -119,6 +119,30 @@ async function exportAllWikis() {
     }
 }
 
+let importingWikiFile:File|null|undefined
+const wikiImportFileInput = useTemplateRef('wikiImportFileInput')
+function wikiImportFileInputChange(){
+    if(wikiImportFileInput.value?.files){
+        importingWikiFile = wikiImportFileInput.value.files[0];
+    }else{
+        importingWikiFile = undefined;
+    }
+}
+async function importWikis() {
+    if(!importingWikiFile){
+        pop.value.show('请先选择文件', 'failed');
+        return;
+    }
+    const resp = await api.split.wikiImportExport.importWikis(importingWikiFile);
+    if(resp){
+        pop.value.show(`成功导入${resp.ImportedCount}个词条`, 'success');
+        if(wikiImportFileInput.value){
+            wikiImportFileInput.value.value = '';
+        }
+        importingWikiFile = undefined;
+    }
+}
+
 const pwdRepeat = ref<string>();
 const isSuperAdmin = ref(false)
 const allowExportAll = import.meta.env.VITE_AllowExportAllWikis === 'true'
@@ -190,6 +214,11 @@ onMounted(async()=>{
         <div class="section" v-if="isSuperAdmin && allowExportAll">
             <button @click="exportAllWikis" class="wikiExportBtn">导出本站所有词条（仅限超管）</button>
         </div>
+        <h1>导入词条</h1>
+        <div class="section">
+            <input type="file" accept=".zip" ref="wikiImportFileInput" @change="wikiImportFileInputChange"/>
+            <button @click="importWikis" class="wikiImportBtn">导入词条压缩包</button>
+        </div>
     </div>
 </template>
 
@@ -207,7 +236,7 @@ onMounted(async()=>{
         border: 2px solid #eee
     }
 }
-.wikiExportBtn{
+.wikiExportBtn, .wikiImportBtn{
     display: block;
     margin: auto;
 }

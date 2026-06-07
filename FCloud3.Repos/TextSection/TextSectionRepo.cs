@@ -45,38 +45,31 @@ namespace FCloud3.Repos.TextSec
                 errmsg = "标题长度不能超过32";
                 return false;
             }
-            errmsg = null;
-            int changed = Existing.Where(s => s.Id == id)
-                .ExecuteUpdate(s => s
-                    .SetProperty(x => x.Title, newTitle)
-                    .SetProperty(x => x.Updated, DateTime.Now));
-            AfterDataChange();
-            if (changed == 1)
-                return true;
-            else
+            var target = GetById(id);
+            if (target is null)
             {
-                errmsg = "修改标题失败";
+                errmsg = "找不到指定文本段";
                 return false;
             }
+            target.Title = newTitle;
+            base.Update(target);
+            errmsg = null;
+            return true;
         }
 
         public bool TryChangeContent(int id, string newContent, string brief, out string? errmsg)
         {
-            errmsg = null;
-            int changed = Existing.Where(s => s.Id == id)
-                .ExecuteUpdate(s => s
-                    .SetProperty(x => x.Content, newContent)
-                    .SetProperty(x => x.ContentBrief, brief)
-                    .SetProperty(x => x.Updated, DateTime.Now));
-            AfterDataChange();
-
-            if (changed == 1)
-                return true;
-            else
+            var target = GetById(id);
+            if (target is null)
             {
-                errmsg = "修改内容失败";
+                errmsg = "找不到指定文本段";
                 return false;
             }
+            target.Content = newContent;
+            target.ContentBrief = brief;
+            base.Update(target);
+            errmsg = null;
+            return true;
         }
 
         public override TextSection? NewDefaultObject()

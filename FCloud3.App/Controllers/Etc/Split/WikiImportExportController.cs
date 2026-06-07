@@ -37,5 +37,23 @@ namespace FCloud3.App.Controllers.Etc.Split
             memStream.Position = 0;
             return File(memStream, Application.Octet);
         }
+
+        [RateLimited(60000, 1)]
+        public IActionResult ImportWikis(IFormFile file)
+        {
+            var userId = userInfoService.Id;
+            if (userId <= 0)
+                return BadRequest();
+            if (file is null || file.Length == 0)
+                return this.ApiFailedResp("请上传文件");
+            if (!file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                return this.ApiFailedResp("请上传zip格式的压缩包");
+
+            using var stream = file.OpenReadStream();
+            var count = wikiImportExportService.ImportWikis(stream, userId, out var errmsg);
+            if (count > 0)
+                return this.ApiResp(new { ImportedCount = count });
+            return this.ApiFailedResp(errmsg ?? "导入失败");
+        }
     }
 }

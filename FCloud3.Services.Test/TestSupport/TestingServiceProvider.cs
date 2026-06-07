@@ -36,7 +36,7 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddScoped<ICommitingUserIdProvider, StubUserIdProvider>(
                 userIdProviderCreate);
             services.AddSingleton<StubUserIdProvider>(stubUserIdProvider);
-            services.AddScoped<IStorage, FakeStorage>(
+            services.AddSingleton<IStorage, FakeStorage>(
                 _ => new FakeStorage());
             var logger = new LoggerConfiguration()
                 .WriteTo.Console()

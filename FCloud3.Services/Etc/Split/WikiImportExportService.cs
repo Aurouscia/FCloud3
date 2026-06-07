@@ -1,4 +1,8 @@
-﻿using FCloud3.Entities.Wiki;
+﻿using FCloud3.DbContexts;
+using FCloud3.Entities.Files;
+using FCloud3.Entities.Table;
+using FCloud3.Entities.TextSection;
+using FCloud3.Entities.Wiki;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Table;
 using FCloud3.Repos.TextSec;
@@ -18,6 +22,7 @@ namespace FCloud3.Services.Etc.Split
         FileItemRepo fileItemRepo,
         WikiRefRepo wikiRefRepo,
         MaterialRepo materialRepo,
+        DbTransactionService transaction,
         IStorage storage)
     {
         /// <summary>
@@ -157,6 +162,241 @@ namespace FCloud3.Services.Etc.Split
             archive.Dispose();
         }
 
+        /// <summary>
+        /// 导入词条压缩包
+        /// </summary>
+        /// <param name="stream">zip文件流</param>
+        /// <param name="uid">导入到的用户id</param>
+        /// <param name="errmsg">错误信息</param>
+        /// <returns>成功导入的词条数量</returns>
+        public int ImportWikis(Stream stream, int uid, out string? errmsg)
+        {
+            errmsg = null;
+            List<ExportedWiki> importedWikis = [];
+            AttachmentsSummary? attachments = null;
+
+            try
+            {
+                using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+                var jsonSerializer = JsonSerializer.CreateDefault();
+
+                foreach (var entry in archive.Entries)
+                {
+                    if (entry.FullName.StartsWith(wikiDirNameInZip + "/") && entry.FullName.EndsWith(".f3w.json"))
+                    {
+                        using var entryStream = entry.Open();
+                        using var reader = new StreamReader(entryStream);
+                        var wiki = jsonSerializer.Deserialize<ExportedWiki>(new JsonTextReader(reader));
+                        if (wiki is not null)
+                            importedWikis.Add(wiki);
+                    }
+                    else if (entry.FullName == "词条附件.json")
+                    {
+                        using var entryStream = entry.Open();
+                        using var reader = new StreamReader(entryStream);
+                        attachments = jsonSerializer.Deserialize<AttachmentsSummary>(new JsonTextReader(reader));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errmsg = $"解析压缩包失败：{ex.Message}";
+                return 0;
+            }
+
+            if (importedWikis.Count == 0)
+            {
+                errmsg = "压缩包中未找到词条文件";
+                return 0;
+            }
+
+            int successCount = 0;
+            var urlBase = storage.GetUrlBase();
+
+            foreach (var wiki in importedWikis)
+            {
+                string? title = wiki.Info.Title;
+                string? urlPathName = wiki.Info.UrlPathName;
+                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(urlPathName))
+                    continue;
+
+                // 如果路径名已存在，尝试添加后缀
+                string originalUrlPathName = urlPathName;
+                int suffix = 1;
+                while (wikiItemRepo.GetByUrlPathName(urlPathName).Any())
+                {
+                    urlPathName = $"{originalUrlPathName}_{suffix}";
+                    suffix++;
+                    if (urlPathName.Length > WikiItem.urlPathNameMaxLength)
+                    {
+                        urlPathName = urlPathName[..WikiItem.urlPathNameMaxLength];
+                        break;
+                    }
+                }
+
+                var newWiki = new WikiItem
+                {
+                    Title = title,
+                    UrlPathName = urlPathName,
+                    Description = wiki.Info.Description,
+                    LastActive = wiki.Info.LastActive
+                };
+
+                int createdWikiId = wikiItemRepo.TryAddAndGetId(newWiki, out var createErrmsg);
+                if (createdWikiId <= 0)
+                {
+                    errmsg = createErrmsg ?? "创建词条失败";
+                    continue;
+                }
+
+                string? paraErrmsg = null;
+                bool paraSuccess = transaction.DoTransaction(() =>
+                {
+                    int order = 0;
+                    foreach (var para in wiki.Paras)
+                    {
+                        int underlyingId = 0;
+                        if (para.ParaType == WikiParaType.Text)
+                        {
+                            underlyingId = textSectionRepo.AddDefaultAndGetId();
+                            if (underlyingId > 0)
+                            {
+                                var content = para.Data ?? "";
+                                var brief = content.Length >= 30
+                                    ? string.Concat(content.AsSpan(0, 27), "...")
+                                    : content;
+                                textSectionRepo.TryChangeContent(underlyingId, content, brief, out _);
+                                var title = para.ObjName ?? "";
+                                if (!string.IsNullOrEmpty(title))
+                                {
+                                    textSectionRepo.TryChangeTitle(underlyingId, title, out _);
+                                }
+                            }
+                        }
+                        else if (para.ParaType == WikiParaType.Table)
+                        {
+                            var tableData = FreeTableDataConvert.Deserialize(para.Data);
+                            underlyingId = freeTableRepo.TryCreateWithContent(tableData, para.ObjName ?? "", out var tableErrmsg);
+                            if (underlyingId <= 0)
+                            {
+                                paraErrmsg = tableErrmsg ?? "创建表格失败";
+                                return false;
+                            }
+                        }
+                        else if (para.ParaType == WikiParaType.File)
+                        {
+                            // 尝试从远程获取文件并保存
+                            var filePathName = para.Data;
+                            if (!string.IsNullOrWhiteSpace(filePathName))
+                            {
+                                string fileUrl;
+                                if (filePathName.StartsWith("http://") || filePathName.StartsWith("https://"))
+                                    fileUrl = filePathName;
+                                else
+                                    fileUrl = urlBase + filePathName;
+
+                                try
+                                {
+                                    byte[] fileBytes;
+                                    // 如果 URL 指向本地存储，直接读取
+                                    if (fileUrl.StartsWith(urlBase))
+                                    {
+                                        var localStream = storage.Read(filePathName);
+                                        if (localStream is not null)
+                                        {
+                                            using var ms = new MemoryStream();
+                                            localStream.CopyTo(ms);
+                                            fileBytes = ms.ToArray();
+                                        }
+                                        else
+                                        {
+                                            // 本地存储中不存在，尝试 HTTP 下载
+                                            using var httpClient = new System.Net.Http.HttpClient();
+                                            fileBytes = httpClient.GetByteArrayAsync(fileUrl).GetAwaiter().GetResult();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        using var httpClient = new System.Net.Http.HttpClient();
+                                        fileBytes = httpClient.GetByteArrayAsync(fileUrl).GetAwaiter().GetResult();
+                                    }
+                                    using var fileStream = new MemoryStream(fileBytes);
+                                    var displayName = para.ObjName ?? Path.GetFileName(filePathName) ?? "imported_file";
+                                    var storePath = "wikiFile";
+                                    var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(fileBytes));
+
+                                    var existingFile = fileItemRepo.Existing
+                                        .Where(x => x.Hash == hash)
+                                        .FirstOrDefault();
+                                    if (existingFile is not null)
+                                    {
+                                        underlyingId = existingFile.Id;
+                                    }
+                                    else
+                                    {
+                                        var newFile = new FileItem
+                                        {
+                                            DisplayName = displayName,
+                                            StorePathName = $"{storePath}/{Guid.NewGuid():N}{Path.GetExtension(displayName)}",
+                                            ByteCount = fileBytes.Length,
+                                            Hash = hash
+                                        };
+                                        if (storage.Save(fileStream, newFile.StorePathName, out var storageErrmsg))
+                                        {
+                                            underlyingId = fileItemRepo.TryAddAndGetId(newFile, out var fileErrmsg);
+                                            if (underlyingId <= 0)
+                                            {
+                                                paraErrmsg = fileErrmsg ?? "保存文件失败";
+                                                return false;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            paraErrmsg = storageErrmsg ?? "保存文件失败";
+                                            return false;
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    paraErrmsg = $"获取文件失败：{ex.Message}";
+                                    return false;
+                                }
+                            }
+                        }
+
+                        var wikiPara = new WikiPara
+                        {
+                            WikiItemId = createdWikiId,
+                            ObjectId = underlyingId,
+                            Type = para.ParaType,
+                            Order = order++,
+                            NameOverride = para.ParaName
+                        };
+                        wikiParaRepo.AddAndGetId(wikiPara);
+                    }
+                    return true;
+                });
+                if (paraErrmsg is not null)
+                    errmsg = paraErrmsg;
+
+                if (paraSuccess)
+                {
+                    wikiItemRepo.UpdateTimeAndLuAndWikiActive(createdWikiId, true);
+                    successCount++;
+                }
+                else
+                {
+                    // 如果段落创建失败，删除已创建的词条
+                    wikiItemRepo.TryRemove(newWiki, out _);
+                }
+            }
+
+            if (successCount == 0 && errmsg is null)
+                errmsg = "没有词条被成功导入";
+
+            return successCount;
+        }
 
         private readonly static string fileNameInvalidChars
             = Regex.Escape(new string(Path.GetInvalidFileNameChars()));

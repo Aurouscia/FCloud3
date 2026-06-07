@@ -1377,6 +1377,18 @@ export class Api{
                 if(resp.success){
                     return resp.data as Blob
                 }
+            },
+            importWikis:async(file:File)=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/ImportWikis',
+                    'postForm',
+                    {file},
+                    '导入成功',
+                    true
+                )
+                if(resp.success){
+                    return resp.data as {ImportedCount:number}
+                }
             }
         }
     }
