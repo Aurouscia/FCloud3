@@ -237,6 +237,7 @@ namespace FCloud3.Services.Test.Etc
             var importedWiki = _wikiItemRepo.GetByUrlPathName("test-wiki").FirstOrDefault();
             Assert.IsNotNull(importedWiki, "应能找到导入的词条");
             Assert.AreEqual("测试词条", importedWiki.Title);
+            Assert.AreEqual(2, importedWiki.OwnerUserId, "未指定targetUserId时所有者为操作者");
 
             var paras = _wikiParaRepo.GetParasByWikiId(importedWiki.Id).OrderBy(p => p.Order).ToList();
             Assert.AreEqual(2, paras.Count, "应包含2个段落");
@@ -255,6 +256,24 @@ namespace FCloud3.Services.Test.Etc
             var table = _freeTableRepo.GetById(tablePara.ObjectId);
             Assert.IsNotNull(table);
             Assert.AreEqual("表格名称", table.Name);
+        }
+
+        [TestMethod]
+        public void ImportWikis_WithTargetUserId()
+        {
+            var exportedZip = CreateExportedZip();
+            exportedZip.Position = 0;
+
+            int targetUserId = 99;
+            int count = _service.ImportWikis(exportedZip, 2, out string? errmsg, targetUserId);
+
+            Assert.IsTrue(count > 0, $"应成功导入词条，错误：{errmsg}");
+            Assert.IsNull(errmsg);
+
+            var importedWiki = _wikiItemRepo.GetByUrlPathName("test-wiki").FirstOrDefault();
+            Assert.IsNotNull(importedWiki, "应能找到导入的词条");
+            Assert.AreEqual("测试词条", importedWiki.Title);
+            Assert.AreEqual(targetUserId, importedWiki.OwnerUserId, "指定targetUserId时所有者应为指定用户");
         }
 
         [TestMethod]

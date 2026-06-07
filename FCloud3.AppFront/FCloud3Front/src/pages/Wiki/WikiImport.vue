@@ -5,6 +5,7 @@ import { injectApi, injectPop } from '@/provides';
 import textParaIcon from '@/assets/paraTypes/textPara.svg';
 import fileParaIcon from '@/assets/paraTypes/filePara.svg';
 import tableParaIcon from '@/assets/paraTypes/tablePara.svg';
+import Search from '@/components/Search.vue';
 
 const api = injectApi();
 const pop = injectPop();
@@ -12,6 +13,8 @@ const selectedFile = ref<File | null>(null);
 const preview = ref<ImportPreview | null>(null);
 const checkingFiles = ref(false);
 const importing = ref(false);
+const targetUserId = ref<number>(0);
+const targetUserName = ref('');
 
 async function onFileChange(e: Event) {
     const target = e.target as HTMLInputElement;
@@ -57,15 +60,25 @@ function formatBytes(bytes?: number): string {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
+function onTargetUserSelected(name: string, id: number) {
+    targetUserName.value = name;
+    targetUserId.value = id;
+}
+
 async function doImport() {
     if (!selectedFile.value) return;
     importing.value = true;
-    const resp = await api.split.wikiImportExport.importWikis(selectedFile.value);
+    const resp = await api.split.wikiImportExport.importWikis(
+        selectedFile.value,
+        targetUserId.value > 0 ? targetUserId.value : undefined
+    );
     importing.value = false;
     if (resp) {
         pop.value.show(`成功导入 ${resp.ImportedCount} 个词条`, 'success');
         preview.value = null;
         selectedFile.value = null;
+        targetUserId.value = 0;
+        targetUserName.value = '';
     }
 }
 
@@ -158,6 +171,17 @@ function paraTypeIcon(type: number): string {
             </div>
 
             <div class="importActions">
+                <div class="targetUserSelect">
+                    <label>导入给用户：</label>
+                    <Search
+                        :source="api.etc.quickSearch.userName"
+                        placeholder="搜索用户"
+                        :doneWhenClickCand="true"
+                        @done="onTargetUserSelected"
+                    />
+                    <span v-if="targetUserId > 0" class="targetUserName">{{ targetUserName }}</span>
+                    <span v-else class="targetUserName">不指定即为当前操作者</span>
+                </div>
                 <button @click="doImport" :disabled="importing" class="importBtn">
                     {{ importing ? '导入中...' : '确认导入' }}
                 </button>
@@ -239,5 +263,16 @@ function paraTypeIcon(type: number): string {
     margin-top: 24px;
     margin-bottom: 100px;
     text-align: center;
+}
+.targetUserSelect {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.targetUserName {
+    color: #666;
+    font-size: 13px;
 }
 </style>

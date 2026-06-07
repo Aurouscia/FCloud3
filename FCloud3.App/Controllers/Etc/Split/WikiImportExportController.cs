@@ -85,7 +85,7 @@ namespace FCloud3.App.Controllers.Etc.Split
 
         [UserTypeRestricted(UserType.SuperAdmin)]
         [RateLimited(60000, 1)]
-        public IActionResult ImportWikis(IFormFile file)
+        public IActionResult ImportWikis(IFormFile file, int? targetUserId)
         {
             var userId = userInfoService.Id;
             if (userId <= 0)
@@ -96,7 +96,7 @@ namespace FCloud3.App.Controllers.Etc.Split
                 return this.ApiFailedResp("请上传zip格式的压缩包");
 
             using var stream = file.OpenReadStream();
-            var count = wikiImportExportService.ImportWikis(stream, userId, out var errmsg);
+            var count = wikiImportExportService.ImportWikis(stream, userId, out var errmsg, targetUserId);
             if (count > 0)
                 return this.ApiResp(new { ImportedCount = count });
             return this.ApiFailedResp(errmsg ?? "导入失败");

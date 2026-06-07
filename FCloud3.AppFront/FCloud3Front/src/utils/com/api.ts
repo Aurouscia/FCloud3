@@ -1401,11 +1401,11 @@ export class Api{
                     return resp.data as FileStatusResult[]
                 }
             },
-            importWikis:async(file:File)=>{
+            importWikis:async(file:File, targetUserId?:number)=>{
                 const resp = await this.httpClient.request(
                     '/api/WikiImportExport/ImportWikis',
                     'postForm',
-                    {file},
+                    {file, targetUserId},
                     '导入成功',
                     true
                 )

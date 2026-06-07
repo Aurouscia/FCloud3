@@ -46,11 +46,11 @@ namespace FCloud3.Repos.Wiki
             return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         }
 
-        public int TryAddAndGetId(WikiItem item, out string? errmsg)
+        public int TryAddAndGetId(WikiItem item, out string? errmsg, int? overrideOwnerUserId = null)
         {
             if (!InfoCheck(item, false, out errmsg))
                 return 0;
-            item.OwnerUserId = _userIdProvider.Get();
+            item.OwnerUserId = overrideOwnerUserId ?? _userIdProvider.Get();
             var now = DateTime.Now;
             item.LastActive = now;
             base.Add(item, now);

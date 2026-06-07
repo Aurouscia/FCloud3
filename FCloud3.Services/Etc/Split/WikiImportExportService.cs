@@ -186,7 +186,7 @@ namespace FCloud3.Services.Etc.Split
         /// <param name="uid">导入到的用户id</param>
         /// <param name="errmsg">错误信息</param>
         /// <returns>成功导入的词条数量</returns>
-        public int ImportWikis(Stream stream, int uid, out string? errmsg)
+        public int ImportWikis(Stream stream, int uid, out string? errmsg, int? targetUserId = null)
         {
             errmsg = null;
             List<ExportedWiki> importedWikis = [];
@@ -260,7 +260,7 @@ namespace FCloud3.Services.Etc.Split
                     LastActive = wiki.Info.LastActive
                 };
 
-                int createdWikiId = wikiItemRepo.TryAddAndGetId(newWiki, out var createErrmsg);
+                int createdWikiId = wikiItemRepo.TryAddAndGetId(newWiki, out var createErrmsg, targetUserId);
                 if (createdWikiId <= 0)
                 {
                     errmsg = createErrmsg ?? "创建词条失败";
