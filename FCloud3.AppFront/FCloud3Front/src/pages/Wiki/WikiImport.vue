@@ -27,6 +27,9 @@ async function loadPreview() {
     const data = await api.split.wikiImportExport.previewImport(selectedFile.value);
     if (data) {
         preview.value = data;
+        if (data.Files.length > 0) {
+            await checkFileStatus();
+        }
     }
 }
 
@@ -129,9 +132,6 @@ function paraTypeIcon(type: number): string {
             <h2>引用文件（共 {{ preview.Files.length }} 个）</h2>
             <div v-if="preview.Files.length === 0" class="empty">无文件引用</div>
             <div v-else>
-                <button @click="checkFileStatus" :disabled="checkingFiles">
-                    {{ checkingFiles ? '检查中...' : '检查文件状态' }}
-                </button>
                 <table class="previewTable index">
                     <thead>
                         <tr>
@@ -146,7 +146,8 @@ function paraTypeIcon(type: number): string {
                             <td>{{ file.DisplayName }}</td>
                             <td class="pathCell">{{ file.StorePathName }}</td>
                             <td>
-                                <span v-if="file.Accessible === undefined">未检查</span>
+                                <span v-if="checkingFiles">检查中</span>
+                                <span v-else-if="file.Accessible === undefined">未检查</span>
                                 <span v-else-if="file.Accessible" class="okBadge">可访问</span>
                                 <span v-else class="errorBadge">不可访问</span>
                             </td>
