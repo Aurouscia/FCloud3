@@ -1,4 +1,5 @@
-﻿using FCloud3.Repos;
+﻿using FCloud3.DbContexts.DbSpecific;
+using FCloud3.Repos;
 using FCloud3.Repos.Etc;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Files.Storage.Abstractions;
@@ -22,7 +23,7 @@ namespace FCloud3.Services.Test.TestSupport
                 new Dictionary<string, string?>
                 {
                     ["Db:Type"] = "memory",
-                    ["TempData:ConnStr"] = "Data Source=:memory:",
+                    ["TempData:ConnStr"] = "Data Source=:memory:;Cache=Shared",
                     ["FileStorage:Type"] = "NoNeed"
                 }).Build();
             services.AddSingleton(config);
@@ -46,10 +47,23 @@ namespace FCloud3.Services.Test.TestSupport
             services.AddSingleton<ILocatorHash, FakeLocatorHash>();
             services.AddSingleton<IFileItemHash, FakeFileItemHash>();
 
+            var sharedConnection = new SqliteConnection("Filename=:memory:");
+            sharedConnection.Open();
+
+            services.AddSingleton(sharedConnection);
             services.AddSingleton<RestClient>();
             services.AddFCloudServices(config);
 
+            // 覆盖 AddTempDataContext 的注册，使用共享连接确保 in-memory 数据不丢失
+            services.AddDbContext<TempDataContext>((sp, opt) =>
+            {
+                opt.UseSqlite(sp.GetRequiredService<SqliteConnection>());
+            });
+
             _serviceProvider = services.BuildServiceProvider();
+
+            var tempDataContext = _serviceProvider.GetRequiredService<TempDataContext>();
+            tempDataContext.Database.EnsureCreated();
         }
         public T Get<T>()
         {
