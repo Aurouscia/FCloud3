@@ -9,7 +9,6 @@ import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { watchWindowWidth } from '@/utils/eventListeners/windowSizeWatcher';
 import SideBar from '@/components/SideBar.vue';
 import Loading from '@/components/Loading.vue';
-import HistoryCorruptedNotice from '@/components/HistoryCorruptedNotice.vue';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
 import { pullAllWith } from 'lodash-es'
 import { useIdentityInfoStore } from '@/utils/globalStores/identityInfo';
@@ -27,7 +26,6 @@ const props = defineProps<{
 
 
 const history = ref<DiffContentHistoryResult>()
-const corruptedNotice = useTemplateRef('corruptedNotice')
 const { iden } = useIdentityInfoStore()
 const { jumpToUserCenterRoute } = useIdentityRoutesJump()
 const mainDivDisplayStore = useMainDivDisplayStore()
@@ -133,12 +131,6 @@ onMounted(async()=>{
     window.addEventListener('keydown', arrowKeyHandler)
     disposeWidthWatch = watchWindowWidth(tooNarrowOrNot)
     tooNarrowOrNot(window.innerWidth)
-
-    const seenKey = 'historyCorruptedNoticeSeen';
-    if (!localStorage.getItem(seenKey)) {
-        corruptedNotice.value?.setShow(true);
-        localStorage.setItem(seenKey, '1');
-    }
 })
 onUnmounted(async()=>{
     mainDivDisplayStore.resetToDefault()
@@ -189,7 +181,6 @@ onUnmounted(async()=>{
         </div>
     </SideBar>
     <DiffContentDetail v-else :display="displaying"></DiffContentDetail>
-    <HistoryCorruptedNotice ref="corruptedNotice" />
 </div>
 </template>
 
