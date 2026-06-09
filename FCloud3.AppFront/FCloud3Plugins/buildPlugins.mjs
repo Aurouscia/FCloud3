@@ -14,9 +14,27 @@ function getPluginsEnabledDirs(directory) {
         });
 }
 
-function runNpmBuild(directory) {
+function runPnpmBuild(directory) {
     console.log(`=========正在编译: ${directory}=========`);
-    execSync('npm run build', { cwd: directory, stdio: 'inherit' })
+    execSync('pnpm build', { cwd: directory, stdio: 'inherit' })
+}
+
+const frontPluginsPath = '../FCloud3Front/public/plugins'
+
+function cleanOutputDir() {
+    const absPath = path.resolve(frontPluginsPath)
+    if(!fs.existsSync(absPath)){
+        return
+    }
+    const items = fs.readdirSync(absPath)
+    for(const item of items){
+        const itemPath = path.join(absPath, item)
+        const stat = fs.lstatSync(itemPath)
+        if(stat.isDirectory() && item !== 'runPlugin.js'){
+            fs.rmSync(itemPath, { recursive: true })
+            console.log(`已清理残留插件目录: ${item}`)
+        }
+    }
 }
 
 async function main() {
@@ -27,6 +45,9 @@ async function main() {
         console.log('没有启用的插件');
         return;
     }
+    
+    cleanOutputDir()
+
     console.log('=========开始安装依赖=========')
     execSync('pnpm install', { cwd: currentDir, stdio: 'inherit' })
 
@@ -34,7 +55,7 @@ async function main() {
     for (const subdir of pluginDirs) {
         const subdirPath = path.join(currentDir, subdir);
         try {
-            runNpmBuild(subdirPath);
+            runPnpmBuild(subdirPath);
         } catch (error) {
             console.error(`目录 ${subdirPath} 编译出错:`, error);
         }
