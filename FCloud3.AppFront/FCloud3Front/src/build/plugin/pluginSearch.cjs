@@ -20,16 +20,29 @@ module.exports = {
           if (itemStats.isDirectory()) {
             const dirContents = fs.readdirSync(itemPath)
             const entryFileName = dirContents.find(x=>x.endsWith('.entry.js'))
-            const triggerFileName = dirContents.find(x=>x==='trigger.txt')
-            if(entryFileName && triggerFileName){
+            const optionsFileName = dirContents.find(x=>x==='options.json')
+            if(entryFileName && optionsFileName){
               const name = item
               const entry = `/${pluginsDirName}/${item}/${entryFileName}`
-              const triggerPath = path.join(itemPath, triggerFileName)
-              const trigger = fs.readFileSync(triggerPath, 'utf-8')
+              const optionsPath = path.join(itemPath, optionsFileName)
+              const optionsContent = fs.readFileSync(optionsPath, 'utf-8')
+              let options
+              try{
+                options = JSON.parse(optionsContent)
+              }
+              catch{
+                console.warn(`插件[${item}]的options.json格式错误`)
+                return
+              }
+              const triggers = options.triggers
+              if(!Array.isArray(triggers) || triggers.length===0){
+                console.warn(`插件[${item}]的options.json缺少triggers数组`)
+                return
+              }
               const pluginObj = {
                 name,
                 entry,
-                trigger
+                triggers
               }
               found.push(pluginObj)
             }
