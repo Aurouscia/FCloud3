@@ -1,3 +1,4 @@
 {
-    "triggers": ["AuParaMover", "au-pm", "au-para-mover"]
+    "triggers": ["AuParaMover", "au-pm", "au-para-mover"],
+    "priority": 0
 }

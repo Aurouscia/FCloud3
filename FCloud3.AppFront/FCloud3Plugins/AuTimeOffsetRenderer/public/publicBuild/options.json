@@ -1,3 +1,4 @@
 {
-    "triggers": ["AuTimeOffset", "au-time-offset", "au-to"]
+    "triggers": ["AuTimeOffset", "au-time-offset", "au-to"],
+    "priority": 1
 }

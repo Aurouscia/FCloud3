@@ -39,10 +39,12 @@ module.exports = {
                 console.warn(`插件[${item}]的options.json缺少triggers数组`)
                 return
               }
+              const priority = typeof options.priority === 'number' ? options.priority : 0
               const pluginObj = {
                 name,
                 entry,
-                triggers
+                triggers,
+                priority
               }
               found.push(pluginObj)
             }

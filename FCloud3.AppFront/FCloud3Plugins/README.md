@@ -17,13 +17,15 @@
         - 文件名带哈希，避免客户端不更新
     - 插件的配置：json文件
         - **名称为 options.json**
-        - triggers属性为触发词数组，示例：
+        - `triggers`：触发词数组，词条内容包含任一触发词时插件才会被加载
+        - `priority`：优先级，数值越小运行顺序越靠前，默认为 0
+        - 示例：
             ```json
             {
-                "triggers": ["AuTimeOffset", "au-time-offset"]
+                "triggers": ["AuTimeOffset", "au-time-offset"],
+                "priority": 1
             }
             ```
-        - 仅在词条内容包含触发词时，插件才会被加载
 
 ## 许可证
 该目录内的子目录，若不另外带LICENSE文件，则默认为使用FCloud3项目的`Apache-2.0`  

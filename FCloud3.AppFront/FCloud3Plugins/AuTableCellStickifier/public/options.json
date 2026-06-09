@@ -1,3 +1,4 @@
 {
-    "triggers": ["AuTcs", "au-table-cell-stickifier", "au-tcs"]
+    "triggers": ["AuTcs", "au-table-cell-stickifier", "au-tcs"],
+    "priority": 1
 }

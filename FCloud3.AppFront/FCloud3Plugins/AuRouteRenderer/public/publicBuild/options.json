@@ -1,3 +1,4 @@
 {
-    "triggers": ["AuRtRd", "au-rr", "au-route-renderer"]
+    "triggers": ["AuRtRd", "au-rr", "au-route-renderer"],
+    "priority": 1
 }

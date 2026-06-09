@@ -1,3 +1,4 @@
 {
-    "triggers": ["AuParaLoader", "au-pl", "au-para-loader"]
+    "triggers": ["AuParaLoader", "au-pl", "au-para-loader"],
+    "priority": 0
 }
