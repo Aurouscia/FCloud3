@@ -1,0 +1,4 @@
+{
+    "triggers": ["AuTc", "au-table-config", "au-tc"],
+    "priority": 1
+}
