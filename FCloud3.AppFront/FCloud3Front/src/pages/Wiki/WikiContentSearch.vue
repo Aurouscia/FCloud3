@@ -2,6 +2,7 @@
 import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { injectApi } from '@/provides';
 import { isFireFox } from '@/utils/browserInfo';
+import { injectSearchHighlightStyles } from '@/utils/wikiSource/wikiSourceHighlightStyles';
 import { nextTick } from 'vue';
 import { ref } from 'vue';
 
@@ -38,6 +39,7 @@ async function search(){
         })
         const addedHighlight = new Highlight(...ranges);
         if(!isFireFox){
+            injectSearchHighlightStyles();
             CSS.highlights.clear()
             CSS.highlights.set('target', addedHighlight);
         }
@@ -80,11 +82,6 @@ const api = injectApi();
 </template>
 
 <style scoped lang="scss">
-::highlight(target) {
-  background-color: green;
-  color: white;
-}
-
 .hint{
     color: gray;
     font-size: 14px;

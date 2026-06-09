@@ -9,8 +9,8 @@
 
     .masterTitle{
         font-size: 180%;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        margin-top: 30px;
+        margin-bottom: 10px;
         text-align: center;
     }
 
@@ -55,7 +55,7 @@
             font-size:14px;
             color:#666;
             font-weight: normal;
-            margin-right: 10px;
+            margin: 0px 5px;
             white-space: nowrap;
             a{
                 color: inherit;
@@ -64,6 +64,16 @@
         .editBtn:hover{
             color:cornflowerblue;
             text-decoration: underline;
+        }
+        .linkIcon{
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        &.smaller-h1{
+            font-size: 125%;
+            margin-top: 40px;
         }
     }
 

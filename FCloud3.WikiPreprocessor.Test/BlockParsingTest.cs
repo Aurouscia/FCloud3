@@ -217,11 +217,11 @@ namespace FCloud3.WikiPreprocessor.Test
         {
             new object[] {
                 "AAA\n//BBB\nCCC",
-                "<p>AAA</p><p>CCC</p>"
+                "<p>AAA</p><!--BBB--><p>CCC</p>"
             },
             new object[] {
-                "AAA\n \t //BBB\nCCC",
-                "<p>AAA</p><p>CCC</p>"
+                "AAA\n \t // BBB\nCCC",
+                "<p>AAA</p><!--BBB--><p>CCC</p>"
             }
         };
 

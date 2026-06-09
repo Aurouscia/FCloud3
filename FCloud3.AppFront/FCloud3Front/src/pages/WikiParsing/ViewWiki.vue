@@ -2,11 +2,15 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import { injectApi, injectIdentityInfoProvider, injectPop, injectWikiViewScrollMemory } from '@/provides';
 import { Api, fileDownloadLink } from '@/utils/com/api';
-import { ParserTitleTreeNode, WikiParsingResult } from '@/models/wikiParsing/wikiParsingResult';
+import { ParserTitleTreeNode, WikiParsingResult, WikiParsingResultItem } from '@/models/wikiParsing/wikiParsingResult';
 import { WikiDisplayInfo, wikiDisplayInfoDefault } from '@/models/wikiParsing/wikiDisplayInfo';
 import { findNearestUnhiddenAnces, hiddenSubClassName, TitleClickFold } from '@/utils/wikiView/titleClickFold';
 import { WikiLinkClick } from '@/utils/wikiView/wikiLinkClick';
+import { SamePageTitleLinkClick } from '@/utils/wikiView/samePageTitleLinkClick';
 import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
+import { htmlToText } from '@/utils/wikiView/htmlToText'
+import { customScrollTo } from '@/utils/wikiView/customScrollTo'
+import { useLazyImgLoadWatcher } from '@/utils/wikiView/useLazyImgLoadWatcher'
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
@@ -21,7 +25,7 @@ import { useTableRoutesJump } from '../Table/routes/routesJump';
 import { useIdentityRoutesJump } from '@/pages/Identities/routes/routesJump';
 import { diffContentTypeFromParaType } from '@/models/diff/diffContentTypes';
 import { canDisplayAsImage, getFileType } from '@/utils/fileUtils';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { SwipeListener } from '@/utils/eventListeners/swipeListener';
 import { sleep } from '@/utils/sleep';
 import { recoverTitle, setTitleTo } from '@/utils/titleSetter';
@@ -30,7 +34,7 @@ import { IdentityInfo } from '@/utils/globalStores/identityInfo';
 import { UserType } from '@/models/identities/user';
 import LongPress from '@/components/LongPress.vue';
 import Footer from '@/components/Footer.vue';
-import { ImageClickJump } from '@/utils/wikiView/imgClickJump';
+import { ImageClickJump, imgClickJumpExcludeClassName } from '@/utils/wikiView/imgClickJump';
 import ImageFocusView from '@/components/ImageFocusView.vue';
 import { userDefaultAvatar } from '@/models/files/material';
 import { runPluginsByWiki } from '@/utils/plugins/runPluginsByWiki'
@@ -39,6 +43,9 @@ import { findLastIndex } from 'lodash-es';
 import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableRestrict';
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
+import { useAllowCopy } from '@/utils/wikiView/allowCopy';
+import PolysemySelector from '@/components/Wiki/PolysemySelector.vue';
+import copy from 'copy-to-clipboard'
 
 const props = defineProps<{
     wikiPathName: string;
@@ -92,29 +99,90 @@ function titleElementId(id:number):string|undefined{
 function getIdFromElementId(ele:HTMLElement):number{
     return parseInt(ele.id.substring(2));
 }
-function moveToTitle(titleId:number){
+function moveToTitleInternal(titleId:number){
     const title = document.getElementById(titleElementId(titleId)||"??");
-    if(title){
-        let top = title.offsetTop
-        if(title.classList.contains(hiddenSubClassName)){
-            const ances = findNearestUnhiddenAnces(title)
-            if(ances){
-                pop.value.show(`请展开“${ances.text}”以查看内容`,'info')
-                top = (ances.ances as HTMLElement).offsetTop
-            }
+    if(!title) return {
+        needUnhiddenText: ''
+    };
+    let top = title.offsetTop
+    let needUnhiddenText = ''
+    if(title.classList.contains(hiddenSubClassName)){
+        const ances = findNearestUnhiddenAnces(title)
+        if(ances){
+            top = (ances.ances as HTMLElement).offsetTop
+            needUnhiddenText = ances.text;
         }
-        isActiveMoving = true;
-        wikiViewArea.value?.scrollTo({top:top - 10, behavior: 'smooth'})
-        window.setTimeout(()=>{
-            isActiveMoving = false;
-        }, 1000)
     }
+    if(wikiViewArea.value){
+        customScrollTo(wikiViewArea.value, top - 10);
+    }
+    return {
+        needUnhiddenText
+    }
+}
+let moveToTitleTimer = 0
+function moveToTitle(titleId:number){
+    window.clearInterval(moveToTitleTimer);
+    isActiveMoving = true;
+    let {
+        needUnhiddenText
+    } = moveToTitleInternal(titleId);
+    if(needUnhiddenText){
+        pop.value.show(`请展开"${needUnhiddenText}"以查看内容`, "info")
+    }
+    let waitCount = 0;
+    const waitInterval = 20
+    const waitCountMax = 1000 / waitInterval
+    moveToTitleTimer = window.setInterval(()=>{
+        waitCount++;
+        if(anyImgLoaded.value){
+            anyImgLoaded.value = false;
+            moveToTitleInternal(titleId);
+            waitCount = 0;
+        }
+        if(waitCount >= waitCountMax){
+            window.clearInterval(moveToTitleTimer);
+            isActiveMoving = false;
+        }
+    }, 20)
+}
+function sanitizeTitleForQuery(titleText:string):string{
+    return titleText.replace(/\+/g, ' ');
+}
+function copyTitleUrl(para:WikiParsingResultItem){
+    const titleText = sanitizeTitleForQuery(htmlToText(para.Title || ''));
+    if(!titleText){
+        pop.value.show('无法获取标题文字','failed');
+        return;
+    }
+    const resolved = router.resolve({
+        name: 'viewWiki',
+        params: { wikiPathName: props.wikiPathName },
+        query: { title: titleText }
+    });
+    const url = window.location.origin + resolved.href;
+    copy(url);
+    pop.value.show('链接已复制','success');
+}
+function moveToTitleByText(titleText:string):boolean{
+    const sanitizedTitle = sanitizeTitleForQuery(titleText);
+    const para = data.value?.Paras.find(p => sanitizeTitleForQuery(htmlToText(p.Title || '')) === sanitizedTitle);
+    if(para){
+        moveToTitle(para.TitleId);
+        return true;
+    }
+    if(sanitizedTitle === '评论区'){
+        moveToTitle(cmtTitleId);
+        return true;
+    }
+    return false;
 }
 
 
 let lastScrollTime = 0;
 const commentsLoaded = ref(false);
 const recommendsLoaded = ref(false);
+const recommendsAny = ref(false)
 function viewAreaScrollHandler(enforce?:boolean){
     if(!enforce)
         if(Date.now() - lastScrollTime < 50){return;}
@@ -168,11 +236,26 @@ const api:Api = injectApi();
 const iden = injectIdentityInfoProvider();
 let clickFold:TitleClickFold|undefined;
 let wikiLinkClick:WikiLinkClick|undefined;
+let samePageTitleLinkClick:SamePageTitleLinkClick|undefined;
 let imgClickJump:ImageClickJump;
 const {listenFootNoteJump,disposeFootNoteJump,footNoteJumpCallBack} = useFootNoteJump();
 const wikiViewArea = useTemplateRef('wikiViewArea')
+const { anyImgLoaded, startWatching: startLazyImgWatcher, stopWatching: stopLazyImgWatcher } = useLazyImgLoadWatcher(() => wikiViewArea.value);
 let titlesInContent:HTMLElement[] 
+const route = useRoute();
 const router = useRouter();
+let suppressScrollToTopOnTitleQueryClear = false;
+watch(()=>route.query['title'],async(newVal, oldVal)=>{
+    if(typeof newVal === 'string' && newVal && data.value){
+        moveToTitleByText(newVal);
+    }else if((typeof oldVal === 'string' && oldVal) && !newVal && wikiViewArea.value){
+        if(suppressScrollToTopOnTitleQueryClear){
+            suppressScrollToTopOnTitleQueryClear = false;
+            return;
+        }
+        customScrollTo(wikiViewArea.value, 0);
+    }
+})
 const { jumpToDiffContentHistoryRoute, jumpToDiffContentHistoryForWikiRoute } = useDiffRoutesJump();
 const { jumpToWikiEdit, jumpToWikiContentEdit, jumpToViewParaRawContentRoute, jumpToWikiOpRecordRoute } = useWikiRoutesJump();
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
@@ -256,6 +339,8 @@ function toggleTimeViewMode(){
     timeViewMode.value = timeViewMode.value == 'create' ? 'update' : 'create'
 }
 
+const { allowCopyEachPara } = useAllowCopy(data)
+
 const focusImg = ref<string>();
 const focusImgDesc = ref<string>();
 const wikiViewScrollMemory = injectWikiViewScrollMemory()
@@ -297,6 +382,12 @@ async function init(changedPathName?:boolean){
     );
     wikiLinkClick.listen(wikiViewArea.value);
 
+    const currentPathWithoutQuery = window.location.href.split('?')[0];
+    samePageTitleLinkClick = new SamePageTitleLinkClick(
+        currentPathWithoutQuery,
+        (titleText) => moveToTitleByText(titleText)
+    );
+
     if(props.viewCmt){
         moveToTitle(cmtTitleId)
         router.replace(jumpToViewWikiRoute(props.wikiPathName)) // 去除路径中的viewCmt标记（确保其一次性）
@@ -305,10 +396,19 @@ async function init(changedPathName?:boolean){
         viewAreaScrollHandler(true)
     }
 
-    await runPluginsByWiki(data.value?.Paras.map(x=>x.Content))
+    await runPluginsByWiki(()=>wikiViewArea.value?.innerHTML)
     stickyContainTableRestrict()
     subtitlesClean()
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
+    samePageTitleLinkClick.listen(wikiViewArea.value);//开始监听“同页面跳转”
+    startLazyImgWatcher();
+
+    const titleQuery = route.query['title'];
+    if(typeof titleQuery === 'string' && titleQuery){
+        moveToTitleByText(titleQuery);
+        suppressScrollToTopOnTitleQueryClear = true;
+        router.replace(jumpToViewWikiRoute(props.wikiPathName));
+    }
 }
 onUnmounted(()=>{
     mainDivDisplayStore.resetToDefault()
@@ -316,6 +416,7 @@ onUnmounted(()=>{
     imgClickJump?.dispose();
     disposeFootNoteJump();
     swl?.stopListen();
+    stopLazyImgWatcher();
     recoverTitle();
 })
 </script>
@@ -323,12 +424,13 @@ onUnmounted(()=>{
 <template>
 <div class="wikiViewFrame">
     <div v-if="data && currentUser && displayInfo" class="wikiView"
-        :class="{noCopy:data.OwnerId !== currentUser.Id}" ref="wikiViewArea">
+        :class="{noCopy:data.OwnerId !== currentUser.Id && displayInfo.AllowCopy !== 1}" ref="wikiViewArea">
         <div class="invisible" v-html="styles"></div>
         <div class="invisible" ref="preScripts"></div>
         <div class="masterTitle">
             {{data.Title}}
         </div>
+        <PolysemySelector :description="displayInfo.Description" :items="displayInfo.PolysemyItems"></PolysemySelector>
         <div class="info" v-if="displayInfo">
             <div class="owner">
                 所有者<img :src="displayInfo.UserAvtSrc || userDefaultAvatar" :alt="displayInfo.UserName+' 头像'" class="smallAvatar"/>
@@ -364,7 +466,7 @@ onUnmounted(()=>{
             </div>
         </div>
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
-        <div v-for="p in data.Paras" class="para">
+        <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
                     <span v-html="p.Title" class="paraTitleText"></span>
@@ -372,9 +474,12 @@ onUnmounted(()=>{
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
                     </div>
+                    <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
+                        <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                    </div>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
-                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
                 <div class="indent" v-html="p.Content">
                 </div>
@@ -401,11 +506,14 @@ onUnmounted(()=>{
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
-        <div style="color:gray;text-align: center;margin-top: 20px;font-size: 14px;">
+        <div class="copyrightNotice">
             词条作者不另外说明的情况下保留所有权利，未经作者允许请勿转载、使用、改编
         </div>
-        <Recommends v-if="recommendsLoaded" :path-name="wikiPathName"></Recommends>
-        <h1 :id="titleElementId(cmtTitleId)">评论区<div class="paraTitleSep"></div></h1>
+        <div v-show="recommendsAny">
+            <h1 class="smaller-h1"><div class="paraTitleSep"></div>相关内容<div class="paraTitleSep"></div></h1>
+            <Recommends v-if="recommendsLoaded" :path-name="wikiPathName" @has-content="x=>recommendsAny=x"></Recommends>
+        </div>
+        <h1 class="smaller-h1" :id="titleElementId(cmtTitleId)"><div class="paraTitleSep"></div>评论区<div class="paraTitleSep"></div></h1>
         <div class="comments" :class="{commentsNotLoaded: !commentsLoaded}">
             <Comment v-if="commentsLoaded && data" :obj-id="data?.Id" :type="CommentTargetType.Wiki"></Comment>
             <div v-else style="text-align: center;color:gray">(请继续上滑加载评论区)</div>
@@ -511,6 +619,9 @@ onUnmounted(()=>{
 }
 .wikiView.noCopy .para{
     user-select: none;
+    &.allowCopy{
+        user-select: auto
+    }
 }
 .wikiView>*{
     max-width: 1100px;
@@ -522,6 +633,7 @@ onUnmounted(()=>{
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: 20px;
     .owner{
         font-size: 16px;
         color: #666;
@@ -616,8 +728,15 @@ onUnmounted(()=>{
     }
 }
 
+.copyrightNotice{
+    color:gray;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 40px;
+    font-size: 14px;
+}
 .comments{
-    margin-top: 30px;
+    margin-top: 10px;
     margin-bottom: 40px;
 }
 .commentsNotLoaded{

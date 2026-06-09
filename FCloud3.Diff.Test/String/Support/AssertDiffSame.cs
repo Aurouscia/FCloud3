@@ -12,7 +12,7 @@ namespace FCloud3.Diff.Test.String.Support
         }
         public static void SameList(List<StringDiff> expected, List<StringDiff> actual)
         {
-            Assert.AreEqual(expected.Count, actual.Count);
+            Assert.HasCount(expected.Count, actual);
             for(int i=0;i<expected.Count; i++)
             {
                 Same(expected[i], actual[i]);

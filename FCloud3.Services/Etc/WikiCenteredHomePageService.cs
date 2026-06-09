@@ -1,4 +1,5 @@
 using FCloud3.Entities.Identities;
+using FCloud3.Repos.Etc;
 using FCloud3.Repos.Files;
 using FCloud3.Repos.Identities;
 using FCloud3.Repos.Wiki;
@@ -33,7 +34,7 @@ namespace FCloud3.Services.Etc
             int sameOwnerMax = 2;
 
             var tops = (
-                from w in _wikiItemRepo.ExistingAndNotSealedAndEdited
+                from w in _wikiItemRepo.ExistingAndNotSealedAndEdited.HavingPara(_wikiItemRepo._ctx)
                 from dd in _fileDirRepo.Existing
                 from d in _fileDirRepo.Existing
                 from wd in _wikiToDirRepo.Existing
@@ -62,6 +63,7 @@ namespace FCloud3.Services.Etc
 
             int latestTakeCount = latestCount * 4;
             var latestWikisRaw = _wikiItemRepo.ExistingAndNotSealedAndEdited
+                .HavingPara(_wikiItemRepo._ctx)
                 .OrderByDescending(x => x.LastActive)
                 .Take(latestTakeCount).ToList()
                 .ConvertAll(x => new WikiInfoRaw(
@@ -78,6 +80,7 @@ namespace FCloud3.Services.Etc
             latestWikisRaw = latestWikisRaw.Except(removing).Take(latestCount).ToList();
 
             var randFromWikiIds = _wikiItemRepo.ExistingAndNotSealed
+                .HavingPara(_wikiItemRepo._ctx)
                 .OrderByDescending(x => x.LastActive)
                 .Select(x => x.Id)
                 .Take(randRange).ToList();
@@ -94,7 +97,7 @@ namespace FCloud3.Services.Etc
             {
                 //如果当前是登录用户，那么找出包含其拥有词条最多的顶级文件夹，并插入到第一个位置
                 var containingMine = (
-                    from w in _wikiItemRepo.ExistingAndNotSealed.Where(x => x.OwnerUserId == uid)
+                    from w in _wikiItemRepo.ExistingAndNotSealed.Where(x => x.OwnerUserId == uid).HavingPara(_wikiItemRepo._ctx)
                     from dd in _fileDirRepo.Existing
                     from d in _fileDirRepo.Existing
                     from wd in _wikiToDirRepo.Existing

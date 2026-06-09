@@ -210,7 +210,12 @@ namespace FCloud3.WikiPreprocessor.Rules
             => other is LineCommentRule;
 
         public override string GetPureContentOf(string line)
-            => string.Empty;
+        {
+            var prefixIdx = line.IndexOf(lineCommentPrefix);
+            if (prefixIdx == -1) return string.Empty;
+            var res = line[(prefixIdx + lineCommentPrefix.Length)..];
+            return res.Trim();
+        }
 
         public override bool LineMatched(string line)
         {
@@ -233,7 +238,8 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override IHtmlable MakeBlockFromLines(
             IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
-            return new EmptyElement();
+            var texts = lines.Select(x => new TextElement($"<!--{x.Text}-->"));
+            return new ElementCollection(texts);
         }
     }
 

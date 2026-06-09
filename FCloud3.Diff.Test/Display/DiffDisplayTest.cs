@@ -86,19 +86,19 @@ namespace FCloud3.Diff.Test.Display
 
         private static void AssertDiffDisplays(List<DiffDisplayFrag> expected, List<DiffDisplayFrag> actual)
         {
-            Assert.AreEqual(expected.Count, actual.Count);
+            Assert.HasCount(expected.Count, actual);
             for(int i = 0; i < expected.Count; i++)
             {
                 var ai = actual[i];
                 var ei = expected[i];
                 Assert.AreEqual(ei.Text, ai.Text);
-                Assert.AreEqual(ei.High.Count, ai.High.Count);
+                Assert.HasCount(ei.High.Count, ai.High);
                 for(int j = 0; j < ai.High.Count; j++)
                 {
                     var ah = ai.High[j];
                     var eh = ei.High[j];
-                    Assert.AreEqual(eh.Length, 2);
-                    Assert.AreEqual(ah.Length, 2);
+                    Assert.HasCount(2, eh);
+                    Assert.HasCount(2, ah);
                     Assert.AreEqual(eh[0], ah[0]);
                     Assert.AreEqual(eh[1], ah[1]);
                 }

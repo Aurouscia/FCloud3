@@ -33,6 +33,7 @@ import { WikiContentSearchResult } from '@/models/etc/wikiContentSearchResult';
 import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { WikiTopBriefOfDirRequest, WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
+import { ImportPreview, FileStatusResult } from '@/models/etc/wikiImportExport';
 
 
 export class Api{
@@ -856,13 +857,13 @@ export class Api{
                     return res.data as string[]
                 }
             },
-            index:async(q: IndexQuery,path: string[])=>{
+            index:async(q: IndexQuery,path?: string[])=>{
                 const res = await this.httpClient.request(
                     "/api/FileDir/Index",
                     "postRaw",
                     {
                         Query:q,
-                        Path:path
+                        Path:path || []
                     },
                 )
                 if(res.success){
@@ -1358,24 +1359,58 @@ export class Api{
     }
     split = {
         wikiImportExport:{
-            exportMyWikis:async()=>{
+            exportMyWikis:async(urlPathNames?:string)=>{
                 const resp = await this.httpClient.request(
                     '/api/WikiImportExport/ExportMyWikis',
                     'download',
-                    undefined,undefined,true
+                    {urlPathNames},undefined,true
                 )
                 if(resp.success){
                     return resp.data as Blob
                 }
             },
-            exportAllWikis:async()=>{
+            exportAllWikis:async(urlPathNames?:string)=>{
                 const resp = await this.httpClient.request(
                     '/api/WikiImportExport/ExportAllWikis',
                     'download',
-                    undefined,undefined,true
+                    {urlPathNames},undefined,true
                 )
                 if(resp.success){
                     return resp.data as Blob
+                }
+            },
+            previewImport:async(file:File)=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/PreviewImport',
+                    'postForm',
+                    {file},
+                    undefined,
+                    true
+                )
+                if(resp.success){
+                    return resp.data as ImportPreview
+                }
+            },
+            checkFileStatus:async(urls:string[])=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/CheckFileStatus',
+                    'postRaw',
+                    urls
+                )
+                if(resp.success){
+                    return resp.data as FileStatusResult[]
+                }
+            },
+            importWikis:async(file:File, targetUserId?:number)=>{
+                const resp = await this.httpClient.request(
+                    '/api/WikiImportExport/ImportWikis',
+                    'postForm',
+                    {file, targetUserId},
+                    '导入成功',
+                    true
+                )
+                if(resp.success){
+                    return resp.data as {ImportedCount:number}
                 }
             }
         }

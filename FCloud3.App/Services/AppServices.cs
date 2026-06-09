@@ -36,6 +36,7 @@ namespace FCloud3.App.Services
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
+            services.AddSingleton<IFileItemHash, FileItemHash>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
             services.AddSingleton<RestClient>(sp =>
             {

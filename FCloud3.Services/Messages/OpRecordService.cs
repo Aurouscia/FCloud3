@@ -7,8 +7,7 @@ namespace FCloud3.Services.Messages
 {
     public class OpRecordService(
         OpRecordRepo opRecordRepo,
-        UserRepo userRepo,
-        WikiParaRepo wikiParaRepo)
+        UserRepo userRepo)
     {
 
         public List<OpRecordViewModel> Get(int skip, int user = -1)

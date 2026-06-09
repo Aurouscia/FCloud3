@@ -27,17 +27,17 @@ namespace FCloud3.Diff.Test.Display
 
         private static void AssertCutSpanList(List<CutSpan> a, List<CutSpan> b)
         {
-            Assert.AreEqual(a.Count, b.Count);
+            Assert.HasCount(a.Count, b);
             for (int i = 0; i < a.Count; i++) 
             {
                 var ai = a[i];
                 var bi = b[i];
                 Assert.AreEqual(ai.Index, bi.Index);
                 Assert.AreEqual(ai.End, bi.End);
-                Assert.AreEqual(ai.Highlights.Count, bi.Highlights.Count);
+                Assert.HasCount(ai.Highlights.Count, bi.Highlights);
                 for(int j = 0; j < bi.Highlights.Count; j++)
                 {
-                    Assert.AreEqual(ai.Highlights[j].Length, bi.Highlights[j].Length);
+                    Assert.HasCount(ai.Highlights[j].Length, bi.Highlights[j]);
                     Assert.AreEqual(ai.Highlights[j][0], bi.Highlights[j][0]);
                     Assert.AreEqual(ai.Highlights[j][1], bi.Highlights[j][1]);
                 }

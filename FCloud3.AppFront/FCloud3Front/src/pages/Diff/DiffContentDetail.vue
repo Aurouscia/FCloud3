@@ -3,6 +3,7 @@ import { nextTick, onMounted, onUnmounted, useTemplateRef, watch } from 'vue';
 import { DiffContentStepDisplay } from '@/models/diff/diffContentDetails';
 import { TimedLock } from '@/utils/timeStamp';
 import { isFireFox } from '@/utils/browserInfo';
+import { injectDiffHighlightStyles } from '@/utils/wikiSource/wikiSourceHighlightStyles';
 
 const props = defineProps<{
     display:DiffContentStepDisplay|undefined
@@ -59,6 +60,7 @@ async function refreshDisplay(){
     const addedHighlight = new Highlight(...addedRanges);
     const removedHighlight = new Highlight(...removedRanges);
     if(!isFireFox){
+        injectDiffHighlightStyles();
         CSS.highlights.clear()
         CSS.highlights.set('added', addedHighlight);
         CSS.highlights.set('removed', removedHighlight);
@@ -181,14 +183,5 @@ onUnmounted(()=>{
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-::highlight(added) {
-  background-color: green;
-  color: white;
-}
-::highlight(removed) {
-  background-color: red;
-  color: white;
 }
 </style>

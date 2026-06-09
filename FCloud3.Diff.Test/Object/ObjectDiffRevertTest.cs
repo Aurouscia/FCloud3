@@ -24,7 +24,7 @@ namespace FCloud3.Diff.Test.Object
             var mutated = Data.DeepCloned();
             mutated.B = "HelloWorld";
             var diffs = ObjectDiffSearch.Run(Data, mutated);
-            Assert.AreEqual(1,diffs.Count);
+            Assert.HasCount(1, diffs);
             Assert.AreEqual(5, diffs[0].New);
 
             var originalReadable = ObjectDiff.ObjectReadable(Data);
@@ -40,7 +40,7 @@ namespace FCloud3.Diff.Test.Object
             mutated.B = "Hello\nWorld";
             mutated.D![2] = 999;
             var diffs = ObjectDiffSearch.Run(Data, mutated);
-            Assert.AreEqual(2, diffs.Count);
+            Assert.HasCount(2, diffs);
 
             var originalReadable = ObjectDiff.ObjectReadable(Data);
             var mutatedReadable = ObjectDiff.ObjectReadable(mutated);

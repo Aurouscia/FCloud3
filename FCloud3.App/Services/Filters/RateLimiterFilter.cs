@@ -30,7 +30,7 @@ namespace FCloud3.App.Services.Filters
     {
         public int SlidingWindowMs { get; set; }
         public int MaxCountWithin { get; set; }
-        private readonly static Dictionary<IPAddress, List<DateTime>> records = [];
+        private readonly static Dictionary<IPAddress, Dictionary<string, List<DateTime>>> records = [];
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var ip = context.HttpContext.Connection.RemoteIpAddress;
@@ -40,12 +40,18 @@ namespace FCloud3.App.Services.Filters
                 context.Result = resp.BuildResult();
                 return;
             }
+            var actionName = context.ActionDescriptor.DisplayName ?? "";
             DateTime now = DateTime.Now;
-            List<DateTime>? itsRecords;
-            if (!records.TryGetValue(ip, out itsRecords))
+
+            if (!records.TryGetValue(ip, out var actionRecords))
+            {
+                actionRecords = [];
+                records.Add(ip, actionRecords);
+            }
+            if (!actionRecords.TryGetValue(actionName, out var itsRecords))
             {
                 itsRecords = [];
-                records.Add(ip, itsRecords);
+                actionRecords.Add(actionName, itsRecords);
             }
             itsRecords.Add(now);
             itsRecords.RemoveAll(x => (now - x).TotalMilliseconds > SlidingWindowMs);

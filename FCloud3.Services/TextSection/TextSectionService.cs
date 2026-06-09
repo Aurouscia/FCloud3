@@ -111,7 +111,8 @@ namespace FCloud3.Services.TextSec
                     errmsg = "找不到指定文本段";
                     return false;
                 }
-                if (original.Content == content)
+                var originalContent = original.Content;
+                if (originalContent == content)
                 {
                     errmsg = null;
                     return true;
@@ -119,7 +120,7 @@ namespace FCloud3.Services.TextSec
                 using var t = dbTransactionService.BeginTransaction();
                 var brief = Brief(id, content);
                 var updateSuccess = textSectionRepo.TryChangeContent(id, content, brief, out var updateErrmsg);
-                diffCharCount = contentDiffService.MakeDiff(id, DiffContentType.TextSection, original.Content, content, out var diffErrmsg);
+                diffCharCount = contentDiffService.MakeDiff(id, DiffContentType.TextSection, originalContent, content, out var diffErrmsg);
                 var diffSuccess = diffErrmsg is null;
                 if (updateSuccess && diffSuccess)
                 {

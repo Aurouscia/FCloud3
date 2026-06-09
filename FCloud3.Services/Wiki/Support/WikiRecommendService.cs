@@ -20,15 +20,23 @@ namespace FCloud3.Services.Wiki.Support
                 where wd.WikiId == w.Id
                 where d.Id == wd.DirId
                 select new WikiRecommendModel.Dir(d.Id, d.Name)).ToList();
-            res.Dirs.AddRange(RandomSelect(dirs, 4));
-            var dirIds = res.Dirs.ConvertAll(x => x.Id);
-            var neighborIds = wikiToDirRepo.GetWikiIdsByDirs(dirIds);
+            var selectedDirs = RandomSelect(dirs, 4);
+            var dirIds = selectedDirs.ConvertAll(x => x.Id);
+            var thisId = wikiItemRepo.CachedItemByPred(x => x.UrlPathName == pathName)?.Id ?? 0;
 
-            var thisId = wikiItemRepo.CachedItemByPred(x=>x.UrlPathName == pathName)?.Id ?? 0;
-            neighborIds.Remove(thisId);
-            var neighbors = wikiItemRepo.CachedItemsByIds(neighborIds)
-                .ConvertAll(x=>new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
-            res.Wikis.AddRange(RandomSelect(neighbors, 8));
+            var wikiIdsByDir = wikiToDirRepo.GetWikiIdsGroupedByDirs(dirIds);
+            foreach (var dir in selectedDirs)
+            {
+                if (wikiIdsByDir.TryGetValue(dir.Id, out var neighborIds))
+                {
+                    neighborIds.Remove(thisId);
+                    var neighbors = wikiItemRepo.CachedItemsByIds(neighborIds)
+                        .ConvertAll(x => new WikiRecommendModel.Wiki(x.Title, x.UrlPathName));
+                    dir.TotalWikiCount = neighbors.Count;
+                    dir.Wikis.AddRange(RandomSelect(neighbors, 6));
+                }
+                res.Dirs.Add(dir);
+            }
             return res;
         }
 
@@ -47,11 +55,12 @@ namespace FCloud3.Services.Wiki.Support
         public class WikiRecommendModel
         {
             public List<Dir> Dirs { get; set; } = [];
-            public List<Wiki> Wikis { get; set; } = [];
             public class Dir(int id, string? name)
             {
                 public int Id { get; set; } = id;
                 public string? Name { get; set; } = name;
+                public int TotalWikiCount { get; set; }
+                public List<Wiki> Wikis { get; set; } = [];
             }
             public class Wiki(string? title, string? urlPathName)
             {

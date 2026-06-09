@@ -22,7 +22,7 @@ namespace FCloud3.WikiPreprocessor.Test
         public void Common(string content, int answer)
         {
             var res = LineSplitter.Split(content, null);
-            Assert.AreEqual(answer, res.Count);
+            Assert.HasCount(answer, res);
         }
 
         public static IEnumerable<object[]> HtmlAreaRangeData => new object[][]

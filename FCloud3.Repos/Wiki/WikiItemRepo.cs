@@ -36,17 +36,21 @@ namespace FCloud3.Repos.Wiki
         {
             return Existing.Where(x => x.UrlPathName == urlPathName);
         }
+        public WikiItemCacheModel? GetByUrlPathNameFromCache(string urlPathName)
+        {
+            return CachedItemByPred(x => x.UrlPathName == urlPathName);
+        }
 
         public override int GetOwnerIdById(int id)
         {
             return Existing.Where(x => x.Id == id).Select(x => x.OwnerUserId).FirstOrDefault();
         }
 
-        public int TryAddAndGetId(WikiItem item, out string? errmsg)
+        public int TryAddAndGetId(WikiItem item, out string? errmsg, int? overrideOwnerUserId = null)
         {
             if (!InfoCheck(item, false, out errmsg))
                 return 0;
-            item.OwnerUserId = _userIdProvider.Get();
+            item.OwnerUserId = overrideOwnerUserId ?? _userIdProvider.Get();
             var now = DateTime.Now;
             item.LastActive = now;
             base.Add(item, now);
@@ -70,7 +74,7 @@ namespace FCloud3.Repos.Wiki
             errmsg = null;
             return true;
         }
-        public bool InfoCheck(WikiItem item,bool existing , out string? errmsg)
+        public bool InfoCheck(WikiItem item, bool existing, out string? errmsg)
         {
             errmsg = null;
             if (string.IsNullOrWhiteSpace(item.Title))
@@ -93,9 +97,15 @@ namespace FCloud3.Repos.Wiki
                 errmsg = $"词条路径名不能超过{WikiItem.urlPathNameMaxLength}个字符";
                 return false;
             }
-            if (!Regex.IsMatch(item.UrlPathName,validUrlPathNamePattern))
+            if (!Regex.IsMatch(item.UrlPathName, validUrlPathNamePattern))
             {
                 errmsg = "路径名只能有英文字母，数字、下划线和\"-\"";
+                return false;
+            }
+            int descMaxLength = 128;
+            if (item.Description?.Length > descMaxLength)
+            {
+                errmsg = $"词条简介不能超过{descMaxLength}字符";
                 return false;
             }
             string? conflict = null;

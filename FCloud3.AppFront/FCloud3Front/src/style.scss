@@ -2,7 +2,7 @@
 @use './styles/paraListItem.scss';
 @use './styles/globalValues';
 @use './styles/fileDir.scss';
-@use "./utils/wikiSource/wikiSourceHighlight";
+
 
 *{
   margin: 0px;
@@ -80,7 +80,8 @@ button {
   margin: 2px;
   border-radius: 5px;
   border: none;
-  font-size: unset;
+  font-size: 16px;
+  line-height: 1.4em;
   margin-bottom: 2px;
   transition: 0.4s;
   vertical-align: middle;

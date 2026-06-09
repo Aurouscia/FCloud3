@@ -1,11 +1,12 @@
 export interface WikiRecommendModel{
     Dirs: Dir[]
-    Wikis: Wiki[]
 }
 
 export interface Dir{
     Id: number
     Name: string
+    TotalWikiCount: number
+    Wikis: Wiki[]
 }
 export interface Wiki
 {
