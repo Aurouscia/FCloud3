@@ -172,7 +172,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     {
                         if (!isValidTitle(lineStr))
                             return;
-                        string pureContent = lineStr[t.prefix.Length..].Trim();
+                        string pureContent = lineStr.AsSpan(t.prefix.Length).Trim().ToString();
                         Level = t.level;
                         PureContent.Text = pureContent;
                         return;   

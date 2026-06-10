@@ -135,7 +135,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(Mark.Length).Trim();
+                return line.AsSpan(Mark.Length).Trim().ToString();
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -213,8 +213,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         {
             var prefixIdx = line.IndexOf(lineCommentPrefix);
             if (prefixIdx == -1) return string.Empty;
-            var res = line[(prefixIdx + lineCommentPrefix.Length)..];
-            return res.Trim();
+            return line.AsSpan(prefixIdx + lineCommentPrefix.Length).Trim().ToString();
         }
 
         public override bool LineMatched(string line)
@@ -330,7 +329,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(1, line.Length - 2);
+                return line[1..^1];
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -461,7 +460,7 @@ namespace FCloud3.WikiPreprocessor.Rules
                     return null;
                 var head = match.Value;
                 var body = x.Text.Remove(0,head.Length);
-                var name = head.Trim()[2..^2];
+                var name = head.AsSpan().Trim()[2..^2].ToString();
                 return new FootNoteBodyElement(name, inlineParser.Run(body, false), x.RawLineHash);
             });
             context.FootNote.AddFootNoteBodies(resContent);

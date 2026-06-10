@@ -13,23 +13,23 @@ namespace FCloud3.WikiPreprocessor.Util
             int lastHeight = 0;
             foreach(var match in tags.AsEnumerable())
             {
-                string matched = match.Value;
-                string tagName;
+                ReadOnlySpan<char> matched = match.ValueSpan;
+                ReadOnlySpan<char> tagNameSpan;
                 bool isFrontTag = true;
                 if (matched[1] == '/') 
                 {
-                    tagName = matched[2..^1]; 
+                    tagNameSpan = matched[2..^1]; 
                     isFrontTag = false;
                 }
                 else
                 {
                     int firstSpace = matched.IndexOf(' ');
                     if (firstSpace == -1)
-                        tagName = matched[1..^1];
+                        tagNameSpan = matched[1..^1];
                     else
-                        tagName = matched[1..firstSpace];
+                        tagNameSpan = matched[1..firstSpace];
                 }
-                tagName = tagName.ToLower();
+                string tagName = tagNameSpan.ToString().ToLower();
 
                 if (isFrontTag)
                 {
