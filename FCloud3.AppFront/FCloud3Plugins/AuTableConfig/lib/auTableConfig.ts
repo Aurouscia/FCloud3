@@ -4,11 +4,19 @@ function getTriggerPattern() {
     return new RegExp(`^(${triggers.join('|')})$`)
 }
 
+const tableWidthPattern = /^table:(?:(min|max):)?(\d+(?:px|em|%|rem|vw|vh|ch|ex|cm|mm|in|pt|pc)?)$/i
+
 interface ColumnConfig {
     width?: string
+    widthMode?: 'exact' | 'min' | 'max'
     nowrap: boolean
     textAlign?: string
     verticalAlign?: string
+}
+
+interface TableWidthConfig {
+    width: string
+    mode?: 'min' | 'max'
 }
 
 export function run() {
@@ -29,12 +37,18 @@ export function run() {
             continue
         }
 
+        // 解析第一列中 table:xxx 的表格宽度设置
+        const firstColConfigText = parts.slice(1).join(' ')
+        const tableWidthConfig = parseTableWidth(firstColConfigText)
+        if (tableWidthConfig) {
+            applyTableWidth(t, tableWidthConfig)
+        }
+
         const configs: ColumnConfig[] = []
         for (let c = 0; c < firstRow.cells.length; c++) {
             const cell = firstRow.cells[c]
             const text = cell.textContent?.trim() ?? ''
             const cellParts = text.split(/\s+/)
-            // 仅第一列需要移除触发词，其他列直接使用全部内容
             const configText = c === 0 ? cellParts.slice(1).join(' ') : text
             configs.push(parseConfig(configText))
         }
@@ -47,7 +61,7 @@ export function run() {
                     continue
                 }
                 if (config.width && r === 1) {
-                    cell.style.width = config.width
+                    applyColumnWidth(cell, config.width, config.widthMode ?? 'exact')
                 }
                 if (config.nowrap) {
                     cell.style.whiteSpace = 'nowrap'
@@ -65,6 +79,46 @@ export function run() {
     }
 }
 
+function parseTableWidth(text: string): TableWidthConfig | undefined {
+    const parts = text.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean)
+    for (const part of parts) {
+        const match = tableWidthPattern.exec(part)
+        if (match) {
+            return {
+                mode: match[1] as 'min' | 'max' | undefined,
+                width: match[2]
+            }
+        }
+    }
+    return undefined
+}
+
+function applyTableWidth(table: HTMLTableElement, config: TableWidthConfig) {
+    if (config.mode === 'min') {
+        table.style.minWidth = config.width
+    }
+    else if (config.mode === 'max') {
+        table.style.maxWidth = config.width
+    }
+    else {
+        table.style.width = config.width
+    }
+}
+
+function applyColumnWidth(cell: HTMLTableCellElement, width: string, mode: 'exact' | 'min' | 'max') {
+    if (mode === 'exact') {
+        cell.style.width = width
+        cell.style.minWidth = width
+        cell.style.maxWidth = width
+    }
+    else if (mode === 'min') {
+        cell.style.minWidth = width
+    }
+    else if (mode === 'max') {
+        cell.style.maxWidth = width
+    }
+}
+
 function parseConfig(text: string): ColumnConfig {
     const config: ColumnConfig = { nowrap: false }
     const parts = text.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean)
@@ -73,14 +127,22 @@ function parseConfig(text: string): ColumnConfig {
         if (lower === 'nowrap' || lower === '不换行') {
             config.nowrap = true
         }
-        else if (/^\d+(px|em|%|rem|vw|vh|ch|ex|cm|mm|in|pt|pc)?$/.test(part)) {
-            config.width = part
-        }
         else if (['left', 'center', 'right', 'justify'].includes(lower)) {
             config.textAlign = lower
         }
         else if (['top', 'middle', 'bottom'].includes(lower)) {
             config.verticalAlign = lower === 'middle' ? 'middle' : lower
+        }
+        else if (!tableWidthPattern.test(part)) {
+            const widthMatch = /^(min|max):(\d+(?:px|em|%|rem|vw|vh|ch|ex|cm|mm|in|pt|pc)?)$/.exec(part)
+            if (widthMatch) {
+                config.widthMode = widthMatch[1] as 'min' | 'max'
+                config.width = widthMatch[2]
+            }
+            else if (/^\d+(px|em|%|rem|vw|vh|ch|ex|cm|mm|in|pt|pc)?$/.test(part)) {
+                config.width = part
+                config.widthMode = 'exact'
+            }
         }
     }
     return config

@@ -293,6 +293,146 @@ describe('AuTableConfig', () => {
       expect(rows[1].querySelector<HTMLTableCellElement>('td')!.style.width).toBe('')
     })
 
+    it('should apply table width via table: prefix', () => {
+      createTable(`
+        <tr><td>AuTc table:100% 100px nowrap</td><td>200px center</td></tr>
+        <tr><td>数据1</td><td>数据2</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.width).toBe('100%')
+      const cells = qsa<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cells[0].style.width).toBe('100px')
+      expect(cells[0].style.whiteSpace).toBe('nowrap')
+      expect(cells[1].style.width).toBe('200px')
+    })
+
+    it('should apply table width with various units', () => {
+      const cases = ['100%', '500px', '50em', '80vw']
+      for (const width of cases) {
+        document.body.innerHTML = ''
+        createTable(`
+          <tr><td>AuTc table:${width}</td></tr>
+          <tr><td>数据</td></tr>
+        `)
+        run()
+        const table = qs<HTMLTableElement>('table')
+        expect(table.style.width).toBe(width)
+      }
+    })
+
+    it('should apply table min-width via table:min:', () => {
+      createTable(`
+        <tr><td>AuTc table:min:1000px</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.width).toBe('')
+      expect(table.style.minWidth).toBe('1000px')
+      expect(table.style.maxWidth).toBe('')
+    })
+
+    it('should apply table max-width via table:max:', () => {
+      createTable(`
+        <tr><td>AuTc table:max:800px</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.width).toBe('')
+      expect(table.style.minWidth).toBe('')
+      expect(table.style.maxWidth).toBe('800px')
+    })
+
+    it('should not treat table: as column width', () => {
+      createTable(`
+        <tr><td>AuTc table:100%</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cell.style.width).toBe('')
+      expect(cell.style.minWidth).toBe('')
+      expect(cell.style.maxWidth).toBe('')
+    })
+
+    it('should combine table: with min: and max: column widths', () => {
+      createTable(`
+        <tr><td>AuTc table:100% min:200px nowrap</td><td>max:150px center</td></tr>
+        <tr><td>数据1</td><td>数据2</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.width).toBe('100%')
+
+      const cells = qsa<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cells[0].style.width).toBe('')
+      expect(cells[0].style.minWidth).toBe('200px')
+      expect(cells[0].style.maxWidth).toBe('')
+      expect(cells[0].style.whiteSpace).toBe('nowrap')
+
+      expect(cells[1].style.width).toBe('')
+      expect(cells[1].style.minWidth).toBe('')
+      expect(cells[1].style.maxWidth).toBe('150px')
+      expect(cells[1].style.textAlign).toBe('center')
+    })
+
+    it('should apply exact width with min-width and max-width', () => {
+      createTable(`
+        <tr><td>AuTc 100px</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cell.style.width).toBe('100px')
+      expect(cell.style.minWidth).toBe('100px')
+      expect(cell.style.maxWidth).toBe('100px')
+    })
+
+    it('should apply min: prefix as min-width only', () => {
+      createTable(`
+        <tr><td>AuTc min:200px</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cell.style.width).toBe('')
+      expect(cell.style.minWidth).toBe('200px')
+      expect(cell.style.maxWidth).toBe('')
+    })
+
+    it('should apply max: prefix as max-width only', () => {
+      createTable(`
+        <tr><td>AuTc max:150px</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cell.style.width).toBe('')
+      expect(cell.style.minWidth).toBe('')
+      expect(cell.style.maxWidth).toBe('150px')
+    })
+
+    it('should parse min: and max: with various units', () => {
+      const cases = [
+        { input: 'min:50%', expectedMin: '50%', expectedMax: '' },
+        { input: 'max:10em', expectedMin: '', expectedMax: '10em' },
+        { input: 'min:20rem', expectedMin: '20rem', expectedMax: '' },
+      ]
+      for (const { input, expectedMin, expectedMax } of cases) {
+        document.body.innerHTML = ''
+        createTable(`
+          <tr><td>AuTc ${input}</td></tr>
+          <tr><td>数据</td></tr>
+        `)
+        run()
+        const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+        expect(cell.style.minWidth).toBe(expectedMin)
+        expect(cell.style.maxWidth).toBe(expectedMax)
+      }
+    })
+
     it('should not require trigger in non-first columns', () => {
       createTable(`
         <tr>

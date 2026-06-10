@@ -33,23 +33,37 @@
     <h2>配置参数</h2>
     <p>多个参数可用空格、英文逗号 <code>,</code> 或中文逗号 <code>，</code> 分隔。第一列需要在参数前加触发词，其他列直接写参数即可。</p>
 
-    <h3>1. 列宽</h3>
-    <p>支持数字 + 单位，或纯数字：</p>
+    <h3>1. 表格宽度（仅第一列有效）</h3>
+    <p>使用 <code>table:</code> 前缀控制整个表格的宽度，只能在<strong>第一行第一列</strong>中使用。支持三种模式：</p>
     <table>
-        <tr><td>100px</td><td>宽度 100 像素</td></tr>
-        <tr><td>50%</td><td>宽度占父容器 50%</td></tr>
-        <tr><td>10em</td><td>宽度 10 倍字体大小</td></tr>
-        <tr><td>200</td><td>宽度 200（无单位，浏览器可能忽略）</td></tr>
+        <tr><td>table:100%</td><td>固定表格宽度（width）</td></tr>
+        <tr><td>table:500px</td><td>同上，固定 500px</td></tr>
+        <tr><td>table:min:1000px</td><td>表格最小宽度（min-width）</td></tr>
+        <tr><td>table:max:800px</td><td>表格最大宽度（max-width）</td></tr>
+    </table>
+    <div class="note">
+        <strong>注意：</strong><code>table:</code> 与列宽配置可以混用，例如 <code>AuTc table:100% 100px nowrap</code> 表示表格宽度 100%，同时第一列宽度 100px 且不换行。
+    </div>
+
+    <h3>2. 列宽</h3>
+    <p>支持三种宽度模式，默认不写前缀为严格宽度：</p>
+    <table>
+        <tr><td>100px</td><td>严格宽度（width + min-width + max-width）</td></tr>
+        <tr><td>min:200px</td><td>仅最小宽度，列可以变宽</td></tr>
+        <tr><td>max:150px</td><td>仅最大宽度，列可以变窄</td></tr>
     </table>
     <p>支持的单位：<code>px</code> <code>em</code> <code>%</code> <code>rem</code> <code>vw</code> <code>vh</code> <code>ch</code> <code>ex</code> <code>cm</code> <code>mm</code> <code>in</code> <code>pt</code> <code>pc</code></p>
+    <div class="note">
+        <strong>提示：</strong>当表格较窄或内容较少时，单纯设置 <code>width</code> 可能无效，建议使用严格宽度（默认）或 <code>min:</code> 前缀。
+    </div>
 
-    <h3>2. 不换行</h3>
+    <h3>3. 不换行</h3>
     <table>
         <tr><td>nowrap</td><td>文本不换行</td></tr>
         <tr><td>不换行</td><td>同上，中文写法</td></tr>
     </table>
 
-    <h3>3. 水平对齐</h3>
+    <h3>4. 水平对齐</h3>
     <table>
         <tr><td>left</td><td>左对齐</td></tr>
         <tr><td>center</td><td>居中</td></tr>
@@ -57,7 +71,7 @@
         <tr><td>justify</td><td>两端对齐</td></tr>
     </table>
 
-    <h3>4. 垂直对齐</h3>
+    <h3>5. 垂直对齐</h3>
     <table>
         <tr><td>top</td><td>顶部对齐</td></tr>
         <tr><td>middle</td><td>垂直居中</td></tr>
@@ -72,19 +86,33 @@
         <tr><td>第二行数据</td></tr>
     </table>
 
-    <h3>多列不同配置</h3>
+    <h3>表格宽度 + 列配置</h3>
     <table>
-        <tr><td>AuTc 80px nowrap left</td><td>200px center middle</td><td>nowrap right</td></tr>
+        <tr><td>AuTc table:100% 80px nowrap left</td><td>200px center middle</td><td>nowrap right</td></tr>
         <tr><td>编号</td><td>名称</td><td>操作</td></tr>
         <tr><td>001</td><td>示例项目</td><td>编辑</td></tr>
         <tr><td>002</td><td>测试数据</td><td>删除</td></tr>
     </table>
     <p>效果：</p>
+    <ul>
+        <li>整个表格宽度占满父容器（100%）</li>
+        <li>第一列：80px，不换行，左对齐</li>
+        <li>第二列：200px，居中，垂直居中</li>
+        <li>第三列：不换行，右对齐</li>
+    </ul>
+
+    <h3>宽度模式对比</h3>
     <table>
-        <tr style="background:#f0f0f0"><td style="width:80px;white-space:nowrap;text-align:left">编号</td><td style="width:200px;text-align:center;vertical-align:middle">名称</td><td style="white-space:nowrap;text-align:right">操作</td></tr>
-        <tr><td style="text-align:left">001</td><td style="text-align:center;vertical-align:middle">示例项目</td><td style="text-align:right">编辑</td></tr>
-        <tr><td style="text-align:left">002</td><td style="text-align:center;vertical-align:middle">测试数据</td><td style="text-align:right">删除</td></tr>
+        <tr><td>AuTc 100px</td><td>min:150px</td><td>max:80px</td></tr>
+        <tr><td>严格100px</td><td>最小150px可撑开</td><td>最大80px可收缩</td></tr>
+        <tr><td>内容</td><td>很长的内容会自动撑开这一列</td><td>短</td></tr>
     </table>
+    <p>效果说明：</p>
+    <ul>
+        <li>第一列：固定 100px，无论内容多少</li>
+        <li>第二列：至少 150px，内容多时会自动变宽</li>
+        <li>第三列：最多 80px，内容少时会自动变窄</li>
+    </ul>
 
     <h3>混合分隔符</h3>
     <table>
@@ -95,7 +123,7 @@
     <h2>注意事项</h2>
     <ul>
         <li>配置仅对<strong>当前表格</strong>生效，多个表格互不干扰。</li>
-        <li>列宽仅应用到<strong>第一行数据</strong>，后续行自动继承。</li>
+        <li>列宽仅应用到<strong>第一行数据</strong>，后续行自动继承。严格宽度会同时设置 width、min-width 和 max-width。</li>
         <li>如果某列数据行缺少单元格，该列配置会被跳过，不会报错。</li>
         <li>不认识的参数会被忽略，不会影响其他配置。</li>
         <li>触发词区分大小写，必须使用 <code>AuTc</code>、<code>au-tc</code> 或 <code>au-table-config</code>。</li>
