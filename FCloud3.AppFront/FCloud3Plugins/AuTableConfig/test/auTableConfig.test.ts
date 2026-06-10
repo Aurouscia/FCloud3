@@ -131,6 +131,20 @@ describe('AuTableConfig', () => {
       expect(cell.style.whiteSpace).toBe('nowrap')
     })
 
+    it('should apply nowrap recursively to child elements', () => {
+      createTable(`
+        <tr><td>AuTc nowrap</td></tr>
+        <tr><td><b>粗体</b> <span>文本</span></td></tr>
+      `)
+      run()
+      const cell = qs<HTMLTableCellElement>('table tr:nth-child(1) td')
+      expect(cell.style.whiteSpace).toBe('nowrap')
+      const b = cell.querySelector('b')
+      const span = cell.querySelector('span')
+      expect(b!.style.whiteSpace).toBe('nowrap')
+      expect(span!.style.whiteSpace).toBe('nowrap')
+    })
+
     it('should parse 不换行 (Chinese nowrap)', () => {
       createTable(`
         <tr><td>AuTc 不换行</td></tr>

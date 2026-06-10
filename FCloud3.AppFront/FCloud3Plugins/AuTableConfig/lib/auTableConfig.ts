@@ -64,7 +64,7 @@ export function run() {
                     applyColumnWidth(cell, config.width, config.widthMode ?? 'exact')
                 }
                 if (config.nowrap) {
-                    cell.style.whiteSpace = 'nowrap'
+                    applyNowrap(cell)
                 }
                 if (config.textAlign) {
                     cell.style.textAlign = config.textAlign
@@ -102,6 +102,17 @@ function applyTableWidth(table: HTMLTableElement, config: TableWidthConfig) {
     }
     else {
         table.style.width = config.width
+    }
+}
+
+/** 
+ * 递归地应用nowrap
+ * 由于本系统中，单元格内的换行符会被处理为多个p标签，所以这样做是正确的，也无需提供 pre-line 等其他选项
+ */
+function applyNowrap(element: HTMLElement) {
+    element.style.whiteSpace = 'nowrap'
+    for (const child of element.children) {
+        applyNowrap(child as HTMLElement)
     }
 }
 
