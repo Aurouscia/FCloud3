@@ -2,8 +2,6 @@
 using FCloud3.WikiPreprocessor.Options.SubOptions;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
 using System.Text;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
@@ -24,12 +22,10 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         private readonly HashSet<int> _cacheWroteInScope;
         private readonly CacheOptions _options;
         private readonly ParserContext _ctx;
-        private readonly StringBuilder _tempSb;
         public ParserCacheContext(CacheOptions options, ParserContext ctx)
         {
             _options = options;
             _ctx = ctx;
-            _tempSb = new();
             _cacheDict = [];
             _cacheReadInScope = [];
             _cacheWroteInScope = [];
@@ -73,10 +69,10 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
-            _tempSb.Clear();
-            resElement.WriteHtml(_tempSb);
-            string content = _tempSb.ToString();
-            _tempSb.Clear();
+            var tempSb = StringBuilderPool.Rent();
+            resElement.WriteHtml(tempSb);
+            string content = tempSb.ToString();
+            StringBuilderPool.Return(tempSb);
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
             List<ParserTitleTreeNode>? titleNodes = _ctx.Options.TitleGatheringOptions.Enabled ? resElement.ContainTitleNodes() : null;

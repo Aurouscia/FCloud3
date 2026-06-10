@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using FCloud3.WikiPreprocessor.Util;
+using System.Text;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
 {
@@ -32,13 +33,15 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         }
         public List<string> AllToString()
         {
-            StringBuilder sb = new();
-            return FootNoteBodys.ConvertAll(f =>
+            var sb = StringBuilderPool.Rent();
+            var result = FootNoteBodys.ConvertAll(f =>
             {
                 sb.Clear();
                 f.WriteHtml(sb);
                 return sb.ToString();
             });
+            StringBuilderPool.Return(sb);
+            return result;
         }
     }
 }

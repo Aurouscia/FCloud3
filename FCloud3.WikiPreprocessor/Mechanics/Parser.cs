@@ -3,6 +3,7 @@ using FCloud3.WikiPreprocessor.Context.SubContext;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
+using FCloud3.WikiPreprocessor.Util;
 using System.Text;
 using FCloud3.WikiPreprocessor.ConvertingProvider;
 
@@ -34,13 +35,15 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 return input;
             IHtmlable result = _blockParser.Run(input, true, true);
             _ctx.AfterParsing();
-            StringBuilder resSb = new();
+            var resSb = StringBuilderPool.Rent();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
             if (!putCommon)
             {
                 result.WriteHtml(resSb);
-                return resSb.ToString();
+                var resultStr = resSb.ToString();
+                StringBuilderPool.Return(resSb);
+                return resultStr;
             }
             else
             {
@@ -50,7 +53,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 PostScripts(resSb);
                 FootNotes(resSb);
             }
-            return resSb.ToString();
+            var resultStr2 = resSb.ToString();
+            StringBuilderPool.Return(resSb);
+            return resultStr2;
         }
         public ParserResult RunToParserResult(string? input)
         {
@@ -62,19 +67,24 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input, true, true);
             _ctx.AfterParsing();
-            StringBuilder resSb = new();
+            var resSb = StringBuilderPool.Rent();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
             htmlable.WriteHtml(resSb);
-            string content = resSb.ToString();resSb.Clear();
+            string content = resSb.ToString();
+            resSb.Clear();
             PreScripts(resSb, false);
-            string preScripts = resSb.ToString();resSb.Clear();
+            string preScripts = resSb.ToString();
+            resSb.Clear();
             PostScripts(resSb, false);
-            string postScripts = resSb.ToString();resSb.Clear();
+            string postScripts = resSb.ToString();
+            resSb.Clear();
             Styles(resSb, false);
-            string styles = resSb.ToString();resSb.Clear();
+            string styles = resSb.ToString();
+            resSb.Clear();
             FootNotes(resSb);
             string footNotes = resSb.ToString();
+            StringBuilderPool.Return(resSb);
 
             ParserResult result = new(content, preScripts, postScripts, styles, footNotes);
             return result;
@@ -89,13 +99,15 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 return new(input);
             IHtmlable htmlable = _blockParser.Run(input, enforceBlock, true);
             _ctx.AfterParsing();
-            StringBuilder resSb = new();
+            var resSb = StringBuilderPool.Rent();
             if (_ctx.Options.Debug)
                 resSb.AppendLine(_ctx.DebugInfo());
             htmlable.WriteHtml(resSb);
+            var content = resSb.ToString();
+            StringBuilderPool.Return(resSb);
 
             ParserResultRaw result = new(
-                content: resSb.ToString(),
+                content: content,
                 usedRules: _ctx.RuleUsage.GetUsedRules(),
                 footNotes: _ctx.FootNote.AllToString(),
                 titles: htmlable.ContainTitleNodes());

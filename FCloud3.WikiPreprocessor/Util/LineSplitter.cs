@@ -15,7 +15,7 @@ namespace FCloud3.WikiPreprocessor.Util
         public static List<LineAndHash> Split(string input, ILocatorHash? locatorHash)
         {
             List<string> lines;
-            StringBuilder sb = new();
+            var sb = StringBuilderPool.Rent();
             lines = new();
             int layer = 0;
             for(int i = 0; i < input.Length; i++)
@@ -34,6 +34,7 @@ namespace FCloud3.WikiPreprocessor.Util
                     sb.Append(c);
             }
             lines.Add(sb.ToString());
+            StringBuilderPool.Return(sb);
 
             var hashedLines = lines.ConvertAll(x =>
             {
