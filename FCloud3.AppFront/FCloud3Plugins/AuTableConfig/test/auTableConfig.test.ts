@@ -292,6 +292,34 @@ describe('AuTableConfig', () => {
       expect(rows[0].querySelector<HTMLTableCellElement>('td')!.style.width).toBe('100px')
       expect(rows[1].querySelector<HTMLTableCellElement>('td')!.style.width).toBe('')
     })
+
+    it('should not require trigger in non-first columns', () => {
+      createTable(`
+        <tr>
+          <td>AuTc 100px nowrap left top</td>
+          <td>200px center middle</td>
+          <td>nowrap right bottom</td>
+        </tr>
+        <tr><td>A1</td><td>B1</td><td>C1</td></tr>
+      `)
+      run()
+      const rows = qsa<HTMLTableRowElement>('table tr')
+      expect(rows.length).toBe(1)
+
+      const cells = rows[0].querySelectorAll<HTMLTableCellElement>('td')
+      expect(cells[0].style.width).toBe('100px')
+      expect(cells[0].style.whiteSpace).toBe('nowrap')
+      expect(cells[0].style.textAlign).toBe('left')
+      expect(cells[0].style.verticalAlign).toBe('top')
+
+      expect(cells[1].style.width).toBe('200px')
+      expect(cells[1].style.textAlign).toBe('center')
+      expect(cells[1].style.verticalAlign).toBe('middle')
+
+      expect(cells[2].style.whiteSpace).toBe('nowrap')
+      expect(cells[2].style.textAlign).toBe('right')
+      expect(cells[2].style.verticalAlign).toBe('bottom')
+    })
   })
 
   describe('first row removal', () => {

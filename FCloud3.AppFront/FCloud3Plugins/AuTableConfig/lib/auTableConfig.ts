@@ -34,7 +34,8 @@ export function run() {
             const cell = firstRow.cells[c]
             const text = cell.textContent?.trim() ?? ''
             const cellParts = text.split(/\s+/)
-            const configText = cellParts.slice(1).join(' ')
+            // 仅第一列需要移除触发词，其他列直接使用全部内容
+            const configText = c === 0 ? cellParts.slice(1).join(' ') : text
             configs.push(parseConfig(configText))
         }
 
