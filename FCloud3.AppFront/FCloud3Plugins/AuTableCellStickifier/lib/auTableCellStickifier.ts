@@ -1,7 +1,7 @@
 import { triggers } from '../public/options.json'
 
-//匹配“AuTcs(below)”、“AuTcs(right)”、“AuTcs(right, below)”，括号内可以有空字符
-const callPattern = `(?<=(${triggers.join('|')})\\()\\s?[a-z, ]{5,20}\\s?(?=\\))`
+//匹配"AuTcs(below)"、"AuTcs(right)"、"AuTcs(right, below)"，括号内可以有空字符
+const callPattern = `(${triggers.join('|')})\\(\\s?[a-z, ]{5,20}\\s?\\)`
 const callPatternRegex = new RegExp(callPattern)
 const stickyContainAttr = "data-autb-sticky-contain"
 const stickyTopAttr = "data-autb-sticky-top"
@@ -14,25 +14,23 @@ export function run(){
         let rightDetected:{r:number,c:number}|undefined = undefined
         let belowDetected:{r:number,c:number}|undefined = undefined
         const rows = t.rows
-        for(let r=0; r<rows.length && r<=searchRange; r++){
+        for(let r=0; r<rows.length && r<searchRange; r++){
             const row = rows[r]
             const cells = row.cells
-            for(let c=0; c<cells.length && c<=searchRange; c++){
-                const text = cells[c].innerText
-                const callCheck = callingMe(text)
-                if(callCheck){
-                    if(callCheck.right){
+            for(let c=0; c<cells.length && c<searchRange; c++){
+                const check = removeTriggerFromCell(cells[c])
+                if(check.right || check.below){
+                    if(check.right){
                         rightDetected = {r, c}
                     }
-                    if(callCheck.below){
+                    if(check.below){
                         belowDetected = {r, c}
                     }
-                    cells[c].innerText = callCheck.filtered
                 }
             }
         }
         if(!rightDetected && !belowDetected){
-            break
+            continue
         }
         if(rightDetected){
             const {r,c} = rightDetected
@@ -49,6 +47,34 @@ export function run(){
         }
         t.setAttribute(stickyContainAttr, '')
     }
+}
+
+function removeTriggerFromCell(cell: HTMLTableCellElement): {right:boolean, below:boolean}{
+    let right = false
+    let below = false
+    const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT)
+    const nodesToReplace: {node: Text, newText: string}[] = []
+
+    let textNode: Node | null
+    while(textNode = walker.nextNode()){
+        const text = textNode.textContent || ''
+        const check = callingMe(text)
+        if(check){
+            right ||= check.right
+            below ||= check.below
+            nodesToReplace.push({node: textNode as Text, newText: check.filtered})
+        }
+    }
+
+    for(const {node, newText} of nodesToReplace){
+        if(newText){
+            node.textContent = newText
+        }else{
+            node.remove()
+        }
+    }
+
+    return {right, below}
 }
 
 function callingMe(text?:string):{right:boolean, below:boolean, filtered:string}|undefined{
