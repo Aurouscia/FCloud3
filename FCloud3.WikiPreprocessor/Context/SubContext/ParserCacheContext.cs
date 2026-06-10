@@ -40,7 +40,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         }
         public void AfterParsing()
         {
-            List<int> removals = []; 
+            List<int> removals = new(_cacheDict.Count);
             foreach(var key in _cacheDict.Keys)
             {
                 var wrote = _cacheWroteInScope.Contains(key);

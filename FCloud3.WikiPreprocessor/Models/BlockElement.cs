@@ -137,7 +137,7 @@ namespace FCloud3.WikiPreprocessor.Models
             var title = Title.ToHtml();
             var node = new ParserTitleTreeNode(Level, title, TitleId);
             node.Subs = Content.ContainTitleNodes();
-            return new()
+            return new(1)
             {
                 node
             };
@@ -165,7 +165,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            var res = Content.ContainRules()??new();
+            var res = Content.ContainRules()??new(1);
             if (GenByRule is not null)
                 res.Add(GenByRule);
             return res;
@@ -236,11 +236,11 @@ namespace FCloud3.WikiPreprocessor.Models
         public override string ToHtml() => string.Empty;
         public override List<IHtmlable>? ContainFootNotes()
         {
-            return new() { Body };
+            return new(1) { Body };
         }
         public override List<IRule>? ContainRules()
         {
-            var res = Body.ContainRules() ?? new();
+            var res = Body.ContainRules() ?? new(1);
             res.Add(Rule);
             return res;
         }

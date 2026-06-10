@@ -8,7 +8,7 @@ namespace FCloud3.WikiPreprocessor.Util
         {
             var tags = HtmlTags().Matches(input);
             Stack<string> tagStack = new();
-            List<Range> result = [];
+            List<Range> result = new(tags.Count);
             int startingPointer = 0;
             int lastHeight = 0;
             foreach(var match in tags.AsEnumerable())

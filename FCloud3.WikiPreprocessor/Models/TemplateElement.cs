@@ -87,7 +87,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            List<IRule> rules = new();
+            List<IRule> rules = new(_values.Count + 1);
             foreach(var value in _values.Values)
             {
                 var r = value.ContainRules();
@@ -125,7 +125,7 @@ namespace FCloud3.WikiPreprocessor.Models
         public List<TemplateSlot> Get(Template template)
         {
             if (string.IsNullOrEmpty(template.Name))
-                return new();
+                return [];
             if (this.TryGetValue(template.Name, out var list))
                 return list;
             var slots = GetSlots(template);
@@ -134,9 +134,9 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         private static List<TemplateSlot> GetSlots(Template template)
         {
-            List<TemplateSlot> slots = new();
             if (template.Source is null)
-                return slots;
+                return [];
+            List<TemplateSlot> slots = new(4);
             MatchAndCollect(template.Source, ParseBlockSlot.MatchRegex, slots, (x,y) => new ParseBlockSlot(x, y));
             MatchAndCollect(template.Source, ParseLineSlot.MatchRegex, slots, (x,y) => new ParseLineSlot(x, y));
             MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, (x,y) => new UniqueSlot(x, y));

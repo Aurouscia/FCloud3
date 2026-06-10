@@ -46,7 +46,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            var res = Content.ContainRules() ?? new();
+            var res = Content.ContainRules() ?? new(1);
             if (this.Rule is not null)
                 res.Add(Rule);
             return res;
@@ -135,7 +135,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            return new() { Rule };
+            return new(1) { Rule };
         }
     }
     public class InlineObjectElement : InlineElement
@@ -203,7 +203,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            return new() { Rule }; 
+            return new(1) { Rule }; 
         }
     }
     public sealed class CachedElement : InlineElement

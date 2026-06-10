@@ -50,6 +50,7 @@ namespace FCloud3.WikiPreprocessor.Models
             base.AddRange(items);
         }
         public ElementCollection() { }
+        public ElementCollection(int capacity) : base(capacity) { }
         public void AddFlat(IHtmlable htmlable)
         {
             if (htmlable is Element ele)

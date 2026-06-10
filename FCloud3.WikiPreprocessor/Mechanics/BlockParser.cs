@@ -105,7 +105,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
             ElementCollection res = new();
 
-            List<LineWithTitleLevel> generating = new();
+            List<LineWithTitleLevel> generating = new(lines.Count);
             LineAndHash? title = null;
             foreach (var l in lines)
             {
@@ -242,7 +242,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
             var emptyRule = new EmptyBlockRule();
             IBlockRule tracking = emptyRule;
-            List<LineWithRule> generating = new();
+            List<LineWithRule> generating = new(lines.Count);
             foreach(var l in lines)
             {
                 var ruleOfthisLine = l.Rule ?? emptyRule;

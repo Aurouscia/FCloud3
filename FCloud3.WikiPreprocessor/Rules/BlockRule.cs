@@ -175,7 +175,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         }
         public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
-            var items = new ElementCollection();
+            var items = new ElementCollection(lines.Count());
             foreach (var line in lines)
             {
                 ListItemElement item = new(inlineParser.Run(line.Text));
@@ -465,7 +465,7 @@ namespace FCloud3.WikiPreprocessor.Rules
                 return new FootNoteBodyElement(name, inlineParser.Run(body, false), x.RawLineHash);
             });
             context.FootNote.AddFootNoteBodies(resContent);
-            var placeholders = new List<FootNoteBodyPlaceholderElement>();
+            var placeholders = new List<FootNoteBodyPlaceholderElement>(resContent.Count);
             resContent.ForEach(x =>
             {
                 if(x is not null)

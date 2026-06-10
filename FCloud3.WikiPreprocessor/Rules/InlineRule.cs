@@ -401,7 +401,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             }
             public override List<IRule>? ContainRules()
             {
-                var res = Content.ContainRules()??new();
+                var res = Content.ContainRules()??new(1);
                 res.Add(_fromRule);
                 return res;
             }
