@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuRouteRenderer 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuRouteRenderer 线路图渲染插件</h1>
+    <p>将表格中的字符指令渲染为 Canvas 地铁/铁路线路图。</p>
+
+    <h2>触发词</h2>
+    <p>以下任意一个均可触发：</p>
+    <ul>
+        <li><code class="trigger">AuRtRd</code></li>
+        <li><code class="trigger">au-rr</code></li>
+        <li><code class="trigger">au-route-renderer</code></li>
+    </ul>
+
+    <h2>实际案例</h2>
+    <p>
+        由于本插件较为复杂，建议查看有实际效果对比的页面<br/>
+        可参考：<a href="http://wiki.jowei19.com/#/w/in-wiki-route-renderer" target="_blank">http://wiki.jowei19.com/#/w/in-wiki-route-renderer</a>
+    </p>
+
+    <h2>基本结构</h2>
+    <p>在表格第一列的单元格中写入指令，第二列写站点名称。首行必须包含触发词，可附带颜色配置。触发词前后可以有其他普通表格行，它们不会被渲染：</p>
+    <table>
+        <tr><td>AuRtRd(c:#009999)</td><td>1号线</td></tr>
+        <tr><td>o ; 5(#ffff00)</td><td>起点站</td></tr>
+        <tr><td>o\T;K(#f00)</td><td>换乘站</td></tr>
+    </table>
+
+    <h2>配置参数</h2>
+    <p>触发词后可跟 <code>(键:值_键:值)</code> 格式的配置，下划线分隔多个键值对。<strong>括号必须为英文半角括号：</strong></p>
+    <table>
+        <tr><th>键</th><th>说明</th><th>示例</th></tr>
+        <tr><td><code>c</code></td><td>线路颜色（CSS 颜色值）</td><td><code>c:#009999</code></td></tr>
+    </table>
+
+    <h2>绘制指令字符</h2>
+    <p>每个单元格的第一部分（分号前）由以下字符组成网格，描述线路走向：</p>
+    <table>
+        <tr><th>字符</th><th>名称</th><th>说明</th></tr>
+        <tr><td><code>o</code></td><td>站点</td><td>绘制一个车站圆点</td></tr>
+        <tr><td><code>T</code></td><td>线路</td><td>绘制连接上下站点的轨道线段</td></tr>
+        <tr><td><code>_</code></td><td>空位</td><td>占位，不绘制任何内容</td></tr>
+        <tr><td><code>/</code></td><td>左换乘</td><td>线路向左偏移的换乘/转弯连接</td></tr>
+        <tr><td><code>\</code></td><td>右换乘</td><td>线路向右偏移的换乘/转弯连接</td></tr>
+        <tr><td><code>~</code></td><td>水域</td><td>绘制河流/水域横线</td></tr>
+        <tr><td><code>^</code></td><td>山丘</td><td>绘制山丘/地形横线</td></tr>
+        <tr><td><code>b</code></td><td>上分支</td><td>从当前位置向上方绘制分支箭头</td></tr>
+        <tr><td><code>p</code></td><td>下分支</td><td>从当前位置向下方绘制分支箭头</td></tr>
+        <tr><td><code>B</code></td><td>双向分支</td><td>同时绘制上下两个分支箭头</td></tr>
+        <tr><td><code>n</code></td><td>上转弯</td><td>线路向上转弯（配合 <code>-</code> 使用）</td></tr>
+        <tr><td><code>u</code></td><td>下转弯</td><td>线路向下转弯（配合 <code>-</code> 使用）</td></tr>
+        <tr><td><code>-</code></td><td>转弯跨度</td><td>连接 <code>n</code> 或 <code>u</code> 的横向跨度填充</td></tr>
+    </table>
+
+    <h2>标注（Annotation）</h2>
+    <p>分号后的部分为标注，可附加在站点旁显示图标或文字：</p>
+    <table>
+        <tr><th>格式</th><th>说明</th><th>示例</th></tr>
+        <tr><td><code>文字(颜色)</code></td><td>带背景色的圆形图标，最多显示3个字</td><td><code>K(#f00)</code> 显示红色背景 "K"</td></tr>
+        <tr><td><code>_文字_</code></td><td>灰色背景的固定图标</td><td><code>_机场_</code> 显示飞机图标</td></tr>
+        <tr><td><code>_airport_</code></td><td>特殊处理：绘制飞机图案</td><td><code>_airport_</code></td></tr>
+    </table>
+    <p>多个标注用分号 <code>;</code> 分隔。奇数位置的标注显示在站点上方，偶数位置显示在下方。</p>
+
+    <h2>完整示例</h2>
+    <h3>基础线路</h3>
+    <p>触发词和第一个站点可以写在同一个单元格内，用换行隔开：</p>
+    <table>
+        <tr><td>AuRtRd(c:#009999)<br/>o ; 5(#ffff00)</td><td>1号线</td></tr>
+        <tr><td>o</td><td>中间站</td></tr>
+        <tr><td>o</td><td>终点站</td></tr>
+    </table>
+    <p>也可以分开放置：</p>
+    <table>
+        <tr><td>AuRtRd(c:#009999)</td><td>1号线</td></tr>
+        <tr><td>o ; 5(#ffff00)</td><td>起点站</td></tr>
+        <tr><td>o</td><td>中间站</td></tr>
+        <tr><td>o</td><td>终点站</td></tr>
+    </table>
+
+    <h3>换乘站</h3>
+    <table>
+        <tr><td>AuRtRd(c:#77aaff)</td><td>3号线</td></tr>
+        <tr><td>o\T;浑(#009900);Au(#000044);L23(cornflowerblue)</td><td>多线换乘站</td></tr>
+        <tr><td>o/</td><td>下一站</td></tr>
+    </table>
+
+    <h3>含地形与分支</h3>
+    <table>
+        <tr><td>AuRtRd(c:#aa6666)</td><td>2号线</td></tr>
+        <tr><td>oo;_airport_</td><td>天河机场</td></tr>
+        <tr><td>~~~</td><td>长江</td></tr>
+        <tr><td>oTb;</td><td>积玉桥（上分支）</td></tr>
+        <tr><td>T^^</td><td>洪山（山丘）</td></tr>
+        <tr><td>u-u</td><td>街道口（下转弯）</td></tr>
+    </table>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>触发词必须出现在表格第一列的首个有效单元格中。</li>
+        <li>每个绘制单元格的第一部分只能包含上表列出的有效字符。</li>
+        <li>站点 <code>o</code> 和线路 <code>T</code> 可以组合使用，如 <code>oTo</code> 表示站点-线路-站点。</li>
+        <li>换乘标记 <code>/</code>、<code>\</code> 会自动根据相邻单元格计算连接方向。</li>
+        <li>表格会被替换为 Canvas 渲染的线路图，用于标注线路的单元格不再可见。</li>
+    </ul>
+</body>
+</html>
