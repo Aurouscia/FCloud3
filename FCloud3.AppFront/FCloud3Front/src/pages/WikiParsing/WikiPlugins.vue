@@ -29,8 +29,8 @@ onUnmounted(() => {
   <div v-else class="wikiPlugins">
     <div v-for="plugin in plugins" :key="plugin.name" class="pluginItem">
       <h2>{{ plugin.displayName || plugin.name }}</h2>
+      <div v-if="plugin.description" class="description">{{ plugin.description }}</div>
       <div class="triggers">
-        <span class="label">触发词：</span>
         <code v-for="trigger in plugin.triggers" :key="trigger" class="trigger">{{ trigger }}</code>
       </div>
       <div v-if="plugin.docs" class="docs">
@@ -68,11 +68,6 @@ onUnmounted(() => {
     margin: 0;
   }
 
-  .label {
-    color: gray;
-    font-size: 14px;
-  }
-
   .triggers {
     display: flex;
     flex-wrap: wrap;
@@ -87,6 +82,11 @@ onUnmounted(() => {
       color: #c41d7f;
       font-weight: bold;
     }
+  }
+
+  .description {
+    color: #666;
+    font-size: 14px;
   }
 
   .entry code {
