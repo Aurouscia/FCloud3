@@ -25,8 +25,10 @@ export function parseTargets():TargetGroup[]{
     return targetGroups
 }
 
-const mainCellPattern = `(?<=(${triggers.join('|')})\\()[0-9-/:\\+& ]{0,32}(?=\\))`
-const mainCellPatternRegex = new RegExp(mainCellPattern)
+function getMainCellPatternRegex() {
+    const mainCellPattern = `(?<=(${triggers.join('|')})\\()[0-9-/:\\+& ]{0,32}(?=\\))`
+    return new RegExp(mainCellPattern)
+}
 export function parseTableRow(row:HTMLTableRowElement):Target|false{
     const cellCount = row.cells.length
     if(cellCount < 1 || cellCount > 2){
@@ -35,8 +37,8 @@ export function parseTableRow(row:HTMLTableRowElement):Target|false{
     let desc:string|undefined = undefined
     if(cellCount == 2)
         desc = row.cells[1].innerHTML
-    const mainText = row.cells[0].innerText
-    const matchRes = mainCellPatternRegex.exec(mainText)
+    const mainText = row.cells[0].textContent ?? ''
+    const matchRes = getMainCellPatternRegex().exec(mainText)
     if(!matchRes)
         return false
     const match = [...matchRes].at(0)
