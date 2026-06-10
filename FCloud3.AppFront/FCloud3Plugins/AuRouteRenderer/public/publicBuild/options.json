@@ -1,4 +1,6 @@
 {
+    "displayName": "线路图渲染器",
     "triggers": ["AuRtRd", "au-rr", "au-route-renderer"],
-    "priority": 1
+    "priority": 1,
+    "description": "将表格中的字符指令渲染为 Canvas 地铁/铁路线路图"
 }

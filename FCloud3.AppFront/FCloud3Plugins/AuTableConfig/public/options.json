@@ -1,4 +1,6 @@
 {
+    "displayName": "表格配置器",
     "triggers": ["AuTc", "au-table-config", "au-tc"],
-    "priority": 1
+    "priority": 1,
+    "description": "从表格首行读取列配置（宽度、对齐、换行），应用到整表"
 }

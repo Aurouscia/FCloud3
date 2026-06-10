@@ -1,4 +1,6 @@
 {
+    "displayName": "段落移动器",
     "triggers": ["AuParaMover", "au-pm", "au-para-mover"],
-    "priority": 0
+    "priority": 0,
+    "description": "将页面中的章节内容移动到表格指定位置"
 }

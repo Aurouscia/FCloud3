@@ -9,6 +9,8 @@ interface PluginInfo {
   triggers: string[]
   priority: number
   docs?: string
+  displayName?: string
+  description?: string
 }
 
 const plugins = pluginsFound as PluginInfo[]
@@ -22,11 +24,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1>Wiki插件</h1>
+  <h1>可用的插件列表</h1>
   <div v-if="plugins.length === 0" class="empty">暂无可用插件</div>
   <div v-else class="wikiPlugins">
     <div v-for="plugin in plugins" :key="plugin.name" class="pluginItem">
-      <h2>{{ plugin.name }}</h2>
+      <h2>{{ plugin.displayName || plugin.name }}</h2>
       <div class="triggers">
         <span class="label">触发词：</span>
         <code v-for="trigger in plugin.triggers" :key="trigger" class="trigger">{{ trigger }}</code>

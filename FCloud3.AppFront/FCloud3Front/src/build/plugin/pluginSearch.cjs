@@ -47,6 +47,12 @@ module.exports = {
                 triggers,
                 priority
               }
+              if(typeof options.displayName === 'string'){
+                pluginObj.displayName = options.displayName
+              }
+              if(typeof options.description === 'string'){
+                pluginObj.description = options.description
+              }
               if(docsFileName){
                 pluginObj.docs = `/${pluginsDirName}/${item}/${docsFileName}`
               }

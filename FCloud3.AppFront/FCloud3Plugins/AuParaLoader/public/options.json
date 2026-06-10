@@ -1,4 +1,6 @@
 {
+    "displayName": "段落加载器",
     "triggers": ["AuParaLoader", "au-pl", "au-para-loader"],
-    "priority": 0
+    "priority": 0,
+    "description": "从其他词条加载指定段落内容，嵌入到当前页面"
 }
