@@ -310,7 +310,7 @@ namespace FCloud3.WikiPreprocessor.Rules
     /// 当内部不含"\@"时，表示一个指定了颜色的方块（宽度和高度由字体大小决定）<b>（原作者：滨蜀，此为同一规则的重新实现）</b><br/>
     /// 例子：#red#<br/>
     /// </summary>
-    public class ColorTextRule : IInlineRule
+    public partial class ColorTextRule : IInlineRule
     {
         public string Name => "彩色字";
         public string MarkLeft => "#";
@@ -410,7 +410,7 @@ namespace FCloud3.WikiPreprocessor.Rules
 
         public static bool IsColorTextAtLineStart(string line, IColorParser colorParser)
         {
-            var m = Regex.Match(line, "(?<=^#).{2,}?(?=#)");
+            var m = ColorTextLineRegex().Match(line);
             if(!m.Success)
                 return false;
             var val = m.Value;
@@ -423,6 +423,9 @@ namespace FCloud3.WikiPreprocessor.Rules
             bool isColor = ConventionalHtmlColor.TryFormalize(val, colorParser, out _);
             return isColor;
         }
+
+        [GeneratedRegex("(?<=^#).{2,}?(?=#)")]
+        private static partial Regex ColorTextLineRegex();
     }
 
     public static class InternalInlineRules

@@ -112,7 +112,7 @@ namespace FCloud3.WikiPreprocessor.Models
     /// <summary>
     /// 存储每一个模板内部的插槽信息，key为模板名，value为插槽List
     /// </summary>
-    public class TemplateSlotInfo : Dictionary<string, List<TemplateSlot>>
+    public partial class TemplateSlotInfo : Dictionary<string, List<TemplateSlot>>
     {
         public TemplateSlotInfo() 
         {
@@ -147,11 +147,21 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,int,TemplateSlot> constructor)
         {
-            var matches = Regex.Matches(source, regex);
+            var matches = GetRegex(regex).Matches(source);
             foreach (var match in matches.AsEnumerable<Match>())
             {
                 data.Add(constructor(match.Value, match.Index));
             }
+        }
+        private static readonly Dictionary<string, Regex> _regexCache = new();
+        private static Regex GetRegex(string pattern)
+        {
+            if (!_regexCache.TryGetValue(pattern, out var regex))
+            {
+                regex = new Regex(pattern, RegexOptions.Compiled);
+                _regexCache[pattern] = regex;
+            }
+            return regex;
         }
     }
 
