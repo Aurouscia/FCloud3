@@ -1,6 +1,8 @@
 import { triggers } from '../public/options.json'
 
-const triggerPattern = new RegExp(`^(${triggers.join('|')})$`)
+function getTriggerPattern() {
+    return new RegExp(`^(${triggers.join('|')})$`)
+}
 
 interface ColumnConfig {
     width?: string
@@ -21,16 +23,16 @@ export function run() {
         if (!firstCell) {
             continue
         }
-        const firstCellText = firstCell.innerText.trim()
+        const firstCellText = firstCell.textContent?.trim() ?? ''
         const parts = firstCellText.split(/\s+/)
-        if (parts.length < 2 || !triggerPattern.test(parts[0])) {
+        if (parts.length < 2 || !getTriggerPattern().test(parts[0])) {
             continue
         }
 
         const configs: ColumnConfig[] = []
         for (let c = 0; c < firstRow.cells.length; c++) {
             const cell = firstRow.cells[c]
-            const text = cell.innerText.trim()
+            const text = cell.textContent?.trim() ?? ''
             const cellParts = text.split(/\s+/)
             const configText = cellParts.slice(1).join(' ')
             configs.push(parseConfig(configText))
