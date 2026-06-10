@@ -21,6 +21,7 @@ module.exports = {
             const dirContents = fs.readdirSync(itemPath)
             const entryFileName = dirContents.find(x=>x.endsWith('.entry.js'))
             const optionsFileName = dirContents.find(x=>x==='options.json')
+            const docsFileName = dirContents.find(x=>x==='docs.html')
             if(entryFileName && optionsFileName){
               const name = item
               const entry = `/${pluginsDirName}/${item}/${entryFileName}`
@@ -45,6 +46,9 @@ module.exports = {
                 entry,
                 triggers,
                 priority
+              }
+              if(docsFileName){
+                pluginObj.docs = `/${pluginsDirName}/${item}/${docsFileName}`
               }
               found.push(pluginObj)
             }

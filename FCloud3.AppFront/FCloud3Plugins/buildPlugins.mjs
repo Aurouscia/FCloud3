@@ -48,6 +48,13 @@ async function main() {
     
     cleanOutputDir()
 
+    const docsCssSrc = path.join(currentDir, 'docs.css')
+    const docsCssDest = path.join(path.resolve(frontPluginsPath), 'docs.css')
+    if (fs.existsSync(docsCssSrc)) {
+        fs.copyFileSync(docsCssSrc, docsCssDest)
+        console.log('已复制 docs.css 到输出目录')
+    }
+
     console.log('=========开始安装依赖=========')
     execSync('pnpm install', { cwd: currentDir, stdio: 'inherit' })
 

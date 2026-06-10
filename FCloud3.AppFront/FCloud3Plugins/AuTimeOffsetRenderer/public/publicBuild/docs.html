@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AuTimeOffsetRenderer 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuTimeOffsetRenderer 时间偏移渲染插件</h1>
+    <p>将表格中的日期时间转换为动态倒计时/已过时间显示，自动更新。</p>
+
+    <h2>触发词</h2>
+    <p>以下任意一个均可触发：</p>
+    <ul>
+        <li><code class="trigger">AuTimeOffset</code></li>
+        <li><code class="trigger">au-time-offset</code></li>
+        <li><code class="trigger">au-to</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在表格单元格中写入触发词，括号内填入日期时间：</p>
+    <table>
+        <tr><td>AuTimeOffset(12/25)</td><td>圣诞节</td></tr>
+    </table>
+    <p>渲染效果：蓝色圆角标签，显示「距离 圣诞节 剩余 <b>XX天</b>」</p>
+
+    <div class="note">
+        <strong>注意：</strong>表格会被替换为动态显示元素，原表格不再可见。
+    </div>
+
+    <h2>日期格式</h2>
+    <table>
+        <tr><td>12/25</td><td>月/日，当年（若已过则转明年）</td></tr>
+        <tr><td>&/12/25</td><td>&表示强制当年</td></tr>
+        <tr><td>+/12/25</td><td>+表示强制明年</td></tr>
+        <tr><td>2025/12/25</td><td>指定完整年月日</td></tr>
+        <tr><td>2025-12-25</td><td>也可用 - 分隔</td></tr>
+    </table>
+
+    <h2>时间格式（可选）</h2>
+    <p>日期后加空格，可指定具体时间：</p>
+    <table>
+        <tr><td>12/25 08:00</td><td>上午8点</td></tr>
+        <tr><td>12/25 14:30:00</td><td>下午2点30分0秒</td></tr>
+    </table>
+    <p>指定时间后，显示精度提升到秒，每秒更新。</p>
+
+    <h2>表格结构</h2>
+    <p>每行 1-2 列：</p>
+    <table>
+        <tr><td>第一列</td><td>触发词 + 日期时间</td></tr>
+        <tr><td>第二列（可选）</td><td>事件描述，如「圣诞节」「截止日期」</td></tr>
+    </table>
+
+    <h2>完整示例</h2>
+    <h3>简单倒计时</h3>
+    <table>
+        <tr><td>AuTimeOffset(12/25)</td><td>圣诞节</td></tr>
+        <tr><td>AuTimeOffset(1/1)</td><td>元旦</td></tr>
+        <tr><td>AuTimeOffset(10/1)</td><td>国庆节</td></tr>
+    </table>
+
+    <h3>指定具体时间</h3>
+    <table>
+        <tr><td>AuTimeOffset(12/25 00:00)</td><td>圣诞夜</td></tr>
+        <tr><td>AuTimeOffset(6/7 09:00)</td><td>高考开始</td></tr>
+    </table>
+
+    <h3>跨年事件</h3>
+    <table>
+        <tr><td>AuTimeOffset(&/12/31)</td><td>今年跨年</td></tr>
+        <tr><td>AuTimeOffset(+/1/1)</td><td>明年元旦</td></tr>
+        <tr><td>AuTimeOffset(2026/6/1)</td><td>指定日期</td></tr>
+    </table>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>每行只能有 <strong>1 或 2 列</strong>，否则该行会被跳过。</li>
+        <li>表格中任意一行格式错误，<strong>整个表格</strong>都会被放弃。</li>
+        <li>未指定时间时，显示精度为<strong>天</strong>，每 10 秒更新。</li>
+        <li>指定时间后，显示精度为<strong>天 时:分:秒</strong>，每秒更新。</li>
+        <li>当天日期会显示「<b>即为今日</b>」（未指定时间时）。</li>
+        <li>触发词区分大小写。</li>
+    </ul>
+</body>
+</html>

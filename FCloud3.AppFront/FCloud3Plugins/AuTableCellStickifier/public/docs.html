@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AuTableCellStickifier 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuTableCellStickifier 表格吸顶/吸左插件</h1>
+    <p>让表格的行列在滚动时保持可见，实现吸顶（上方固定）和吸左（左侧固定）效果。</p>
+
+    <h2>触发词</h2>
+    <p>以下任意一个均可触发：</p>
+    <ul>
+        <li><code class="trigger">AuTcs</code></li>
+        <li><code class="trigger">au-table-cell-stickifier</code></li>
+        <li><code class="trigger">au-tcs</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在表格的任意单元格中写入触发词，括号内指定方向参数：</p>
+    <table>
+        <tr><td>AuTcs(below)</td><td>下方行吸顶</td></tr>
+        <tr><td>AuTcs(right)</td><td>右侧列吸左</td></tr>
+        <tr><td>AuTcs(right, below)</td><td>同时吸顶和吸左</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>触发词会在页面渲染后被自动移除，不影响表格内容显示。
+    </div>
+
+    <h2>参数说明</h2>
+    <table>
+        <tr><td>below</td><td>该单元格所在行及其上方所有行保持吸顶</td></tr>
+        <tr><td>right</td><td>该单元格所在列及其左侧所有列保持吸左</td></tr>
+    </table>
+
+    <h2>完整示例</h2>
+    <h3>吸顶表头</h3>
+    <p>让第一行在滚动时固定在顶部：</p>
+    <table>
+        <tr><td>AuTcs(below)</td><td>标题</td><td>标题</td></tr>
+        <tr><td>数据1</td><td>数据2</td><td>数据3</td></tr>
+        <tr><td>数据4</td><td>数据5</td><td>数据6</td></tr>
+    </table>
+
+    <h3>吸左首列</h3>
+    <p>让第一列在横向滚动时固定在左侧：</p>
+    <table>
+        <tr><td>AuTcs(right)</td><td>标题</td><td>标题</td></tr>
+        <tr><td>数据1</td><td>数据2</td><td>数据3</td></tr>
+        <tr><td>数据4</td><td>数据5</td><td>数据6</td></tr>
+    </table>
+
+    <h3>同时吸顶和吸左</h3>
+    <p>左上角区域在滚动时保持固定：</p>
+    <table>
+        <tr><td>AuTcs(right, below)</td><td>标题</td><td>标题</td></tr>
+        <tr><td>数据1</td><td>数据2</td><td>数据3</td></tr>
+        <tr><td>数据4</td><td>数据5</td><td>数据6</td></tr>
+    </table>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>触发词可以放在表格<strong>前 5 行和前 5 列</strong>范围内的任意单元格中。</li>
+        <li>一个表格只能有一个吸顶位置和一个吸左位置，多处写入以先检测到的为准。</li>
+        <li>吸顶效果作用于触发词<strong>所在行及上方所有行</strong>。</li>
+        <li>吸左效果作用于触发词<strong>所在列及左侧所有列</strong>。</li>
+        <li>触发词区分大小写。</li>
+    </ul>
+</body>
+</html>

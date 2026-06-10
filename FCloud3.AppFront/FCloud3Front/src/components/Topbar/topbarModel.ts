@@ -43,6 +43,10 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                     {
                         Title: "语法指南",
                         Link: "/GrammarHelp"
+                    },
+                    {
+                        Title: "插件",
+                        Link: "/wikiPlugins"
                     }
                 ]
             },
