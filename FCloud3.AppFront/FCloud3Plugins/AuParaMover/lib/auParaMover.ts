@@ -1,10 +1,14 @@
-const trigger = 'AuParaMover'
-const pattern = `(?<=${trigger}\\().{1,32}(?=\\))`
-const targetCellPattern = new RegExp(pattern)
+import { triggers } from '../public/options.json'
 
 const searchInTitleTagName = 'h1'
 
+function getTargetCellPattern() {
+    const pattern = `(?<=(?:${triggers.join('|')})\\().{1,32}(?=\\))`
+    return new RegExp(pattern)
+}
+
 export function run(){
+    const targetCellPattern = getTargetCellPattern()
     const targets:{
         target:HTMLTableElement,
         targetCell:HTMLTableCellElement,
@@ -18,8 +22,8 @@ export function run(){
         if(firstRow.cells.length!==1)
             continue
         const cell = firstRow.cells[0]
-        const matchRes = targetCellPattern.exec(cell.innerText.trim())
-        if(matchRes && matchRes.length==1){
+        const matchRes = targetCellPattern.exec(cell.textContent?.trim() ?? '')
+        if(matchRes && matchRes[0].length > 0){
             targets.push({
                 target: t,
                 targetCell: cell,
@@ -33,9 +37,9 @@ export function run(){
     //导致for循环跳过元素，因此需要使用数组来存储元素
     const titles = [...document.getElementsByTagName(searchInTitleTagName)]
     for(const title of titles){
-        const h1Text = title.innerText
+        const h1Text = title.textContent ?? ''
         const target = targets.find(t=>{
-            return h1Text.includes(t.param)
+            return !t.resolved && h1Text.includes(t.param)
         })
         if(!target)
             continue
@@ -49,7 +53,7 @@ export function run(){
     }
     for(const target of targets){
         if(!target.resolved){
-            target.targetCell.innerHTML = `<b style="color:red">${trigger}：未找到包含[${target.param}]的段落标题</b>`
+            target.targetCell.innerHTML = `<b style="color:red">段落移动器：未找到包含[${target.param}]的段落标题</b>`
         }
     }
 }

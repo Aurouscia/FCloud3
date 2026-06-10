@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuParaMover 段落移动插件</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuParaMover 段落移动插件</h1>
+    <p>将页面中的段落（h1 标题及其后续内容）移动到表格指定位置。</p>
+    <p>主要用途：移动复杂的表格（带有单元格合并）到文本段落的小标题下</p>
+
+    <h2>触发词</h2>
+    <p>以下任意一个均可触发：</p>
+    <ul>
+        <li><code class="trigger">AuParaMover</code></li>
+        <li><code class="trigger">au-pm</code></li>
+        <li><code class="trigger">au-para-mover</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在<strong>单行单列</strong>表格中写入触发词，括号内填入要匹配的 h1 标题关键词：</p>
+    <table>
+        <tr><td>AuParaMover(简介)</td></tr>
+    </table>
+    <p>插件会查找包含「简介」的 h1 标题，将其下一个元素移动到表格位置。</p>
+
+    <div class="note">
+        <strong>注意：</strong>表格和匹配的 h1 标题都会被移除，只有段落内容保留在表格位置。
+    </div>
+
+    <h2>完整示例</h2>
+    <h3>移动单个段落</h3>
+    <p>页面内容：</p>
+    <table>
+        <tr><td>AuParaMover(项目背景)</td></tr>
+    </table>
+    <p>效果：包含「项目背景」的 h1 及其下一个元素被移动到表格位置。</p>
+
+    <h3>移动多个段落</h3>
+    <table>
+        <tr><td>AuParaMover(概述)</td></tr>
+    </table>
+    <table>
+        <tr><td>AuParaMover(详情)</td></tr>
+    </table>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>表格必须是<strong>单行单列</strong>，否则不会被识别。</li>
+        <li>匹配是<strong>包含关系</strong>，h1 标题包含关键词即可，不需要完全相等。</li>
+        <li>h1 标题后面必须有<strong>下一个兄弟元素</strong>，否则移动失败。</li>
+        <li>每个关键词只会匹配<strong>第一个</strong>符合条件的 h1。</li>
+        <li>找不到匹配时表格位置会显示红色错误信息。</li>
+        <li>触发词区分大小写。</li>
+    </ul>
+</body>
+</html>

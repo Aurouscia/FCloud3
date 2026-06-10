@@ -1,4 +1,4 @@
-export const trigger = 'AuTimeOffset'
+export { triggers } from '../../public/publicBuild/options.json'
 
 export interface TargetGroup{
     table:HTMLTableElement

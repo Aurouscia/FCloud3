@@ -6,7 +6,6 @@ export const displayYUnitPx = 65
 export const displayXUnitPx = 25
 export const displayLRMargin = 25
 
-export const activationCode = 'AuRtRd'
 export const airportCalls = ['_机场_','_airport_']
 export const waterColor = '#b6dee8'
 export const hillColor = '#aaa'

@@ -1,0 +1,4 @@
+{
+    "triggers": ["AuEChartsCaller", "au-ecc", "au-echarts-caller"],
+    "priority": 1
+}

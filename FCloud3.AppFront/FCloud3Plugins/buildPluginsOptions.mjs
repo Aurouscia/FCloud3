@@ -3,6 +3,7 @@ export const pluginsEnabled = [
     'AuTableCellStickifier',
     'AuTimeOffsetRenderer',
     'AuParaMover',
-    'AuParaLoader'
+    'AuParaLoader',
+    'AuTableConfig'
     //'AuEChartsCaller' 还未开发
 ]
