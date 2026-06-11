@@ -55,6 +55,8 @@ namespace FCloud3.Entities.Identities
         public string? SystemPrompt { get; set; }
         /// <summary>是否启用 AI 功能</summary>
         public bool Enabled { get; set; }
+        /// <summary>默认 AI 可查看的目录范围（某目录及其子级），0 表示不限</summary>
+        public int DefaultDirId { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
@@ -64,15 +66,91 @@ namespace FCloud3.Entities.Identities
 }
 ```
 
-### 2.2 更新 `FCloudContext`
+### 2.2 新增实体：`AiConversation`
+
+存储用户创建的 AI 对话会话。
+
+**文件**：`FCloud3.Entities/Ai/AiConversation.cs`
+
+```csharp
+namespace FCloud3.Entities.Ai
+{
+    public class AiConversation : IDbModel
+    {
+        public int Id { get; set; }
+        /// <summary>创建者用户Id</summary>
+        public int UserId { get; set; }
+        /// <summary>关联的团体Id</summary>
+        public int GroupId { get; set; }
+        /// <summary>对话标题（用户可编辑，默认取第一条用户消息前20字）</summary>
+        public string? Title { get; set; }
+        /// <summary>创建时关联的词条路径名（可为空）</summary>
+        public string? CurrentWikiPathName { get; set; }
+        /// <summary>消息数缓存</summary>
+        public int MessageCount { get; set; }
+
+        public int CreatorUserId { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Updated { get; set; }
+        public bool Deleted { get; set; }
+
+        public const int titleMaxLength = 64;
+    }
+}
+```
+
+### 2.3 新增实体：`AiMessage`
+
+存储对话中的每条消息。
+
+**文件**：`FCloud3.Entities/Ai/AiMessage.cs`
+
+```csharp
+namespace FCloud3.Entities.Ai
+{
+    public class AiMessage : IDbModel
+    {
+        public int Id { get; set; }
+        /// <summary>所属对话Id</summary>
+        public int ConversationId { get; set; }
+        /// <summary>消息角色</summary>
+        public AiMessageRole Role { get; set; }
+        /// <summary>消息内容</summary>
+        public string? Content { get; set; }
+        /// <summary>AI 调用的工具记录（JSON 序列化，可为空）</summary>
+        public string? ToolCalls { get; set; }
+        /// <summary>消息在对话中的顺序</summary>
+        public int Order { get; set; }
+        /// <summary>本条消息的 Token 数（用于上下文截断和用量统计）</summary>
+        public int TokenCount { get; set; }
+
+        public int CreatorUserId { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Updated { get; set; }
+        public bool Deleted { get; set; }
+    }
+
+    public enum AiMessageRole
+    {
+        System = 0,
+        User = 1,
+        Assistant = 2,
+        Tool = 3
+    }
+}
+```
+
+### 2.4 更新 `FCloudContext`
 
 在 `FCloud3.DbContexts/FCloudContext.cs` 中添加：
 
 ```csharp
 public DbSet<GroupAiConfig> GroupAiConfigs { get; set; }
+public DbSet<AiConversation> AiConversations { get; set; }
+public DbSet<AiMessage> AiMessages { get; set; }
 ```
 
-### 2.3 迁移注意事项
+### 2.5 迁移注意事项
 
 - **如果是二次开发且需维持 upstream**：必须在**单独的 DbContext** 中创建此实体，使用**分离的迁移目录**，不要修改原有的 `FCloudContext` 和迁移。
 - 如果不确定是否维持 upstream，请先询问用户确认。
@@ -87,6 +165,9 @@ public DbSet<GroupAiConfig> GroupAiConfigs { get; set; }
 FCloud3.Repos/
   Identities/
     GroupAiConfigRepo.cs          # 数据访问
+  Ai/
+    AiConversationRepo.cs         # 对话会话数据访问
+    AiMessageRepo.cs              # 对话消息数据访问
 
 FCloud3.Services/
   Ai/
@@ -97,7 +178,7 @@ FCloud3.Services/
 FCloud3.App/
   Controllers/
     Ai/
-      AiChatController.cs         # AI 对话接口（流式/非流式）
+      AiChatController.cs         # AI 对话接口（流式/非流式）+ 对话管理
     Identities/
       GroupAiConfigController.cs  # 团体 AI 配置 CRUD
 ```
@@ -118,9 +199,38 @@ namespace FCloud3.Repos.Identities
 }
 ```
 
-### 3.3 Service 层
+### 3.3 Repo 层：`AiConversationRepo` 和 `AiMessageRepo`
 
-#### 3.3.1 `GroupAiConfigService`
+```csharp
+namespace FCloud3.Repos.Ai
+{
+    public class AiConversationRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider)
+        : RepoBase<AiConversation>(context, userIdProvider)
+    {
+        public List<AiConversation> GetByUserAndGroup(int userId, int groupId)
+            => Existing.Where(x => x.UserId == userId && x.GroupId == groupId)
+                       .OrderByDescending(x => x.Updated)
+                       .ToList();
+    }
+
+    public class AiMessageRepo(FCloudContext context, ICommitingUserIdProvider userIdProvider)
+        : RepoBase<AiMessage>(context, userIdProvider)
+    {
+        public List<AiMessage> GetByConversationId(int conversationId)
+            => Existing.Where(x => x.ConversationId == conversationId)
+                       .OrderBy(x => x.Order)
+                       .ToList();
+
+        public int GetMaxOrder(int conversationId)
+            => Existing.Where(x => x.ConversationId == conversationId)
+                       .Max(x => (int?)x.Order) ?? 0;
+    }
+}
+```
+
+### 3.4 Service 层
+
+#### 3.4.1 `GroupAiConfigService`
 
 管理团体 AI 配置的增删改查，权限检查（仅团体所有者/管理员可修改）。
 
@@ -185,18 +295,26 @@ public class AiToolService(
 public record WikiSearchResult(string? Title, string? UrlPathName);
 ```
 
-#### 3.3.3 `AiChatService`
+#### 3.4.3 `AiChatService`
 
-核心 AI 对话服务，使用 `Microsoft.Extensions.AI`。
+核心 AI 对话服务，使用 `Microsoft.Extensions.AI`，支持对话历史持久化。
 
 ```csharp
 using Microsoft.Extensions.AI;
 
 public class AiChatService(
     GroupAiConfigService configService,
-    AiToolService toolService)
+    AiToolService toolService,
+    AiConversationRepo conversationRepo,
+    AiMessageRepo messageRepo,
+    AiUsageRecorder usageRecorder,
+    IOperatingUserIdProvider userIdProvider)
 {
-    public async IAsyncEnumerable<string> GetSuggestions(int groupId, string userPrompt,
+    /// <summary>
+    /// 获取 AI 建议。conversationId 为 null 时不保存历史（无状态模式）。
+    /// </summary>
+    public async IAsyncEnumerable<string> GetSuggestions(
+        int groupId, string userPrompt, int? conversationId,
         string? currentWikiPathName, [EnumeratorCancellation] CancellationToken ct)
     {
         var config = configService.GetConfig(groupId, out var errmsg);
@@ -219,6 +337,17 @@ public class AiChatService(
             new ChatMessage(ChatRole.System, config.SystemPrompt ?? "你是一个 wiki 创作助手...")
         };
 
+        // 加载对话历史（如果有）
+        List<AiMessage> history = [];
+        if (conversationId.HasValue)
+        {
+            history = LoadHistoryMessages(conversationId.Value, config.MaxContextMessages);
+            foreach (var h in history)
+            {
+                messages.Add(ConvertToChatMessage(h));
+            }
+        }
+
         // 如果有当前词条编辑上下文，注入词条内容
         if (!string.IsNullOrEmpty(currentWikiPathName))
         {
@@ -239,11 +368,115 @@ public class AiChatService(
             AIFunctionFactory.Create(toolService.SearchWiki, name: "search_wiki")
         };
 
-        // 流式调用
+        // 流式调用并收集完整回复
+        string fullResponse = "";
         await foreach (var update in chatClient.GetStreamingResponseAsync(messages, new() { Tools = tools }, ct))
         {
+            fullResponse += update.Text ?? "";
             yield return update.Text ?? "";
         }
+
+        // 保存消息到数据库（如果有 conversationId）
+        if (conversationId.HasValue)
+        {
+            SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count);
+        }
+    }
+
+    /// <summary>创建新对话</summary>
+    public AiConversation CreateConversation(int userId, int groupId,
+        string? title, string? currentWikiPathName)
+    {
+        var conversation = new AiConversation
+        {
+            UserId = userId,
+            GroupId = groupId,
+            Title = title,
+            CurrentWikiPathName = currentWikiPathName,
+            MessageCount = 0
+        };
+        conversationRepo.Add(conversation);
+        return conversation;
+    }
+
+    /// <summary>获取用户的对话列表</summary>
+    public List<AiConversation> GetConversations(int userId, int groupId)
+        => conversationRepo.GetByUserAndGroup(userId, groupId);
+
+    /// <summary>获取对话的完整消息列表</summary>
+    public List<AiMessage> GetConversationMessages(int conversationId)
+        => messageRepo.GetByConversationId(conversationId);
+
+    /// <summary>重命名对话</summary>
+    public bool RenameConversation(int conversationId, string title, out string? errmsg)
+    {
+        errmsg = null;
+        var conv = conversationRepo.Existing.FirstOrDefault(x => x.Id == conversationId);
+        if (conv is null) { errmsg = "对话不存在"; return false; }
+        conv.Title = title;
+        conversationRepo.Update(conv);
+        return true;
+    }
+
+    /// <summary>删除对话（软删除）</summary>
+    public bool DeleteConversation(int conversationId, out string? errmsg)
+    {
+        errmsg = null;
+        var conv = conversationRepo.Existing.FirstOrDefault(x => x.Id == conversationId);
+        if (conv is null) { errmsg = "对话不存在"; return false; }
+        conversationRepo.Remove(conv);
+        return true;
+    }
+
+    private List<AiMessage> LoadHistoryMessages(int conversationId, int maxContextMessages)
+    {
+        var all = messageRepo.GetByConversationId(conversationId);
+        if (maxContextMessages > 0 && all.Count > maxContextMessages)
+        {
+            return all.TakeLast(maxContextMessages).ToList();
+        }
+        return all;
+    }
+
+    private ChatMessage ConvertToChatMessage(AiMessage msg)
+    {
+        var role = msg.Role switch
+        {
+            AiMessageRole.System => ChatRole.System,
+            AiMessageRole.User => ChatRole.User,
+            AiMessageRole.Assistant => ChatRole.Assistant,
+            AiMessageRole.Tool => ChatRole.Tool,
+            _ => ChatRole.User
+        };
+        return new ChatMessage(role, msg.Content ?? "");
+    }
+
+    private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount)
+    {
+        var baseOrder = existingCount;
+
+        // 保存用户消息
+        messageRepo.Add(new AiMessage
+        {
+            ConversationId = conversationId,
+            Role = AiMessageRole.User,
+            Content = userPrompt,
+            Order = baseOrder + 1
+        });
+
+        // 保存 AI 回复
+        messageRepo.Add(new AiMessage
+        {
+            ConversationId = conversationId,
+            Role = AiMessageRole.Assistant,
+            Content = aiResponse,
+            Order = baseOrder + 2
+        });
+
+        // 更新对话消息数和更新时间
+        var conv = conversationRepo.Existing.First(x => x.Id == conversationId);
+        conv.MessageCount = existingCount + 2;
+        conversationRepo.Update(conv);
     }
 }
 ```
@@ -262,16 +495,56 @@ namespace FCloud3.App.Controllers.Ai
         AiChatService aiChatService,
         HttpUserInfoService httpUserInfoService) : Controller
     {
+        /// <summary>流式获取 AI 建议。conversationId 为 null 时不保存历史。</summary>
         [RateLimited(slidingWindowMs: 5000, maxCountWithin: 2)]
         public async IAsyncEnumerable<string> GetSuggestions(
-            int groupId, string prompt, string? currentWikiPathName,
+            int groupId, string prompt, int? conversationId, string? currentWikiPathName,
             [EnumeratorCancellation] CancellationToken ct)
         {
             await foreach (var chunk in aiChatService.GetSuggestions(
-                groupId, prompt, currentWikiPathName, ct))
+                groupId, prompt, conversationId, currentWikiPathName, ct))
             {
                 yield return chunk;
             }
+        }
+
+        /// <summary>创建新对话</summary>
+        public IActionResult CreateConversation(int groupId, string? title, string? currentWikiPathName)
+        {
+            var userId = httpUserInfoService.GetUserId();
+            var conv = aiChatService.CreateConversation(userId, groupId, title, currentWikiPathName);
+            return this.ApiResp(conv);
+        }
+
+        /// <summary>获取用户的对话列表</summary>
+        public IActionResult GetConversations(int groupId)
+        {
+            var userId = httpUserInfoService.GetUserId();
+            var list = aiChatService.GetConversations(userId, groupId);
+            return this.ApiResp(list);
+        }
+
+        /// <summary>获取对话的完整消息列表</summary>
+        public IActionResult GetMessages(int conversationId)
+        {
+            var messages = aiChatService.GetConversationMessages(conversationId);
+            return this.ApiResp(messages);
+        }
+
+        /// <summary>重命名对话</summary>
+        public IActionResult RenameConversation(int conversationId, string title)
+        {
+            var res = aiChatService.RenameConversation(conversationId, title, out var errmsg);
+            if (!res) return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
+        /// <summary>删除对话</summary>
+        public IActionResult DeleteConversation(int conversationId)
+        {
+            var res = aiChatService.DeleteConversation(conversationId, out var errmsg);
+            if (!res) return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
         }
     }
 }
@@ -328,6 +601,8 @@ namespace FCloud3.App.Controllers.Identities
 
 ```csharp
 services.AddScoped<GroupAiConfigRepo>();
+services.AddScoped<AiConversationRepo>();
+services.AddScoped<AiMessageRepo>();
 services.AddScoped<GroupAiConfigService>();
 services.AddScoped<AiToolService>();
 services.AddScoped<AiChatService>();
@@ -344,8 +619,9 @@ FCloud3.AppFront/FCloud3Front/src/
   models/ai/
     aiChat.ts                     # AI 对话相关类型
     groupAiConfig.ts              # 团体 AI 配置类型
+    aiConversation.ts             # 对话会话类型
   pages/Ai/
-    AiChatPanel.vue               # AI 对话面板组件
+    AiChatPanel.vue               # AI 对话面板组件（含对话列表）
     routes/
       routesInit.ts               # 路由注册（如需要独立页面）
       routesJump.ts
@@ -358,14 +634,62 @@ FCloud3.AppFront/FCloud3Front/src/
 ```typescript
 ai = {
     chat: {
-        getSuggestions: async (groupId: number, prompt: string, currentWikiPathName?: string) => {
+        getSuggestions: async (groupId: number, prompt: string, conversationId?: number, currentWikiPathName?: string) => {
             const resp = await this.httpClient.request(
                 "/api/AiChat/GetSuggestions",
                 "get",
-                { groupId, prompt, currentWikiPathName }
+                { groupId, prompt, conversationId, currentWikiPathName }
             );
             // 流式响应需要特殊处理，可能需要使用 EventSource 或 fetch
             return resp;
+        },
+        createConversation: async (groupId: number, title?: string, currentWikiPathName?: string) => {
+            const resp = await this.httpClient.request(
+                "/api/AiChat/CreateConversation",
+                "post",
+                { groupId, title, currentWikiPathName }
+            );
+            if (resp.success) {
+                return resp.data as AiConversation;
+            }
+        },
+        getConversations: async (groupId: number) => {
+            const resp = await this.httpClient.request(
+                "/api/AiChat/GetConversations",
+                "get",
+                { groupId }
+            );
+            if (resp.success) {
+                return resp.data as AiConversation[];
+            }
+            return [];
+        },
+        getMessages: async (conversationId: number) => {
+            const resp = await this.httpClient.request(
+                "/api/AiChat/GetMessages",
+                "get",
+                { conversationId }
+            );
+            if (resp.success) {
+                return resp.data as AiMessage[];
+            }
+            return [];
+        },
+        renameConversation: async (conversationId: number, title: string) => {
+            const resp = await this.httpClient.request(
+                "/api/AiChat/RenameConversation",
+                "post",
+                { conversationId, title }
+            );
+            return resp.success;
+        },
+        deleteConversation: async (conversationId: number) => {
+            const resp = await this.httpClient.request(
+                "/api/AiChat/DeleteConversation",
+                "post",
+                { conversationId }
+            );
+            return resp.success;
         }
     },
     groupConfig: {
@@ -401,9 +725,9 @@ ai = {
 
 ```vue
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { injectApi, injectPop } from '@/provides';
-import { Api } from '@/utils/com/api';
+import type { AiConversation, AiMessage } from '@/models/ai/aiConversation';
 
 const props = defineProps<{
     groupId: number;
@@ -412,21 +736,99 @@ const props = defineProps<{
 
 const api = injectApi();
 const pop = injectPop();
-const prompt = ref('');
+
+// 对话列表
+const conversations = ref<AiConversation[]>([]);
+const currentConversationId = ref<number | null>(null);
+const currentTitle = ref('新对话');
+
+// 消息列表
 const messages = ref<Array<{role:'user'|'ai', content:string}>>([]);
+const prompt = ref('');
 const loading = ref(false);
+const showConvList = ref(true);
+
+onMounted(() => {
+    loadConversations();
+});
+
+watch(currentConversationId, async (id) => {
+    if (id) {
+        await loadMessages(id);
+        const conv = conversations.value.find(c => c.id === id);
+        currentTitle.value = conv?.title || '对话';
+    } else {
+        messages.value = [];
+        currentTitle.value = '新对话';
+    }
+});
+
+async function loadConversations() {
+    const list = await api.ai.chat.getConversations(props.groupId);
+    conversations.value = list || [];
+}
+
+async function loadMessages(conversationId: number) {
+    const list = await api.ai.chat.getMessages(conversationId);
+    messages.value = (list || []).map((m: AiMessage) => ({
+        role: m.role === 1 ? 'user' : 'ai' as 'user'|'ai',
+        content: m.content || ''
+    }));
+}
+
+async function createConversation() {
+    const conv = await api.ai.chat.createConversation(
+        props.groupId,
+        undefined,
+        props.currentWikiPathName
+    );
+    if (conv) {
+        conversations.value.unshift(conv);
+        currentConversationId.value = conv.id;
+    }
+}
+
+async function renameConversation() {
+    if (!currentConversationId.value) return;
+    const newTitle = prompt('请输入新标题:', currentTitle.value);
+    if (newTitle && newTitle !== currentTitle.value) {
+        const ok = await api.ai.chat.renameConversation(currentConversationId.value, newTitle);
+        if (ok) {
+            currentTitle.value = newTitle;
+            await loadConversations();
+        }
+    }
+}
+
+async function deleteConversation(id: number) {
+    const ok = await api.ai.chat.deleteConversation(id);
+    if (ok) {
+        conversations.value = conversations.value.filter(c => c.id !== id);
+        if (currentConversationId.value === id) {
+            currentConversationId.value = null;
+        }
+    }
+}
 
 async function send() {
     if (!prompt.value.trim()) return;
+
+    // 如果没有当前对话，先自动创建一个
+    if (!currentConversationId.value) {
+        await createConversation();
+        if (!currentConversationId.value) return;
+    }
+
     const userMsg = prompt.value;
     messages.value.push({ role: 'user', content: userMsg });
     prompt.value = '';
     loading.value = true;
 
     try {
-        // 调用 SSE 流式接口
         const response = await fetchSuggestions(userMsg);
         messages.value.push({ role: 'ai', content: response });
+        // 更新对话列表中的消息数
+        await loadConversations();
     } catch (e) {
         pop.value.show('AI 请求失败', 'failed');
     } finally {
@@ -435,10 +837,12 @@ async function send() {
 }
 
 async function fetchSuggestions(userPrompt: string): Promise<string> {
-    // SSE 实现示例
     const url = new URL(`${import.meta.env.VITE_ApiUrlBase}/api/AiChat/GetSuggestions`);
     url.searchParams.set('groupId', props.groupId.toString());
     url.searchParams.set('prompt', userPrompt);
+    if (currentConversationId.value) {
+        url.searchParams.set('conversationId', currentConversationId.value.toString());
+    }
     if (props.currentWikiPathName) {
         url.searchParams.set('currentWikiPathName', props.currentWikiPathName);
     }
@@ -454,21 +858,41 @@ async function fetchSuggestions(userPrompt: string): Promise<string> {
             if (result) resolve(result);
             else reject(e);
         };
-        // 需要服务端在结束时发送特定标记或关闭连接
     });
 }
 </script>
 
 <template>
     <div class="aiChatPanel">
-        <div class="messages">
-            <div v-for="m in messages" :class="['msg', m.role]">
-                {{ m.content }}
+        <!-- 对话列表侧边栏 -->
+        <div v-if="showConvList" class="convList">
+            <div class="convHeader">
+                <button @click="createConversation">+ 新建对话</button>
+            </div>
+            <div v-for="c in conversations" :key="c.id"
+                 :class="['convItem', { active: c.id === currentConversationId }]"
+                 @click="currentConversationId = c.id">
+                <span class="convTitle">{{ c.title || '未命名对话' }}</span>
+                <span class="convCount">({{ c.messageCount }})</span>
+                <button class="delBtn" @click.stop="deleteConversation(c.id)">×</button>
             </div>
         </div>
-        <div class="inputArea">
-            <textarea v-model="prompt" placeholder="向 AI 询问创作建议..." @keydown.enter.prevent="send"/>
-            <button @click="send" :disabled="loading">发送</button>
+
+        <!-- 主聊天区域 -->
+        <div class="chatMain">
+            <div class="chatHeader">
+                <button @click="showConvList = !showConvList">☰</button>
+                <span class="title" @click="renameConversation">{{ currentTitle }}</span>
+            </div>
+            <div class="messages">
+                <div v-for="m in messages" :class="['msg', m.role]">
+                    {{ m.content }}
+                </div>
+            </div>
+            <div class="inputArea">
+                <textarea v-model="prompt" placeholder="向 AI 询问创作建议..." @keydown.enter.prevent="send"/>
+                <button @click="send" :disabled="loading">发送</button>
+            </div>
         </div>
     </div>
 </template>
@@ -476,8 +900,52 @@ async function fetchSuggestions(userPrompt: string): Promise<string> {
 <style scoped lang="scss">
 .aiChatPanel {
     display: flex;
-    flex-direction: column;
     height: 100%;
+}
+.convList {
+    width: 200px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    .convHeader {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+        button { width: 100%; }
+    }
+    .convItem {
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        &:hover, &.active { background: #f0f0f0; }
+        .convTitle { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .convCount { color: #999; font-size: 12px; }
+        .delBtn {
+            display: none;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+        }
+        &:hover .delBtn { display: inline; }
+    }
+}
+.chatMain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    .chatHeader {
+        padding: 8px 12px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .title {
+            font-weight: bold;
+            cursor: pointer;
+            &:hover { text-decoration: underline; }
+        }
+    }
 }
 .messages {
     flex-grow: 1;
@@ -554,6 +1022,7 @@ async function fetchSuggestions(userPrompt: string): Promise<string> {
 | 使用的模型 | 如 gpt-4o |
 | 用户Prompt摘要 | 用户原始 prompt 的前100个字符（用于审计和用量列表展示） |
 | 关联词条 | 当前正在编辑的词条路径名（如有） |
+| 关联对话 | 当前对话的 Id（如有） |
 
 ### 5.2 推荐方案：Token 计数（最准确）
 
@@ -604,7 +1073,8 @@ public class AiChatService(...)
             // PromptSummary 直接来源于用户传入的 prompt 参数
             // 用于后台审计和用量列表展示，让管理员知道这次调用是关于什么主题
             PromptSummary = userPrompt[..Math.Min(100, userPrompt.Length)],
-            RelatedWikiPathName = currentWikiPathName
+            RelatedWikiPathName = currentWikiPathName,
+            ConversationId = conversationId
         });
     }
 }
@@ -740,6 +1210,8 @@ namespace FCloud3.Entities.Ai
         public string? PromptSummary { get; set; }
         /// <summary>关联的词条路径名</summary>
         public string? RelatedWikiPathName { get; set; }
+        /// <summary>关联的对话Id（可为空）</summary>
+        public int? ConversationId { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
@@ -821,6 +1293,10 @@ public class AiUsageController(AiUsageService usageService) : Controller
 public class GroupAiConfig : IDbModel
 {
     // ... 原有字段 ...
+    /// <summary>默认 AI 可查看的目录范围（某目录及其子级），0 表示不限</summary>
+    public int DefaultDirId { get; set; }
+    /// <summary>最大上下文消息数（0表示不限制）</summary>
+    public int MaxContextMessages { get; set; }
     /// <summary>每日Token限额（0表示不限）</summary>
     public int DailyTokenLimit { get; set; }
     /// <summary>每月Token限额（0表示不限）</summary>
@@ -879,6 +1355,12 @@ public async IAsyncEnumerable<AiChatChunk> GetSuggestions(...)
 | 使用 AI 对话 | 团体成员（且配置已启用） |
 | 查看个人用量 | 本人 |
 | 查看团体用量排行 | 团体所有者/管理员 |
+| 查看对话列表 | 本人 |
+| 查看对话内容 | 本人（对话创建者） |
+| 创建新对话 | 团体成员 |
+| 继续已有对话 | 本人且对话属于该团体 |
+| 删除对话 | 本人 |
+| 重命名对话 | 本人 |
 
 ### 6.3 速率限制
 
@@ -898,40 +1380,47 @@ public async IAsyncEnumerable<AiChatChunk> GetSuggestions(...)
 
 1. [ ] 添加 `Microsoft.Extensions.AI` 和 `Microsoft.Extensions.AI.OpenAI` NuGet 包
 2. [ ] 创建 `GroupAiConfig` 实体类
-3. [ ] 创建 `AiUsageRecord` 实体类
-4. [ ] 更新 `FCloudContext`（或在独立 DbContext 中创建）
-5. [ ] 创建 `GroupAiConfigRepo`
-6. [ ] 创建 `AiUsageRecordRepo`
-7. [ ] 创建 `GroupAiConfigService`
-8. [ ] 创建 `AiToolService`（封装词条内容获取和搜索）
-9. [ ] 创建 `AiUsageRecorder`（用量记录服务）
-10. [ ] 创建 `AiUsageService`（用量查询服务）
-11. [ ] 创建 `AiChatService`（集成 MEAI，实现流式对话 + 用量记录）
-12. [ ] 创建 `GroupAiConfigController`
-13. [ ] 创建 `AiChatController`
-14. [ ] 创建 `AiUsageController`
-15. [ ] 在 `AddToService.cs` 注册新服务
-16. [ ] 执行 `dotnet build` 验证编译
+3. [ ] 创建 `AiConversation` 实体类
+4. [ ] 创建 `AiMessage` 实体类
+5. [ ] 创建 `AiUsageRecord` 实体类
+6. [ ] 更新 `FCloudContext`（或在独立 DbContext 中创建）
+7. [ ] 创建 `GroupAiConfigRepo`
+8. [ ] 创建 `AiConversationRepo`
+9. [ ] 创建 `AiMessageRepo`
+10. [ ] 创建 `AiUsageRecordRepo`
+11. [ ] 创建 `GroupAiConfigService`
+12. [ ] 创建 `AiToolService`（封装词条内容获取和搜索）
+13. [ ] 创建 `AiUsageRecorder`（用量记录服务）
+14. [ ] 创建 `AiUsageService`（用量查询服务）
+15. [ ] 创建 `AiChatService`（集成 MEAI，实现流式对话 + 对话历史 + 用量记录）
+16. [ ] 创建 `GroupAiConfigController`
+17. [ ] 创建 `AiChatController`（含对话管理接口）
+18. [ ] 创建 `AiUsageController`
+19. [ ] 在 `AddToService.cs` 注册新服务
+20. [ ] 执行 `dotnet build` 验证编译
 
 ### 阶段二：前端基础
 
-17. [ ] 创建 `GroupAiConfig`、`AiUsageRecord` 等 TypeScript 类型定义
-18. [ ] 在 `api.ts` 中添加 AI 相关 API 方法
-19. [ ] 创建 `AiChatPanel.vue` 组件（含用量显示）
-20. [ ] 在 `UserGroupDetail.vue` 中添加 AI 配置编辑 UI（含限额设置）
-21. [ ] 在词条编辑页面集成 AI 对话入口
-22. [ ] 运行 `npm run type-check` 验证类型检查
+21. [ ] 创建 `GroupAiConfig`、`AiUsageRecord`、`AiConversation`、`AiMessage` 等 TypeScript 类型定义
+22. [ ] 在 `api.ts` 中添加 AI 相关 API 方法（含对话管理）
+23. [ ] 创建 `AiChatPanel.vue` 组件（含对话列表、新建/切换/重命名/删除对话）
+24. [ ] 在 `UserGroupDetail.vue` 中添加 AI 配置编辑 UI（含限额和上下文长度设置）
+25. [ ] 在词条编辑页面集成 AI 对话入口
+26. [ ] 运行 `npm run type-check` 验证类型检查
 
 ### 阶段三：测试与优化
 
-23. [ ] 测试团体 AI 配置的 CRUD
-24. [ ] 测试 AI 对话流式响应
-25. [ ] 测试 AI 工具调用（获取词条内容、搜索词条）
-26. [ ] 测试用量记录准确性
-27. [ ] 测试用量查询和限额控制
-28. [ ] 测试权限控制（非成员无法使用/修改）
-29. [ ] 测试速率限制
-30. [ ] 构建前端：`node FCloud3.AppFront/buildFront.mjs`
+27. [ ] 测试团体 AI 配置的 CRUD
+28. [ ] 测试 AI 对话流式响应
+29. [ ] 测试 AI 工具调用（获取词条内容、搜索词条）
+30. [ ] 测试对话历史持久化（创建、加载、继续对话）
+31. [ ] 测试对话管理（新建、切换、重命名、删除）
+32. [ ] 测试上下文长度控制（MaxContextMessages 截断）
+33. [ ] 测试用量记录准确性
+34. [ ] 测试用量查询和限额控制
+35. [ ] 测试权限控制（非成员无法使用/修改，无法查看他人对话）
+36. [ ] 测试速率限制
+37. [ ] 构建前端：`node FCloud3.AppFront/buildFront.mjs`
 
 ---
 
@@ -1030,6 +1519,56 @@ public async Task RecordAsync(AiUsageRecord record)
 - 保留最近 90 天的详细记录
 -  older 数据可汇总到月度统计表中后删除
 - 或定期归档到单独的数据库/表中
+
+### 7.11 对话上下文长度控制
+
+为避免历史消息过长导致 Token 消耗爆炸和超出模型上下文窗口：
+
+**在 `GroupAiConfig` 中配置：**
+- `MaxContextMessages`：最大上下文消息数（默认 20 条，0 表示不限制）
+
+**`AiChatService` 中的截断逻辑：**
+
+```csharp
+private List<AiMessage> LoadHistoryMessages(int conversationId, int maxContextMessages)
+{
+    var all = messageRepo.GetByConversationId(conversationId);
+    if (maxContextMessages > 0 && all.Count > maxContextMessages)
+    {
+        // 只保留最近 N 条消息
+        return all.TakeLast(maxContextMessages).ToList();
+    }
+    return all;
+}
+```
+
+**进阶方案（按 Token 截断）：**
+
+```csharp
+private List<AiMessage> LoadHistoryMessagesByToken(int conversationId, int maxContextTokens)
+{
+    var all = messageRepo.GetByConversationId(conversationId);
+    if (maxContextTokens <= 0) return all;
+
+    var result = new List<AiMessage>();
+    int totalTokens = 0;
+    // 从后往前累加，直到达到 Token 上限
+    for (int i = all.Count - 1; i >= 0; i--)
+    {
+        var msg = all[i];
+        totalTokens += msg.TokenCount;
+        if (totalTokens > maxContextTokens && result.Count > 0)
+            break;
+        result.Insert(0, msg);
+    }
+    return result;
+}
+```
+
+**建议：**
+- 初期使用按消息数截断（简单可控）
+- 后期可按 Token 数截断（更精确，避免长消息占满上下文）
+- 系统提示词和词条内容不计入 `MaxContextMessages` 限制
 
 ---
 
