@@ -17,6 +17,9 @@ using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Messages;
 using FCloud3.Services.Wiki.Support;
 using FCloud3.Services.Etc.Cache;
+using FCloud3.Services.Ai;
+using FCloud3.Repos.Identities;
+using FCloud3.Repos.Ai;
 
 namespace FCloud3.Services
 {
@@ -63,6 +66,16 @@ namespace FCloud3.Services
 
             services.AddScoped<AuthResCacheHost>();
             services.AddScoped<WikiParserCacheHost>();
+
+            services.AddScoped<AiInstanceConfigRepo>();
+            services.AddScoped<AiConversationRepo>();
+            services.AddScoped<AiMessageRepo>();
+            services.AddScoped<AiUsageRecordRepo>();
+            services.AddScoped<AiInstanceConfigService>();
+            services.AddScoped<AiToolService>();
+            services.AddScoped<AiUsageService>();
+            services.AddScoped<AiUsageRecorder>();
+            services.AddScoped<AiChatService>();
 
             string storageType = config["FileStorage:Type"] ?? "Local";
             if (storageType == "Local")

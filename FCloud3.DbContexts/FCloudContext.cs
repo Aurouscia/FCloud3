@@ -1,4 +1,5 @@
-﻿using FCloud3.Entities.Diff;
+﻿using FCloud3.Entities.Ai;
+using FCloud3.Entities.Diff;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Messages;
@@ -42,6 +43,10 @@ namespace FCloud3.DbContexts
         public DbSet<WikiSelected> WikiSelecteds { get; set; }
         public DbSet<LastUpdate> LastUpdates { get; set; }
         public DbSet<UserConfig> UserConfigs { get; set; }
+        public DbSet<AiInstanceConfig> AiInstanceConfigs { get; set; }
+        public DbSet<AiConversation> AiConversations { get; set; }
+        public DbSet<AiMessage> AiMessages { get; set; }
+        public DbSet<AiUsageRecord> AiUsageRecords { get; set; }
     }
 
     //add-migration xxx -Context FCloudSqliteContext -OutputDir Migrations/SqliteMigrations
