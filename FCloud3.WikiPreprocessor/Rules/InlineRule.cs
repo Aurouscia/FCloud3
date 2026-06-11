@@ -428,6 +428,37 @@ namespace FCloud3.WikiPreprocessor.Rules
         private static partial Regex ColorTextLineRegex();
     }
 
+    /// <summary>
+    /// 行内 LaTeX 数学公式规则，$...$
+    /// </summary>
+    public class LatexInlineRule : InlineRule
+    {
+        public LatexInlineRule() : base("$", "$", "", "", "", "行内LaTeX")
+        {
+            MaxLengthBetween = 500;
+        }
+
+        public override bool FulFill(string span)
+        {
+            // 不能为空，不能包含未转义的 $
+            if (string.IsNullOrWhiteSpace(span))
+                return false;
+            // 内容中不能有未转义的 $（避免嵌套）
+            for (int i = 0; i < span.Length; i++)
+            {
+                if (span[i] == '$' && (i == 0 || span[i - 1] != '\\'))
+                    return false;
+            }
+            return true;
+        }
+
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
+        {
+            return new LatexInlineElement(span);
+        }
+    }
+
     public static class InternalInlineRules
     {
         public static List<IInlineRule> GetInstances()
@@ -455,7 +486,9 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标（不推荐）"),
                 new CustomInlineRule("\\ct", "\\ct", "<div style=\"text-align:center\">", "</div>", "左右居中块"),
                 new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条"),
-                new CustomInlineRule("\\滚", "\\滚", "<marquee>", "</marquee>", "滚动条")
+                new CustomInlineRule("\\滚", "\\滚", "<marquee>", "</marquee>", "滚动条"),
+
+                new LatexInlineRule()
             ];
             return instances;
         }
