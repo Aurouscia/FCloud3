@@ -1,0 +1,6 @@
+{
+    "displayName": "时间偏移渲染器",
+    "triggers": ["AuTimeOffset", "au-time-offset", "au-to"],
+    "priority": 1,
+    "description": "将表格中的时间字符串解析并计算显示为相对时间偏移"
+}

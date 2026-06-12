@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuParaLoader 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuParaLoader 段落加载插件</h1>
+    <p>从其他词条加载指定段落内容，嵌入到当前页面中。</p>
+    <p>主要用途：多个词条共用一个段落（确保内容完全一致）可站内或跨站</p>
+    <p>建议：专门建立词条放置这种共享段落</p>
+
+    <h2>触发词</h2>
+    <p>以下任意一个均可触发：</p>
+    <ul>
+        <li><code class="trigger">AuParaLoader</code></li>
+        <li><code class="trigger">au-pl</code></li>
+        <li><code class="trigger">au-para-loader</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在<strong>单行单列</strong>表格中写入触发词，括号内填入参数：</p>
+    <table>
+        <tr><td>AuParaLoader(目标词条路径)</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>表格会被替换为加载的内容，原表格不再可见。
+    </div>
+
+    <h2>参数格式</h2>
+    <p>参数用逗号分隔，最多三个：</p>
+    <table>
+        <tr><td>目标词条路径</td><td>必填，要加载的词条路径名</td></tr>
+        <tr><td>段落选择器</td><td>可选，按标题包含文字匹配段落</td></tr>
+        <tr><td>URL 基础路径</td><td>可选，自定义 API 基础路径</td></tr>
+    </table>
+
+    <h2>完整示例</h2>
+    <h3>加载词条第一个段落</h3>
+    <table>
+        <tr><td>AuParaLoader(help)</td></tr>
+    </table>
+
+    <h3>加载指定段落</h3>
+    <table>
+        <tr><td>AuParaLoader(help, 快速开始)</td></tr>
+    </table>
+
+    <h3>使用自定义域名（跨站）</h3>
+    <table>
+        <tr><td>AuParaLoader(help, 快速开始, https://example.com)</td></tr>
+    </table>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>表格必须是<strong>单行单列</strong>，否则不会被识别。</li>
+        <li>目标段落通过标题包含文字匹配，不需要完整标题。</li>
+        <li>未指定段落选择器时，加载词条的<strong>第一个段落</strong>。</li>
+        <li>加载失败时表格位置会显示红色错误信息。</li>
+        <li>跨站加载时，指定域名必须也部署着 fcloud3 网站。</li>
+        <li>如果跨站加载失败，请联系网站管理员。</li>
+        <li>触发词区分大小写。</li>
+    </ul>
+</body>
+</html>

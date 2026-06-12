@@ -94,7 +94,10 @@ namespace FCloud3.Services.Test.Etc
                 using var stream = entry.Open();
                 using var reader = new StreamReader(stream);
                 var wiki = jsonSerializer.Deserialize<WikiImportExportService.ExportedWiki>(new JsonTextReader(reader));
-                titles.Add(wiki?.Info?.Title);
+                if (wiki?.Info?.Title is not null)
+                {
+                    titles.Add(wiki.Info.Title);
+                }
             }
 
             CollectionAssert.Contains(titles, "词条A");

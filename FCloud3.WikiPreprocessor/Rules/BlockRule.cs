@@ -135,7 +135,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(Mark.Length).Trim();
+                return line.AsSpan(Mark.Length).Trim().ToString();
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -175,7 +175,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         }
         public override RuledBlockElement MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
-            var items = new ElementCollection();
+            var items = new ElementCollection(lines.Count());
             foreach (var line in lines)
             {
                 ListItemElement item = new(inlineParser.Run(line.Text));
@@ -213,8 +213,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         {
             var prefixIdx = line.IndexOf(lineCommentPrefix);
             if (prefixIdx == -1) return string.Empty;
-            var res = line[(prefixIdx + lineCommentPrefix.Length)..];
-            return res.Trim();
+            return line.AsSpan(prefixIdx + lineCommentPrefix.Length).Trim().ToString();
         }
 
         public override bool LineMatched(string line)
@@ -330,7 +329,7 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override string GetPureContentOf(string line)
         {
             if (LineMatched(line))
-                return line.Substring(1, line.Length - 2);
+                return line[1..^1];
             return line;
         }
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
@@ -461,11 +460,11 @@ namespace FCloud3.WikiPreprocessor.Rules
                     return null;
                 var head = match.Value;
                 var body = x.Text.Remove(0,head.Length);
-                var name = head.Trim()[2..^2];
+                var name = head.AsSpan().Trim()[2..^2].ToString();
                 return new FootNoteBodyElement(name, inlineParser.Run(body, false), x.RawLineHash);
             });
             context.FootNote.AddFootNoteBodies(resContent);
-            var placeholders = new List<FootNoteBodyPlaceholderElement>();
+            var placeholders = new List<FootNoteBodyPlaceholderElement>(resContent.Count);
             resContent.ForEach(x =>
             {
                 if(x is not null)
@@ -484,6 +483,59 @@ namespace FCloud3.WikiPreprocessor.Rules
     }
 
     /// <summary>
+    /// 块级 LaTeX 数学公式规则
+    /// 匹配以 $$ 开头和结尾的整行内容
+    /// </summary>
+    public class LatexBlockRule : BlockRule
+    {
+        public const string mark = "$$";
+
+        public LatexBlockRule() : base("", "", "", "块级LaTeX") { }
+
+        public override bool LineMatched(string line)
+        {
+            return line.StartsWith(mark) && line.EndsWith(mark) && line.Length > mark.Length * 2;
+        }
+
+        public override string GetPureContentOf(string line)
+        {
+            if (LineMatched(line))
+                return line[mark.Length..^mark.Length].Trim();
+            return line;
+        }
+
+        public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
+        {
+            var sb = StringBuilderPool.Rent();
+            bool first = true;
+            foreach (var line in lines)
+            {
+                if (!first)
+                    sb.Append('\n');
+                first = false;
+                sb.Append(GetPureContentOf(line.Text));
+            }
+            string content = sb.ToString();
+            StringBuilderPool.Return(sb);
+            return new LatexBlockElement(content);
+        }
+
+        public override bool Equals(IBlockRule? other)
+        {
+            return other is LatexBlockRule;
+        }
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as IBlockRule);
+        }
+        public override int GetHashCode()
+        {
+            return nameof(LatexBlockRule).GetHashCode();
+        }
+        public override string UniqueName => "内置_块级LaTeX";
+    }
+
+    /// <summary>
     /// 一次性获取所有系统提供的特殊块规则实例
     /// </summary>
     public static class InternalBlockRules
@@ -499,7 +551,8 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new PrefixBlockRule("＞","<div class=\"quote\">","</div>","引用"),
                 new PrefixBlockRule(".   ","<div style=\"text-align:center\">","</div>","中对齐"),
                 new PrefixBlockRule("...   ","<div style=\"text-align:right\">","</div>","右对齐"),
-                new FootNoteBodyRule()
+                new FootNoteBodyRule(),
+                new LatexBlockRule()
             ];
         }
     }

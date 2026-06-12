@@ -2,8 +2,7 @@
 using FCloud3.WikiPreprocessor.Options.SubOptions;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Primitives;
+using System.IO.Hashing;
 using System.Text;
 
 namespace FCloud3.WikiPreprocessor.Context.SubContext
@@ -19,17 +18,15 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         public int CacheReadCount { get; private set; }
         public int CacheEntryCount => _cacheDict.Count;
 
-        private readonly Dictionary<int, CacheItem> _cacheDict;
-        private readonly HashSet<int> _cacheReadInScope;
-        private readonly HashSet<int> _cacheWroteInScope;
+        private readonly Dictionary<long, CacheItem> _cacheDict;
+        private readonly HashSet<long> _cacheReadInScope;
+        private readonly HashSet<long> _cacheWroteInScope;
         private readonly CacheOptions _options;
         private readonly ParserContext _ctx;
-        private readonly StringBuilder _tempSb;
         public ParserCacheContext(CacheOptions options, ParserContext ctx)
         {
             _options = options;
             _ctx = ctx;
-            _tempSb = new();
             _cacheDict = [];
             _cacheReadInScope = [];
             _cacheWroteInScope = [];
@@ -44,7 +41,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         }
         public void AfterParsing()
         {
-            List<int> removals = []; 
+            List<long> removals = new(_cacheDict.Count);
             foreach(var key in _cacheDict.Keys)
             {
                 var wrote = _cacheWroteInScope.Contains(key);
@@ -60,23 +57,27 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
 
         public int ParsedSavedScanChar { get; private set; }
 
-        private static int CacheKey(string input) => input.GetHashCode();
+        private static long CacheKey(string input)
+        {
+            ReadOnlySpan<byte> bytes = Encoding.UTF8.GetBytes(input);
+            return (long)XxHash64.HashToUInt64(bytes);
+        }
         private void SaveParseResult(string input, string output, 
             List<IRule>? usedRules, List<IHtmlable>? footNotes, List<ParserTitleTreeNode>? titleNodes)
         {
             if (string.IsNullOrEmpty(input))
                 return;
             var cache = new CacheItem(output, usedRules, footNotes, titleNodes);
-            int key = CacheKey(input);
+            long key = CacheKey(input);
             _cacheDict[key] = cache;
             _cacheWroteInScope.Add(key);
         }
         public CachedElement SaveParsedElement(string input, IHtmlable resElement)
         {
-            _tempSb.Clear();
-            resElement.WriteHtml(_tempSb);
-            string content = _tempSb.ToString();
-            _tempSb.Clear();
+            var tempSb = StringBuilderPool.Rent();
+            resElement.WriteHtml(tempSb);
+            string content = tempSb.ToString();
+            StringBuilderPool.Return(tempSb);
             List<IRule>? usedRules = resElement.ContainRules();
             List<IHtmlable>? footNotes = resElement.ContainFootNotes();
             List<ParserTitleTreeNode>? titleNodes = _ctx.Options.TitleGatheringOptions.Enabled ? resElement.ContainTitleNodes() : null;
@@ -86,11 +87,12 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         }
         private CacheItem? ReadParseResult(string input)
         {
-            if(_cacheDict.TryGetValue(CacheKey(input), out var cacheItem))
+            long key = CacheKey(input);
+            if(_cacheDict.TryGetValue(key, out var cacheItem))
             {
                 CacheReadCount++;
                 ParsedSavedScanChar += input.Length;
-                _cacheReadInScope.Add(CacheKey(input));
+                _cacheReadInScope.Add(key);
             }
             return cacheItem;
         }

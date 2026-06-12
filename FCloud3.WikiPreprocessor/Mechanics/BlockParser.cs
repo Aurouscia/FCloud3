@@ -39,8 +39,11 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 if (cache is not null) 
                     return cache;
             }
+
+            // 提取围栏代码块，替换为占位符
+            var (processedInput, codeBlocks) = FencedCodeExtractor.Extract(input);
             
-            var lines = LineSplitter.Split(input,_ctx.Options.LocatorHash);
+            var lines = LineSplitter.Split(processedInput, _ctx.Options.LocatorHash);
             //在此处已经对每行进行了HtmlEncode，Hash值为encode前的Hash值
 
             if (lines.Count == 0)
@@ -51,6 +54,10 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 resElement = _inlineParser.Value.Run(lines[0].Text);
             else
                 resElement = _titledBlockParser.Value.Run(lines);
+
+            // 将占位符替换回 CodeBlockElement
+            if (codeBlocks.Count > 0)
+                resElement = FencedCodeExtractor.RestorePlaceholders(resElement, codeBlocks);
 
             if (_useCache && !isMasterCall)
                 resElement = _ctx.Caches.SaveParsedElement(input, resElement);
@@ -105,7 +112,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
             ElementCollection res = new();
 
-            List<LineWithTitleLevel> generating = new();
+            List<LineWithTitleLevel> generating = new(lines.Count);
             LineAndHash? title = null;
             foreach (var l in lines)
             {
@@ -164,6 +171,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 PureContent = line;
                 string lineStr = line.Text;
                 Level = 0;
+                // 代码块占位符不是标题
+                if (RuledBlockParser.IsCodeBlockPlaceholder(lineStr))
+                    return;
                 if (!lineStr.StartsWith(Consts.titleLevelMark))
                     return;
                 foreach(var t in TitleMark.OrderedTitleMarks.Value)
@@ -172,7 +182,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     {
                         if (!isValidTitle(lineStr))
                             return;
-                        string pureContent = lineStr[t.prefix.Length..].Trim();
+                        string pureContent = lineStr.AsSpan(t.prefix.Length).Trim().ToString();
                         Level = t.level;
                         PureContent.Text = pureContent;
                         return;   
@@ -230,7 +240,15 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 //每一行都没有块规则调用
                 foreach (var line in lines)
                 {
-                    res.Add(_inlineParser.Value.RunForLine(line.PureContent));
+                    if (IsCodeBlockPlaceholder(line.PureContent.Text))
+                    {
+                        // 占位符直接作为原始元素添加，不经过 inline 解析
+                        res.Add(new TextElement(line.PureContent.Text));
+                    }
+                    else
+                    {
+                        res.Add(_inlineParser.Value.RunForLine(line.PureContent));
+                    }
                 }
                 return res.Simplify();
             }
@@ -242,7 +260,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
             var emptyRule = new EmptyBlockRule();
             IBlockRule tracking = emptyRule;
-            List<LineWithRule> generating = new();
+            List<LineWithRule> generating = new(lines.Count);
             foreach(var l in lines)
             {
                 var ruleOfthisLine = l.Rule ?? emptyRule;
@@ -266,6 +284,16 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 res.AddFlat(htmlable);
             }
             return res.Simplify();
+        }
+
+        /// <summary>
+        /// 检查某行是否是代码块占位符
+        /// </summary>
+        public static bool IsCodeBlockPlaceholder(string? text)
+        {
+            return text is not null && text.Length >= 3
+                && text[0] == '\u0001'
+                && text[^1] == '\u0001';
         }
         public class LineWithRule
         {

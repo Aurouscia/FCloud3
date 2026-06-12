@@ -1,0 +1,6 @@
+{
+    "displayName": "表头固定器",
+    "triggers": ["AuTcs", "au-table-cell-stickifier", "au-tcs"],
+    "priority": 1,
+    "description": "使表格的表头行在滚动时保持固定"
+}

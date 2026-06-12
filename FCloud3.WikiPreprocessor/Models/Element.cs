@@ -50,6 +50,7 @@ namespace FCloud3.WikiPreprocessor.Models
             base.AddRange(items);
         }
         public ElementCollection() { }
+        public ElementCollection(int capacity) : base(capacity) { }
         public void AddFlat(IHtmlable htmlable)
         {
             if (htmlable is Element ele)
@@ -72,7 +73,7 @@ namespace FCloud3.WikiPreprocessor.Models
             bool isFirst = true;
             List<(bool isBlock, string body)> bodies = [];
             int bodiesCurrentTotalLength = 0;
-            StringBuilder tempSb = new();
+            var tempSb = StringBuilderPool.Rent();
             foreach(var ele in this)
             {
                 tempSb.Clear();
@@ -83,6 +84,7 @@ namespace FCloud3.WikiPreprocessor.Models
                 bodiesCurrentTotalLength += tempSb.Length;
                 bodies.Add((ele is BlockElement, tempSb.ToString()));
             }
+            StringBuilderPool.Return(tempSb);
             foreach(var body in bodies)
             {
                 if (body.body.Length == 0)

@@ -137,7 +137,7 @@ namespace FCloud3.WikiPreprocessor.Models
             var title = Title.ToHtml();
             var node = new ParserTitleTreeNode(Level, title, TitleId);
             node.Subs = Content.ContainTitleNodes();
-            return new()
+            return new(1)
             {
                 node
             };
@@ -165,7 +165,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            var res = Content.ContainRules()??new();
+            var res = Content.ContainRules()??new(1);
             if (GenByRule is not null)
                 res.Add(GenByRule);
             return res;
@@ -236,13 +236,124 @@ namespace FCloud3.WikiPreprocessor.Models
         public override string ToHtml() => string.Empty;
         public override List<IHtmlable>? ContainFootNotes()
         {
-            return new() { Body };
+            return new(1) { Body };
         }
         public override List<IRule>? ContainRules()
         {
-            var res = Body.ContainRules() ?? new();
+            var res = Body.ContainRules() ?? new(1);
             res.Add(Rule);
             return res;
+        }
+    }
+
+    /// <summary>
+    /// 表示一个围栏代码块（fenced code block）
+    /// </summary>
+    public class CodeBlockElement : Element
+    {
+        public string Language { get; }
+        public string Code { get; }
+
+        public CodeBlockElement(string language, string code)
+        {
+            Language = language;
+            Code = code;
+        }
+
+        public override string ToHtml()
+        {
+            if (string.IsNullOrEmpty(Language))
+                return $"<pre><code>{Code}</code></pre>";
+            return $"<pre><code class=\"language-{Language}\">{Code}</code></pre>";
+        }
+
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<pre><code");
+            if (!string.IsNullOrEmpty(Language))
+            {
+                sb.Append(" class=\"language-");
+                sb.Append(Language);
+                sb.Append("\"");
+            }
+            sb.Append(">");
+            sb.Append(Code);
+            sb.Append("</code></pre>");
+        }
+    }
+
+    /// <summary>
+    /// 表示一个 Mermaid 图表块
+    /// </summary>
+    public class MermaidBlockElement : Element
+    {
+        public string Source { get; }
+
+        public MermaidBlockElement(string source)
+        {
+            Source = source;
+        }
+
+        public override string ToHtml()
+        {
+            return $"<pre class=\"mermaid\">{Source}</pre>";
+        }
+
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<pre class=\"mermaid\">");
+            sb.Append(Source);
+            sb.Append("</pre>");
+        }
+    }
+
+    /// <summary>
+    /// 表示一个 LaTeX 数学公式块（$$...$$ 块级）
+    /// </summary>
+    public class LatexBlockElement : Element
+    {
+        public string Source { get; }
+
+        public LatexBlockElement(string source)
+        {
+            Source = source;
+        }
+
+        public override string ToHtml()
+        {
+            return $"<pre class=\"latex\">{Source}</pre>";
+        }
+
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<pre class=\"latex\">");
+            sb.Append(Source);
+            sb.Append("</pre>");
+        }
+    }
+
+    /// <summary>
+    /// 表示一个行内 LaTeX 数学公式（$...$ 行内）
+    /// </summary>
+    public class LatexInlineElement : InlineElement
+    {
+        public string Source { get; }
+
+        public LatexInlineElement(string source)
+        {
+            Source = source;
+        }
+
+        public override string ToHtml()
+        {
+            return $"<span class=\"latex-inline\">{Source}</span>";
+        }
+
+        public override void WriteHtml(StringBuilder sb)
+        {
+            sb.Append("<span class=\"latex-inline\">");
+            sb.Append(Source);
+            sb.Append("</span>");
         }
     }
 }

@@ -5,11 +5,18 @@ import { nextTick } from "vue"
 const consolePrefix = '[f3-plugin]'
 
 export async function runPluginsByWiki(getWiki:()=>(string|undefined)){
-    const pluginList = pluginsFound as PluginsFound
+    const pluginList = (pluginsFound as PluginsFound)
+        .slice()
+        .sort((a, b) => {
+            const pDiff = a.priority - b.priority
+            if(pDiff !== 0) return pDiff
+            return a.name.localeCompare(b.name)
+        })
     const detectedPlugins:string[] = []
     for(const plugin of pluginList){
         const wiki = getWiki()
-        if(wiki?.includes(plugin.trigger)){
+        const triggered = plugin.triggers.some(t => wiki?.includes(t))
+        if(triggered){
             detectedPlugins.push(plugin.name)
             const { name: pluginName, entry: pluginPath } = plugin
             if(pluginPath){

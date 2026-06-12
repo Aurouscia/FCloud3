@@ -310,7 +310,7 @@ namespace FCloud3.WikiPreprocessor.Rules
     /// 当内部不含"\@"时，表示一个指定了颜色的方块（宽度和高度由字体大小决定）<b>（原作者：滨蜀，此为同一规则的重新实现）</b><br/>
     /// 例子：#red#<br/>
     /// </summary>
-    public class ColorTextRule : IInlineRule
+    public partial class ColorTextRule : IInlineRule
     {
         public string Name => "彩色字";
         public string MarkLeft => "#";
@@ -401,7 +401,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             }
             public override List<IRule>? ContainRules()
             {
-                var res = Content.ContainRules()??new();
+                var res = Content.ContainRules()??new(1);
                 res.Add(_fromRule);
                 return res;
             }
@@ -410,7 +410,7 @@ namespace FCloud3.WikiPreprocessor.Rules
 
         public static bool IsColorTextAtLineStart(string line, IColorParser colorParser)
         {
-            var m = Regex.Match(line, "(?<=^#).{2,}?(?=#)");
+            var m = ColorTextLineRegex().Match(line);
             if(!m.Success)
                 return false;
             var val = m.Value;
@@ -422,6 +422,40 @@ namespace FCloud3.WikiPreprocessor.Rules
                 return false;
             bool isColor = ConventionalHtmlColor.TryFormalize(val, colorParser, out _);
             return isColor;
+        }
+
+        [GeneratedRegex("(?<=^#).{2,}?(?=#)")]
+        private static partial Regex ColorTextLineRegex();
+    }
+
+    /// <summary>
+    /// 行内 LaTeX 数学公式规则，$...$
+    /// </summary>
+    public class LatexInlineRule : InlineRule
+    {
+        public LatexInlineRule() : base("$", "$", "", "", "", "行内LaTeX")
+        {
+            MaxLengthBetween = 500;
+        }
+
+        public override bool FulFill(string span)
+        {
+            // 不能为空，不能包含未转义的 $
+            if (string.IsNullOrWhiteSpace(span))
+                return false;
+            // 内容中不能有未转义的 $（避免嵌套）
+            for (int i = 0; i < span.Length; i++)
+            {
+                if (span[i] == '$' && (i == 0 || span[i - 1] != '\\'))
+                    return false;
+            }
+            return true;
+        }
+
+        public override IHtmlable MakeElementFromSpan(string span,
+            InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
+        {
+            return new LatexInlineElement(span);
         }
     }
 
@@ -452,7 +486,9 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("\\sup","\\sup","<sup>","</sup>","上角标（不推荐）"),
                 new CustomInlineRule("\\ct", "\\ct", "<div style=\"text-align:center\">", "</div>", "左右居中块"),
                 new CustomInlineRule("\\mq", "\\mq", "<marquee>", "</marquee>", "滚动条"),
-                new CustomInlineRule("\\滚", "\\滚", "<marquee>", "</marquee>", "滚动条")
+                new CustomInlineRule("\\滚", "\\滚", "<marquee>", "</marquee>", "滚动条"),
+
+                new LatexInlineRule()
             ];
             return instances;
         }

@@ -1,5 +1,5 @@
-const trigger = 'AuParaLoader'
-const pattern = `(?<=${trigger}\\().{1,80}(?=\\))`
+import { triggers } from '../public/options.json'
+const pattern = `(?<=(${triggers.join('|')})\\().{1,80}(?=\\))`
 const targetCellPattern = new RegExp(pattern)
 
 export async function run(){
@@ -18,8 +18,8 @@ export async function run(){
         if(firstRow.cells.length!==1)
             continue
         const cell = firstRow.cells[0]
-        const matchRes = targetCellPattern.exec(cell.innerText.trim())
-        if(matchRes && matchRes.length==1){
+        const matchRes = targetCellPattern.exec(cell.textContent?.trim() ?? '')
+        if(matchRes && matchRes[0].length > 0){
             const params = matchRes[0].split(',')
             const pathName = params.at(0)?.trim()
             const paraSelect = params.at(1)?.trim()
@@ -40,7 +40,15 @@ export async function run(){
             continue
         }
         const url = getFetchUrl(t.pathName, t.urlBase)
-        const fetchRes = await fetch(url)
+        let fetchRes: Response
+        try{
+            fetchRes = await fetch(url)
+        }
+        catch(err){
+            t.targetCell.innerHTML = errmsgHtml(t, '网络请求失败')
+            console.error(err)
+            continue
+        }
         try{
             const obj = await fetchRes.json()
             const paras = obj['Paras'] as Array<any>
@@ -53,8 +61,8 @@ export async function run(){
                 targetPara = paras.at(0)
             }
             if(!targetPara){
-                t.targetCell.innerHTML = errmsgHtml(t, `找不到指定段落“${t.paraSelect}”`)
-                return
+                t.targetCell.innerHTML = errmsgHtml(t, `找不到指定段落"${t.paraSelect}"`)
+                continue
             }
             const content = targetPara['Content']
             const newEle = document.createElement('div')
@@ -74,5 +82,5 @@ function getFetchUrl(pathName:string, base?:string){
     return `${base??''}/api/WikiParsing/GetParsedWiki?pathName=${pathName}`
 }
 function errmsgHtml(t:{pathName?:string, urlBase?:string}, msg:string){
-    return `<b style="color:red">${trigger}：[${t.pathName??'??'} from ${t.urlBase??'/'}] 加载失败 [${msg}]</b>`
+    return `<b style="color:red">段落加载器：[${t.pathName??'??'} from ${t.urlBase??'/'}] 加载失败 [${msg}]</b>`
 }

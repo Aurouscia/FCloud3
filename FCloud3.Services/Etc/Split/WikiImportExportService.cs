@@ -43,7 +43,7 @@ namespace FCloud3.Services.Etc.Split
             }
             if (urlPathNames is { Count: > 0 })
             {
-                query = query.Where(x => urlPathNames.Contains(x.UrlPathName));
+                query = query.Where(x => x.UrlPathName != null && urlPathNames.Contains(x.UrlPathName));
             }
             var myWikis = query.ToList();
 

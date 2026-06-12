@@ -82,7 +82,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         public InlineMarkList MakeMarks(string input)
         {
             int pointer = 0;
-            InlineMarkList res = new();
+            InlineMarkList res = new(_ctx.Options.InlineParsingOptions.InlineRules.Count);
             foreach(var r in _ctx.Options.InlineParsingOptions.InlineRules)
             {
                 //对于每个行内规则
@@ -268,6 +268,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
     public class InlineMarkList : List<InlineMark>
     {
         public InlineMarkList() { }
+        public InlineMarkList(int capacity) : base(capacity) { }
         public InlineMarkList(InlineMarkList original,int offset)
         {
             var res = original.ConvertAll(x => new InlineMark(x, offset));

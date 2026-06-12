@@ -65,7 +65,7 @@ namespace FCloud3.WikiPreprocessor.Context.SubContext
         /// <returns></returns>
         private List<(ReplaceTarget target, LiteralInlineRule rule)> InlineRulesFromAutoReplace(List<ReplaceTarget> targets)
         {
-            List<(ReplaceTarget target, LiteralInlineRule rule)> res = new();
+            List<(ReplaceTarget target, LiteralInlineRule rule)> res = new(targets.Count);
             if (targets.Count > 0)
             {
                 targets.RemoveAll(x => x.Text.Length < 2);

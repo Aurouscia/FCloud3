@@ -87,7 +87,7 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         public override List<IRule>? ContainRules()
         {
-            List<IRule> rules = new();
+            List<IRule> rules = new(_values.Count + 1);
             foreach(var value in _values.Values)
             {
                 var r = value.ContainRules();
@@ -112,7 +112,7 @@ namespace FCloud3.WikiPreprocessor.Models
     /// <summary>
     /// 存储每一个模板内部的插槽信息，key为模板名，value为插槽List
     /// </summary>
-    public class TemplateSlotInfo : Dictionary<string, List<TemplateSlot>>
+    public partial class TemplateSlotInfo : Dictionary<string, List<TemplateSlot>>
     {
         public TemplateSlotInfo() 
         {
@@ -125,7 +125,7 @@ namespace FCloud3.WikiPreprocessor.Models
         public List<TemplateSlot> Get(Template template)
         {
             if (string.IsNullOrEmpty(template.Name))
-                return new();
+                return [];
             if (this.TryGetValue(template.Name, out var list))
                 return list;
             var slots = GetSlots(template);
@@ -134,9 +134,9 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         private static List<TemplateSlot> GetSlots(Template template)
         {
-            List<TemplateSlot> slots = new();
             if (template.Source is null)
-                return slots;
+                return [];
+            List<TemplateSlot> slots = new(4);
             MatchAndCollect(template.Source, ParseBlockSlot.MatchRegex, slots, (x,y) => new ParseBlockSlot(x, y));
             MatchAndCollect(template.Source, ParseLineSlot.MatchRegex, slots, (x,y) => new ParseLineSlot(x, y));
             MatchAndCollect(template.Source, UniqueSlot.MatchRegex, slots, (x,y) => new UniqueSlot(x, y));
@@ -147,11 +147,21 @@ namespace FCloud3.WikiPreprocessor.Models
         }
         private static void MatchAndCollect(string source, string regex, List<TemplateSlot> data, Func<string,int,TemplateSlot> constructor)
         {
-            var matches = Regex.Matches(source, regex);
+            var matches = GetRegex(regex).Matches(source);
             foreach (var match in matches.AsEnumerable<Match>())
             {
                 data.Add(constructor(match.Value, match.Index));
             }
+        }
+        private static readonly Dictionary<string, Regex> _regexCache = new();
+        private static Regex GetRegex(string pattern)
+        {
+            if (!_regexCache.TryGetValue(pattern, out var regex))
+            {
+                regex = new Regex(pattern, RegexOptions.Compiled);
+                _regexCache[pattern] = regex;
+            }
+            return regex;
         }
     }
 

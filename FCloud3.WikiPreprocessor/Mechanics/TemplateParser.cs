@@ -73,7 +73,9 @@ namespace FCloud3.WikiPreprocessor.Mechanics
 
                 var slots = _slotInfo.Get(template);
 
-                List<string> values = valueStr.Split(valuesSep, StringSplitOptions.TrimEntries).ToList();
+                var splitValues = valueStr.Split(valuesSep, StringSplitOptions.TrimEntries);
+                List<string> values = new(splitValues.Length);
+                values.AddRange(splitValues);
                 values.RemoveAll(string.IsNullOrEmpty);
                 Dictionary<TemplateSlot, IHtmlable> valuesDic = new();
 
