@@ -108,20 +108,37 @@ namespace FCloud3.Services.Ai
             // 启用工具调用中间件
             chatClient = chatClient.AsBuilder().UseFunctionInvocation().Build();
 
-            // 流式调用并收集完整回复
+            // 流式调用并收集完整回复和工具调用信息
             string fullResponse = "";
+            List<AiToolCallInfo> toolCalls = [];
 
             await foreach (var update in chatClient.GetStreamingResponseAsync(
                 messages, options, ct))
             {
                 fullResponse += update.Text ?? "";
-                yield return new AiChatChunk(update.Text ?? "");
+                if (update.Contents is not null)
+                {
+                    foreach (var content in update.Contents)
+                    {
+                        if (content is FunctionCallContent fc && !string.IsNullOrEmpty(fc.Name))
+                        {
+                            var args = fc.Arguments is not null
+                                ? System.Text.Json.JsonSerializer.Serialize(fc.Arguments)
+                                : "";
+                            toolCalls.Add(new AiToolCallInfo(fc.Name, args));
+                        }
+                    }
+                }
+                yield return new AiChatChunk(update.Text ?? "", toolCalls.Count > 0 ? toolCalls : null);
             }
 
             // 保存消息到数据库（如果有 conversationId）
             if (conversationId.HasValue)
             {
-                SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count);
+                var toolCallsJson = toolCalls.Count > 0
+                    ? System.Text.Json.JsonSerializer.Serialize(toolCalls)
+                    : null;
+                SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, toolCallsJson);
             }
 
             // 记录用量（流式无 Usage，使用本地估算）
@@ -199,7 +216,7 @@ namespace FCloud3.Services.Ai
             return new ChatMessage(role, msg.Content ?? "");
         }
 
-        private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount)
+        private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string? toolCallsJson = null)
         {
             var baseOrder = existingCount;
 
@@ -218,6 +235,7 @@ namespace FCloud3.Services.Ai
                 ConversationId = conversationId,
                 Role = AiMessageRole.Assistant,
                 Content = aiResponse,
+                ToolCalls = toolCallsJson,
                 Order = baseOrder + 2
             });
 
@@ -235,5 +253,6 @@ namespace FCloud3.Services.Ai
         }
     }
 
-    public record AiChatChunk(string Text);
+    public record AiChatChunk(string Text, List<AiToolCallInfo>? ToolCalls = null);
+    public record AiToolCallInfo(string Name, string Arguments);
 }

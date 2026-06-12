@@ -39,10 +39,14 @@ namespace FCloud3.Services.Ai
         public List<ConfigUsageSummary> GetConfigUsageRanking(int aiInstanceConfigId, DateTime? since = null)
         {
             since ??= DateTime.Now.Date;
-            return repo.Existing
-                .Where(x => x.AiInstanceConfigId == aiInstanceConfigId && x.Created >= since)
+            var query = repo.Existing
+                .Where(x => x.AiInstanceConfigId == aiInstanceConfigId && x.Created >= since);
+
+            return query
                 .GroupBy(x => x.UserId)
-                .Select(g => new ConfigUsageSummary(g.Key, g.Sum(x => x.TotalTokens), g.Count()))
+                .Select(g => new { g.Key, Total = g.Sum(x => x.TotalTokens), Count = g.Count() })
+                .ToList()
+                .Select(x => new ConfigUsageSummary(x.Key, x.Total, x.Count))
                 .OrderByDescending(x => x.TotalTokens)
                 .ToList();
         }
