@@ -34,6 +34,9 @@ import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { WikiTopBriefOfDirRequest, WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
 import { ImportPreview, FileStatusResult } from '@/models/etc/wikiImportExport';
+import { AiInstanceConfig, AiInstanceConfigEditModel } from '@/models/ai/aiInstanceConfig';
+import { AiConversation, AiMessage } from '@/models/ai/aiConversation';
+import { ConfigUsageSummary } from '@/models/ai/aiUsage';
 
 
 export class Api{
@@ -1412,6 +1415,107 @@ export class Api{
                 if(resp.success){
                     return resp.data as {ImportedCount:number}
                 }
+            }
+        }
+    }
+    ai = {
+        chat: {
+            createConversation: async(aiInstanceConfigId:number, title?:string, currentWikiItemId?:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/CreateConversation",
+                    "postForm",
+                    { aiInstanceConfigId, title, currentWikiItemId }
+                )
+                if(resp.success){
+                    return resp.data as AiConversation
+                }
+            },
+            getConversations: async(aiInstanceConfigId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/GetConversations",
+                    "get",
+                    { aiInstanceConfigId }
+                )
+                if(resp.success){
+                    return resp.data as AiConversation[]
+                }
+                return []
+            },
+            getMessages: async(conversationId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/GetMessages",
+                    "get",
+                    { conversationId }
+                )
+                if(resp.success){
+                    return resp.data as AiMessage[]
+                }
+                return []
+            },
+            renameConversation: async(conversationId:number, title:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/RenameConversation",
+                    "postForm",
+                    { conversationId, title },
+                    "重命名成功",
+                    true
+                )
+                return resp.success
+            },
+            deleteConversation: async(conversationId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/DeleteConversation",
+                    "postForm",
+                    { conversationId },
+                    "删除成功",
+                    true
+                )
+                return resp.success
+            }
+        },
+        instanceConfig: {
+            get: async(groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiInstanceConfig/Get",
+                    "get",
+                    { groupId }
+                )
+                if(resp.success){
+                    return resp.data as AiInstanceConfig
+                }
+            },
+            set: async(config:AiInstanceConfigEditModel)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiInstanceConfig/Set",
+                    "postRaw",
+                    config,
+                    "保存成功",
+                    true
+                )
+                return resp.success
+            }
+        },
+        usage: {
+            myUsage: async(aiInstanceConfigId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiUsage/MyUsage",
+                    "get",
+                    { aiInstanceConfigId }
+                )
+                if(resp.success){
+                    return resp.data as { TotalTokens: number }
+                }
+            },
+            groupRanking: async(groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiUsage/GroupRanking",
+                    "get",
+                    { groupId }
+                )
+                if(resp.success){
+                    return resp.data as ConfigUsageSummary[]
+                }
+                return []
             }
         }
     }
