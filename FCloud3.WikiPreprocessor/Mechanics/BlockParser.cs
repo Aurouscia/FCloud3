@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
@@ -40,8 +40,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     return cache;
             }
 
+            // 提取 HTML 区域（如 <style>、<script>），替换为占位符
+            // 必须在 FencedCodeExtractor 之前执行，确保 HTML 区域内的 ``` 不被误提取
+            var (inputAfterHtmlExtract, htmlAreas) = HtmlAreaExtractor.Extract(input);
+            
             // 提取围栏代码块，替换为占位符
-            var (processedInput, codeBlocks) = FencedCodeExtractor.Extract(input);
+            var (processedInput, codeBlocks) = FencedCodeExtractor.Extract(inputAfterHtmlExtract);
             
             var lines = LineSplitter.Split(processedInput, _ctx.Options.LocatorHash);
             //在此处已经对每行进行了HtmlEncode，Hash值为encode前的Hash值
@@ -55,9 +59,13 @@ namespace FCloud3.WikiPreprocessor.Mechanics
             else
                 resElement = _titledBlockParser.Value.Run(lines);
 
-            // 将占位符替换回 CodeBlockElement
+            // 将代码块占位符替换回 CodeBlockElement
             if (codeBlocks.Count > 0)
                 resElement = FencedCodeExtractor.RestorePlaceholders(resElement, codeBlocks);
+            
+            // 将 HTML 区域占位符替换回原始 HTML 文本
+            if (htmlAreas.Count > 0)
+                resElement = HtmlAreaExtractor.RestorePlaceholders(resElement, htmlAreas);
 
             if (_useCache && !isMasterCall)
                 resElement = _ctx.Caches.SaveParsedElement(input, resElement);
@@ -171,8 +179,10 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 PureContent = line;
                 string lineStr = line.Text;
                 Level = 0;
-                // 代码块占位符不是标题
+                // 代码块占位符和 HTML 区域占位符不是标题
                 if (RuledBlockParser.IsCodeBlockPlaceholder(lineStr))
+                    return;
+                if (HtmlAreaExtractor.IsHtmlAreaPlaceholder(lineStr))
                     return;
                 if (!lineStr.StartsWith(Consts.titleLevelMark))
                     return;
@@ -242,7 +252,12 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 {
                     if (IsCodeBlockPlaceholder(line.PureContent.Text))
                     {
-                        // 占位符直接作为原始元素添加，不经过 inline 解析
+                        // 代码块占位符直接作为原始元素添加，不经过 inline 解析
+                        res.Add(new TextElement(line.PureContent.Text));
+                    }
+                    else if (HtmlAreaExtractor.IsHtmlAreaPlaceholder(line.PureContent.Text))
+                    {
+                        // HTML 区域占位符直接作为原始元素添加，不经过 inline 解析
                         res.Add(new TextElement(line.PureContent.Text));
                     }
                     else
