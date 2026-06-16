@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace FCloud3.Entities.Ai
 {
+    [Index(nameof(ConversationId), nameof(Order))]
     public class AiMessage : IDbModel
     {
         public int Id { get; set; }

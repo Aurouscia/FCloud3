@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.WikiParsing
 {
+    [Index(nameof(Name))]
+    [Index(nameof(CreatorUserId))]
     public class WikiTemplate : IDbModel
     {
         public int Id { get; set; }

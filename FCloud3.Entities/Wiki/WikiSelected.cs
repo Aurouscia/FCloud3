@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Wiki
 {
+    [Index(nameof(WikiItemId))]
     public class WikiSelected:IDbModel
     {
         public int Id { get; set; }

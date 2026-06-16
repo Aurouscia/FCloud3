@@ -1,6 +1,7 @@
 ﻿
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Wiki
 {
@@ -10,6 +11,8 @@ namespace FCloud3.Entities.Wiki
     /// 已放弃：无法解决词条导出/导入、权限控制等问题<br/>
     /// 替代方案：AuParaLoader插件
     /// </summary>
+    [Index(nameof(WikiItemId), nameof(Order))]
+    [Index(nameof(ObjectId), nameof(Type))]
     public class WikiPara : IDbModel, IRelation
     {
         public int Id { get; set; }

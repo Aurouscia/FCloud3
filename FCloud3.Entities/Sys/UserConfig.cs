@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace FCloud3.Entities.Sys
 {
+    [Index(nameof(CreatorUserId), nameof(On), nameof(Type))]
     public class UserConfig : IDbModel
     {
         public int Id { get; set; }

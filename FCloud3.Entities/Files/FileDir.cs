@@ -4,9 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Files
 {
+    [Index(nameof(ParentDir), nameof(UrlPathName))]
+    [Index(nameof(RootDir))]
+    [Index(nameof(AsDir))]
+    [Index(nameof(UrlPathName))]
     public class FileDir: IDbModel, IPathable
     {
         public int Id { get; set; }

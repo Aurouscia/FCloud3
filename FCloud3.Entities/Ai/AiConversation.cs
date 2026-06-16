@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace FCloud3.Entities.Ai
 {
+    [Index(nameof(UserId), nameof(AiInstanceConfigId))]
+    [Index(nameof(CurrentWikiItemId))]
     public class AiConversation : IDbModel
     {
         public int Id { get; set; }

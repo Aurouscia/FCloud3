@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Identities
 {
+    [Index(nameof(GroupId), nameof(UserId))]
+    [Index(nameof(UserId))]
     public class UserToGroup:IDbModel, IRelation
     {
         public int Id { get; set; }

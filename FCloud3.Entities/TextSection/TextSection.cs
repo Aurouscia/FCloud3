@@ -1,5 +1,8 @@
-﻿namespace FCloud3.Entities.TextSection
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace FCloud3.Entities.TextSection
 {
+    [Index(nameof(CreatorUserId))]
     public class TextSection : IDbModel
     {
         public int Id { get; set; }

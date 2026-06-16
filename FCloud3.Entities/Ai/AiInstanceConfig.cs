@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace FCloud3.Entities.Ai
 {
+    [Index(nameof(GroupId))]
+    [Index(nameof(DefaultDirId))]
     public class AiInstanceConfig : IDbModel
     {
         public int Id { get; set; }

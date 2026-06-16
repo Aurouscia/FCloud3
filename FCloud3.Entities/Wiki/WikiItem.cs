@@ -1,8 +1,12 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Wiki
 {
+    [Index(nameof(UrlPathName))]
+    [Index(nameof(OwnerUserId))]
+    [Index(nameof(LastActive))]
     public class WikiItem : IDbModel
     {
         public int Id { get; set; }

@@ -1,7 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Files
 {
+    [Index(nameof(InDir))]
+    [Index(nameof(Hash))]
+    [Index(nameof(StorePathName))]
     public class FileItem: IDbModel
     {
         public int Id { get; set; }

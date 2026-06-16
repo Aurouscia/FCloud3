@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Messages
 {
+    [Index(nameof(ReceiverId), nameof(Read))]
+    [Index(nameof(CreatorUserId))]
     public class Message:IDbModel
     {
         public int Id { get; set; }

@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Identities
 {
+    [Index(nameof(AvatarMaterialId))]
     public class User : IDbModel
     {
         public int Id { get; set; }

@@ -4,9 +4,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Messages
 {
+    [Index(nameof(TargetType), nameof(TargetObjId))]
+    [Index(nameof(ReplyingTo))]
+    [Index(nameof(CreatorUserId))]
     public class Comment : IDbModel
     {
         public int Id { get; set; }

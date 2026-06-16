@@ -1,5 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace FCloud3.Entities.Ai
 {
+    [Index(nameof(UserId), nameof(Created))]
+    [Index(nameof(AiInstanceConfigId))]
+    [Index(nameof(RelatedWikiItemId))]
+    [Index(nameof(ConversationId))]
     public class AiUsageRecord : IDbModel
     {
         public int Id { get; set; }

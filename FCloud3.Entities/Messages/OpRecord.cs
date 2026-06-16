@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Messages
 {
+    [Index(nameof(CreatorUserId))]
+    [Index(nameof(TargetType), nameof(ObjA))]
+    [Index(nameof(TargetType), nameof(ObjA), nameof(ObjB))]
     public class OpRecord : IDbModel
     {
         public int Id { get; set; }

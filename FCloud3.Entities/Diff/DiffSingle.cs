@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Diff
 {
+    [Index(nameof(DiffContentId))]
     public class DiffSingle
     {
         public int Id { get; set; }

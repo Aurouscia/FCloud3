@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Entities.Identities
 {
+    [Index(nameof(On), nameof(OnId), nameof(Order))]
+    [Index(nameof(To), nameof(ToId))]
     public class AuthGrant : IDbModel, IRelation
     {
         public int Id { get; set; }
