@@ -78,7 +78,7 @@
     }
 
     .paraTitleHidden, .paraTitleHiddenKeepingMargin{
-        display: none;
+        display: none !important;
     }
     .paraTitleHiddenKeepingMargin + *{
         margin-top: 20px;
