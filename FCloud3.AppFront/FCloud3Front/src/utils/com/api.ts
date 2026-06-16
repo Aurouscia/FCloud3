@@ -1474,15 +1474,26 @@ export class Api{
             }
         },
         instanceConfig: {
-            get: async(groupId:number)=>{
+            get: async(id:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/AiInstanceConfig/Get",
                     "get",
-                    { groupId }
+                    { id }
                 )
                 if(resp.success){
                     return resp.data as AiInstanceConfig
                 }
+            },
+            getList: async(groupId:number)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiInstanceConfig/GetList",
+                    "get",
+                    { groupId }
+                )
+                if(resp.success){
+                    return resp.data as AiInstanceConfigSummary[]
+                }
+                return []
             },
             getMyAvailableInstances: async()=>{
                 const resp = await this.httpClient.request(

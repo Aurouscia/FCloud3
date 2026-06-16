@@ -14,10 +14,9 @@ namespace FCloud3.App.Controllers.Identities
     {
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
 
-        [AuthGranted(formKey: nameof(groupId))]
-        public IActionResult Get(int groupId)
+        public IActionResult Get(int id)
         {
-            var res = configService.GetConfig(groupId, out var errmsg);
+            var res = configService.GetConfig(id, out var errmsg);
             if (res is null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(res);
@@ -30,14 +29,31 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp(list);
         }
 
-        [AuthGranted(formKey: nameof(model.GroupId))]
+        [AuthGranted(formKey: nameof(groupId))]
+        public IActionResult GetList(int groupId)
+        {
+            var list = configService.GetListByGroupId(groupId);
+            return this.ApiResp(list);
+        }
+
         [UserTypeRestricted]
         public IActionResult Set([FromBody] AiInstanceConfigModel model)
         {
-            var res = configService.SetConfig(model.GroupId, model.ApiBaseUrl!,
-                model.ApiKey!, model.ModelName!, model.SystemPrompt, model.Enabled,
-                model.DefaultDirId, model.MaxContextMessages, model.DailyTokenLimit,
-                model.MonthlyTokenLimit, out var errmsg);
+            var config = new AiInstanceConfig
+            {
+                Id = model.Id,
+                GroupId = model.GroupId,
+                ApiBaseUrl = model.ApiBaseUrl,
+                ApiKey = model.ApiKey,
+                ModelName = model.ModelName,
+                SystemPrompt = model.SystemPrompt,
+                Enabled = model.Enabled,
+                DefaultDirId = model.DefaultDirId,
+                MaxContextMessages = model.MaxContextMessages,
+                DailyTokenLimit = model.DailyTokenLimit,
+                MonthlyTokenLimit = model.MonthlyTokenLimit
+            };
+            var res = configService.SetConfig(config, out var errmsg);
             if (!res)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp();
@@ -45,6 +61,7 @@ namespace FCloud3.App.Controllers.Identities
 
         public class AiInstanceConfigModel : IAuthGrantableRequestModel
         {
+            public int Id { get; set; }
             public int GroupId { get; set; }
             public string? ApiBaseUrl { get; set; }
             public string? ApiKey { get; set; }

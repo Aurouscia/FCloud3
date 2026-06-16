@@ -12,16 +12,22 @@ namespace FCloud3.Services.Identities
     {
         private readonly int _userId = userIdProvider.Get();
 
-        public AiInstanceConfig? GetConfig(int groupId, out string? errmsg)
+        public AiInstanceConfig? GetConfig(int id, out string? errmsg)
         {
             errmsg = null;
-            var relation = userToGroupRepo.GetRelation(groupId, _userId);
+            var config = repo.GetById(id);
+            if (config is null)
+            {
+                errmsg = "找不到该 AI 实例";
+                return null;
+            }
+            var relation = userToGroupRepo.GetRelation(config.GroupId, _userId);
             if (relation is null || !relation.Type.IsFormalMember())
             {
                 errmsg = "你不是该团体成员";
                 return null;
             }
-            return repo.GetByGroupId(groupId);
+            return config;
         }
 
         public List<AiInstanceConfigSummary> GetMyAvailableInstances()
@@ -44,8 +50,25 @@ namespace FCloud3.Services.Identities
                 x.GroupId,
                 groupNames.GetValueOrDefault(x.GroupId),
                 x.ModelName,
-                x.SystemPrompt
+                x.SystemPrompt,
+                x.Enabled
             )).ToList();
+        }
+
+        public List<AiInstanceConfigSummary> GetListByGroupId(int groupId)
+        {
+            var groupName = userGroupRepo.GetById(groupId)?.Name;
+            return repo.Existing
+                .Where(x => x.GroupId == groupId)
+                .Select(x => new AiInstanceConfigSummary(
+                    x.Id,
+                    x.GroupId,
+                    groupName,
+                    x.ModelName,
+                    x.SystemPrompt,
+                    x.Enabled
+                ))
+                .ToList();
         }
 
         public record AiInstanceConfigSummary(
@@ -53,12 +76,30 @@ namespace FCloud3.Services.Identities
             int GroupId,
             string? GroupName,
             string? ModelName,
-            string? SystemPrompt);
+            string? SystemPrompt,
+            bool Enabled);
 
-        public bool SetConfig(int groupId, string apiBaseUrl, string apiKey, string modelName,
-            string? systemPrompt, bool enabled, int defaultDirId, int maxContextMessages,
-            int dailyTokenLimit, int monthlyTokenLimit, out string? errmsg)
+        public bool SetConfig(AiInstanceConfig model, out string? errmsg)
         {
+            int groupId;
+            AiInstanceConfig? config;
+
+            if (model.Id > 0)
+            {
+                config = repo.GetById(model.Id);
+                if (config is null)
+                {
+                    errmsg = "找不到该 AI 实例";
+                    return false;
+                }
+                groupId = config.GroupId;
+            }
+            else
+            {
+                groupId = model.GroupId;
+                config = null;
+            }
+
             var group = userGroupRepo.GetById(groupId);
             if (group is null)
             {
@@ -71,35 +112,34 @@ namespace FCloud3.Services.Identities
                 return false;
             }
 
-            var config = repo.GetByGroupId(groupId);
             if (config is null)
             {
                 config = new AiInstanceConfig
                 {
                     GroupId = groupId,
-                    ApiBaseUrl = apiBaseUrl,
-                    ApiKey = apiKey,
-                    ModelName = modelName,
-                    SystemPrompt = systemPrompt,
-                    Enabled = enabled,
-                    DefaultDirId = defaultDirId,
-                    MaxContextMessages = maxContextMessages,
-                    DailyTokenLimit = dailyTokenLimit,
-                    MonthlyTokenLimit = monthlyTokenLimit
+                    ApiBaseUrl = model.ApiBaseUrl,
+                    ApiKey = model.ApiKey,
+                    ModelName = model.ModelName,
+                    SystemPrompt = model.SystemPrompt,
+                    Enabled = model.Enabled,
+                    DefaultDirId = model.DefaultDirId,
+                    MaxContextMessages = model.MaxContextMessages,
+                    DailyTokenLimit = model.DailyTokenLimit,
+                    MonthlyTokenLimit = model.MonthlyTokenLimit
                 };
                 repo.AddConfig(config);
             }
             else
             {
-                config.ApiBaseUrl = apiBaseUrl;
-                config.ApiKey = apiKey;
-                config.ModelName = modelName;
-                config.SystemPrompt = systemPrompt;
-                config.Enabled = enabled;
-                config.DefaultDirId = defaultDirId;
-                config.MaxContextMessages = maxContextMessages;
-                config.DailyTokenLimit = dailyTokenLimit;
-                config.MonthlyTokenLimit = monthlyTokenLimit;
+                config.ApiBaseUrl = model.ApiBaseUrl;
+                config.ApiKey = model.ApiKey;
+                config.ModelName = model.ModelName;
+                config.SystemPrompt = model.SystemPrompt;
+                config.Enabled = model.Enabled;
+                config.DefaultDirId = model.DefaultDirId;
+                config.MaxContextMessages = model.MaxContextMessages;
+                config.DailyTokenLimit = model.DailyTokenLimit;
+                config.MonthlyTokenLimit = model.MonthlyTokenLimit;
                 repo.UpdateConfig(config);
             }
             errmsg = null;

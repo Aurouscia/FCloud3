@@ -32,4 +32,5 @@ export interface AiInstanceConfigSummary {
     GroupName: string | null
     ModelName: string | null
     SystemPrompt: string | null
+    Enabled: boolean
 }

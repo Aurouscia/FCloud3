@@ -5,6 +5,7 @@ import { UserGroup, UserGroupDetailResult } from '@/models/identities/userGroup'
 import Loading from '@/components/Loading.vue';
 import Search from '@/components/Search.vue';
 import { useIdentityRoutesJump } from './routes/routesJump';
+import { useAiRoutesJump } from '../Ai/routes/routesJump';
 import LongPress from '@/components/LongPress.vue';
 
 const props = defineProps<{
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>()
 
 const {jumpToUserCenter} = useIdentityRoutesJump();
+const { jumpToAiInstanceList } = useAiRoutesJump();
 
 const data = ref<UserGroupDetailResult>();
 const meShowItsLabel = ref(false);
@@ -133,6 +135,9 @@ watch(props,async ()=>{
                 </tr>
                 <tr>
                     <td colspan="2"><button @click="editInfo">保存</button></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><button class="minor" @click="jumpToAiInstanceList(props.id)">AI 实例配置</button></td>
                 </tr>
             </tbody></table>
             <LongPress v-if="data.IsMember" :reached="leaveGroup" class="cancel">长按退出本组</LongPress>
