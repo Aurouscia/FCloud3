@@ -34,7 +34,7 @@ import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { WikiTopBriefOfDirRequest, WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
 import { ImportPreview, FileStatusResult } from '@/models/etc/wikiImportExport';
-import { AiInstanceConfig, AiInstanceConfigEditModel } from '@/models/ai/aiInstanceConfig';
+import { AiInstanceConfig, AiInstanceConfigEditModel, AiInstanceConfigSummary } from '@/models/ai/aiInstanceConfig';
 import { AiConversation, AiMessage } from '@/models/ai/aiConversation';
 import { ConfigUsageSummary } from '@/models/ai/aiUsage';
 
@@ -1483,6 +1483,16 @@ export class Api{
                 if(resp.success){
                     return resp.data as AiInstanceConfig
                 }
+            },
+            getMyAvailableInstances: async()=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiInstanceConfig/GetMyAvailableInstances",
+                    "get"
+                )
+                if(resp.success){
+                    return resp.data as AiInstanceConfigSummary[]
+                }
+                return []
             },
             set: async(config:AiInstanceConfigEditModel)=>{
                 const resp = await this.httpClient.request(

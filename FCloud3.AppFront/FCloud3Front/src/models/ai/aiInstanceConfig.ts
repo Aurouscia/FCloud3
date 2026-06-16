@@ -25,3 +25,11 @@ export interface AiInstanceConfigEditModel {
     DailyTokenLimit: number
     MonthlyTokenLimit: number
 }
+
+export interface AiInstanceConfigSummary {
+    Id: number
+    GroupId: number
+    GroupName: string | null
+    ModelName: string | null
+    SystemPrompt: string | null
+}

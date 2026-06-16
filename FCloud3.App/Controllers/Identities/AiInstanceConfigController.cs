@@ -23,6 +23,13 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp(res);
         }
 
+        /// <summary>获取当前用户可用的 AI 实例配置列表</summary>
+        public IActionResult GetMyAvailableInstances()
+        {
+            var list = configService.GetMyAvailableInstances();
+            return this.ApiResp(list);
+        }
+
         [AuthGranted(formKey: nameof(model.GroupId))]
         [UserTypeRestricted]
         public IActionResult Set([FromBody] AiInstanceConfigModel model)

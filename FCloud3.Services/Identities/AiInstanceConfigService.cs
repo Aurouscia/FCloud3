@@ -24,6 +24,37 @@ namespace FCloud3.Services.Identities
             return repo.GetByGroupId(groupId);
         }
 
+        public List<AiInstanceConfigSummary> GetMyAvailableInstances()
+        {
+            var myGroupIds = userToGroupRepo.Existing
+                .Where(x => x.UserId == _userId && x.Type.IsFormalMember())
+                .Select(x => x.GroupId)
+                .ToList();
+
+            var configs = repo.Existing
+                .Where(x => myGroupIds.Contains(x.GroupId) && x.Enabled)
+                .ToList();
+
+            var groupNames = userGroupRepo.Existing
+                .Where(x => configs.Select(c => c.GroupId).Contains(x.Id))
+                .ToDictionary(x => x.Id, x => x.Name);
+
+            return configs.Select(x => new AiInstanceConfigSummary(
+                x.Id,
+                x.GroupId,
+                groupNames.GetValueOrDefault(x.GroupId),
+                x.ModelName,
+                x.SystemPrompt
+            )).ToList();
+        }
+
+        public record AiInstanceConfigSummary(
+            int Id,
+            int GroupId,
+            string? GroupName,
+            string? ModelName,
+            string? SystemPrompt);
+
         public bool SetConfig(int groupId, string apiBaseUrl, string apiKey, string modelName,
             string? systemPrompt, bool enabled, int defaultDirId, int maxContextMessages,
             int dailyTokenLimit, int monthlyTokenLimit, out string? errmsg)

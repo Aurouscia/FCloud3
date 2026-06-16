@@ -7,6 +7,7 @@ import { addTable } from './pages/Table/routes/routesInit';
 import { addWikiParsing } from './pages/WikiParsing/routes/routesInit';
 import { addDiff } from './pages/Diff/routes/routesInit';
 import { addMessages } from './pages/Message/routes/routesInit';
+import { addAi } from './pages/Ai/routes/routesInit';
 import NotFound from './pages/NotFoundPage.vue';
 import { Router } from 'vue-router';
 import { addFicKit } from './pages/FicKit/routes/routesInit';
@@ -26,4 +27,5 @@ export function configureRoute(router:Router){
     addDiff(router)
     addMessages(router)
     addFicKit(router)
+    addAi(router)
 }
