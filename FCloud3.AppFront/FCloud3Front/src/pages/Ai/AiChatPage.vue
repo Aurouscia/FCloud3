@@ -2,13 +2,13 @@
 import AiChatPanel from '@/components/Ai/AiChatPanel.vue';
 
 const props = defineProps<{
-    groupId?: string;
+    aiInstanceConfigId?: string;
 }>();
 </script>
 
 <template>
     <div class="aiChatPage">
-        <AiChatPanel :aiInstanceConfigId="groupId ? parseInt(groupId, 10) : undefined" />
+        <AiChatPanel :aiInstanceConfigId="aiInstanceConfigId ? parseInt(aiInstanceConfigId, 10) : undefined" />
     </div>
 </template>
 

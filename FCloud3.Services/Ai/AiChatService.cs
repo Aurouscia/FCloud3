@@ -23,10 +23,10 @@ namespace FCloud3.Services.Ai
         /// 获取 AI 建议。conversationId 为 null 时不保存历史（无状态模式）。
         /// </summary>
         public async IAsyncEnumerable<AiChatChunk> GetSuggestions(
-            int groupId, string userPrompt, int? conversationId,
+            int aiInstanceConfigId, string userPrompt, int? conversationId,
             int currentWikiItemId, [EnumeratorCancellation] CancellationToken ct)
         {
-            var config = configService.GetConfig(groupId, out var errmsg);
+            var config = configService.GetConfig(aiInstanceConfigId, out var errmsg);
             if (config is null)
             {
                 yield return new AiChatChunk(errmsg ?? "无法获取 AI 配置");
@@ -68,6 +68,12 @@ namespace FCloud3.Services.Ai
             List<AiMessage> history = [];
             if (conversationId.HasValue)
             {
+                var conv = conversationRepo.GetById(conversationId.Value);
+                if (conv is null || conv.UserId != _userId || conv.AiInstanceConfigId != aiInstanceConfigId)
+                {
+                    yield return new AiChatChunk("对话不存在或无权限访问");
+                    yield break;
+                }
                 history = LoadHistoryMessages(conversationId.Value, config.MaxContextMessages);
                 foreach (var h in history)
                 {
@@ -98,6 +104,7 @@ namespace FCloud3.Services.Ai
             // 定义工具
             var options = new ChatOptions
             {
+                ModelId = config.ModelName,
                 Tools =
                 [
                     AIFunctionFactory.Create(toolService.GetWikiContent, name: "get_wiki_content"),
@@ -149,35 +156,70 @@ namespace FCloud3.Services.Ai
         }
 
         /// <summary>创建新对话</summary>
-        public AiConversation CreateConversation(int userId, int aiInstanceConfigId,
-            string? title, int currentWikiItemId)
+        public bool CreateConversation(int aiInstanceConfigId, string? title,
+            int currentWikiItemId, out AiConversation? conversation, out string? errmsg)
         {
-            var conversation = new AiConversation
+            conversation = null;
+            var config = configService.GetConfig(aiInstanceConfigId, out errmsg);
+            if (config is null)
+                return false;
+
+            conversation = new AiConversation
             {
-                UserId = userId,
+                UserId = _userId,
                 AiInstanceConfigId = aiInstanceConfigId,
                 Title = title,
                 CurrentWikiItemId = currentWikiItemId,
                 MessageCount = 0
             };
             conversationRepo.AddConversation(conversation);
-            return conversation;
+            errmsg = null;
+            return true;
         }
 
         /// <summary>获取用户的对话列表</summary>
-        public List<AiConversation> GetConversations(int userId, int aiInstanceConfigId)
-            => conversationRepo.GetByUserAndConfig(userId, aiInstanceConfigId);
+        public List<AiConversation>? GetConversations(int aiInstanceConfigId, out string? errmsg)
+        {
+            var config = configService.GetConfig(aiInstanceConfigId, out errmsg);
+            if (config is null)
+                return null;
+            errmsg = null;
+            return conversationRepo.GetByUserAndConfig(_userId, aiInstanceConfigId);
+        }
 
         /// <summary>获取对话的完整消息列表</summary>
-        public List<AiMessage> GetConversationMessages(int conversationId)
-            => messageRepo.GetByConversationId(conversationId);
+        public List<AiMessage>? GetConversationMessages(int conversationId, out string? errmsg)
+        {
+            errmsg = null;
+            var conv = conversationRepo.GetById(conversationId);
+            if (conv is null)
+            {
+                errmsg = "对话不存在";
+                return null;
+            }
+            if (conv.UserId != _userId)
+            {
+                errmsg = "无权查看该对话";
+                return null;
+            }
+            return messageRepo.GetByConversationId(conversationId);
+        }
 
         /// <summary>重命名对话</summary>
         public bool RenameConversation(int conversationId, string title, out string? errmsg)
         {
             errmsg = null;
-            var conv = conversationRepo.Existing.FirstOrDefault(x => x.Id == conversationId);
-            if (conv is null) { errmsg = "对话不存在"; return false; }
+            var conv = conversationRepo.GetById(conversationId);
+            if (conv is null)
+            {
+                errmsg = "对话不存在";
+                return false;
+            }
+            if (conv.UserId != _userId)
+            {
+                errmsg = "无权修改该对话";
+                return false;
+            }
             conv.Title = title;
             conversationRepo.UpdateConversation(conv);
             return true;
@@ -187,8 +229,17 @@ namespace FCloud3.Services.Ai
         public bool DeleteConversation(int conversationId, out string? errmsg)
         {
             errmsg = null;
-            var conv = conversationRepo.Existing.FirstOrDefault(x => x.Id == conversationId);
-            if (conv is null) { errmsg = "对话不存在"; return false; }
+            var conv = conversationRepo.GetById(conversationId);
+            if (conv is null)
+            {
+                errmsg = "对话不存在";
+                return false;
+            }
+            if (conv.UserId != _userId)
+            {
+                errmsg = "无权删除该对话";
+                return false;
+            }
             conversationRepo.RemoveConversation(conv);
             return true;
         }

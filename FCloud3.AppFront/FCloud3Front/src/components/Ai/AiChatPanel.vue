@@ -78,7 +78,7 @@ async function onRename(title: string) {
 
 async function fetchStreamSuggestions(userPrompt: string) {
     const url = new URL(`${import.meta.env.VITE_ApiUrlBase}/api/AiChat/GetSuggestions`);
-    url.searchParams.set('groupId', effectiveInstanceId.value.toString());
+    url.searchParams.set('aiInstanceConfigId', effectiveInstanceId.value.toString());
     url.searchParams.set('prompt', userPrompt);
     if (currentConversationId.value) {
         url.searchParams.set('conversationId', currentConversationId.value.toString());

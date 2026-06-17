@@ -10,7 +10,7 @@ export function addAi(r: Router) {
 
 const routes = [
     {
-        path: "/AiChat/:groupId(\\d+)?",
+        path: "/AiChat/:aiInstanceConfigId(\\d+)?",
         component: AiChatPage,
         props: true,
         name: "aiChat"

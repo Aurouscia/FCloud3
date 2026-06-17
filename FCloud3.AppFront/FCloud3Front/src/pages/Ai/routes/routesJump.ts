@@ -2,11 +2,11 @@ import { useRouter } from "vue-router"
 
 export function useAiRoutesJump() {
     const router = useRouter();
-    const jumpToAiChatRoute = (groupId?: number) => {
-        return { name: "aiChat", params: { groupId: groupId?.toString() } };
+    const jumpToAiChatRoute = (aiInstanceConfigId?: number) => {
+        return { name: "aiChat", params: { aiInstanceConfigId: aiInstanceConfigId?.toString() } };
     };
-    const jumpToAiChat = (groupId?: number) => {
-        router.push(jumpToAiChatRoute(groupId));
+    const jumpToAiChat = (aiInstanceConfigId?: number) => {
+        router.push(jumpToAiChatRoute(aiInstanceConfigId));
     };
     const jumpToAiInstanceListRoute = (groupId: number) => {
         return { name: "aiInstanceList", params: { groupId: groupId.toString() } };
