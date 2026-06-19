@@ -50,6 +50,7 @@ onUnmounted(() => {
         <table><tbody>
             <tr>
                 <th>ID</th>
+                <th>实例名称</th>
                 <th>默认模型名</th>
                 <th>系统提示词</th>
                 <th>启用</th>
@@ -57,6 +58,7 @@ onUnmounted(() => {
             </tr>
             <tr v-for="item in instances" :key="item.Id">
                 <td>{{ item.Id }}</td>
+                <td>{{ item.InstanceName || '-' }}</td>
                 <td>{{ item.DefaultModelName || '-' }}</td>
                 <td :title="item.SystemPrompt || ''">{{ truncate(item.SystemPrompt, 40) }}</td>
                 <td>{{ item.Enabled ? '是' : '否' }}</td>
@@ -65,8 +67,9 @@ onUnmounted(() => {
                 </td>
             </tr>
             <tr v-if="instances.length === 0">
-                <td colspan="5" class="empty">暂无 AI 实例</td>
+                <td colspan="6" class="empty">暂无 AI 实例</td>
             </tr>
+
         </tbody></table>
     </div>
     <Loading v-else></Loading>

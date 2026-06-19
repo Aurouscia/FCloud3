@@ -9,6 +9,8 @@ namespace FCloud3.Entities.Ai
         public int Id { get; set; }
         /// <summary>关联的团体Id</summary>
         public int GroupId { get; set; }
+        /// <summary>实例名称，用于在列表中区分不同实例</summary>
+        public string? InstanceName { get; set; }
         /// <summary>API 基础地址，如 https://api.openai.com/v1</summary>
         public string? ApiBaseUrl { get; set; }
         /// <summary>API Key（建议加密存储）</summary>

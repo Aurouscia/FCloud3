@@ -49,6 +49,7 @@ namespace FCloud3.Services.Identities
                 x.Id,
                 x.GroupId,
                 groupNames.GetValueOrDefault(x.GroupId),
+                x.InstanceName,
                 x.DefaultModelName,
                 x.SystemPrompt,
                 x.Enabled
@@ -64,6 +65,7 @@ namespace FCloud3.Services.Identities
                     x.Id,
                     x.GroupId,
                     groupName,
+                    x.InstanceName,
                     x.DefaultModelName,
                     x.SystemPrompt,
                     x.Enabled
@@ -75,6 +77,7 @@ namespace FCloud3.Services.Identities
             int Id,
             int GroupId,
             string? GroupName,
+            string? InstanceName,
             string? DefaultModelName,
             string? SystemPrompt,
             bool Enabled);
@@ -117,6 +120,7 @@ namespace FCloud3.Services.Identities
                 config = new AiInstanceConfig
                 {
                     GroupId = groupId,
+                    InstanceName = model.InstanceName,
                     ApiBaseUrl = model.ApiBaseUrl,
                     ApiKey = model.ApiKey,
                     DefaultModelName = model.DefaultModelName,
@@ -131,6 +135,7 @@ namespace FCloud3.Services.Identities
             }
             else
             {
+                config.InstanceName = model.InstanceName;
                 config.ApiBaseUrl = model.ApiBaseUrl;
                 config.ApiKey = model.ApiKey;
                 config.DefaultModelName = model.DefaultModelName;

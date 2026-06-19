@@ -25,6 +25,7 @@ const loadingModels = ref(false);
 const config = ref<AiInstanceConfigEditModel>({
     Id: 0,
     GroupId: 0,
+    InstanceName: '',
     ApiBaseUrl: '',
     ApiKey: '',
     DefaultModelName: '',
@@ -68,6 +69,7 @@ async function load() {
             ...config.value,
             Id: existing.Id,
             GroupId: existing.GroupId,
+            InstanceName: existing.InstanceName || '',
             ApiBaseUrl: existing.ApiBaseUrl || '',
             ApiKey: existing.ApiKey || '',
             DefaultModelName: existing.DefaultModelName || '',
@@ -124,6 +126,10 @@ onUnmounted(() => {
     <div v-if="loadComplete" class="aiInstanceEditPage">
         <h1>{{ pageTitle }}</h1>
         <table><tbody>
+            <tr>
+                <td>实例名称</td>
+                <td><input v-model="config.InstanceName" placeholder="如：GPT-4o 生产环境"/></td>
+            </tr>
             <tr>
                 <td>API 地址</td>
                 <td><input v-model="config.ApiBaseUrl" placeholder="https://api.example.com/v1"/></td>

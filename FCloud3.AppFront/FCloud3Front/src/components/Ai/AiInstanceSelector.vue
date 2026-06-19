@@ -66,7 +66,7 @@ defineExpose({ openSelector, loadInstances });
     <div class="aiInstanceSelector">
         <div v-if="selectedInstance" class="selectedBar">
             <div class="selectedInfo">
-                <span class="groupName">{{ selectedInstance.GroupName || '未命名团体' }}</span>
+                <span class="groupName">{{ selectedInstance.InstanceName || selectedInstance.GroupName || '未命名实例' }}</span>
                 <span class="modelName">{{ selectedInstance.DefaultModelName || '未设置模型' }}</span>
             </div>
             <button v-if="showSwitchButton !== false" class="minor" @click="openSelector">切换</button>
@@ -90,7 +90,7 @@ defineExpose({ openSelector, loadInstances });
                     <div v-for="inst in instances" :key="inst.Id"
                          :class="['instanceItem', { active: inst.Id === store.selectedInstanceId }]"
                          @click="selectInstance(inst.Id)">
-                        <div class="instanceName">{{ inst.GroupName || '未命名团体' }}</div>
+                        <div class="instanceName">{{ inst.InstanceName || inst.GroupName || '未命名实例' }}</div>
                         <div class="instanceMeta">
                             <span>默认模型：{{ inst.DefaultModelName || '未设置' }}</span>
                         </div>

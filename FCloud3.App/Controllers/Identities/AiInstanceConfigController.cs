@@ -55,6 +55,7 @@ namespace FCloud3.App.Controllers.Identities
             {
                 Id = model.Id,
                 GroupId = model.GroupId,
+                InstanceName = model.InstanceName,
                 ApiBaseUrl = model.ApiBaseUrl,
                 ApiKey = model.ApiKey,
                 DefaultModelName = model.DefaultModelName,
@@ -75,6 +76,7 @@ namespace FCloud3.App.Controllers.Identities
         {
             public int Id { get; set; }
             public int GroupId { get; set; }
+            public string? InstanceName { get; set; }
             public string? ApiBaseUrl { get; set; }
             public string? ApiKey { get; set; }
             public string? DefaultModelName { get; set; }
