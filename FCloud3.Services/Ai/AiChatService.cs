@@ -49,20 +49,13 @@ namespace FCloud3.Services.Ai
                 }
             }
 
-            // 构建 OpenAI 客户端（支持任意 OpenAI 兼容端点）
-            var openaiClient = new OpenAIClient(
-                new ApiKeyCredential(config.ApiKey),
-                new OpenAIClientOptions { Endpoint = new Uri(config.ApiBaseUrl!) });
-
-            IChatClient chatClient = openaiClient
-                .GetChatClient(config.ModelName!)
-                .AsIChatClient();
-
             // 构建消息列表
             var messages = new List<ChatMessage>
             {
                 new ChatMessage(ChatRole.System, config.SystemPrompt ?? "你是一个 wiki 创作助手，可以帮助用户改进词条内容、提供创作建议。你可以使用工具获取词条内容或搜索相关词条。")
             };
+
+            string? effectiveModelName = config.DefaultModelName;
 
             // 加载对话历史（如果有）
             List<AiMessage> history = [];
@@ -74,12 +67,28 @@ namespace FCloud3.Services.Ai
                     yield return new AiChatChunk("对话不存在或无权限访问");
                     yield break;
                 }
+                effectiveModelName = conv.ModelName ?? config.DefaultModelName;
                 history = LoadHistoryMessages(conversationId.Value, config.MaxContextMessages);
                 foreach (var h in history)
                 {
                     messages.Add(ConvertToChatMessage(h));
                 }
             }
+
+            if (string.IsNullOrEmpty(effectiveModelName))
+            {
+                yield return new AiChatChunk("模型名称未设置");
+                yield break;
+            }
+
+            // 构建 OpenAI 客户端（支持任意 OpenAI 兼容端点）
+            var openaiClient = new OpenAIClient(
+                new ApiKeyCredential(config.ApiKey),
+                new OpenAIClientOptions { Endpoint = new Uri(config.ApiBaseUrl!) });
+
+            IChatClient chatClient = openaiClient
+                .GetChatClient(effectiveModelName)
+                .AsIChatClient();
 
             // 如果有当前词条编辑上下文，注入词条内容
             string? currentWikiPathName = null;
@@ -104,7 +113,7 @@ namespace FCloud3.Services.Ai
             // 定义工具
             var options = new ChatOptions
             {
-                ModelId = config.ModelName,
+                ModelId = effectiveModelName,
                 Tools =
                 [
                     AIFunctionFactory.Create(toolService.GetWikiContent, name: "get_wiki_content"),
@@ -145,18 +154,18 @@ namespace FCloud3.Services.Ai
                 var toolCallsJson = toolCalls.Count > 0
                     ? System.Text.Json.JsonSerializer.Serialize(toolCalls)
                     : null;
-                SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, toolCallsJson);
+                SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, effectiveModelName, toolCallsJson);
             }
 
             // 记录用量（流式无 Usage，使用本地估算）
             var promptSummary = userPrompt[..Math.Min(100, userPrompt.Length)];
-            usageRecorder.RecordWithFallback(_userId, config.Id, config.ModelName!,
+            usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
                 messages, fullResponse, true, promptSummary, currentWikiItemId,
                 conversationId, null);
         }
 
         /// <summary>创建新对话</summary>
-        public bool CreateConversation(int aiInstanceConfigId, string? title,
+        public bool CreateConversation(int aiInstanceConfigId, string? title, string? modelName,
             int currentWikiItemId, out AiConversation? conversation, out string? errmsg)
         {
             conversation = null;
@@ -169,6 +178,7 @@ namespace FCloud3.Services.Ai
                 UserId = _userId,
                 AiInstanceConfigId = aiInstanceConfigId,
                 Title = title,
+                ModelName = string.IsNullOrWhiteSpace(modelName) ? null : modelName,
                 CurrentWikiItemId = currentWikiItemId,
                 MessageCount = 0
             };
@@ -225,6 +235,41 @@ namespace FCloud3.Services.Ai
             return true;
         }
 
+        /// <summary>获取指定 OpenAI 兼容端点下的可用模型列表</summary>
+        public async Task<(List<string>? Models, string? ErrorMessage)> GetAvailableModels(string apiBaseUrl, string apiKey)
+        {
+            if (string.IsNullOrWhiteSpace(apiBaseUrl) || string.IsNullOrWhiteSpace(apiKey))
+                return (null, "API 地址和 Key 不能为空");
+
+            try
+            {
+                var client = new OpenAIClient(
+                    new ApiKeyCredential(apiKey),
+                    new OpenAIClientOptions { Endpoint = new Uri(apiBaseUrl) });
+
+                var modelClient = client.GetOpenAIModelClient();
+                var result = await modelClient.GetModelsAsync();
+
+                return (result.Value
+                    .Select(m => m.Id)
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .OrderBy(id => id)
+                    .ToList(), null);
+            }
+            catch (System.ClientModel.ClientResultException ex) when (ex.Status == 401)
+            {
+                return (null, "API Key 无效或已失效");
+            }
+            catch (System.ClientModel.ClientResultException ex) when (ex.Status == 404)
+            {
+                return (null, "API 地址不存在或该端点不支持获取模型列表");
+            }
+            catch (Exception ex)
+            {
+                return (null, $"获取模型列表失败：{ex.Message}");
+            }
+        }
+
         /// <summary>删除对话（软删除）</summary>
         public bool DeleteConversation(int conversationId, out string? errmsg)
         {
@@ -267,7 +312,7 @@ namespace FCloud3.Services.Ai
             return new ChatMessage(role, msg.Content ?? "");
         }
 
-        private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string? toolCallsJson = null)
+        private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string modelName, string? toolCallsJson = null)
         {
             var baseOrder = existingCount;
 
@@ -277,6 +322,7 @@ namespace FCloud3.Services.Ai
                 ConversationId = conversationId,
                 Role = AiMessageRole.User,
                 Content = userPrompt,
+                ModelName = modelName,
                 Order = baseOrder + 1
             });
 
@@ -287,6 +333,7 @@ namespace FCloud3.Services.Ai
                 Role = AiMessageRole.Assistant,
                 Content = aiResponse,
                 ToolCalls = toolCallsJson,
+                ModelName = modelName,
                 Order = baseOrder + 2
             });
 

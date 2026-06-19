@@ -50,14 +50,14 @@ onUnmounted(() => {
         <table><tbody>
             <tr>
                 <th>ID</th>
-                <th>模型名</th>
+                <th>默认模型名</th>
                 <th>系统提示词</th>
                 <th>启用</th>
                 <th>操作</th>
             </tr>
             <tr v-for="item in instances" :key="item.Id">
                 <td>{{ item.Id }}</td>
-                <td>{{ item.ModelName || '-' }}</td>
+                <td>{{ item.DefaultModelName || '-' }}</td>
                 <td :title="item.SystemPrompt || ''">{{ truncate(item.SystemPrompt, 40) }}</td>
                 <td>{{ item.Enabled ? '是' : '否' }}</td>
                 <td>

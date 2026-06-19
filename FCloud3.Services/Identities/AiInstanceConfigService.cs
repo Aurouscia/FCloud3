@@ -49,7 +49,7 @@ namespace FCloud3.Services.Identities
                 x.Id,
                 x.GroupId,
                 groupNames.GetValueOrDefault(x.GroupId),
-                x.ModelName,
+                x.DefaultModelName,
                 x.SystemPrompt,
                 x.Enabled
             )).ToList();
@@ -64,7 +64,7 @@ namespace FCloud3.Services.Identities
                     x.Id,
                     x.GroupId,
                     groupName,
-                    x.ModelName,
+                    x.DefaultModelName,
                     x.SystemPrompt,
                     x.Enabled
                 ))
@@ -75,7 +75,7 @@ namespace FCloud3.Services.Identities
             int Id,
             int GroupId,
             string? GroupName,
-            string? ModelName,
+            string? DefaultModelName,
             string? SystemPrompt,
             bool Enabled);
 
@@ -119,7 +119,7 @@ namespace FCloud3.Services.Identities
                     GroupId = groupId,
                     ApiBaseUrl = model.ApiBaseUrl,
                     ApiKey = model.ApiKey,
-                    ModelName = model.ModelName,
+                    DefaultModelName = model.DefaultModelName,
                     SystemPrompt = model.SystemPrompt,
                     Enabled = model.Enabled,
                     DefaultDirId = model.DefaultDirId,
@@ -133,7 +133,7 @@ namespace FCloud3.Services.Identities
             {
                 config.ApiBaseUrl = model.ApiBaseUrl;
                 config.ApiKey = model.ApiKey;
-                config.ModelName = model.ModelName;
+                config.DefaultModelName = model.DefaultModelName;
                 config.SystemPrompt = model.SystemPrompt;
                 config.Enabled = model.Enabled;
                 config.DefaultDirId = model.DefaultDirId;

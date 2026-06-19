@@ -18,6 +18,8 @@ namespace FCloud3.Entities.Ai
         public int Order { get; set; }
         /// <summary>本条消息的 Token 数（用于上下文截断和用量统计）</summary>
         public int TokenCount { get; set; }
+        /// <summary>生成本条消息时使用的模型名称</summary>
+        public string? ModelName { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

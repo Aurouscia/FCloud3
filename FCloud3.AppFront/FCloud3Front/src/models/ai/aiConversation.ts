@@ -4,6 +4,7 @@ export interface AiConversation {
     AiInstanceConfigId: number
     Title: string | null
     CurrentWikiItemId: number
+    ModelName: string | null
     MessageCount: number
     Created: string
 }
@@ -16,6 +17,7 @@ export interface AiMessage {
     ToolCalls: string | null
     Order: number
     TokenCount: number
+    ModelName: string | null
 }
 
 export enum AiMessageRole {

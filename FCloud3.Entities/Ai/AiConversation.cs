@@ -15,6 +15,8 @@ namespace FCloud3.Entities.Ai
         public string? Title { get; set; }
         /// <summary>创建时关联的词条Id（可为空，0表示无）</summary>
         public int CurrentWikiItemId { get; set; }
+        /// <summary>本对话使用的模型名称。为空则使用 AI 实例配置的默认值。</summary>
+        public string? ModelName { get; set; }
         /// <summary>消息数缓存</summary>
         public int MessageCount { get; set; }
 

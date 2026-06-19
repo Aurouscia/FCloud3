@@ -13,8 +13,8 @@ namespace FCloud3.Entities.Ai
         public string? ApiBaseUrl { get; set; }
         /// <summary>API Key（建议加密存储）</summary>
         public string? ApiKey { get; set; }
-        /// <summary>模型名称，如 gpt-4o</summary>
-        public string? ModelName { get; set; }
+        /// <summary>默认模型名称，如 gpt-4o。用户可在创建对话时选择其他模型覆盖。</summary>
+        public string? DefaultModelName { get; set; }
         /// <summary>系统提示词</summary>
         public string? SystemPrompt { get; set; }
         /// <summary>是否启用 AI 功能</summary>

@@ -3,7 +3,7 @@ export interface AiInstanceConfig {
     GroupId: number
     ApiBaseUrl: string | null
     ApiKey: string | null
-    ModelName: string | null
+    DefaultModelName: string | null
     SystemPrompt: string | null
     Enabled: boolean
     DefaultDirId: number
@@ -17,7 +17,7 @@ export interface AiInstanceConfigEditModel {
     GroupId: number
     ApiBaseUrl: string | null
     ApiKey: string | null
-    ModelName: string | null
+    DefaultModelName: string | null
     SystemPrompt: string | null
     Enabled: boolean
     DefaultDirId: number
@@ -30,7 +30,11 @@ export interface AiInstanceConfigSummary {
     Id: number
     GroupId: number
     GroupName: string | null
-    ModelName: string | null
+    DefaultModelName: string | null
     SystemPrompt: string | null
     Enabled: boolean
+}
+
+export interface AiAvailableModelsResult {
+    Models: string[]
 }

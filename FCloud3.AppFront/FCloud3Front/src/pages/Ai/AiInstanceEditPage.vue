@@ -19,18 +19,29 @@ const isCreate = computed(() => !props.instanceId || props.instanceId === '0');
 const pageTitle = computed(() => isCreate.value ? '新建 AI 实例' : '编辑 AI 实例');
 
 const loadComplete = ref(false);
+const availableModels = ref<string[]>([]);
+const loadingModels = ref(false);
+
 const config = ref<AiInstanceConfigEditModel>({
     Id: 0,
     GroupId: 0,
     ApiBaseUrl: '',
     ApiKey: '',
-    ModelName: '',
+    DefaultModelName: '',
     SystemPrompt: '',
     Enabled: false,
     DefaultDirId: 0,
     MaxContextMessages: 10,
     DailyTokenLimit: 0,
     MonthlyTokenLimit: 0
+});
+
+const modelOptions = computed(() => {
+    const opts = new Set(availableModels.value);
+    if (config.value.DefaultModelName) {
+        opts.add(config.value.DefaultModelName);
+    }
+    return Array.from(opts);
 });
 
 async function load() {
@@ -59,7 +70,7 @@ async function load() {
             GroupId: existing.GroupId,
             ApiBaseUrl: existing.ApiBaseUrl || '',
             ApiKey: existing.ApiKey || '',
-            ModelName: existing.ModelName || '',
+            DefaultModelName: existing.DefaultModelName || '',
             SystemPrompt: existing.SystemPrompt || '',
             Enabled: existing.Enabled,
             DefaultDirId: existing.DefaultDirId,
@@ -67,8 +78,30 @@ async function load() {
             DailyTokenLimit: existing.DailyTokenLimit,
             MonthlyTokenLimit: existing.MonthlyTokenLimit
         };
+        await loadModels();
     }
     loadComplete.value = true;
+}
+
+async function loadModels() {
+    if (!config.value.ApiBaseUrl || !config.value.ApiKey) {
+        pop.value.show('请先填写 API 地址和 Key', 'warning');
+        return;
+    }
+    loadingModels.value = true;
+    const res = await api.ai.instanceConfig.getAvailableModels(
+        config.value.ApiBaseUrl,
+        config.value.ApiKey
+    );
+    loadingModels.value = false;
+    if (res) {
+        availableModels.value = res.Models;
+        if (availableModels.value.length === 0) {
+            pop.value.show('未获取到可用模型', 'warning');
+        }
+    } else {
+        pop.value.show('获取模型列表失败', 'failed');
+    }
 }
 
 async function save() {
@@ -100,8 +133,18 @@ onUnmounted(() => {
                 <td><input v-model="config.ApiKey" type="password" placeholder="sk-..."/></td>
             </tr>
             <tr>
-                <td>模型名</td>
-                <td><input v-model="config.ModelName" placeholder="gpt-4o"/></td>
+                <td>默认模型名</td>
+                <td>
+                    <div class="modelSelectRow">
+                        <select v-model="config.DefaultModelName">
+                            <option value="" disabled>请选择模型</option>
+                            <option v-for="m in modelOptions" :key="m" :value="m">{{ m }}</option>
+                        </select>
+                        <button class="minor" :disabled="loadingModels" @click="loadModels">
+                            {{ loadingModels ? '获取中...' : '获取模型列表' }}
+                        </button>
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td>系统提示词</td>
@@ -125,9 +168,7 @@ onUnmounted(() => {
             </tr>
             <tr>
                 <td>启用</td>
-                <td>
-                    <input type="checkbox" v-model="config.Enabled"/>
-                </td>
+                <td><input type="checkbox" v-model="config.Enabled"/> 启用后组员可在 AI 助手中使用该实例</td>
             </tr>
             <tr>
                 <td colspan="2">
@@ -141,18 +182,44 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .aiInstanceEditPage {
+    padding: 12px;
     max-width: 700px;
-    margin: auto;
+}
+h1 {
+    font-size: 20px;
+    margin-bottom: 12px;
 }
 table {
     width: 100%;
+    border-collapse: collapse;
 }
-input, textarea {
-    width: 200px;
-    padding: 3px;
-    border-radius: 5px;
+td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+}
+td:first-child {
+    width: 140px;
+    white-space: nowrap;
+}
+input, textarea, select {
+    width: 100%;
     box-sizing: border-box;
-    resize: none;
+}
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 6px;
+}
+.modelSelectRow {
+    display: flex;
+    gap: 8px;
+    select {
+        flex: 1;
+    }
+    button {
+        width: auto;
+        white-space: nowrap;
+    }
 }
 button {
     width: 100%;

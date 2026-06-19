@@ -2,6 +2,7 @@ using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.Entities.Ai;
 using FCloud3.Entities.Identities;
+using FCloud3.Services.Ai;
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,8 @@ namespace FCloud3.App.Controllers.Identities
 {
     [Authorize]
     public class AiInstanceConfigController(
-        AiInstanceConfigService configService) : Controller, IAuthGrantTypeProvidedController
+        AiInstanceConfigService configService,
+        AiChatService chatService) : Controller, IAuthGrantTypeProvidedController
     {
         public AuthGrantOn AuthGrantOnType => AuthGrantOn.UserGroup;
 
@@ -36,6 +38,16 @@ namespace FCloud3.App.Controllers.Identities
             return this.ApiResp(list);
         }
 
+        /// <summary>获取指定 API 端点下可用的模型列表</summary>
+        [HttpPost]
+        public async Task<IActionResult> GetAvailableModels([FromBody] AiInstanceConfigModel model)
+        {
+            var (models, errmsg) = await chatService.GetAvailableModels(model.ApiBaseUrl!, model.ApiKey!);
+            if (models is null)
+                return this.ApiFailedResp(errmsg ?? "无法获取模型列表，请检查 API 地址和 Key");
+            return this.ApiResp(models);
+        }
+
         [UserTypeRestricted]
         public IActionResult Set([FromBody] AiInstanceConfigModel model)
         {
@@ -45,7 +57,7 @@ namespace FCloud3.App.Controllers.Identities
                 GroupId = model.GroupId,
                 ApiBaseUrl = model.ApiBaseUrl,
                 ApiKey = model.ApiKey,
-                ModelName = model.ModelName,
+                DefaultModelName = model.DefaultModelName,
                 SystemPrompt = model.SystemPrompt,
                 Enabled = model.Enabled,
                 DefaultDirId = model.DefaultDirId,
@@ -65,7 +77,7 @@ namespace FCloud3.App.Controllers.Identities
             public int GroupId { get; set; }
             public string? ApiBaseUrl { get; set; }
             public string? ApiKey { get; set; }
-            public string? ModelName { get; set; }
+            public string? DefaultModelName { get; set; }
             public string? SystemPrompt { get; set; }
             public bool Enabled { get; set; }
             public int DefaultDirId { get; set; }

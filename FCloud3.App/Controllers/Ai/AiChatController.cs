@@ -26,9 +26,9 @@ namespace FCloud3.App.Controllers.Ai
         }
 
         /// <summary>创建新对话</summary>
-        public IActionResult CreateConversation(int aiInstanceConfigId, string? title, int currentWikiItemId)
+        public IActionResult CreateConversation(int aiInstanceConfigId, string? title, string? modelName, int currentWikiItemId)
         {
-            var res = aiChatService.CreateConversation(aiInstanceConfigId, title, currentWikiItemId,
+            var res = aiChatService.CreateConversation(aiInstanceConfigId, title, modelName, currentWikiItemId,
                 out var conv, out var errmsg);
             if (!res)
                 return this.ApiFailedResp(errmsg);

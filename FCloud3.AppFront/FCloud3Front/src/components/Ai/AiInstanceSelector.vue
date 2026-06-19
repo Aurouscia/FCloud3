@@ -67,7 +67,7 @@ defineExpose({ openSelector, loadInstances });
         <div v-if="selectedInstance" class="selectedBar">
             <div class="selectedInfo">
                 <span class="groupName">{{ selectedInstance.GroupName || '未命名团体' }}</span>
-                <span class="modelName">{{ selectedInstance.ModelName || '未设置模型' }}</span>
+                <span class="modelName">{{ selectedInstance.DefaultModelName || '未设置模型' }}</span>
             </div>
             <button v-if="showSwitchButton !== false" class="minor" @click="openSelector">切换</button>
         </div>
@@ -92,7 +92,7 @@ defineExpose({ openSelector, loadInstances });
                          @click="selectInstance(inst.Id)">
                         <div class="instanceName">{{ inst.GroupName || '未命名团体' }}</div>
                         <div class="instanceMeta">
-                            <span>模型：{{ inst.ModelName || '未设置' }}</span>
+                            <span>默认模型：{{ inst.DefaultModelName || '未设置' }}</span>
                         </div>
                         <div v-if="inst.SystemPrompt" class="systemPrompt">
                             {{ inst.SystemPrompt }}

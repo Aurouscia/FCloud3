@@ -32,6 +32,7 @@ async function createConversation() {
     const conv = await api.ai.chat.createConversation(
         props.aiInstanceConfigId,
         undefined,
+        undefined,
         0
     );
     if (conv) {

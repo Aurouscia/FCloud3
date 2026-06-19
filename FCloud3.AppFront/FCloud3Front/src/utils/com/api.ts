@@ -34,7 +34,7 @@ import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { WikiSelectedDto } from '@/models/wiki/wikiSelected';
 import { WikiTopBriefOfDirRequest, WikiTopBriefOfDirResponse } from '@/models/etc/wikiTopBriefsOfDir';
 import { ImportPreview, FileStatusResult } from '@/models/etc/wikiImportExport';
-import { AiInstanceConfig, AiInstanceConfigEditModel, AiInstanceConfigSummary } from '@/models/ai/aiInstanceConfig';
+import { AiInstanceConfig, AiInstanceConfigEditModel, AiInstanceConfigSummary, AiAvailableModelsResult } from '@/models/ai/aiInstanceConfig';
 import { AiConversation, AiMessage } from '@/models/ai/aiConversation';
 import { ConfigUsageSummary } from '@/models/ai/aiUsage';
 
@@ -1420,11 +1420,11 @@ export class Api{
     }
     ai = {
         chat: {
-            createConversation: async(aiInstanceConfigId:number, title?:string, currentWikiItemId?:number)=>{
+            createConversation: async(aiInstanceConfigId:number, title?:string, modelName?:string, currentWikiItemId?:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/AiChat/CreateConversation",
                     "postForm",
-                    { aiInstanceConfigId, title, currentWikiItemId }
+                    { aiInstanceConfigId, title, modelName, currentWikiItemId }
                 )
                 if(resp.success){
                     return resp.data as AiConversation
@@ -1514,6 +1514,16 @@ export class Api{
                     true
                 )
                 return resp.success
+            },
+            getAvailableModels: async(apiBaseUrl:string, apiKey:string)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiInstanceConfig/GetAvailableModels",
+                    "postRaw",
+                    { apiBaseUrl, apiKey }
+                )
+                if(resp.success){
+                    return resp.data as AiAvailableModelsResult
+                }
             }
         },
         usage: {
