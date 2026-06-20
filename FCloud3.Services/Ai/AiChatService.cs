@@ -197,7 +197,7 @@ namespace FCloud3.Services.Ai
                 }
                 usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
                     messages, streamingContext.FullResponse, false, userPrompt[..Math.Min(100, userPrompt.Length)],
-                    currentWikiItemId, conversationId, null);
+                    currentWikiItemId, conversationId, null, streamingContext.DurationMs);
                 yield break;
             }
 
@@ -221,7 +221,7 @@ namespace FCloud3.Services.Ai
             var promptSummary = userPrompt[..Math.Min(100, userPrompt.Length)];
             usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
                 messages, streamingContext.FullResponse, true, promptSummary, currentWikiItemId,
-                conversationId, null);
+                conversationId, null, streamingContext.DurationMs);
         }
 
         /// <summary>创建新对话</summary>

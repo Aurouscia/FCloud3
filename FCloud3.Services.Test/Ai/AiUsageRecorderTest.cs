@@ -36,12 +36,43 @@ namespace FCloud3.Services.Test.Ai
 
             var record = _repo.Existing.First();
             Assert.AreEqual(150, record.TotalTokens);
+            Assert.AreEqual(0, record.DurationMs);
+            Assert.AreEqual(0, record.CachedInputTokens);
             Assert.AreEqual(1, record.UserId);
             Assert.AreEqual(10, record.AiInstanceConfigId);
             Assert.AreEqual("gpt-4o", record.ModelName);
             Assert.IsTrue(record.Success);
             Assert.AreEqual(5, record.RelatedWikiItemId);
             Assert.AreEqual(20, record.ConversationId);
+        }
+
+        [TestMethod]
+        public void RecordWithFallback_RecordsDurationAndCachedTokens()
+        {
+            var providerUsage = new UsageDetails
+            {
+                InputTokenCount = 100,
+                OutputTokenCount = 50,
+                CachedInputTokenCount = 30
+            };
+
+            _recorder.RecordWithFallback(
+                userId: 4,
+                aiInstanceConfigId: 40,
+                modelName: "gpt-4o",
+                messages: [],
+                response: "ok",
+                success: true,
+                promptSummary: null,
+                relatedWikiItemId: 0,
+                providerUsage: providerUsage,
+                durationMs: 1234);
+
+            var record = _repo.Existing.First();
+            Assert.AreEqual(100, record.InputTokens);
+            Assert.AreEqual(50, record.OutputTokens);
+            Assert.AreEqual(1234, record.DurationMs);
+            Assert.AreEqual(30, record.CachedInputTokens);
         }
 
         [TestMethod]

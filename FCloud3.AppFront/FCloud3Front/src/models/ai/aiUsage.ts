@@ -10,6 +10,8 @@ export interface AiUsageRecord {
     PromptSummary: string | null
     RelatedWikiItemId: number
     ConversationId: number | null
+    DurationMs: number
+    CachedInputTokens: number
     Created: string
 }
 

@@ -19,6 +19,10 @@ namespace FCloud3.Entities.Ai
         public int OutputTokens { get; set; }
         /// <summary>总Token数</summary>
         public int TotalTokens { get; set; }
+        /// <summary>生成响应耗时（毫秒）</summary>
+        public int DurationMs { get; set; }
+        /// <summary>缓存命中输入Token数（提供商返回的缓存统计）</summary>
+        public int CachedInputTokens { get; set; }
         /// <summary>使用的模型名称</summary>
         public string? ModelName { get; set; }
         /// <summary>调用是否成功</summary>

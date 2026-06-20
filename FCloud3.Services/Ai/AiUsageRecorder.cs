@@ -11,7 +11,8 @@ namespace FCloud3.Services.Ai
     {
         public void Record(int userId, int aiInstanceConfigId, string modelName,
             int inputTokens, int outputTokens, bool success,
-            string? promptSummary, int relatedWikiItemId, int? conversationId = null)
+            string? promptSummary, int relatedWikiItemId, int? conversationId = null,
+            int durationMs = 0, int cachedInputTokens = 0)
         {
             var record = new AiUsageRecord
             {
@@ -20,6 +21,8 @@ namespace FCloud3.Services.Ai
                 InputTokens = inputTokens,
                 OutputTokens = outputTokens,
                 TotalTokens = inputTokens + outputTokens,
+                DurationMs = durationMs,
+                CachedInputTokens = cachedInputTokens,
                 ModelName = modelName,
                 Success = success,
                 PromptSummary = promptSummary,
@@ -34,14 +37,16 @@ namespace FCloud3.Services.Ai
         public void RecordWithFallback(int userId, int aiInstanceConfigId, string modelName,
             List<ChatMessage> messages, string response, bool success,
             string? promptSummary, int relatedWikiItemId, int? conversationId = null,
-            UsageDetails? providerUsage = null)
+            UsageDetails? providerUsage = null, int durationMs = 0)
         {
-            int inputTokens, outputTokens;
+            int inputTokens, outputTokens, cachedInputTokens = 0;
 
             if (providerUsage is not null)
             {
                 inputTokens = (int)(providerUsage.InputTokenCount ?? 0);
                 outputTokens = (int)(providerUsage.OutputTokenCount ?? 0);
+                // MEAI UsageDetails 可能包含额外值，尝试读取缓存输入token
+                cachedInputTokens = GetCachedInputTokens(providerUsage);
             }
             else
             {
@@ -51,7 +56,7 @@ namespace FCloud3.Services.Ai
             }
 
             Record(userId, aiInstanceConfigId, modelName, inputTokens, outputTokens,
-                success, promptSummary, relatedWikiItemId, conversationId);
+                success, promptSummary, relatedWikiItemId, conversationId, durationMs, cachedInputTokens);
         }
 
         private static int EstimateTokens(string text)
@@ -82,6 +87,15 @@ namespace FCloud3.Services.Ai
                 total += 4;
             }
             return total;
+        }
+
+        /// <summary>
+        /// 尝试从 UsageDetails 读取缓存输入token数。
+        /// MEAI 10.7.0+ 提供 CachedInputTokenCount 属性。
+        /// </summary>
+        private static int GetCachedInputTokens(UsageDetails usage)
+        {
+            return (int)(usage.CachedInputTokenCount ?? 0);
         }
     }
 }
