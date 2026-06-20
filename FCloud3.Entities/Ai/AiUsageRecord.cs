@@ -34,5 +34,8 @@ namespace FCloud3.Entities.Ai
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+
+        public const int ModelNameMaxLength = 128;
+        public const int PromptSummaryMaxLength = 100;
     }
 }

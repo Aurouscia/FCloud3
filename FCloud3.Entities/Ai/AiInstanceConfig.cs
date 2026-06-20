@@ -34,5 +34,11 @@ namespace FCloud3.Entities.Ai
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
         public bool Deleted { get; set; }
+
+        public const int InstanceNameMaxLength = 64;
+        public const int ApiBaseUrlMaxLength = 512;
+        public const int ApiKeyMaxLength = 2048;
+        public const int DefaultModelNameMaxLength = 128;
+        public const int SystemPromptMaxLength = 4000;
     }
 }

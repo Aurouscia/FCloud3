@@ -154,7 +154,11 @@ namespace FCloud3.Services.Ai
                 var toolCallsJson = toolCalls.Count > 0
                     ? System.Text.Json.JsonSerializer.Serialize(toolCalls)
                     : null;
-                SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, effectiveModelName, toolCallsJson);
+                if (!SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, effectiveModelName, toolCallsJson))
+                {
+                    yield return new AiChatChunk("保存消息失败，可能是内容过长");
+                    yield break;
+                }
             }
 
             // 记录用量（流式无 Usage，使用本地估算）
@@ -182,9 +186,7 @@ namespace FCloud3.Services.Ai
                 CurrentWikiItemId = currentWikiItemId,
                 MessageCount = 0
             };
-            conversationRepo.AddConversation(conversation);
-            errmsg = null;
-            return true;
+            return conversationRepo.TryAddConversation(conversation, out errmsg);
         }
 
         /// <summary>获取用户的对话列表</summary>
@@ -231,8 +233,7 @@ namespace FCloud3.Services.Ai
                 return false;
             }
             conv.Title = title;
-            conversationRepo.UpdateConversation(conv);
-            return true;
+            return conversationRepo.TryUpdateConversation(conv, out errmsg);
         }
 
         /// <summary>获取指定 OpenAI 兼容端点下的可用模型列表</summary>
@@ -312,22 +313,23 @@ namespace FCloud3.Services.Ai
             return new ChatMessage(role, msg.Content ?? "");
         }
 
-        private void SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string modelName, string? toolCallsJson = null)
+        private bool SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string modelName, string? toolCallsJson = null)
         {
             var baseOrder = existingCount;
 
             // 保存用户消息
-            messageRepo.AddMessage(new AiMessage
+            if (!messageRepo.TryAddMessage(new AiMessage
             {
                 ConversationId = conversationId,
                 Role = AiMessageRole.User,
                 Content = userPrompt,
                 ModelName = modelName,
                 Order = baseOrder + 1
-            });
+            }, out _))
+                return false;
 
             // 保存 AI 回复
-            messageRepo.AddMessage(new AiMessage
+            if (!messageRepo.TryAddMessage(new AiMessage
             {
                 ConversationId = conversationId,
                 Role = AiMessageRole.Assistant,
@@ -335,12 +337,13 @@ namespace FCloud3.Services.Ai
                 ToolCalls = toolCallsJson,
                 ModelName = modelName,
                 Order = baseOrder + 2
-            });
+            }, out _))
+                return false;
 
             // 更新对话消息数和更新时间
             var conv = conversationRepo.Existing.First(x => x.Id == conversationId);
             conv.MessageCount = existingCount + 2;
-            conversationRepo.UpdateConversation(conv);
+            return conversationRepo.TryUpdateConversation(conv, out _);
         }
 
         private static string? GetWikiPathNameById(int wikiItemId)

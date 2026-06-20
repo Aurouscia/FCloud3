@@ -141,7 +141,7 @@ namespace FCloud3.Services.Identities
                     DailyTokenLimit = model.DailyTokenLimit,
                     MonthlyTokenLimit = model.MonthlyTokenLimit
                 };
-                repo.AddConfig(config);
+                return repo.TryAddConfig(config, out errmsg);
             }
             else
             {
@@ -156,10 +156,8 @@ namespace FCloud3.Services.Identities
                 config.MaxContextMessages = model.MaxContextMessages;
                 config.DailyTokenLimit = model.DailyTokenLimit;
                 config.MonthlyTokenLimit = model.MonthlyTokenLimit;
-                repo.UpdateConfig(config);
+                return repo.TryUpdateConfig(config, out errmsg);
             }
-            errmsg = null;
-            return true;
         }
     }
 }

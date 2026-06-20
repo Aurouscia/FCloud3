@@ -11,7 +11,37 @@ namespace FCloud3.Repos.Identities
         public AiInstanceConfig? GetByGroupId(int groupId)
             => Existing.FirstOrDefault(x => x.GroupId == groupId);
 
-        public void UpdateConfig(AiInstanceConfig config) => Update(config);
-        public int AddConfig(AiInstanceConfig config) => AddAndGetId(config);
+        public bool TryAddConfig(AiInstanceConfig config, out string? errmsg)
+        {
+            errmsg = Validate(config);
+            if (errmsg is not null)
+                return false;
+            AddAndGetId(config);
+            return true;
+        }
+
+        public bool TryUpdateConfig(AiInstanceConfig config, out string? errmsg)
+        {
+            errmsg = Validate(config);
+            if (errmsg is not null)
+                return false;
+            Update(config);
+            return true;
+        }
+
+        private static string? Validate(AiInstanceConfig config)
+        {
+            if (config.InstanceName?.Length > AiInstanceConfig.InstanceNameMaxLength)
+                return $"实例名称长度不能超过 {AiInstanceConfig.InstanceNameMaxLength}";
+            if (config.ApiBaseUrl?.Length > AiInstanceConfig.ApiBaseUrlMaxLength)
+                return $"API 地址长度不能超过 {AiInstanceConfig.ApiBaseUrlMaxLength}";
+            if (config.ApiKey?.Length > AiInstanceConfig.ApiKeyMaxLength)
+                return $"API Key 长度不能超过 {AiInstanceConfig.ApiKeyMaxLength}";
+            if (config.DefaultModelName?.Length > AiInstanceConfig.DefaultModelNameMaxLength)
+                return $"默认模型名长度不能超过 {AiInstanceConfig.DefaultModelNameMaxLength}";
+            if (config.SystemPrompt?.Length > AiInstanceConfig.SystemPromptMaxLength)
+                return $"系统提示词长度不能超过 {AiInstanceConfig.SystemPromptMaxLength}";
+            return null;
+        }
     }
 }

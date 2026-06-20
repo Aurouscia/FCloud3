@@ -26,5 +26,6 @@ namespace FCloud3.Entities.Ai
         public bool Deleted { get; set; }
 
         public const int TitleMaxLength = 64;
+        public const int ModelNameMaxLength = 128;
     }
 }

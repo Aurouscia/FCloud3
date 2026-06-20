@@ -16,6 +16,18 @@ namespace FCloud3.Repos.Ai
             => Existing.Where(x => x.ConversationId == conversationId)
                        .Max(x => (int?)x.Order) ?? 0;
 
-        public int AddMessage(AiMessage message) => AddAndGetId(message);
+        public bool TryAddMessage(AiMessage message, out string? errmsg)
+        {
+            TruncateSideEffectFields(message);
+            errmsg = null;
+            AddAndGetId(message);
+            return true;
+        }
+
+        private static void TruncateSideEffectFields(AiMessage message)
+        {
+            if (message.ModelName?.Length > AiMessage.ModelNameMaxLength)
+                message.ModelName = message.ModelName[..AiMessage.ModelNameMaxLength];
+        }
     }
 }

@@ -27,7 +27,8 @@ namespace FCloud3.Services.Ai
                 ConversationId = conversationId
             };
 
-            repo.AddRecord(record);
+            if (!repo.TryAddRecord(record, out var errmsg))
+                logger.LogWarning("AI 用量记录保存失败：{errmsg}", errmsg);
         }
 
         public void RecordWithFallback(int userId, int aiInstanceConfigId, string modelName,
