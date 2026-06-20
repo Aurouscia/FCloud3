@@ -20,6 +20,14 @@ namespace FCloud3.Entities.Ai
         public int TokenCount { get; set; }
         /// <summary>生成本条消息时使用的模型名称</summary>
         public string? ModelName { get; set; }
+        /// <summary>消息状态</summary>
+        public AiMessageStatus Status { get; set; }
+        /// <summary>状态为 Failed 时的错误信息</summary>
+        public string? ErrorMessage { get; set; }
+        /// <summary>生成响应耗时（毫秒）</summary>
+        public int DurationMs { get; set; }
+        /// <summary>AI 停止生成的原因，如 stop / length / tool_calls</summary>
+        public string? FinishReason { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }
@@ -27,6 +35,8 @@ namespace FCloud3.Entities.Ai
         public bool Deleted { get; set; }
 
         public const int ModelNameMaxLength = 128;
+        public const int ErrorMessageMaxLength = 1000;
+        public const int FinishReasonMaxLength = 32;
     }
 
     public enum AiMessageRole
@@ -35,5 +45,13 @@ namespace FCloud3.Entities.Ai
         User = 1,
         Assistant = 2,
         Tool = 3
+    }
+
+    public enum AiMessageStatus
+    {
+        Pending = 0,
+        Sent = 1,
+        Received = 2,
+        Failed = 3
     }
 }

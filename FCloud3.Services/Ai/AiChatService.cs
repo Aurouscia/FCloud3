@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using FCloud3.Entities.Ai;
 using FCloud3.Repos.Ai;
 using FCloud3.Services.Identities;
@@ -124,37 +126,87 @@ namespace FCloud3.Services.Ai
             // 启用工具调用中间件
             chatClient = chatClient.AsBuilder().UseFunctionInvocation().Build();
 
-            // 流式调用并收集完整回复和工具调用信息
-            string fullResponse = "";
-            List<AiToolCallInfo> toolCalls = [];
+            var streamingContext = new StreamingContext();
+            var channel = Channel.CreateUnbounded<AiChatChunk>();
+            var stopwatch = Stopwatch.StartNew();
 
-            await foreach (var update in chatClient.GetStreamingResponseAsync(
-                messages, options, ct))
+            _ = Task.Run(async () =>
             {
-                fullResponse += update.Text ?? "";
-                if (update.Contents is not null)
+                try
                 {
-                    foreach (var content in update.Contents)
+                    await foreach (var update in chatClient.GetStreamingResponseAsync(messages, options, ct))
                     {
-                        if (content is FunctionCallContent fc && !string.IsNullOrEmpty(fc.Name))
+                        streamingContext.FullResponse += update.Text ?? "";
+                        if (update.FinishReason is not null)
+                            streamingContext.FinishReason = update.FinishReason.ToString();
+                        if (update.Contents is not null)
                         {
-                            var args = fc.Arguments is not null
-                                ? System.Text.Json.JsonSerializer.Serialize(fc.Arguments)
-                                : "";
-                            toolCalls.Add(new AiToolCallInfo(fc.Name, args));
+                            foreach (var content in update.Contents)
+                            {
+                                if (content is FunctionCallContent fc && !string.IsNullOrEmpty(fc.Name))
+                                {
+                                    var args = fc.Arguments is not null
+                                        ? System.Text.Json.JsonSerializer.Serialize(fc.Arguments)
+                                        : "";
+                                    streamingContext.ToolCalls.Add(new AiToolCallInfo(fc.Name, args));
+                                }
+                            }
                         }
+                        await channel.Writer.WriteAsync(new AiChatChunk(
+                            update.Text ?? "",
+                            streamingContext.ToolCalls.Count > 0 ? streamingContext.ToolCalls : null), ct);
                     }
+                    streamingContext.Success = true;
                 }
-                yield return new AiChatChunk(update.Text ?? "", toolCalls.Count > 0 ? toolCalls : null);
+                catch (OperationCanceledException)
+                {
+                    // 用户取消不记为失败
+                }
+                catch (Exception ex)
+                {
+                    streamingContext.Success = false;
+                    streamingContext.ErrorMessage = ex.Message;
+                    await channel.Writer.WriteAsync(new AiChatChunk($"请求失败：{ex.Message}"), ct);
+                }
+                finally
+                {
+                    stopwatch.Stop();
+                    streamingContext.DurationMs = (int)stopwatch.ElapsedMilliseconds;
+                    channel.Writer.Complete();
+                }
+            }, ct);
+
+            await foreach (var chunk in channel.Reader.ReadAllAsync(ct))
+            {
+                yield return chunk;
+            }
+
+            if (!streamingContext.Success)
+            {
+                if (conversationId.HasValue)
+                {
+                    var toolCallsJson = streamingContext.ToolCalls.Count > 0
+                        ? System.Text.Json.JsonSerializer.Serialize(streamingContext.ToolCalls)
+                        : null;
+                    SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
+                        effectiveModelName, AiMessageStatus.Failed, streamingContext.ErrorMessage,
+                        streamingContext.DurationMs, streamingContext.FinishReason, toolCallsJson);
+                }
+                usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
+                    messages, streamingContext.FullResponse, false, userPrompt[..Math.Min(100, userPrompt.Length)],
+                    currentWikiItemId, conversationId, null);
+                yield break;
             }
 
             // 保存消息到数据库（如果有 conversationId）
             if (conversationId.HasValue)
             {
-                var toolCallsJson = toolCalls.Count > 0
-                    ? System.Text.Json.JsonSerializer.Serialize(toolCalls)
+                var toolCallsJson = streamingContext.ToolCalls.Count > 0
+                    ? System.Text.Json.JsonSerializer.Serialize(streamingContext.ToolCalls)
                     : null;
-                if (!SaveMessages(conversationId.Value, userPrompt, fullResponse, history.Count, effectiveModelName, toolCallsJson))
+                if (!SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
+                    effectiveModelName, AiMessageStatus.Received, null,
+                    streamingContext.DurationMs, streamingContext.FinishReason, toolCallsJson))
                 {
                     yield return new AiChatChunk("保存消息失败，可能是内容过长");
                     yield break;
@@ -164,7 +216,7 @@ namespace FCloud3.Services.Ai
             // 记录用量（流式无 Usage，使用本地估算）
             var promptSummary = userPrompt[..Math.Min(100, userPrompt.Length)];
             usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
-                messages, fullResponse, true, promptSummary, currentWikiItemId,
+                messages, streamingContext.FullResponse, true, promptSummary, currentWikiItemId,
                 conversationId, null);
         }
 
@@ -313,7 +365,9 @@ namespace FCloud3.Services.Ai
             return new ChatMessage(role, msg.Content ?? "");
         }
 
-        private bool SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount, string modelName, string? toolCallsJson = null)
+        private bool SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount,
+            string modelName, AiMessageStatus aiStatus, string? errorMessage, int durationMs, string? finishReason,
+            string? toolCallsJson = null)
         {
             var baseOrder = existingCount;
 
@@ -324,6 +378,7 @@ namespace FCloud3.Services.Ai
                 Role = AiMessageRole.User,
                 Content = userPrompt,
                 ModelName = modelName,
+                Status = AiMessageStatus.Sent,
                 Order = baseOrder + 1
             }, out _))
                 return false;
@@ -336,6 +391,10 @@ namespace FCloud3.Services.Ai
                 Content = aiResponse,
                 ToolCalls = toolCallsJson,
                 ModelName = modelName,
+                Status = aiStatus,
+                ErrorMessage = errorMessage,
+                DurationMs = durationMs,
+                FinishReason = finishReason,
                 Order = baseOrder + 2
             }, out _))
                 return false;
@@ -351,6 +410,16 @@ namespace FCloud3.Services.Ai
             // TODO: 注入 WikiItemRepo 实现根据 Id 查询 pathName
             // 临时返回 null，后续需要完善
             return null;
+        }
+
+        private class StreamingContext
+        {
+            public string FullResponse { get; set; } = "";
+            public List<AiToolCallInfo> ToolCalls { get; set; } = [];
+            public string? FinishReason { get; set; }
+            public bool Success { get; set; } = true;
+            public string? ErrorMessage { get; set; }
+            public int DurationMs { get; set; }
         }
     }
 

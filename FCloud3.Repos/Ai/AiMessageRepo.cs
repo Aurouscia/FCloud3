@@ -28,6 +28,10 @@ namespace FCloud3.Repos.Ai
         {
             if (message.ModelName?.Length > AiMessage.ModelNameMaxLength)
                 message.ModelName = message.ModelName[..AiMessage.ModelNameMaxLength];
+            if (message.ErrorMessage?.Length > AiMessage.ErrorMessageMaxLength)
+                message.ErrorMessage = message.ErrorMessage[..AiMessage.ErrorMessageMaxLength];
+            if (message.FinishReason?.Length > AiMessage.FinishReasonMaxLength)
+                message.FinishReason = message.FinishReason[..AiMessage.FinishReasonMaxLength];
         }
     }
 }
