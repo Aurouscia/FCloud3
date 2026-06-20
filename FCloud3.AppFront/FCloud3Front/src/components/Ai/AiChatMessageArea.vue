@@ -91,7 +91,8 @@ function appendUserMessage(content: string) {
         Content: content,
         ToolCalls: null,
         Order: messages.value.length + 1,
-        TokenCount: 0,
+        InputTokenCount: 0,
+        OutputTokenCount: 0,
         ModelName: null
     });
 }
@@ -108,7 +109,8 @@ function appendAssistantMessage(content: string) {
             Content: content,
             ToolCalls: null,
             Order: messages.value.length + 1,
-            TokenCount: 0,
+            InputTokenCount: 0,
+            OutputTokenCount: 0,
             ModelName: null
         });
     }

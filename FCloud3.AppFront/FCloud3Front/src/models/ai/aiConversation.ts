@@ -19,7 +19,8 @@ export interface AiMessage {
     Content: string | null
     ToolCalls: string | null
     Order: number
-    TokenCount: number
+    InputTokenCount: number
+    OutputTokenCount: number
     ModelName: string | null
 }
 

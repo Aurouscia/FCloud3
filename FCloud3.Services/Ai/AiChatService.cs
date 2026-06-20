@@ -172,6 +172,8 @@ namespace FCloud3.Services.Ai
                 {
                     stopwatch.Stop();
                     streamingContext.DurationMs = (int)stopwatch.ElapsedMilliseconds;
+                    streamingContext.InputTokenCount = AiUsageRecorder.EstimateTokens(messages);
+                    streamingContext.OutputTokenCount = EstimateOutputTokens(streamingContext.FullResponse);
                     channel.Writer.Complete();
                 }
             }, ct);
@@ -190,7 +192,8 @@ namespace FCloud3.Services.Ai
                         : null;
                     SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
                         effectiveModelName, AiMessageStatus.Failed, streamingContext.ErrorMessage,
-                        streamingContext.DurationMs, streamingContext.FinishReason, toolCallsJson);
+                        streamingContext.DurationMs, streamingContext.FinishReason,
+                        streamingContext.InputTokenCount, streamingContext.OutputTokenCount, toolCallsJson);
                 }
                 usageRecorder.RecordWithFallback(_userId, config.Id, effectiveModelName,
                     messages, streamingContext.FullResponse, false, userPrompt[..Math.Min(100, userPrompt.Length)],
@@ -206,7 +209,8 @@ namespace FCloud3.Services.Ai
                     : null;
                 if (!SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
                     effectiveModelName, AiMessageStatus.Received, null,
-                    streamingContext.DurationMs, streamingContext.FinishReason, toolCallsJson))
+                    streamingContext.DurationMs, streamingContext.FinishReason,
+                    streamingContext.InputTokenCount, streamingContext.OutputTokenCount, toolCallsJson))
                 {
                     yield return new AiChatChunk("保存消息失败，可能是内容过长");
                     yield break;
@@ -407,7 +411,7 @@ namespace FCloud3.Services.Ai
 
         private bool SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount,
             string modelName, AiMessageStatus aiStatus, string? errorMessage, int durationMs, string? finishReason,
-            string? toolCallsJson = null)
+            int inputTokenCount, int outputTokenCount, string? toolCallsJson = null)
         {
             var baseOrder = existingCount;
 
@@ -419,6 +423,8 @@ namespace FCloud3.Services.Ai
                 Content = userPrompt,
                 ModelName = modelName,
                 Status = AiMessageStatus.Sent,
+                InputTokenCount = inputTokenCount,
+                OutputTokenCount = 0,
                 Order = baseOrder + 1
             }, out _))
                 return false;
@@ -435,6 +441,8 @@ namespace FCloud3.Services.Ai
                 ErrorMessage = errorMessage,
                 DurationMs = durationMs,
                 FinishReason = finishReason,
+                InputTokenCount = 0,
+                OutputTokenCount = outputTokenCount,
                 Order = baseOrder + 2
             }, out _))
                 return false;
@@ -443,6 +451,13 @@ namespace FCloud3.Services.Ai
             var conv = conversationRepo.Existing.First(x => x.Id == conversationId);
             conv.MessageCount = existingCount + 2;
             return conversationRepo.TryUpdateConversation(conv, out _);
+        }
+
+        private static int EstimateOutputTokens(string text)
+        {
+            // 粗略估算：1 token ≈ 0.5 个字符
+            int charCount = text.Length;
+            return Math.Max(0, (int)(charCount * 0.5));
         }
 
         private static string? GetWikiPathNameById(int wikiItemId)
@@ -460,6 +475,8 @@ namespace FCloud3.Services.Ai
             public bool Success { get; set; } = true;
             public string? ErrorMessage { get; set; }
             public int DurationMs { get; set; }
+            public int InputTokenCount { get; set; }
+            public int OutputTokenCount { get; set; }
         }
     }
 
