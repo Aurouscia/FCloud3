@@ -52,6 +52,8 @@
 - 把 up-master 分支 merge 到当前分支
 - 如果出现意外情况，例如当前 origin 和 upstream 的 url 一样，或者当前在 master 分支，则不做任何操作，除非用户进一步指示
 - 如果遇到冲突，手动解决（关于逻辑的冲突尽量 upstream 优先、关于样式冲突的尽量本地优先）并告知用户有哪些改动丢失，询问需不需要补回来
+- 如果没有冲突，则合并完成后 push 当前分支
+- push 完分支后，进入 FCloud3.AppFront 目录，运行 `node buildFront.mjs`
 
 ### 注意事项
 
