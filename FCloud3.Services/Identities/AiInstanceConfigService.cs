@@ -1,6 +1,8 @@
 using FCloud3.Entities.Ai;
 using FCloud3.Entities.Identities;
 using FCloud3.Repos.Identities;
+using FCloud3.Services.Ai;
+using Microsoft.EntityFrameworkCore;
 
 namespace FCloud3.Services.Identities
 {
@@ -8,6 +10,7 @@ namespace FCloud3.Services.Identities
         AiInstanceConfigRepo repo,
         UserGroupRepo userGroupRepo,
         UserToGroupRepo userToGroupRepo,
+        IAiApiKeyEncryption apiKeyEncryption,
         IOperatingUserIdProvider userIdProvider)
     {
         private readonly int _userId = userIdProvider.Get();
@@ -15,7 +18,7 @@ namespace FCloud3.Services.Identities
         public AiInstanceConfig? GetConfig(int id, out string? errmsg)
         {
             errmsg = null;
-            var config = repo.GetById(id);
+            var config = repo.Existing.AsNoTracking().FirstOrDefault(x => x.Id == id);
             if (config is null)
             {
                 errmsg = "找不到该 AI 实例";
@@ -27,6 +30,8 @@ namespace FCloud3.Services.Identities
                 errmsg = "你不是该团体成员";
                 return null;
             }
+            if (!string.IsNullOrEmpty(config.ApiKey))
+                config.ApiKey = apiKeyEncryption.Decrypt(config.ApiKey);
             return config;
         }
 
@@ -117,12 +122,17 @@ namespace FCloud3.Services.Identities
 
             if (config is null)
             {
+                if (string.IsNullOrWhiteSpace(model.ApiKey))
+                {
+                    errmsg = "新建实例必须填写 API Key";
+                    return false;
+                }
                 config = new AiInstanceConfig
                 {
                     GroupId = groupId,
                     InstanceName = model.InstanceName,
                     ApiBaseUrl = model.ApiBaseUrl,
-                    ApiKey = model.ApiKey,
+                    ApiKey = apiKeyEncryption.Encrypt(model.ApiKey),
                     DefaultModelName = model.DefaultModelName,
                     SystemPrompt = model.SystemPrompt,
                     Enabled = model.Enabled,
@@ -137,7 +147,8 @@ namespace FCloud3.Services.Identities
             {
                 config.InstanceName = model.InstanceName;
                 config.ApiBaseUrl = model.ApiBaseUrl;
-                config.ApiKey = model.ApiKey;
+                if (!string.IsNullOrWhiteSpace(model.ApiKey))
+                    config.ApiKey = apiKeyEncryption.Encrypt(model.ApiKey);
                 config.DefaultModelName = model.DefaultModelName;
                 config.SystemPrompt = model.SystemPrompt;
                 config.Enabled = model.Enabled;

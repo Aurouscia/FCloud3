@@ -21,7 +21,22 @@ namespace FCloud3.App.Controllers.Identities
             var res = configService.GetConfig(id, out var errmsg);
             if (res is null)
                 return this.ApiFailedResp(errmsg);
-            return this.ApiResp(res);
+            return this.ApiResp(new AiInstanceConfigModel
+            {
+                Id = res.Id,
+                GroupId = res.GroupId,
+                InstanceName = res.InstanceName,
+                ApiBaseUrl = res.ApiBaseUrl,
+                ApiKeySet = !string.IsNullOrEmpty(res.ApiKey),
+                ApiKey = null,
+                DefaultModelName = res.DefaultModelName,
+                SystemPrompt = res.SystemPrompt,
+                Enabled = res.Enabled,
+                DefaultDirId = res.DefaultDirId,
+                MaxContextMessages = res.MaxContextMessages,
+                DailyTokenLimit = res.DailyTokenLimit,
+                MonthlyTokenLimit = res.MonthlyTokenLimit
+            });
         }
 
         /// <summary>获取当前用户可用的 AI 实例配置列表</summary>
@@ -40,11 +55,30 @@ namespace FCloud3.App.Controllers.Identities
 
         /// <summary>获取指定 API 端点下可用的模型列表</summary>
         [HttpPost]
-        public async Task<IActionResult> GetAvailableModels([FromBody] AiInstanceConfigModel model)
+        public async Task<IActionResult> GetAvailableModels([FromBody] AiAvailableModelsRequest request)
         {
-            var (models, errmsg) = await chatService.GetAvailableModels(model.ApiBaseUrl!, model.ApiKey!);
+            string apiBaseUrl;
+            string apiKey;
+            if (request.InstanceId.HasValue)
+            {
+                var config = configService.GetConfig(request.InstanceId.Value, out var errmsg);
+                if (config is null)
+                    return this.ApiFailedResp(errmsg);
+                apiBaseUrl = config.ApiBaseUrl ?? request.ApiBaseUrl ?? string.Empty;
+                apiKey = config.ApiKey ?? string.Empty;
+            }
+            else
+            {
+                apiBaseUrl = request.ApiBaseUrl ?? string.Empty;
+                apiKey = request.ApiKey ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(apiBaseUrl) || string.IsNullOrWhiteSpace(apiKey))
+                return this.ApiFailedResp("API 地址和 Key 不能为空");
+
+            var (models, errmsg2) = await chatService.GetAvailableModels(apiBaseUrl, apiKey);
             if (models is null)
-                return this.ApiFailedResp(errmsg ?? "无法获取模型列表，请检查 API 地址和 Key");
+                return this.ApiFailedResp(errmsg2 ?? "无法获取模型列表，请检查 API 地址和 Key");
             return this.ApiResp(models);
         }
 
@@ -79,6 +113,7 @@ namespace FCloud3.App.Controllers.Identities
             public string? InstanceName { get; set; }
             public string? ApiBaseUrl { get; set; }
             public string? ApiKey { get; set; }
+            public bool ApiKeySet { get; set; }
             public string? DefaultModelName { get; set; }
             public string? SystemPrompt { get; set; }
             public bool Enabled { get; set; }
@@ -87,6 +122,13 @@ namespace FCloud3.App.Controllers.Identities
             public int DailyTokenLimit { get; set; }
             public int MonthlyTokenLimit { get; set; }
             public int AuthGrantOnId => GroupId;
+        }
+
+        public class AiAvailableModelsRequest
+        {
+            public int? InstanceId { get; set; }
+            public string? ApiBaseUrl { get; set; }
+            public string? ApiKey { get; set; }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace FCloud3.Entities.Ai
         public string? InstanceName { get; set; }
         /// <summary>API 基础地址，如 https://api.openai.com/v1</summary>
         public string? ApiBaseUrl { get; set; }
-        /// <summary>API Key（建议加密存储）</summary>
+        /// <summary>API Key（加密存储）</summary>
         public string? ApiKey { get; set; }
         /// <summary>默认模型名称，如 gpt-4o。用户可在创建对话时选择其他模型覆盖。</summary>
         public string? DefaultModelName { get; set; }

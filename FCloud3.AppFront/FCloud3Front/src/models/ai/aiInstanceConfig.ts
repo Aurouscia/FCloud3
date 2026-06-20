@@ -3,7 +3,7 @@ export interface AiInstanceConfig {
     GroupId: number
     InstanceName: string | null
     ApiBaseUrl: string | null
-    ApiKey: string | null
+    ApiKeySet: boolean
     DefaultModelName: string | null
     SystemPrompt: string | null
     Enabled: boolean

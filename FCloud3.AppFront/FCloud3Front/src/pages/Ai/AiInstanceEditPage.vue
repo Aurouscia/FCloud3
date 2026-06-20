@@ -21,6 +21,7 @@ const pageTitle = computed(() => isCreate.value ? '新建 AI 实例' : '编辑 A
 const loadComplete = ref(false);
 const availableModels = ref<string[]>([]);
 const loadingModels = ref(false);
+const apiKeySet = ref(false);
 
 const config = ref<AiInstanceConfigEditModel>({
     Id: 0,
@@ -36,6 +37,10 @@ const config = ref<AiInstanceConfigEditModel>({
     DailyTokenLimit: 0,
     MonthlyTokenLimit: 0
 });
+
+const apiKeyPlaceholder = computed(() =>
+    isCreate.value ? 'sk-...' : (apiKeySet.value ? '已设置，留空表示不修改' : '未设置')
+);
 
 const modelOptions = computed(() => {
     const opts = new Set(availableModels.value);
@@ -65,13 +70,14 @@ async function load() {
 
     const existing = await api.ai.instanceConfig.get(instanceId);
     if (existing) {
+        apiKeySet.value = existing.ApiKeySet;
         config.value = {
             ...config.value,
             Id: existing.Id,
             GroupId: existing.GroupId,
             InstanceName: existing.InstanceName || '',
             ApiBaseUrl: existing.ApiBaseUrl || '',
-            ApiKey: existing.ApiKey || '',
+            ApiKey: '',
             DefaultModelName: existing.DefaultModelName || '',
             SystemPrompt: existing.SystemPrompt || '',
             Enabled: existing.Enabled,
@@ -86,14 +92,21 @@ async function load() {
 }
 
 async function loadModels() {
-    if (!config.value.ApiBaseUrl || !config.value.ApiKey) {
-        pop.value.show('请先填写 API 地址和 Key', 'warning');
+    const hasInputKey = !!config.value.ApiKey;
+    if (!config.value.ApiBaseUrl) {
+        pop.value.show('请先填写 API 地址', 'warning');
+        return;
+    }
+    if (!hasInputKey && isCreate.value) {
+        pop.value.show('请先填写 API Key', 'warning');
         return;
     }
     loadingModels.value = true;
+    const instanceId = isCreate.value ? undefined : parseInt(props.instanceId!, 10);
     const res = await api.ai.instanceConfig.getAvailableModels(
         config.value.ApiBaseUrl,
-        config.value.ApiKey
+        config.value.ApiKey ?? '',
+        instanceId
     );
     loadingModels.value = false;
     if (res) {
@@ -136,7 +149,7 @@ onUnmounted(() => {
             </tr>
             <tr>
                 <td>API Key</td>
-                <td><input v-model="config.ApiKey" type="password" placeholder="sk-..."/></td>
+                <td><input v-model="config.ApiKey" type="password" :placeholder="apiKeyPlaceholder"/></td>
             </tr>
             <tr>
                 <td>默认模型名</td>

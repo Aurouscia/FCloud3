@@ -1515,11 +1515,11 @@ export class Api{
                 )
                 return resp.success
             },
-            getAvailableModels: async(apiBaseUrl:string, apiKey:string)=>{
+            getAvailableModels: async(apiBaseUrl:string, apiKey:string, instanceId?:number)=>{
                 const resp = await this.httpClient.request(
                     "/api/AiInstanceConfig/GetAvailableModels",
                     "postRaw",
-                    { apiBaseUrl, apiKey }
+                    { apiBaseUrl, apiKey, instanceId }
                 )
                 if(resp.success){
                     return resp.data as AiAvailableModelsResult

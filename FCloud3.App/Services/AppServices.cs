@@ -4,6 +4,7 @@ using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
 using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Services;
+using FCloud3.Services.Ai;
 using FCloud3.Services.Files.Storage.Abstractions;
 using FCloud3.Services.Identities;
 using FCloud3.Repos.Etc;
@@ -38,6 +39,7 @@ namespace FCloud3.App.Services
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IFileItemHash, FileItemHash>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
+            services.AddSingleton<IAiApiKeyEncryption, AiApiKeyEncryption>();
             services.AddSingleton<RestClient>(sp =>
             {
                 return new RestClient(new RestClientOptions
