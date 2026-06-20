@@ -8,8 +8,16 @@ namespace FCloud3.Repos.Ai
         : RepoBase<AiConversation>(context, userIdProvider)
     {
         public List<AiConversation> GetByUserAndConfig(int userId, int aiInstanceConfigId)
+            => Existing.Where(x => x.UserId == userId && x.AiInstanceConfigId == aiInstanceConfigId && !x.IsArchived)
+                       .OrderByDescending(x => x.IsPinned)
+                       .ThenByDescending(x => x.Updated)
+                       .ToList();
+
+        /// <summary>获取用户的对话列表（包含已归档的）</summary>
+        public List<AiConversation> GetByUserAndConfigWithArchived(int userId, int aiInstanceConfigId)
             => Existing.Where(x => x.UserId == userId && x.AiInstanceConfigId == aiInstanceConfigId)
-                       .OrderByDescending(x => x.Updated)
+                       .OrderByDescending(x => x.IsPinned)
+                       .ThenByDescending(x => x.Updated)
                        .ToList();
 
         public bool TryAddConversation(AiConversation conversation, out string? errmsg)

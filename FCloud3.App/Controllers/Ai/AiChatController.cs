@@ -36,12 +36,28 @@ namespace FCloud3.App.Controllers.Ai
         }
 
         /// <summary>获取用户的对话列表</summary>
-        public IActionResult GetConversations(int aiInstanceConfigId)
+        public IActionResult GetConversations(int aiInstanceConfigId, bool includeArchived = false)
         {
-            var list = aiChatService.GetConversations(aiInstanceConfigId, out var errmsg);
+            var list = aiChatService.GetConversations(aiInstanceConfigId, includeArchived, out var errmsg);
             if (list is null)
                 return this.ApiFailedResp(errmsg);
             return this.ApiResp(list);
+        }
+
+        /// <summary>设置对话顶置状态</summary>
+        public IActionResult SetConversationPinned(int conversationId, bool isPinned)
+        {
+            var res = aiChatService.SetConversationPinned(conversationId, isPinned, out var errmsg);
+            if (!res) return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
+        }
+
+        /// <summary>设置对话归档状态</summary>
+        public IActionResult SetConversationArchived(int conversationId, bool isArchived)
+        {
+            var res = aiChatService.SetConversationArchived(conversationId, isArchived, out var errmsg);
+            if (!res) return this.ApiFailedResp(errmsg);
+            return this.ApiResp();
         }
 
         /// <summary>获取对话的完整消息列表</summary>

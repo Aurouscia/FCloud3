@@ -1430,16 +1430,36 @@ export class Api{
                     return resp.data as AiConversation
                 }
             },
-            getConversations: async(aiInstanceConfigId:number)=>{
+            getConversations: async(aiInstanceConfigId:number, includeArchived?:boolean)=>{
                 const resp = await this.httpClient.request(
                     "/api/AiChat/GetConversations",
                     "get",
-                    { aiInstanceConfigId }
+                    { aiInstanceConfigId, includeArchived }
                 )
                 if(resp.success){
                     return resp.data as AiConversation[]
                 }
                 return []
+            },
+            setConversationPinned: async(conversationId:number, isPinned:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/SetConversationPinned",
+                    "postForm",
+                    { conversationId, isPinned },
+                    isPinned ? "已顶置" : "已取消顶置",
+                    true
+                )
+                return resp.success
+            },
+            setConversationArchived: async(conversationId:number, isArchived:boolean)=>{
+                const resp = await this.httpClient.request(
+                    "/api/AiChat/SetConversationArchived",
+                    "postForm",
+                    { conversationId, isArchived },
+                    isArchived ? "已归档" : "已取消归档",
+                    true
+                )
+                return resp.success
             },
             getMessages: async(conversationId:number)=>{
                 const resp = await this.httpClient.request(

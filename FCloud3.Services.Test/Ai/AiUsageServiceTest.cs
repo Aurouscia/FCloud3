@@ -32,7 +32,7 @@ namespace FCloud3.Services.Test.Ai
                 {
                     Id = 1,
                     GroupId = 100,
-                    ModelName = "gpt-4o",
+                    DefaultModelName = "gpt-4o",
                     ApiBaseUrl = "https://api.openai.com/v1",
                     ApiKey = "key1",
                     CreatorUserId = 1,
@@ -43,7 +43,7 @@ namespace FCloud3.Services.Test.Ai
                 {
                     Id = 2,
                     GroupId = 200,
-                    ModelName = "claude-3.5",
+                    DefaultModelName = "claude-3.5",
                     ApiBaseUrl = "https://api.anthropic.com",
                     ApiKey = "key2",
                     CreatorUserId = 1,

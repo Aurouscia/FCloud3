@@ -19,6 +19,10 @@ namespace FCloud3.Entities.Ai
         public string? ModelName { get; set; }
         /// <summary>消息数缓存</summary>
         public int MessageCount { get; set; }
+        /// <summary>是否顶置</summary>
+        public bool IsPinned { get; set; }
+        /// <summary>是否归档（隐藏）</summary>
+        public bool IsArchived { get; set; }
 
         public int CreatorUserId { get; set; }
         public DateTime Created { get; set; }

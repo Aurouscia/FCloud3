@@ -6,7 +6,10 @@ export interface AiConversation {
     CurrentWikiItemId: number
     ModelName: string | null
     MessageCount: number
+    IsPinned: boolean
+    IsArchived: boolean
     Created: string
+    Updated: string
 }
 
 export interface AiMessage {

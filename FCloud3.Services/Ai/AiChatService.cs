@@ -242,12 +242,14 @@ namespace FCloud3.Services.Ai
         }
 
         /// <summary>获取用户的对话列表</summary>
-        public List<AiConversation>? GetConversations(int aiInstanceConfigId, out string? errmsg)
+        public List<AiConversation>? GetConversations(int aiInstanceConfigId, bool includeArchived, out string? errmsg)
         {
             var config = configService.GetConfig(aiInstanceConfigId, out errmsg);
             if (config is null)
                 return null;
             errmsg = null;
+            if (includeArchived)
+                return conversationRepo.GetByUserAndConfigWithArchived(_userId, aiInstanceConfigId);
             return conversationRepo.GetByUserAndConfig(_userId, aiInstanceConfigId);
         }
 
@@ -285,6 +287,44 @@ namespace FCloud3.Services.Ai
                 return false;
             }
             conv.Title = title;
+            return conversationRepo.TryUpdateConversation(conv, out errmsg);
+        }
+
+        /// <summary>设置对话顶置状态</summary>
+        public bool SetConversationPinned(int conversationId, bool isPinned, out string? errmsg)
+        {
+            errmsg = null;
+            var conv = conversationRepo.GetById(conversationId);
+            if (conv is null)
+            {
+                errmsg = "对话不存在";
+                return false;
+            }
+            if (conv.UserId != _userId)
+            {
+                errmsg = "无权修改该对话";
+                return false;
+            }
+            conv.IsPinned = isPinned;
+            return conversationRepo.TryUpdateConversation(conv, out errmsg);
+        }
+
+        /// <summary>设置对话归档状态</summary>
+        public bool SetConversationArchived(int conversationId, bool isArchived, out string? errmsg)
+        {
+            errmsg = null;
+            var conv = conversationRepo.GetById(conversationId);
+            if (conv is null)
+            {
+                errmsg = "对话不存在";
+                return false;
+            }
+            if (conv.UserId != _userId)
+            {
+                errmsg = "无权修改该对话";
+                return false;
+            }
+            conv.IsArchived = isArchived;
             return conversationRepo.TryUpdateConversation(conv, out errmsg);
         }
 
