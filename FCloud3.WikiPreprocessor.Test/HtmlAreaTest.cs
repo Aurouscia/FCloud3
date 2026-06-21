@@ -60,18 +60,19 @@ namespace FCloud3.WikiPreprocessor.Test
         [TestMethod]
         public void ScriptBlock()
         {
+            // script 标签不再受保护，会被 HtmlSanitizer 移除，内容作为普通文本解析
             string input = "<script>\nconsole.log('hello');\n</script>";
             var res = _parser.RunToPlain(input);
-            Assert.AreEqual("<script>\nconsole.log('hello');\n</script>", res);
+            Assert.AreEqual("<p>console.log('hello');</p>", res);
         }
 
         [TestMethod]
         public void ScriptBlockWithWikiSyntaxInside()
         {
-            // script 标签内的内容不应被 wiki 解析器处理
+            // script 标签不再受保护，其内部内容会被 wiki 解析器处理
             string input = "<script>\n// 注释\nvar x = **1**;\n</script>";
             var res = _parser.RunToPlain(input);
-            Assert.AreEqual("<script>\n// 注释\nvar x = **1**;\n</script>", res);
+            Assert.AreEqual("<!--注释--><p>var x = <b>1</b>;</p>", res);
         }
 
         [TestMethod]
@@ -148,12 +149,12 @@ namespace FCloud3.WikiPreprocessor.Test
         }
 
         [TestMethod]
-        public void ScriptBlockMultiline_NotSplitIntoParagraphs()
+        public void ScriptBlockMultiline_SplitIntoParagraphs()
         {
+            // script 标签不再受保护，多行内容会被拆分为 <p> 段落
             string input = "<script>\nfunction a() {}\nfunction b() {}\nfunction c() {}\n</script>";
             var res = _parser.RunToPlain(input);
-            Assert.IsFalse(res.Contains("<p>"), "script 块不应被拆分为 <p> 段落");
-            Assert.AreEqual("<script>\nfunction a() {}\nfunction b() {}\nfunction c() {}\n</script>", res);
+            Assert.AreEqual("<p>function a() {}</p><p>function b() {}</p><p>function c() {}</p>", res);
         }
 
         [TestMethod]
@@ -222,16 +223,15 @@ namespace FCloud3.WikiPreprocessor.Test
         }
 
         [TestMethod]
-        public void HtmlBlockWithWikiSyntaxMultiline_NotParsed()
+        public void ScriptBlockWithWikiSyntaxMultiline_Parsed()
         {
-            // 多行 HTML 块内的 wiki 语法不应被解析
+            // script 标签不再受保护，其内部 wiki 语法会被正常解析
             string input = "<script>\n# 这不是标题\n**这不是粗体**\n- 这不是列表\n> 这不是引用\n</script>";
             var res = _parser.RunToPlain(input);
-            Assert.IsFalse(res.Contains("<h"), "script 内的 # 不应被解析为标题");
-            Assert.IsFalse(res.Contains("<b>"), "script 内的 ** 不应被解析为粗体");
-            Assert.IsFalse(res.Contains("<ul>"), "script 内的 - 不应被解析为列表");
-            Assert.IsFalse(res.Contains("<div class=\"quote\">"), "script 内的 > 不应被解析为引用");
-            Assert.AreEqual("<script>\n# 这不是标题\n**这不是粗体**\n- 这不是列表\n> 这不是引用\n</script>", res);
+            Assert.IsTrue(res.Contains("<h"), "script 内的 # 应被解析为标题");
+            Assert.IsTrue(res.Contains("<b>"), "script 内的 ** 应被解析为粗体");
+            Assert.IsTrue(res.Contains("<ul>"), "script 内的 - 应被解析为列表");
+            Assert.IsTrue(res.Contains("<div class=\"quote\">"), "script 内的 > 应被解析为引用");
         }
 
         [TestMethod]
@@ -253,7 +253,7 @@ namespace FCloud3.WikiPreprocessor.Test
                 "<p>text1</p>" +
                 "<style>\n.a{}\n</style>" +
                 "<p>text2</p>" +
-                "<script>\nconsole.log(1)\n</script>" +
+                "<p>console.log(1)</p>" +
                 "<p>text3</p>",
                 res);
         }
@@ -346,7 +346,7 @@ namespace FCloud3.WikiPreprocessor.Test
             var res = _parser.RunToPlain(input);
             Assert.AreEqual(
                 "<style>\n.a{}\n</style>" +
-                "<script>\nconsole.log(1)\n</script>" +
+                "<p>console.log(1)</p>" +
                 "<svg>\n<circle/>\n</svg>",
                 res);
         }

@@ -14,12 +14,11 @@ namespace FCloud3.WikiPreprocessor.Util
 
         /// <summary>
         /// 需要提取保护的 HTML 标签名（小写）
-        /// 包括：样式、脚本、以及各种常见的嵌入式媒体/交互组件
+        /// 包括：样式、以及各种常见的嵌入式媒体/交互组件
         /// </summary>
         private static readonly HashSet<string> ProtectedTags = new(StringComparer.OrdinalIgnoreCase)
         {
             "style",
-            "script",
             "iframe",
             "canvas",
             "svg",
