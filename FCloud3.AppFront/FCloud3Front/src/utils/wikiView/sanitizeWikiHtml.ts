@@ -4,13 +4,16 @@ import DOMPurify from 'dompurify';
  * 允许嵌入的 iframe 来源白名单
  * 注意：修改后应同步检查后端的 HtmlAreaExtractor/HtmlSanitizer 配置
  */
-const allowedIframeOrigins: string[] = [
-    'https://www.youtube.com',
-    'https://www.youtube-nocookie.com',
-    'https://player.bilibili.com',
-    'https://www.bilibili.com',
-    'https://music.163.com',
-];
+const allowedIframeOrigins: string[] = (import.meta.env.VITE_IframeWhitelist as string | undefined)
+    ?.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0 && !line.startsWith('#'))
+    .map(line => {
+        const eqIdx = line.indexOf('=');
+        return eqIdx > 0 ? line.substring(eqIdx + 1).trim() : line;
+    })
+    .filter(line => line.startsWith('https://') || line.startsWith('http://'))
+    ?? [];
 
 const defaultIframeSandbox = 'allow-scripts';
 const defaultIframeAllow = "fullscreen 'none'; camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'; autoplay 'none'";
@@ -62,10 +65,8 @@ function ensureHooks(): void {
 
 /**
  * 净化 wiki 渲染用的 HTML
- * - 移除 <script>
- * - 只允许 iframe 加载白名单内的 src
- * - 为 iframe 强制添加 sandbox、allow、referrerpolicy、loading 等安全属性
- * - 移除危险事件处理器和 srcdoc
+ * 后端 WikiPreprocessor 已进行过 HTML 净化（HtmlSanitizer + HtmlAreaExtractor），
+ * 此处仅负责 iframe 的 src 白名单校验和 sandbox 等安全属性的强制添加。
  */
 export function sanitizeWikiHtml(dirty: string | undefined | null): string {
     if (!dirty) return '';
@@ -74,12 +75,7 @@ export function sanitizeWikiHtml(dirty: string | undefined | null): string {
     return DOMPurify.sanitize(dirty, {
         ADD_TAGS: ['iframe'],
         ADD_ATTR: ['src', 'sandbox', 'allow', 'referrerpolicy', 'loading', 'frameborder', 'allowfullscreen'],
-        FORBID_TAGS: ['script'],
-        FORBID_ATTR: [
-            'onerror', 'onload', 'onclick', 'onmouseover', 'onmouseenter',
-            'onmouseleave', 'onfocus', 'onblur', 'srcdoc'
-        ],
-        ALLOW_DATA_ATTR: false,
+        FORBID_ATTR: ['srcdoc'],
         RETURN_TRUSTED_TYPE: false,
     });
 }
