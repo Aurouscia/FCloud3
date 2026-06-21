@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 using Serilog.Events;
 
 namespace FCloud3.App.Services.Logging
@@ -9,6 +9,17 @@ namespace FCloud3.App.Services.Logging
         {
             var logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(config)
+                .WriteTo.Map(
+                    evt => evt.Level.ToString().ToLowerInvariant(),
+                    (level, wt) => wt.File(
+                        $"./Logs/{level}-.txt",
+                        rollingInterval: RollingInterval.Day,
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                        shared: true,
+                        rollOnFileSizeLimit: true,
+                        fileSizeLimitBytes: 500000,
+                        retainedFileCountLimit: 60),
+                    sinkMapCountLimit: 10)
                 .CreateLogger();
             services.AddSerilog(logger);
             Log.Logger = logger;
