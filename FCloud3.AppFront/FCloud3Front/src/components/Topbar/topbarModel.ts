@@ -56,6 +56,10 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                     {
                         Title: "嵌入三方",
                         Link: "/wikiIframeWhitelist"
+                    },
+                    {
+                        Title: "问题反馈",
+                        Link: "/wikiBugHelp"
                     }
                 ]
             },

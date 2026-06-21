@@ -74,6 +74,6 @@ onUnmounted(() => {
   font-size: 16px;
 }
 ul{
-  margin: 10px 10px;
+  margin: 10px 20px;
 }
 </style>
