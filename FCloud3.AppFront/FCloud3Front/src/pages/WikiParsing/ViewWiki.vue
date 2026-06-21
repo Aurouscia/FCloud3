@@ -11,6 +11,7 @@ import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { htmlToText } from '@/utils/wikiView/htmlToText'
 import { customScrollTo } from '@/utils/wikiView/customScrollTo'
 import { useLazyImgLoadWatcher } from '@/utils/wikiView/useLazyImgLoadWatcher'
+import { sanitizeWikiHtml } from '@/utils/wikiView/sanitizeWikiHtml'
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
@@ -469,7 +470,7 @@ onUnmounted(()=>{
         <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
             <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
                 <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
-                    <span v-html="p.Title" class="paraTitleText"></span>
+                    <span v-html="sanitizeWikiHtml(p.Title)" class="paraTitleText"></span>
                     <div class="paraTitleSep"></div>
                     <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
                         <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
@@ -481,7 +482,7 @@ onUnmounted(()=>{
                     <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
                     <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
                 </h1>
-                <div class="indent" v-html="p.Content">
+                <div class="indent" v-html="sanitizeWikiHtml(p.Content)">
                 </div>
             </div>
             <div v-if="p.ParaType==WikiParaType.File && p.Content">
@@ -502,7 +503,7 @@ onUnmounted(()=>{
             </div>
         </div>
         <div class="refbodies" v-if="data.FootNotes.length>0">
-            <div v-for="f in data.FootNotes" v-html="f">
+            <div v-for="f in data.FootNotes" v-html="sanitizeWikiHtml(f)">
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>

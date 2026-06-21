@@ -19,7 +19,7 @@ namespace FCloud3.WikiPreprocessor.Util
         private static readonly HashSet<string> ProtectedTags = new(StringComparer.OrdinalIgnoreCase)
         {
             "style",
-            "iframe",
+            "iframe", // iframe 的净化由前端负责，此处 as is
             "canvas",
             "svg",
             "math",
