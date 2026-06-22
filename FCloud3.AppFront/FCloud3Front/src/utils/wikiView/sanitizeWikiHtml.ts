@@ -74,7 +74,7 @@ export function sanitizeWikiHtml(dirty: string | undefined | null): string {
 
     return DOMPurify.sanitize(dirty, {
         ADD_TAGS: ['iframe'],
-        ADD_ATTR: ['src', 'sandbox', 'allow', 'referrerpolicy', 'loading', 'frameborder', 'allowfullscreen'],
+        ADD_ATTR: ['src', 'sandbox', 'allow', 'referrerpolicy', 'loading', 'frameborder', 'allowfullscreen', 'pathname'],
         FORBID_ATTR: ['srcdoc'],
         RETURN_TRUSTED_TYPE: false,
     });
