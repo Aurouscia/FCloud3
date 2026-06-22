@@ -50,11 +50,12 @@ function sanitizeIframe(iframe: HTMLIFrameElement): void {
 export function sanitizeWikiHtml(dirty: string | undefined | null): string {
     if (!dirty) return '';
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(dirty, 'text/html');
+    const template = document.createElement('template');
+    template.innerHTML = dirty;
 
-    const iframes = doc.querySelectorAll('iframe');
+    const iframes = template.content.querySelectorAll('iframe');
     iframes.forEach(sanitizeIframe);
 
-    return doc.body.innerHTML;
+    return template.innerHTML;
 }
+
