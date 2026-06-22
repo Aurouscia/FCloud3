@@ -55,6 +55,7 @@ const props = defineProps<{
 watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
     wikiViewScrollMemory.save(oldVal, wikiViewArea.value)
     data.value = undefined;
+    titleTreeReady.value = false;
     commentsLoaded.value = false;
     recommendsLoaded.value = false;
     clickFold?.dispose()
@@ -62,6 +63,7 @@ watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
 })
 
 const data = ref<WikiParsingResult>();
+const titleTreeReady = ref(false);
 const stylesContent = ref<string>("");
 const preScripts = useTemplateRef('preScripts')
 const postScripts = useTemplateRef('postScripts')
@@ -348,6 +350,7 @@ const wikiViewScrollMemory = injectWikiViewScrollMemory()
 const pop = injectPop()
 
 async function init(changedPathName?:boolean){
+    titleTreeReady.value = false;
     currentUser.value = await iden.getIdentityInfo();
     if(data.value){
         data.value.Paras = []
@@ -400,6 +403,7 @@ async function init(changedPathName?:boolean){
     await runPluginsByWiki(()=>wikiViewArea.value?.innerHTML)
     stickyContainTableRestrict()
     subtitlesClean()
+    titleTreeReady.value = true;
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
     samePageTitleLinkClick.listen(wikiViewArea.value);//开始监听“同页面跳转”
     startLazyImgWatcher();
@@ -529,7 +533,7 @@ onUnmounted(()=>{
 
     </div>
     <div class="subTitles" :class="{folded:subtitlesFolded}" ref="subTitles">
-        <TitleTree v-if="data" :title-tree="data?.SubTitles" 
+        <TitleTree v-if="data && titleTreeReady" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
     </div>
