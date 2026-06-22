@@ -49,6 +49,31 @@ namespace FCloud3.WikiPreprocessor.Test
         }
 
         [TestMethod]
+        public void IframeAndStyleBlockMixed()
+        {
+            string input = "789\n<iframe src=\"xxx\"></iframe>\n<style>\n.wikiView { background-color: #eee; !important }</style>";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual("<p>789</p><iframe src=\"xxx\"></iframe><style>\n.wikiView { background-color: #eee; !important }</style>", res);
+        }
+
+        [TestMethod]
+        public void LatexAndStyleBlockMixed()
+        {
+            string input = "789\n$$E=mc^2$$\n<style>\n.wikiView { background-color: #eee; !important }\n</style>";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual("<p>789</p><pre class=\"latex\">E=mc^2</pre><style>\n.wikiView { background-color: #eee; !important }\n</style>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexWithText()
+        {
+            // $$...$$ 块级 LaTeX 要求独占一行，与文字分行时各自成块
+            string input = "ABC\n$$E=mc^2$$\nDEF";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual("<p>ABC</p><pre class=\"latex\">E=mc^2</pre><p>DEF</p>", res);
+        }
+
+        [TestMethod]
         public void StyleBlockWithCssBraces()
         {
             // CSS 中的 {} 不应被误判为模板调用
