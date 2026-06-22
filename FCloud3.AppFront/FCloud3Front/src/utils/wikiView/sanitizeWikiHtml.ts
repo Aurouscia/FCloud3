@@ -1,5 +1,3 @@
-import DOMPurify from 'dompurify';
-
 /**
  * 允许嵌入的 iframe 来源白名单
  * 注意：修改后应同步检查后端的 HtmlAreaExtractor/HtmlSanitizer 配置
@@ -31,36 +29,17 @@ function isAllowedIframeSrc(src: string | null): boolean {
     }
 }
 
-let hooksRegistered = false;
-
-function ensureHooks(): void {
-    if (hooksRegistered) return;
-    hooksRegistered = true;
-
-    DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
-        if (!(node instanceof HTMLIFrameElement) || data.attrName !== 'src') {
-            return;
-        }
-        if (!isAllowedIframeSrc(data.attrValue)) {
-            data.keepAttr = false;
-        }
-    });
-
-    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-        if (!(node instanceof HTMLIFrameElement)) {
-            return;
-        }
-        if (!node.getAttribute('src')) {
-            node.remove();
-            return;
-        }
-        node.setAttribute('sandbox', defaultIframeSandbox);
-        node.setAttribute('allow', defaultIframeAllow);
-        node.setAttribute('referrerpolicy', 'no-referrer');
-        node.setAttribute('loading', 'lazy');
-        node.removeAttribute('allowfullscreen');
-        node.removeAttribute('frameborder');
-    });
+function sanitizeIframe(iframe: HTMLIFrameElement): void {
+    if (!isAllowedIframeSrc(iframe.getAttribute('src'))) {
+        iframe.remove();
+        return;
+    }
+    iframe.setAttribute('sandbox', defaultIframeSandbox);
+    iframe.setAttribute('allow', defaultIframeAllow);
+    iframe.setAttribute('referrerpolicy', 'no-referrer');
+    iframe.setAttribute('loading', 'lazy');
+    iframe.removeAttribute('allowfullscreen');
+    iframe.removeAttribute('frameborder');
 }
 
 /**
@@ -70,12 +49,12 @@ function ensureHooks(): void {
  */
 export function sanitizeWikiHtml(dirty: string | undefined | null): string {
     if (!dirty) return '';
-    ensureHooks();
 
-    return DOMPurify.sanitize(dirty, {
-        ADD_TAGS: ['iframe'],
-        ADD_ATTR: ['src', 'sandbox', 'allow', 'referrerpolicy', 'loading', 'frameborder', 'allowfullscreen', 'pathname'],
-        FORBID_ATTR: ['srcdoc'],
-        RETURN_TRUSTED_TYPE: false,
-    });
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(dirty, 'text/html');
+
+    const iframes = doc.querySelectorAll('iframe');
+    iframes.forEach(sanitizeIframe);
+
+    return doc.body.innerHTML;
 }
