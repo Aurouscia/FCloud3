@@ -12,7 +12,10 @@ export function useFeVersionChecker(){
             try{
                 if(!(await check())){
                     console.warn("版本检查：并非最新版")
-                    pop.value?.show("客户端已更新，刷新页面获取最新版", "failed")
+                    pop.value?.show("有版本更新\n为您刷新浏览器", "failed")
+                    setTimeout(()=>{
+                        window.location.reload()
+                    },1000)
                 }else{
                     console.log("版本检查：通过")
                 }
