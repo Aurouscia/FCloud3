@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FCloud3.Services.Identities;
 using FCloud3.Services.Wiki;
@@ -12,6 +12,7 @@ using FCloud3.Services.WikiParsing.Support;
 using FCloud3.Services.Etc;
 using FCloud3.Services.Diff;
 using FCloud3.Services.Etc.Split;
+using FCloud3.Services.Etc.Oidc.Context;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Etc.TempData.EditLock;
 using FCloud3.Services.Messages;
@@ -82,6 +83,14 @@ namespace FCloud3.Services
                 ?? throw new Exception("临时数据配置未填写");
             services.AddTempDataContext(tempDataConnStr);
             services.AddScoped<ContentEditLockService>();
+
+            bool oidcEnabled = config.GetValue<bool?>("Oidc:Enabled") ?? true;
+            if (oidcEnabled)
+            {
+                string oidcConnStr = config["Oidc:ConnStr"]
+                    ?? throw new Exception("OIDC 数据库配置未填写");
+                services.AddOidcContext(oidcConnStr);
+            }
             return services;
         }
     }

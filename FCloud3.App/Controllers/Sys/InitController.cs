@@ -1,9 +1,11 @@
-﻿using Aurouscia.FicKit.Currency.Database;
+using Aurouscia.FicKit.Currency.Database;
+using FCloud3.App.Services.Authentication.Seeding;
 using FCloud3.App.Services.Utils;
 using FCloud3.DbContexts;
 using FCloud3.Entities.Files;
 using FCloud3.Entities.Identities;
 using FCloud3.Entities.Wiki;
+using FCloud3.Services.Etc.Oidc.Context;
 using FCloud3.Services.Etc.TempData.Context;
 using FCloud3.Services.Files;
 using FCloud3.Services.Wiki;
@@ -18,6 +20,8 @@ namespace FCloud3.App.Controllers.Sys
     {
         private readonly FCloudContext _context;
         private readonly TempDataContext _tempDataContext;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly bool _oidcEnabled;
         private readonly CurrencyContext _currencyContext;
         private readonly WikiTitleContainService _wikiTitleContainService;
         private readonly FileDirService _fileDirService;
@@ -26,6 +30,7 @@ namespace FCloud3.App.Controllers.Sys
         public InitController(
             FCloudContext context,
             TempDataContext tempDataContext,
+            IServiceProvider serviceProvider,
             CurrencyContext currencyContext,
             WikiTitleContainService wikiTitleContainService,
             FileDirService fileDirService,
@@ -35,6 +40,8 @@ namespace FCloud3.App.Controllers.Sys
         {
             _context = context;
             _tempDataContext = tempDataContext;
+            _serviceProvider = serviceProvider;
+            _oidcEnabled = config.GetValue<bool?>("Oidc:Enabled") ?? true;
             _currencyContext = currencyContext;
             _wikiTitleContainService = wikiTitleContainService;
             _fileDirService = fileDirService;
@@ -54,6 +61,12 @@ namespace FCloud3.App.Controllers.Sys
                 _context.Database.Migrate();
                 _tempDataContext.Database.Migrate();
                 _currencyContext.Database.Migrate();
+                if (_oidcEnabled)
+                {
+                    var oidcContext = _serviceProvider.GetRequiredService<OidcContext>();
+                    oidcContext.Database.Migrate();
+                    OpenIddictSeeding.SeedApplicationsAsync(HttpContext.RequestServices).GetAwaiter().GetResult();
+                }
                 return this.ApiResp("已Migrate成功", true);
             }
         }

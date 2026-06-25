@@ -1,9 +1,9 @@
 using FCloud3.Repos;
 using FCloud3.App.Services;
+using FCloud3.App.Services.Authentication;
 using FCloud3.App.Services.Logging;
 using FCloud3.Services;
 using Serilog;
-using FCloud3.App.Services.Authentication;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Services.FicKit;
 using Aurouscia.FicKit.Currency;
@@ -28,6 +28,8 @@ try
     builder.Services.AddAppServices(c);
     //添加jwt鉴权(authentication)
     builder.Services.AddJwtAuthentication(c);
+    //添加OIDC IdP
+    builder.Services.AddOpenIddictServerWithOidc(c);
     //添加跨域配置
     builder.Services.AddConfiguredCors(c);
 
