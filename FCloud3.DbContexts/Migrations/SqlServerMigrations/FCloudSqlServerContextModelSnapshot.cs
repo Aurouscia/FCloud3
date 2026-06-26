@@ -17,221 +17,10 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("FCloud3.Entities.Ai.AiConversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AiInstanceConfigId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CurrentWikiItemId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MessageCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CurrentWikiItemId");
-
-                    b.HasIndex("UserId", "AiInstanceConfigId");
-
-                    b.ToTable("AiConversations");
-                });
-
-            modelBuilder.Entity("FCloud3.Entities.Ai.AiInstanceConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ApiBaseUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ApiKey")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DailyTokenLimit")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DefaultDirId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Enabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxContextMessages")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModelName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MonthlyTokenLimit")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SystemPrompt")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DefaultDirId");
-
-                    b.HasIndex("GroupId");
-
-                    b.ToTable("AiInstanceConfigs");
-                });
-
-            modelBuilder.Entity("FCloud3.Entities.Ai.AiMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TokenCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ToolCalls")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId", "Order");
-
-                    b.ToTable("AiMessages");
-                });
-
-            modelBuilder.Entity("FCloud3.Entities.Ai.AiUsageRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AiInstanceConfigId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatorUserId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("InputTokens")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModelName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OutputTokens")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PromptSummary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RelatedWikiItemId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Success")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("TotalTokens")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AiInstanceConfigId");
-
-                    b.HasIndex("ConversationId");
-
-                    b.HasIndex("RelatedWikiItemId");
-
-                    b.HasIndex("UserId", "Created");
-
-                    b.ToTable("AiUsageRecords");
-                });
 
             modelBuilder.Entity("FCloud3.Entities.Diff.DiffContent", b =>
                 {
@@ -270,11 +59,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.HasIndex("ObjectId", "DiffType");
-
-                    b.ToTable("DiffContents");
+                    b.ToTable("DiffContents", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Diff.DiffSingle", b =>
@@ -299,9 +84,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DiffContentId");
-
-                    b.ToTable("DiffSingles");
+                    b.ToTable("DiffSingles", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Files.FileDir", b =>
@@ -352,15 +135,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AsDir");
-
-                    b.HasIndex("RootDir");
-
-                    b.HasIndex("UrlPathName");
-
-                    b.HasIndex("ParentDir", "UrlPathName");
-
-                    b.ToTable("FileDirs");
+                    b.ToTable("FileDirs", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Files.FileItem", b =>
@@ -403,13 +178,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Hash");
-
-                    b.HasIndex("InDir");
-
-                    b.HasIndex("StorePathName");
-
-                    b.ToTable("FileItems");
+                    b.ToTable("FileItems", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Files.Material", b =>
@@ -446,11 +215,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
-
-                    b.HasIndex("StorePathName");
-
-                    b.ToTable("Materials");
+                    b.ToTable("Materials", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Identities.AuthGrant", b =>
@@ -493,11 +258,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("To", "ToId");
-
-                    b.HasIndex("On", "OnId", "Order");
-
-                    b.ToTable("AuthGrants");
+                    b.ToTable("AuthGrants", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Identities.User", b =>
@@ -543,9 +304,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AvatarMaterialId");
-
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Identities.UserGroup", b =>
@@ -577,9 +336,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerUserId");
-
-                    b.ToTable("UserGroups");
+                    b.ToTable("UserGroups", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Identities.UserToGroup", b =>
@@ -619,11 +376,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("GroupId", "UserId");
-
-                    b.ToTable("UserToGroups");
+                    b.ToTable("UserToGroups", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Messages.Comment", b =>
@@ -667,13 +420,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.HasIndex("ReplyingTo");
-
-                    b.HasIndex("TargetType", "TargetObjId");
-
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Messages.Message", b =>
@@ -711,11 +458,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.HasIndex("ReceiverId", "Read");
-
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Messages.Notification", b =>
@@ -758,11 +501,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Sender");
-
-                    b.HasIndex("Receiver", "Read");
-
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Messages.OpRecord", b =>
@@ -802,13 +541,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.HasIndex("TargetType", "ObjA");
-
-                    b.HasIndex("TargetType", "ObjA", "ObjB");
-
-                    b.ToTable("OpRecords");
+                    b.ToTable("OpRecords", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Sys.LastUpdate", b =>
@@ -821,7 +554,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Type");
 
-                    b.ToTable("LastUpdates");
+                    b.ToTable("LastUpdates", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Sys.UserConfig", b =>
@@ -864,9 +597,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId", "On", "Type");
-
-                    b.ToTable("UserConfigs");
+                    b.ToTable("UserConfigs", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Table.FreeTable", b =>
@@ -900,9 +631,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.ToTable("FreeTables");
+                    b.ToTable("FreeTables", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.TextSection.TextSection", b =>
@@ -936,9 +665,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.ToTable("TextSections");
+                    b.ToTable("TextSections", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiItem", b =>
@@ -995,13 +722,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LastActive");
-
-                    b.HasIndex("OwnerUserId");
-
-                    b.HasIndex("UrlPathName");
-
-                    b.ToTable("WikiItems");
+                    b.ToTable("WikiItems", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiPara", b =>
@@ -1042,11 +763,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ObjectId", "Type");
-
-                    b.HasIndex("WikiItemId", "Order");
-
-                    b.ToTable("WikiParas");
+                    b.ToTable("WikiParas", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiRef", b =>
@@ -1066,11 +783,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Str");
-
-                    b.HasIndex("WikiId");
-
-                    b.ToTable("WikiRefs");
+                    b.ToTable("WikiRefs", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiSelected", b =>
@@ -1108,9 +821,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WikiItemId");
-
-                    b.ToTable("WikiSelecteds");
+                    b.ToTable("WikiSelecteds", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiTitleContain", b =>
@@ -1147,11 +858,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WikiId");
-
-                    b.HasIndex("ObjectId", "Type");
-
-                    b.ToTable("WikiTitleContains");
+                    b.ToTable("WikiTitleContains", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.Wiki.WikiToDir", b =>
@@ -1185,11 +892,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("WikiId");
-
-                    b.HasIndex("DirId", "WikiId");
-
-                    b.ToTable("WikiToDirs");
+                    b.ToTable("WikiToDirs", (string)null);
                 });
 
             modelBuilder.Entity("FCloud3.Entities.WikiParsing.WikiTemplate", b =>
@@ -1236,11 +939,7 @@ namespace FCloud3.DbContexts.Migrations.SqlServerMigrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorUserId");
-
-                    b.HasIndex("Name");
-
-                    b.ToTable("WikiTemplates");
+                    b.ToTable("WikiTemplates", (string)null);
                 });
 #pragma warning restore 612, 618
         }
