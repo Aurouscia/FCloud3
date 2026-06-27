@@ -1,6 +1,6 @@
 using FCloud3.Services.Identities;
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -29,7 +29,7 @@ namespace FCloud3.App.Controllers.Identities
             _logger = logger;
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
         [HttpGet("authorize")]
         public async Task<IActionResult> Authorize()
         {
@@ -70,21 +70,22 @@ namespace FCloud3.App.Controllers.Identities
                 Claims.Name,
                 Claims.Role);
 
-            identity.SetClaim(Claims.Subject, user.Id.ToString());
-            identity.SetClaim(Claims.Name, user.Name);
-            identity.SetClaim(Claims.PreferredUsername, user.Name);
+            // 显式添加 sub，避免被其他 claim 映射覆盖
+            identity.AddClaim(new Claim(Claims.Subject, user.Id.ToString())
+                .SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
+            identity.AddClaim(new Claim(Claims.Name, user.Name ?? userId.ToString())
+                .SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
+            identity.AddClaim(new Claim(Claims.PreferredUsername, user.Name ?? userId.ToString())
+                .SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
 
             identity.SetScopes(request.GetScopes());
             identity.SetResources("resource_server");
 
-            identity.SetDestinations(static claim => claim.Type switch
-            {
-                Claims.Name or Claims.PreferredUsername => new[] { Destinations.AccessToken, Destinations.IdentityToken },
-                _ => new[] { Destinations.AccessToken, Destinations.IdentityToken }
-            });
-
             var principal = new ClaimsPrincipal(identity);
             principal.SetScopes(request.GetScopes());
+
+            // 确保 OpenIddict 使用我们构造的 principal 生成 token
+            HttpContext.User = principal;
 
             // 返回 OpenIddict 授权结果，由框架生成 code 并重定向
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

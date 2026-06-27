@@ -48,18 +48,21 @@ namespace FCloud3.App.Services.Authentication
                         OpenIddictConstants.Claims.Name,
                         OpenIddictConstants.Claims.PreferredUsername);
 
-                    // 使用与现有 JWT 相同的对称密钥签名，便于资源服务器复用验证
+                    // 使用与现有 JWT 相同的对称密钥，便于资源服务器复用验证
                     var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
                     options.AddSigningKey(signingKey);
 
-                    // 开发加密证书；生产环境应替换为持久化证书
+                    // 开发用签名/加密证书；生产环境应替换为持久化证书
+                    options.AddDevelopmentSigningCertificate();
                     options.AddDevelopmentEncryptionCertificate();
 
+                    // 开发环境禁用 access token 加密，使其成为可读 JWT，便于调试
+                    options.DisableAccessTokenEncryption();
+
                     options.UseAspNetCore()
-                           .EnableTokenEndpointPassthrough()
-                           .EnableUserInfoEndpointPassthrough()
-                           .EnableEndSessionEndpointPassthrough()
-                           .EnableStatusCodePagesIntegration();
+                           .EnableAuthorizationEndpointPassthrough()
+                           .EnableStatusCodePagesIntegration()
+                           .DisableTransportSecurityRequirement();
                 })
                 .AddValidation(options =>
                 {

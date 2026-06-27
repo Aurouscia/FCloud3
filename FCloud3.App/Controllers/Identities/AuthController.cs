@@ -3,6 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using FCloud3.App.Services.Utils;
 using FCloud3.Services.Identities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,7 +28,7 @@ namespace FCloud3.App.Controllers.Identities
             _config = config;
             _logger = logger;
         }
-        public IActionResult Login(string? userName, string? password, int expHours)
+        public async Task<IActionResult> Login(string? userName, string? password, int expHours)
         {
             _logger.LogInformation("登录请求：{userName}",userName);
 
@@ -55,6 +57,19 @@ namespace FCloud3.App.Controllers.Identities
                 expires: DateTime.Now.AddHours(expHours),
                 signingCredentials: creds
             );
+
+            // 同时写入 Cookie，使浏览器在 OIDC 授权端点保持登录状态
+            var cookieIdentity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            cookieIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, u.Id.ToString()));
+            cookieIdentity.AddClaim(new Claim(ClaimTypes.Name, u.Name ?? userName));
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(cookieIdentity),
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(expHours)
+                });
 
             string tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
             _logger.LogInformation("[{userId}]{userName}登录成功",u.Id, userName);

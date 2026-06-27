@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -25,7 +26,8 @@ namespace FCloud3.App.Services.Authentication
                         ValidIssuer = domain,//Issuer，这两项和前面签发jwt的设置一致
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))//拿到SecurityKey
                     };
-                });
+                })
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
             return services;
         }
     }
