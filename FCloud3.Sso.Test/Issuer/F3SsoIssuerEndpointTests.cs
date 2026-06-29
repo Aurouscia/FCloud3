@@ -16,9 +16,10 @@ namespace FCloud3.Sso.Test.Issuer
         private static IssuerEndpointFixture CreateFixture(
             byte userLevel = 1,
             bool enabled = true,
-            int audienceRequireLevel = 1)
+            int audienceRequireLevel = 1,
+            string? entryPath = "/sso/entry")
         {
-            return new IssuerEndpointFixture(userLevel, enabled, audienceRequireLevel);
+            return new IssuerEndpointFixture(userLevel, enabled, audienceRequireLevel, entryPath);
         }
 
         [Fact]
@@ -102,7 +103,7 @@ namespace FCloud3.Sso.Test.Issuer
             public TestServer Server { get; }
             private readonly IHost _host;
 
-            public IssuerEndpointFixture(byte userLevel, bool enabled, int audienceRequireLevel)
+            public IssuerEndpointFixture(byte userLevel, bool enabled, int audienceRequireLevel, string? entryPath)
             {
                 var settings = new Dictionary<string, string?>
                 {
@@ -114,6 +115,10 @@ namespace FCloud3.Sso.Test.Issuer
                     ["F3Sso:Audiences:0:Avatar"] = "",
                     ["F3Sso:Audiences:0:RequireLevel"] = audienceRequireLevel.ToString()
                 };
+                if (entryPath is not null)
+                {
+                    settings["F3Sso:EntryPath"] = entryPath;
+                }
 
                 _host = new HostBuilder()
                     .ConfigureWebHostDefaults(webBuilder =>
@@ -138,6 +143,41 @@ namespace FCloud3.Sso.Test.Issuer
             }
 
             public ValueTask DisposeAsync() => ((IAsyncDisposable)_host).DisposeAsync();
+        }
+
+        [Fact]
+        public async Task EntryEndpoint_WithQuery_ShouldRedirectToEntryPathPreservingQuery()
+        {
+            await using var fixture = CreateFixture();
+            var client = new HttpClient(fixture.Server.CreateHandler()) { BaseAddress = fixture.Server.BaseAddress };
+
+            var response = await client.GetAsync("/f3sso/iss/entry?target=%2Ffoo&source=bar");
+
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal("/sso/entry?target=%2Ffoo&source=bar", response.Headers.Location?.OriginalString);
+        }
+
+        [Fact]
+        public async Task EntryEndpoint_WithoutQuery_ShouldRedirectToEntryPath()
+        {
+            await using var fixture = CreateFixture();
+            var client = new HttpClient(fixture.Server.CreateHandler()) { BaseAddress = fixture.Server.BaseAddress };
+
+            var response = await client.GetAsync("/f3sso/iss/entry");
+
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal("/sso/entry", response.Headers.Location?.OriginalString);
+        }
+
+        [Fact]
+        public async Task EntryEndpoint_WithoutConfiguredEntryPath_ShouldReturnInternalServerError()
+        {
+            await using var fixture = CreateFixture(entryPath: null);
+            var client = fixture.Server.CreateClient();
+
+            var response = await client.GetAsync("/f3sso/iss/entry?x=1");
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         }
 
         private sealed record CodeResponse(string Code);

@@ -34,7 +34,7 @@ namespace FCloud3.Sso.Test.Audience
 
             var url = audience.BuildAuthorizeUrl("main-issuer");
 
-            Assert.Equal("https://fcloud3.example.com/f3sso/iss?clientId=registered-appA", url);
+            Assert.Equal("https://fcloud3.example.com/f3sso/iss/entry?clientId=registered-appA", url);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace FCloud3.Sso.Test.Audience
 
             var url = audience.BuildAuthorizeUrl("main-issuer");
 
-            Assert.Equal("https://fcloud3.example.com/f3sso/iss?clientId=appa", url);
+            Assert.Equal("https://fcloud3.example.com/f3sso/iss/entry?clientId=appa", url);
         }
 
         [Fact]

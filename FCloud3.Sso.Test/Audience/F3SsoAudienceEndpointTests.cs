@@ -31,6 +31,34 @@ namespace FCloud3.Sso.Test.Audience
         }
 
         [Fact]
+        public async Task AuthEndpoint_WithValidIssuer_ShouldRedirectToIssuerEntry()
+        {
+            await using var fixture = new AudienceEndpointFixture();
+            var client = new HttpClient(fixture.AudienceServer.CreateHandler())
+            {
+                BaseAddress = fixture.AudienceServer.BaseAddress
+            };
+
+            var response = await client.GetAsync("/f3sso/aud/auth?issuerId=issuer-test");
+
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            var location = response.Headers.Location?.OriginalString;
+            Assert.NotNull(location);
+            Assert.Contains("/f3sso/iss/entry?clientId=appA", location);
+        }
+
+        [Fact]
+        public async Task AuthEndpoint_WithUnknownIssuer_ShouldReturnBadRequest()
+        {
+            await using var fixture = new AudienceEndpointFixture();
+            var client = fixture.AudienceServer.CreateClient();
+
+            var response = await client.GetAsync("/f3sso/aud/auth?issuerId=not-exist");
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
         public async Task ValidateEndpoint_WithValidCode_ShouldRedirectWithSuccess()
         {
             await using var fixture = new AudienceEndpointFixture();

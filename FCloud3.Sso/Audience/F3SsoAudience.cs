@@ -36,7 +36,7 @@ namespace FCloud3.Sso.Audience
                 return null;
             var origin = issuer.Origin.TrimEnd('/');
             var clientId = GetClientId(issuer);
-            return $"{origin}/f3sso/iss?clientId={Uri.EscapeDataString(clientId)}";
+            return $"{origin}/f3sso/iss/entry?clientId={Uri.EscapeDataString(clientId)}";
         }
 
         private string GetClientId(F3SsoAudienceIssuerOptions issuer)

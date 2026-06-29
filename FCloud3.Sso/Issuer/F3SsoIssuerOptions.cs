@@ -19,6 +19,12 @@
         /// 允许接入的受众（Audience）应用列表。
         /// </summary>
         public List<F3SsoIssuerAudienceOptions> Audiences { get; set; } = [];
+
+        /// <summary>
+        /// 签发方站内入口页面相对路径，例如 "/sso/entry"。
+        /// <c>/f3sso/iss/entry</c> 会重定向到此路径并保留原始查询字符串。
+        /// </summary>
+        public string EntryPath { get; set; } = string.Empty;
     }
 
     /// <summary>

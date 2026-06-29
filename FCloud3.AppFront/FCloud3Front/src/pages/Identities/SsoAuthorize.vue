@@ -95,7 +95,7 @@ onUnmounted(() => {
 
 <template>
     <div class="ssoAuthorize">
-        <div v-if="!loaded" class="centerBox">加载中...</div>
+        <div v-if="!loaded" class="centerBox">加载中，请稍候...</div>
         <div v-else-if="iden.Id === 0" class="centerBox">
             <div>请先登录本站账号</div>
             <button @click="jumpToLogin(route.fullPath)">去登录</button>

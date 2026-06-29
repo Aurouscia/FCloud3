@@ -16,6 +16,16 @@ namespace FCloud3.Sso.Audience
                 return Results.Ok(options);
             });
 
+            app.MapGet("/f3sso/aud/auth", (string issuerId, F3SsoAudience audience) =>
+            {
+                var authorizeUrl = audience.BuildAuthorizeUrl(issuerId);
+                if (authorizeUrl is null)
+                {
+                    return Results.BadRequest("签发方不存在");
+                }
+                return Results.Redirect(authorizeUrl);
+            });
+
             app.MapGet("/f3sso/aud/validate", async (HttpContext context, F3SsoAudience audience, IF3SsoSignInHandler signInHandler, IConfiguration configuration) =>
             {
                 var request = context.Request;

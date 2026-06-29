@@ -30,6 +30,25 @@ namespace FCloud3.Sso.Issuer
                 }
                 return Results.Ok(user);
             });
+            app.MapGet("/f3sso/iss/entry", (HttpRequest request, F3SsoIssuerService f3SsoIssuerService) =>
+            {
+                var options = f3SsoIssuerService.GetOptions();
+                if (string.IsNullOrWhiteSpace(options.EntryPath))
+                {
+                    return Results.InternalServerError("未配置 EntryPath");
+                }
+
+                var query = request.QueryString.Value;
+                var redirectTo = options.EntryPath!;
+                if (!string.IsNullOrEmpty(query))
+                {
+                    redirectTo += redirectTo.Contains('?')
+                        ? "&" + query.TrimStart('?')
+                        : query;
+                }
+
+                return Results.Redirect(redirectTo);
+            });
             return app;
         }
     }
