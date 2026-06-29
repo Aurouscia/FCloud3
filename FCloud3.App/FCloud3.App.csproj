@@ -36,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
     <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />
+    <ProjectReference Include="..\FCloud3.Sso\FCloud3.Sso.csproj" />
   </ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">

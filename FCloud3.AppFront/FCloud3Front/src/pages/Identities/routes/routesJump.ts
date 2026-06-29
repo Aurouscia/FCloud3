@@ -29,6 +29,9 @@ export function useIdentityRoutesJump(){
     const jumpToUserGroup = (id:number)=>{
         router.push({name:'userGroup',params:{id}})
     }
+    const jumpToSsoAuthorize = () => {
+        router.push({name:'ssoAuthorize'})
+    }
     return { jumpToLoginRoute, jumpToLogin, jumpToUserCenter, jumpToUserCenterRoute, jumpToUserCenterFromIdRoute,
-        jumpToSelfUserCenter, jumpToRegister, jumpToGlobalAuthGrants, jumpToUserGroup }
+        jumpToSelfUserCenter, jumpToRegister, jumpToGlobalAuthGrants, jumpToUserGroup, jumpToSsoAuthorize }
 }

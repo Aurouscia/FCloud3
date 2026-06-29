@@ -180,6 +180,43 @@ export class HttpClient{
         }
         return undefined;
     }
+    async requestRaw<T>(resource:string, params?:any, requireKeys?:(keyof T)[]): Promise<T|undefined>{
+        console.log(`开始发送[raw get]=>[${resource}]`,params)
+        let res:AxiosResponse|undefined = undefined;
+        try{
+            res = await this.ax.get(resource, { params, headers:this.headers() });
+        }
+        catch(ex){
+            const err = ex as AxiosError;
+            console.log(`[raw get]${resource}失败`,err)
+            this.showErrToUser(err);
+            return undefined;
+        }
+        if(res){
+            if(res.status == 401){
+                this.httpCallBack("err","请登录")
+                this.unauthorizeCallBack()
+                return undefined;
+            }
+            if(res.status >= 400){
+                this.httpCallBack("err", res.data?.toString?.() || this.statusCodeText(res.status) || "请求失败")
+                return undefined;
+            }
+            if(requireKeys && requireKeys.length > 0){
+                const data = res.data;
+                const missing = requireKeys.filter(k => !has(data, k));
+                if(missing.length > 0){
+                    console.error(`[raw get]${resource}返回异常，缺少字段：`, missing);
+                    this.httpCallBack('err', '服务返回异常，缺少数据');
+                    return undefined;
+                }
+            }
+            console.log(`[raw get]${resource}成功`,res.data)
+            return res.data as T;
+        }
+        return undefined;
+    }
+
     private isApiResponseObj(obj:any){
         const c = (propName:keyof ApiResponse)=>{
             return has(obj, propName)
