@@ -50,6 +50,38 @@ namespace FCloud3.Sso.Test.Audience
         }
 
         [Fact]
+        public async Task ValidateEndpoint_WithValidCode_ShouldInvokeSignInHandler()
+        {
+            var handler = new FakeSignInHandler();
+            await using var fixture = new AudienceEndpointFixture(handler);
+            var issuerClient = fixture.IssuerServer.CreateClient();
+            var audienceClient = fixture.AudienceServer.CreateClient();
+
+            var issueResponse = await issuerClient.GetAsync("/f3sso/iss?clientId=appA");
+            var codeJson = await issueResponse.Content.ReadFromJsonAsync<CodeResponse>();
+            var code = codeJson!.Code;
+
+            await audienceClient.GetAsync($"/f3sso/aud/validate?code={code}&issuerId=issuer-test");
+
+            Assert.True(handler.Called);
+            Assert.NotNull(handler.ReceivedUser);
+            Assert.Equal(42, handler.ReceivedUser!.Id);
+            Assert.Equal("Alice", handler.ReceivedUser.Name);
+        }
+
+        [Fact]
+        public async Task ValidateEndpoint_WithInvalidCode_ShouldNotInvokeSignInHandler()
+        {
+            var handler = new FakeSignInHandler();
+            await using var fixture = new AudienceEndpointFixture(handler);
+            var client = fixture.AudienceServer.CreateClient();
+
+            await client.GetAsync("/f3sso/aud/validate?code=bad-code&issuerId=issuer-test");
+
+            Assert.False(handler.Called);
+        }
+
+        [Fact]
         public async Task ValidateEndpoint_WithInvalidCode_ShouldRedirectWithFailure()
         {
             await using var fixture = new AudienceEndpointFixture();
@@ -86,7 +118,7 @@ namespace FCloud3.Sso.Test.Audience
             private readonly IHost _issuerHost;
             private readonly IHost _audienceHost;
 
-            public AudienceEndpointFixture()
+            public AudienceEndpointFixture(IF3SsoSignInHandler? signInHandler = null)
             {
                 var issuerSettings = new Dictionary<string, string?>
                 {
@@ -134,9 +166,14 @@ namespace FCloud3.Sso.Test.Audience
                         webBuilder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(audienceSettings));
                         webBuilder.ConfigureServices(services =>
                         {
+                            services.AddF3SsoAudience();
                             services.AddScoped(sp => new F3SsoAudience(
                                 sp.GetRequiredService<IConfiguration>(),
                                 IssuerServer.CreateHandler()));
+                            if (signInHandler is not null)
+                            {
+                                services.AddSingleton<IF3SsoSignInHandler>(signInHandler);
+                            }
                         });
                         webBuilder.Configure(app =>
                         {
@@ -158,5 +195,18 @@ namespace FCloud3.Sso.Test.Audience
         }
 
         private sealed record CodeResponse(string Code);
+
+        private sealed class FakeSignInHandler : IF3SsoSignInHandler
+        {
+            public bool Called { get; private set; }
+            public F3SsoValidatedUser? ReceivedUser { get; private set; }
+
+            public Task HandleAsync(Microsoft.AspNetCore.Http.HttpContext context, F3SsoValidatedUser user)
+            {
+                Called = true;
+                ReceivedUser = user;
+                return Task.CompletedTask;
+            }
+        }
     }
 }

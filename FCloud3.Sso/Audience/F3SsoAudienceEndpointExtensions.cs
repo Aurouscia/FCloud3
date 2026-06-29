@@ -16,8 +16,9 @@ namespace FCloud3.Sso.Audience
                 return Results.Ok(options);
             });
 
-            app.MapGet("/f3sso/aud/validate", async (HttpRequest request, F3SsoAudience audience, IConfiguration configuration) =>
+            app.MapGet("/f3sso/aud/validate", async (HttpContext context, F3SsoAudience audience, IF3SsoSignInHandler signInHandler, IConfiguration configuration) =>
             {
+                var request = context.Request;
                 var code = request.Query["code"].ToString();
                 var issuerId = request.Query["issuerId"].ToString();
 
@@ -35,6 +36,10 @@ namespace FCloud3.Sso.Audience
                     if (user is null)
                     {
                         errmsg = "验证失败";
+                    }
+                    else
+                    {
+                        await signInHandler.HandleAsync(context, user);
                     }
                 }
 

@@ -63,10 +63,16 @@ app.MapF3SsoIssuerEndpoints();
 ```csharp
 using FCloud3.Sso.Audience;
 
-builder.Services.AddScoped<F3SsoAudience>();
+builder.Services.AddF3SsoAudience();
 
 var app = builder.Build();
 app.MapF3SsoAudienceEndpoints();
+```
+
+自定义验证成功后的登录行为：需要注册自己的 `IF3SsoSignInHandler` 实现：
+
+```csharp
+builder.Services.AddScoped<IF3SsoSignInHandler, MyCookieSignInHandler>();
 ```
 
 `appsettings.json` 配置示例：
