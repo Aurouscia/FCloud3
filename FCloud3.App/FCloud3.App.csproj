@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Aurouscia.FicKit.Article" Version="1.0.0" />
     <PackageReference Include="Aurouscia.FicKit.Currency" Version="1.0.0" />
-    <PackageReference Include="Aurouscia.TableEditor.Core" Version="0.6.2" />
+    <PackageReference Include="Aurouscia.TableEditor.Core" Version="0.6.3" />
     <PackageReference Include="EzPinyin" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
