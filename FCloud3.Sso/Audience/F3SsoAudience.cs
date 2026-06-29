@@ -35,7 +35,13 @@ namespace FCloud3.Sso.Audience
             if (issuer is null)
                 return null;
             var origin = issuer.Origin.TrimEnd('/');
-            return $"{origin}/f3sso/iss?clientId={Uri.EscapeDataString(issuer.ClientId)}";
+            var clientId = GetClientId(issuer);
+            return $"{origin}/f3sso/iss?clientId={Uri.EscapeDataString(clientId)}";
+        }
+
+        private string GetClientId(F3SsoAudienceIssuerOptions issuer)
+        {
+            return string.IsNullOrEmpty(issuer.ClientId) ? _options.Id : issuer.ClientId;
         }
 
         /// <summary>

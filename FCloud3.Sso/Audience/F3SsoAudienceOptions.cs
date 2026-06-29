@@ -52,7 +52,7 @@
         public string Avatar { get; set; } = string.Empty;
 
         /// <summary>
-        /// 当前应用在对应签发方注册的客户端 Id。
+        /// 当前应用在对应签发方注册的客户端 Id。不填时默认使用当前受众方的 Id（即 F3Sso.Id）。
         /// </summary>
         public string ClientId { get; set; } = string.Empty;
     }
