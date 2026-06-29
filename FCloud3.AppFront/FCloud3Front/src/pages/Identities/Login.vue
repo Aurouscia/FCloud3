@@ -50,7 +50,13 @@ async function Login(){
         await identityInfoProvider.getIdentityInfo(true);
         notifCountStore.enforceRefresh();//立即重新获取消息个数
         if (props.backAfterSuccess) {
-            router.back()
+            if (props.backAfterSuccess === 'back') {
+                router.back()
+            } else if (props.backAfterSuccess.startsWith('/')) {
+                router.push(props.backAfterSuccess)
+            } else {
+                router.push("/")
+            }
         } else {
             router.push("/")
         }

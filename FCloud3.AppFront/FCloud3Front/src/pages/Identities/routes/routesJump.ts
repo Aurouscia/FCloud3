@@ -2,10 +2,18 @@ import { useRouter } from "vue-router"
 
 export function useIdentityRoutesJump(){
     const router = useRouter();
-    const jumpToLoginRoute = (backAfterSuccess:boolean = true) => {
-        return {name:'login', params:{backAfterSuccess: backAfterSuccess?'back':undefined}}
+    const jumpToLoginRoute = (backAfterSuccess:boolean | string = true) => {
+        let paramValue:string|undefined;
+        if(backAfterSuccess === true){
+            paramValue = 'back';
+        }else if(typeof backAfterSuccess === 'string'){
+            paramValue = backAfterSuccess;
+        }else{
+            paramValue = undefined;
+        }
+        return {name:'login', params:{backAfterSuccess: paramValue}}
     }
-    const jumpToLogin = (backAfterSuccess:boolean = true) => {
+    const jumpToLogin = (backAfterSuccess:boolean | string = true) => {
         router.push(jumpToLoginRoute(backAfterSuccess))
     }
     const jumpToUserCenter = (username:string) => {
