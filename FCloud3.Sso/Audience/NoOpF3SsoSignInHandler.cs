@@ -7,7 +7,7 @@ namespace FCloud3.Sso.Audience
     /// </summary>
     public sealed class NoOpF3SsoSignInHandler : IF3SsoSignInHandler
     {
-        public Task HandleAsync(HttpContext context, F3SsoValidatedUser user)
+        public Task HandleAsync(HttpContext context, string issuerId, F3SsoValidatedUser user)
         {
             return Task.CompletedTask;
         }

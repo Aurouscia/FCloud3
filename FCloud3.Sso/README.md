@@ -31,7 +31,7 @@ app.MapF3SsoIssuerEndpoints();
 ```json
 {
   "F3Sso": {
-    "Id": "main-issuer",
+    "Id": "fcloud3.example.com",
     "Enabled": true,
     "Audiences": [
       {
@@ -46,7 +46,8 @@ app.MapF3SsoIssuerEndpoints();
 }
 ```
 
-`RequireLevel` 的具体含义由使用方应用自行约定。
+- `RequireLevel` 的具体含义由使用方应用自行约定
+- `Id` 建议都使用域名
 
 签发方提供以下端点：
 
@@ -80,16 +81,16 @@ builder.Services.AddScoped<IF3SsoSignInHandler, MyCookieSignInHandler>();
 ```json
 {
   "F3Sso": {
-    "Id": "appa",
+    "Id": "appa.example.com",
     "Enabled": true,
     "RedirectPath": "/sso/callback",
     "Issuers": [
       {
-        "Id": "main-issuer",
+        "Id": "fcloud3.example.com",
         "DisplayName": "FCloud3 主站",
         "Origin": "https://fcloud3.example.com",
         "Avatar": "",
-        "ClientId": "appA"
+        "ClientId": "appa.example.com"
       }
     ]
   }

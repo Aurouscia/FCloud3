@@ -39,7 +39,7 @@ namespace FCloud3.Sso.Audience
                     }
                     else
                     {
-                        await signInHandler.HandleAsync(context, user);
+                        await signInHandler.HandleAsync(context, issuerId, user);
                     }
                 }
 

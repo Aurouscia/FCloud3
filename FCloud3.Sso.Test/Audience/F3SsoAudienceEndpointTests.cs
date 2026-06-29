@@ -64,6 +64,7 @@ namespace FCloud3.Sso.Test.Audience
             await audienceClient.GetAsync($"/f3sso/aud/validate?code={code}&issuerId=issuer-test");
 
             Assert.True(handler.Called);
+            Assert.Equal("issuer-test", handler.ReceivedIssuerId);
             Assert.NotNull(handler.ReceivedUser);
             Assert.Equal(42, handler.ReceivedUser!.Id);
             Assert.Equal("Alice", handler.ReceivedUser.Name);
@@ -201,9 +202,12 @@ namespace FCloud3.Sso.Test.Audience
             public bool Called { get; private set; }
             public F3SsoValidatedUser? ReceivedUser { get; private set; }
 
-            public Task HandleAsync(Microsoft.AspNetCore.Http.HttpContext context, F3SsoValidatedUser user)
+            public string? ReceivedIssuerId { get; private set; }
+
+            public Task HandleAsync(Microsoft.AspNetCore.Http.HttpContext context, string issuerId, F3SsoValidatedUser user)
             {
                 Called = true;
+                ReceivedIssuerId = issuerId;
                 ReceivedUser = user;
                 return Task.CompletedTask;
             }
