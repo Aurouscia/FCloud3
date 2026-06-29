@@ -11,11 +11,13 @@ namespace FCloud3.Sso.Audience
     public class F3SsoAudience
     {
         private readonly F3SsoAudienceOptions _options;
+        private readonly HttpMessageHandler? _testHandler;
 
-        public F3SsoAudience(IConfiguration configuration)
+        public F3SsoAudience(IConfiguration configuration, HttpMessageHandler? testHandler = null)
         {
             _options = new F3SsoAudienceOptions();
             configuration.GetSection("F3Sso").Bind(_options);
+            _testHandler = testHandler;
         }
 
         private F3SsoAudienceIssuerOptions? GetIssuer(string issuerId)
@@ -47,12 +49,26 @@ namespace FCloud3.Sso.Audience
             if (issuer is null)
                 return null;
 
-            var client = new RestClient(new RestClientOptions
+            var baseUrl = new Uri(issuer.Origin.TrimEnd('/'));
+            RestClient client;
+            if (_testHandler is not null)
             {
-                BaseUrl = new Uri(issuer.Origin.TrimEnd('/')),
-                ThrowOnAnyError = false,
-                Timeout = TimeSpan.FromSeconds(10)
-            });
+                client = new RestClient(_testHandler, disposeHandler: false, configureRestClient: options =>
+                {
+                    options.BaseUrl = baseUrl;
+                    options.ThrowOnAnyError = false;
+                    options.Timeout = TimeSpan.FromSeconds(10);
+                });
+            }
+            else
+            {
+                client = new RestClient(new RestClientOptions
+                {
+                    BaseUrl = baseUrl,
+                    ThrowOnAnyError = false,
+                    Timeout = TimeSpan.FromSeconds(10)
+                });
+            }
 
             var request = new RestRequest($"/f3sso/iss/validate/{Uri.EscapeDataString(code)}");
             var response = await client.ExecuteGetAsync<F3SsoValidatedUser>(request, cancellationToken);

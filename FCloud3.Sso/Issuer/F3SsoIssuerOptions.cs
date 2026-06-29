@@ -47,7 +47,7 @@
         public string Avatar { get; set; } = string.Empty;
 
         /// <summary>
-        /// 要求的最低用户等级，对应 <see cref="FCloud3.Entities.Identities.UserType"/> 的整数值。
+        /// 要求的最低用户等级，具体含义由使用方应用自行约定。
         /// </summary>
         public int RequireLevel { get; set; }
     }

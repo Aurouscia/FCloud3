@@ -1,4 +1,3 @@
-﻿using FCloud3.Entities.Identities;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
@@ -16,7 +15,7 @@ namespace FCloud3.Sso.Issuer
     ///   ]
     /// }
     /// </code>
-    /// 其中 RequireLevel 对应 <see cref="UserType"/> 的整数值（0=游客，1=会员，8=管理，9=超管）。
+    /// 其中 RequireLevel 的具体含义由使用方应用自行约定。
     /// </summary>
     public class F3SsoIssuerService
     {

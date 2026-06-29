@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace FCloud3.Sso.Issuer
 {
     public static class F3SsoIssuerEndpointExtensions
     {
-        public static WebApplication MapF3SsoIssuerEndpoints(this WebApplication app)
+        public static IEndpointRouteBuilder MapF3SsoIssuerEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapGet("/f3sso/iss", (HttpRequest request, F3SsoIssuerService f3SsoIssuerService) =>
             {

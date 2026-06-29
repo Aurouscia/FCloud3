@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 
 namespace FCloud3.Sso.Audience
 {
     public static class F3SsoAudienceEndpointExtensions
     {
-        public static WebApplication MapF3SsoAudienceEndpoints(this WebApplication app)
+        public static IEndpointRouteBuilder MapF3SsoAudienceEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapGet("/f3sso/aud/config", (IConfiguration configuration) =>
             {
@@ -15,7 +16,7 @@ namespace FCloud3.Sso.Audience
                 return Results.Ok(options);
             });
 
-            app.MapGet("/f3sso/aud/validate", async (HttpRequest request, IConfiguration configuration) =>
+            app.MapGet("/f3sso/aud/validate", async (HttpRequest request, F3SsoAudience audience, IConfiguration configuration) =>
             {
                 var code = request.Query["code"].ToString();
                 var issuerId = request.Query["issuerId"].ToString();
@@ -30,7 +31,6 @@ namespace FCloud3.Sso.Audience
                 }
                 else
                 {
-                    var audience = new F3SsoAudience(configuration);
                     var user = await audience.ValidateCodeAsync(issuerId, code);
                     if (user is null)
                     {

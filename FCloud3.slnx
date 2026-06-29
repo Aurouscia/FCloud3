@@ -2,6 +2,7 @@
   <Folder Name="/1.Infrastructure/">
     <Project Path="FCloud3.Diff.Test/FCloud3.Diff.Test.csproj" />
     <Project Path="FCloud3.Diff/FCloud3.Diff.csproj" />
+    <Project Path="FCloud3.Sso.Test/FCloud3.Sso.Test.csproj" />
     <Project Path="FCloud3.Sso/FCloud3.Sso.csproj" />
     <Project Path="FCloud3.WikiPreprocessor.Test/FCloud3.WikiPreprocessor.Test.csproj" />
     <Project Path="FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj" />
