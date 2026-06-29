@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace FCloud3.Sso.Issuer
 {
@@ -22,23 +23,44 @@ namespace FCloud3.Sso.Issuer
         private readonly IMemoryCache _cache;
         private readonly F3SsoIssuerOptions _options;
         private readonly IUserInfoProvider _userInfoProvider;
+        private readonly ILogger<F3SsoIssuerService> _logger;
 
-        public F3SsoIssuerService(IMemoryCache cache, IConfiguration configuration, IUserInfoProvider userInfoProvider)
+        public F3SsoIssuerService(
+            IMemoryCache cache,
+            IConfiguration configuration,
+            IUserInfoProvider userInfoProvider,
+            ILogger<F3SsoIssuerService> logger)
         {
             _cache = cache;
             _options = new F3SsoIssuerOptions();
             configuration.GetSection("F3Sso").Bind(_options);
             _userInfoProvider = userInfoProvider;
+            _logger = logger;
         }
 
         public bool CurrentUserMeetsLevel(string audienceId)
         {
             if (!_options.Enabled)
+            {
+                _logger.LogWarning("SSO 未启用，拒绝 audience {AudienceId} 的登录请求", audienceId);
                 return false;
+            }
             var audience = _options.Audiences?.FirstOrDefault(c => c.Id == audienceId);
             if (audience is null)
+            {
+                _logger.LogWarning("未找到 audience {AudienceId}，拒绝登录请求", audienceId);
                 return false;
-            return _userInfoProvider.GetUserLevel() >= audience.RequireLevel;
+            }
+            var userLevel = _userInfoProvider.GetUserLevel();
+            if (userLevel < audience.RequireLevel)
+            {
+                _logger.LogWarning(
+                    "用户 {UserId} 等级 {UserLevel} 不足，无法登录 audience {AudienceId}（要求 {RequireLevel}）",
+                    _userInfoProvider.GetUserId(), userLevel, audienceId, audience.RequireLevel);
+                return false;
+            }
+            _logger.LogDebug("用户 {UserId} 允许登录 audience {AudienceId}", _userInfoProvider.GetUserId(), audienceId);
+            return true;
         }
 
         public string StoreCode()
@@ -51,12 +73,20 @@ namespace FCloud3.Sso.Issuer
             };
             var code = Guid.NewGuid().ToString("N");
             _cache.Set(code, user, TimeSpan.FromMinutes(1));
+            _logger.LogDebug("为用户 {UserId} 生成 SSO code", user.Id);
             return code;
         }
 
         public bool TryGetUser(string code, out F3SsoValidatedUser? user)
         {
-            return _cache.TryGetValue(code, out user);
+            if (_cache.TryGetValue(code, out user) && user is not null)
+            {
+                _logger.LogDebug("验证 SSO code 成功，用户 {UserId}", user.Id);
+                return true;
+            }
+            _logger.LogWarning("验证不存在的 SSO code");
+            user = null;
+            return false;
         }
 
         public F3SsoIssuerOptions GetOptions() => _options;

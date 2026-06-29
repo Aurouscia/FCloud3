@@ -2,6 +2,7 @@ using FCloud3.Sso.Issuer;
 using FCloud3.Sso.Test.Support;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FCloud3.Sso.Test.Issuer
 {
@@ -22,7 +23,7 @@ namespace FCloud3.Sso.Test.Issuer
             byte userLevel = 1)
         {
             var userInfo = new FakeUserInfoProvider(userId, userName, userLevel);
-            return new F3SsoIssuerService(cache, configuration, userInfo);
+            return new F3SsoIssuerService(cache, configuration, userInfo, NullLogger<F3SsoIssuerService>.Instance);
 
         }
 
