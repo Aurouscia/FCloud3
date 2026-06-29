@@ -1,11 +1,12 @@
 using FCloud3.Sso.Audience;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FCloud3.Sso.Test.Audience
 {
-    public class F3SsoAudienceTests
+    public class F3SsoAudienceServiceTests
     {
-        private static F3SsoAudience CreateAudience(
+        private static F3SsoAudienceService CreateAudience(
             string audienceId = "appa",
             string? issuerClientId = "appA")
         {
@@ -24,7 +25,7 @@ namespace FCloud3.Sso.Test.Audience
             var config = new ConfigurationBuilder()
                 .AddInMemoryCollection(values)
                 .Build();
-            return new F3SsoAudience(config);
+            return new F3SsoAudienceService(config, NullLogger<F3SsoAudienceService>.Instance);
         }
 
         [Fact]

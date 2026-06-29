@@ -10,7 +10,7 @@ namespace FCloud3.Sso.Audience
         /// </summary>
         public static IServiceCollection AddF3SsoAudience(this IServiceCollection services)
         {
-            services.AddScoped<F3SsoAudience>();
+            services.AddScoped<F3SsoAudienceService>();
             services.AddScoped<IF3SsoSignInHandler, NoOpF3SsoSignInHandler>();
             return services;
         }

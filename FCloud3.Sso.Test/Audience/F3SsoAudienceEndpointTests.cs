@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FCloud3.Sso.Audience;
+using Microsoft.Extensions.Logging;
 using FCloud3.Sso.Issuer;
 using FCloud3.Sso.Test.Support;
 using Microsoft.AspNetCore.Builder;
@@ -196,8 +197,9 @@ namespace FCloud3.Sso.Test.Audience
                         webBuilder.ConfigureServices(services =>
                         {
                             services.AddF3SsoAudience();
-                            services.AddScoped(sp => new F3SsoAudience(
+                            services.AddScoped(sp => new F3SsoAudienceService(
                                 sp.GetRequiredService<IConfiguration>(),
+                                sp.GetRequiredService<ILogger<F3SsoAudienceService>>(),
                                 IssuerServer.CreateHandler()));
                             if (signInHandler is not null)
                             {

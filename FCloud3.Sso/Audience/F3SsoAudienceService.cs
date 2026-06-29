@@ -1,23 +1,29 @@
 ﻿using FCloud3.Sso;
 using FCloud3.Sso.Issuer;
 using Microsoft.Extensions.Configuration;
-using RestSharp;
+using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 
 namespace FCloud3.Sso.Audience
 {
     /// <summary>
     /// SSO 受众方客户端，用于向指定签发方请求授权以及验证 code。
     /// </summary>
-    public class F3SsoAudience
+    public class F3SsoAudienceService
     {
         private readonly F3SsoAudienceOptions _options;
         private readonly HttpMessageHandler? _testHandler;
+        private readonly ILogger<F3SsoAudienceService> _logger;
 
-        public F3SsoAudience(IConfiguration configuration, HttpMessageHandler? testHandler = null)
+        public F3SsoAudienceService(
+            IConfiguration configuration,
+            ILogger<F3SsoAudienceService> logger,
+            HttpMessageHandler? testHandler = null)
         {
             _options = new F3SsoAudienceOptions();
             configuration.GetSection("F3Sso").Bind(_options);
             _testHandler = testHandler;
+            _logger = logger;
         }
 
         private F3SsoAudienceIssuerOptions? GetIssuer(string issuerId)
@@ -56,33 +62,34 @@ namespace FCloud3.Sso.Audience
                 return null;
 
             var baseUrl = new Uri(issuer.Origin.TrimEnd('/'));
-            RestClient client;
-            if (_testHandler is not null)
-            {
-                client = new RestClient(_testHandler, disposeHandler: false, configureRestClient: options =>
-                {
-                    options.BaseUrl = baseUrl;
-                    options.ThrowOnAnyError = false;
-                    options.Timeout = TimeSpan.FromSeconds(10);
-                });
-            }
-            else
-            {
-                client = new RestClient(new RestClientOptions
-                {
-                    BaseUrl = baseUrl,
-                    ThrowOnAnyError = false,
-                    Timeout = TimeSpan.FromSeconds(10)
-                });
-            }
+            using var client = _testHandler is not null
+                ? new HttpClient(_testHandler, disposeHandler: false)
+                : new HttpClient();
+            client.BaseAddress = baseUrl;
+            client.Timeout = TimeSpan.FromSeconds(10);
 
-            var request = new RestRequest($"/f3sso/iss/validate/{Uri.EscapeDataString(code)}");
-            var response = await client.ExecuteGetAsync<F3SsoValidatedUser>(request, cancellationToken);
-            if (response is not null && response.IsSuccessful)
+            try
             {
-                return response.Data;
+                var response = await client.GetAsync(
+                    $"/f3sso/iss/validate/{Uri.EscapeDataString(code)}",
+                    cancellationToken);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<F3SsoValidatedUser>(
+                        cancellationToken: cancellationToken);
+                }
+                _logger.LogWarning("签发方 {IssuerId} 验证 code 返回非成功状态码 {StatusCode}", issuerId, response.StatusCode);
+                return null;
             }
-            return null;
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "向签发方 {IssuerId} 验证 code 时发生异常", issuerId);
+                return null;
+            }
         }
     }
 }
