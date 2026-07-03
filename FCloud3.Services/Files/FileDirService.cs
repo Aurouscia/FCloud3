@@ -534,29 +534,33 @@ namespace FCloud3.Services.Files
             var item = _fileDirRepo.GetById(dirId);
             if (item is null)
                 return false;
-            var items = _fileItemRepo.GetByDirId(dirId).Count();
-            if (items > 0) 
+            //AsDir 不为 0 的目录是映射目录，不检查是否为空
+            if (item.AsDir == 0)
             {
-                errmsg = "只能删除空文件夹";
-                return false;
-            }
-            //词条被删除，词条-目录关系仍残留，需要检查所有关系指向的存在的词条数量
-            var wikis =
-                from relation in _wikiToDirRepo.Existing
-                from w in _wikiItemRepo.Existing
-                where relation.DirId == dirId
-                where relation.WikiId == w.Id
-                select w.Id;
-            if (wikis.Count() > 0)
-            {
-                errmsg = "只能删除空文件夹";
-                return false;
-            }
-            var subDirs = _fileDirRepo.GetChildrenById(dirId)?.Count() ?? 0;
-            if (subDirs > 0)
-            {
-                errmsg = "只能删除空文件夹";
-                return false;
+                var items = _fileItemRepo.GetByDirId(dirId).Count();
+                if (items > 0) 
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
+                //词条被删除，词条-目录关系仍残留，需要检查所有关系指向的存在的词条数量
+                var wikis =
+                    from relation in _wikiToDirRepo.Existing
+                    from w in _wikiItemRepo.Existing
+                    where relation.DirId == dirId
+                    where relation.WikiId == w.Id
+                    select w.Id;
+                if (wikis.Count() > 0)
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
+                var subDirs = _fileDirRepo.GetChildrenById(dirId)?.Count() ?? 0;
+                if (subDirs > 0)
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
             }
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
