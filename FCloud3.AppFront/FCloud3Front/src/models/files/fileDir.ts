@@ -75,3 +75,8 @@ export interface FileDirPutInResult{
     WikiItemSuccess?:number[]
     FailMsg?:string
 }
+export interface FileDirShortcut{
+    Id:number,
+    Name:string,
+    Path:string[]
+}

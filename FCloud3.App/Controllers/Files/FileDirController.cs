@@ -28,6 +28,11 @@ namespace FCloud3.App.Controllers.Files
                 return this.ApiFailedResp("查找指定id的文件夹时出错");
             return this.ApiResp(res);
         }
+        public IActionResult Shortcuts(int targetDirId)
+        {
+            var res = _fileDirService.GetShortcuts(targetDirId);
+            return this.ApiResp(res);
+        }
 
         public IActionResult Index([FromBody]FileDirIndexRequest req)
         {

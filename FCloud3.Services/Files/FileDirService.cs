@@ -59,6 +59,16 @@ namespace FCloud3.Services.Files
         {
             return _fileDirRepo.GetPathById(id);
         }
+        public List<FileDirShortcutModel> GetShortcuts(int targetDirId)
+        {
+            var dirs = _fileDirRepo.GetByAsDir(targetDirId);
+            return dirs.Select(x => new FileDirShortcutModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Path = _fileDirRepo.GetPathById(x.Id) ?? []
+            }).ToList();
+        }
 
 
         private enum FileDirContentItemType
@@ -534,6 +544,12 @@ namespace FCloud3.Services.Files
             var item = _fileDirRepo.GetById(dirId);
             if (item is null)
                 return false;
+            var shortcuts = _fileDirRepo.GetByAsDir(dirId);
+            if (shortcuts.Count > 0)
+            {
+                errmsg = "请先删除该目录的所有快捷方式";
+                return false;
+            }
             //AsDir 不为 0 的目录是映射目录，不检查是否为空
             if (item.AsDir == 0)
             {
@@ -587,6 +603,12 @@ namespace FCloud3.Services.Files
         } 
     }
 
+    public class FileDirShortcutModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public List<string> Path { get; set; } = [];
+    }
     public class FileDirIndexResult
     {
         public required List<FileDirSubDir> SubDirs { get; set; }

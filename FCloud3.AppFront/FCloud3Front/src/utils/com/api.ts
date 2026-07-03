@@ -7,7 +7,7 @@ import { WikiParaType } from "@/models/wiki/wikiParaType";
 import { HttpClient } from "./httpClient";
 import { IdentityInfo } from "../globalStores/identityInfo";
 import { FileItem, FileItemDetail, FileUploadRequest, StagingFile } from "@/models/files/fileItem";
-import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest } from '@/models/files/fileDir';
+import { FileDirIndexResult, PutInFileRequest, PutInThingsRequest, FileDirPutInResult, FileDirCreateRequest, FileDirShortcut } from '@/models/files/fileDir';
 import { FileDir } from "@/models/files/fileDir";
 import { QuickSearchResult } from '@/models/etc/quickSearch';
 import { UserGroup, UserGroupDetailResult, UserGroupListResult } from '@/models/identities/userGroup';
@@ -855,6 +855,16 @@ export class Api{
                 );
                 if(res.success){
                     return res.data as string[]
+                }
+            },
+            shortcuts:async(targetDirId:number)=>{
+                const res = await this.httpClient.request(
+                    "/api/FileDir/Shortcuts",
+                    "get",
+                    {targetDirId}
+                );
+                if(res.success){
+                    return res.data as FileDirShortcut[]
                 }
             },
             index:async(q: IndexQuery,path?: string[])=>{
