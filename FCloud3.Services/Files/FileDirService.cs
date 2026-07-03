@@ -512,6 +512,21 @@ namespace FCloud3.Services.Files
                 return false;
             }
 
+            if (asDir > 0)
+            {
+                var targetDir = _fileDirRepo.GetById(asDir);
+                if (targetDir is null)
+                {
+                    errmsg = "找不到目标目录";
+                    return false;
+                }
+                if (targetDir.AsDir > 0)
+                {
+                    errmsg = "不能将快捷方式设置为快捷方式";
+                    return false;
+                }
+            }
+
             int depth = 0;
             if (parent is not null)
                 depth = parent.Depth + 1;
