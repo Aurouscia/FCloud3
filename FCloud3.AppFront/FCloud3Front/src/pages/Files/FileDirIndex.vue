@@ -558,7 +558,6 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     gap:5px;
     flex: 1;
     min-width: 0;
-    overflow: hidden;
 }
 .subdir div{
     display: flex;
