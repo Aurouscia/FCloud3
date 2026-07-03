@@ -399,9 +399,13 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 <style scoped lang="scss">
 @use '@/styles/globalValues';
 
+/* 改动本组件、FileDirChild、FileDirItems 内的元素的 padding、 margin 或宽度后，请人工检查超长名称目录和子目录的展开效果 */
+/* 如果出现异常（溢出），则在这三个组件中搜索 width: calc(，调整里面的魔术值，直到视觉效果合适 */
+
 .asDirIcon{
     font-size: 14px;
     line-height: 14px;
+    flex-shrink: 0;
 }
 .asDirInfo{
     position: fixed;
@@ -523,22 +527,38 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     border-bottom: 1px solid black;
     margin-left: 11px;
     padding-left: 4px;
+    min-width: 0;
+    width: calc(100vw - 70px);
 }
 .foldBtn{
     width: 20px;
     overflow: visible;
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
 }
 .subdirName{
     text-align: left;
     font-weight: bold;
-    max-width: calc(100vw - 100px);
     display: block !important;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .subdirName:hover{
     text-decoration: underline;
     cursor: pointer;
+}
+.subdir > div:first-child{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    gap:5px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 .subdir div{
     display: flex;
@@ -555,6 +575,8 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     align-items: center;
     padding: 4px;
     height: 20px;
+    min-width: 0;
+    width: calc(100vw - 62px);
 }
 .fileDir{
     padding-top: 10px;
