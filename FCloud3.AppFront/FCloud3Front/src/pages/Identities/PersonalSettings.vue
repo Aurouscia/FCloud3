@@ -226,6 +226,9 @@ onMounted(async()=>{
             <button @click="exportSpecifiedWikis" class="wikiExportBtn">导出本账号指定词条</button>
             <button v-if="isSuperAdmin && allowExportAll" @click="exportAllSpecifiedWikis" class="wikiExportBtn">导出本站指定词条</button>
         </div>
+        <Notice :type="'info'">
+            请输入词条<b>路径名</b>而非词条标题，逗号为英文逗号
+        </Notice>
         <h1>导入词条</h1>
         <div class="section" v-if="isSuperAdmin">
             <button @click="jumpToWikiImport" class="wikiExportBtn">前往词条导入页面</button>
