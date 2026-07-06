@@ -167,7 +167,9 @@ namespace FCloud3.WikiPreprocessor.Models
             }
             string style2 = $"height:{Height};";
 
-            if (UrlUtil.IsImage(Src))
+            if (UrlUtil.IsSvg(Src))
+                return $"<object data=\"{Src}\" type=\"image/svg+xml\" style=\"{style1};{style2}\"></object>";
+            else if (UrlUtil.IsImage(Src))
                 return $"<img src=\"{Src}\" style=\"{style1};{style2}\"/>";
             else if (UrlUtil.IsAudio(Src))
                 return $"<audio controls src=\"{Src}\" style=\"{style1};{style2}\"></audio>";

@@ -121,7 +121,7 @@ namespace FCloud3.WikiPreprocessor.Test
             new object[] { "看看这个[http://img.png|8]", "看看这个<img src=\"http://img.png\" style=\"float:right;height:8em;\"/>" },
             new object[] { "看看这个[http://img.png|9 |xxx]", "看看这个<img src=\"http://img.png\" style=\"float:right;height:9em;\"/>" },
             new object[] { "看看这个[http://img.png|9 | leFt]", "看看这个<img src=\"http://img.png\" style=\"float:left;height:9em;\"/>" },
-            new object[] { "看看这个[http://img.svg|100px]", "看看这个<img src=\"http://img.svg\" style=\"float:right;height:100px;\"/>" },
+            new object[] { "看看这个[http://img.svg|100px]", "看看这个<object data=\"http://img.svg\" type=\"image/svg+xml\" style=\"float:right;height:100px;\"></object>" },
             new object[] { "看看这个[http://ad.mp3]", "看看这个<audio controls src=\"http://ad.mp3\" style=\"float:right;height:5em;\"></audio>" },
             new object[] { "看看这个[http://vd.webm]", "看看这个<video controls src=\"http://vd.webm\" style=\"float:right;height:5em;\"></video>" }
         };
