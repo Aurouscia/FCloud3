@@ -16,7 +16,7 @@
     </ul>
 
     <h2>基本用法</h2>
-    <p>在表格<strong>任意单元格</strong>中填入触发词，可选后跟方向参数：</p>
+    <p>在表格<strong>任意单元格</strong>中填入触发词，可选后跟方向参数和移动端策略：</p>
     <table>
         <tr><td>au-table-float</td><td></td></tr>
         <tr><td>第一列数据</td><td>第二列数据</td></tr>
@@ -29,22 +29,61 @@
     <h2>方向参数</h2>
     <p>触发词后可跟 <code>left</code> 或 <code>right</code> 控制浮动方向，不区分大小写。不写时默认为 <code>right</code>。</p>
     <table>
-        <tr><td>au-table-float right</td><td>向右浮动（默认）</td></tr>
+        <tr><td>au-table-float right</td><td>向右浮动</td></tr>
         <tr><td>au-table-float left</td><td>向左浮动</td></tr>
     </table>
+
+    <h2>移动端策略 <code>mobile(...)</code></h2>
+    <p>可指定在移动端（屏幕宽度小于阈值）时的处理策略，语法为 <code>mobile(策略, 阈值, 按钮文本)</code>。</p>
+    <ul>
+        <li><strong>策略</strong>：可选 <code>asis</code>、<code>enforce</code>、<code>drawer</code>，默认 <code>asis</code>。</li>
+        <li><strong>阈值</strong>：像素值，默认 <code>500px</code>。屏幕宽度小于该值时视为移动端。</li>
+        <li><strong>按钮文本</strong>：仅在 <code>drawer</code> 策略下有效，默认 <code>打开表格</code>。</li>
+    </ul>
+    <p>不写 <code>mobile(...)</code> 时，相当于 <code>mobile(asis, 500px, 打开表格)</code>。</p>
+
+    <h3>策略说明</h3>
+    <table>
+        <tr><td>asis</td><td>在移动端<strong>不移动</strong>表格、不加类名，仅移除触发行；在桌面端正常执行移动。</td></tr>
+        <tr><td>enforce</td><td>无论当前屏幕宽度，都执行移动。</td></tr>
+        <tr><td>drawer</td><td>在移动端将表格放入侧滑抽屉，原位置保留一个打开按钮；在桌面端正常执行移动。</td></tr>
+    </table>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float mobile(asis, 500px)</td><td>移动端宽度小于 500px 时不移动</td></tr>
+        <tr><td>au-table-float mobile(enforce, 800px)</td><td>无论宽度是否小于 800px，都移动</td></tr>
+        <tr><td>au-table-float left mobile(enforce)</td><td>向左浮动，且始终移动</td></tr>
+        <tr><td>au-table-float mobile(drawer, 600px)</td><td>宽度小于 600px 时使用侧滑抽屉</td></tr>
+        <tr><td>au-table-float mobile(drawer, 600px, 查看详情)</td><td>抽屉按钮显示“查看详情”</td></tr>
+        <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 500px），按钮显示“打开”</td></tr>
+    </table>
+
+    <h2>侧滑抽屉（drawer 策略）</h2>
+    <p>当 <code>drawer</code> 策略生效时：</p>
+    <ul>
+        <li>在原表格位置插入一个 <code>&lt;button&gt;</code>，样式为 <code>display: block; margin: 10px auto;</code>。</li>
+        <li>页面中新增两层元素：
+            <ul>
+                <li>背景层：黑色半透明（<code>opacity: 0.4</code>），撑满整个视口，点击可关闭抽屉。</li>
+                <li>主体层：白色背景，上下撑满屏幕高度，固定在左侧或右侧。默认从右侧滑出，若指定 <code>left</code> 方向则从左侧滑出。</li>
+            </ul>
+        </li>
+        <li>表格被移动到抽屉主体层内部。</li>
+        <li>打开抽屉时，背景层在 0.3 秒内从透明渐变为半透明，主体层在 0.3 秒内从屏幕外滑入。</li>
+    </ul>
 
     <h2>效果</h2>
     <ul>
         <li>触发词所在的整行会被移除。</li>
-        <li>触发词所在的 <code>&lt;table&gt;</code> 元素会被设置浮动方向，并添加类名 <code>au-floated-table</code>。</li>
-        <li>表格的 <code>style</code> 属性会根据方向设置外边距：
+        <li>在桌面端（或 <code>enforce</code> 策略下，或 <code>drawer</code> 策略下），触发词所在的 <code>&lt;table&gt;</code> 元素会被设置浮动方向，并添加类名 <code>au-floated-table</code>；表格会被移动到当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置；<code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>。</li>
+        <li>在移动端使用 <code>drawer</code> 策略时，表格会被放入侧滑抽屉，原位置保留一个按钮，点击按钮打开抽屉。</li>
+        <li>表格的 <code>style</code> 属性会根据方向设置外边距（桌面端或 enforce 策略下）：
             <ul>
                 <li>向右浮动：<code>margin-left: 10px</code>、<code>margin-bottom: 10px</code></li>
                 <li>向左浮动：<code>margin-right: 10px</code>、<code>margin-bottom: 10px</code></li>
             </ul>
         </li>
-        <li>表格会被移动到当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置。</li>
-        <li>被移入的 <code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>。</li>
         <li>插件运行时会自动向 <code>&lt;head&gt;</code> 末尾插入 <code>&lt;style id="au-table-float-styles"&gt;</code>，为 <code>.au-floated-paras</code> 内的元素提供默认样式；多次运行不会重复插入。</li>
     </ul>
 
@@ -54,10 +93,16 @@
     .au-floated-paras .indent {
         overflow-x: unset;
     }
+    .au-table-float-drawer {
+        padding: 6px;
+    }
+    .au-table-float-drawer table {
+        min-width: 100%;
+    }
 &lt;/style&gt;</code></pre>
 
     <h2>错误处理</h2>
-    <p>如果页面中不存在 <code>.wikiView .paras</code> 元素，表格仍会被移除触发行并设置浮动样式，同时会在表格后方显示红色错误文本：<b style="color:red">找不到.paras元素</b>。</p>
+    <p>如果桌面端（或 <code>enforce</code> 策略下）页面中不存在 <code>.wikiView .paras</code> 元素，表格仍会被移除触发行并设置浮动样式，同时会在表格后方显示红色错误文本：<b style="color:red">找不到.paras元素</b>。</p>
 
     <h2>注意事项</h2>
     <ul>
@@ -66,7 +111,7 @@
         <li>如果同一个表格中有多个行包含触发词，这些行都会被移除。</li>
         <li>插件按表格独立处理，多个表格互不干扰。</li>
         <li>只使用页面中第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素。</li>
-        <li>触发词区分大小写，必须使用 <code>au-table-float</code>；方向参数不区分大小写。</li>
+        <li>触发词区分大小写，必须使用 <code>au-table-float</code>；方向参数和策略参数不区分大小写。</li>
     </ul>
 </body>
 </html>
