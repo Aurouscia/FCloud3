@@ -38,7 +38,7 @@ describe('AuTableFloat', () => {
   }
 
   describe('trigger detection', () => {
-    it('should float table right, add class and move before .paras when trigger is in first cell', () => {
+    it('should float table right by default and add right/bottom margins', () => {
       const paras = createWikiViewWithParas()
       createTable(`
         <tr><td>au-table-float</td><td></td></tr>
@@ -48,6 +48,10 @@ describe('AuTableFloat', () => {
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
       expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginRight).toBe('')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(table.style.marginTop).toBe('')
       expect(paras.classList.contains('au-floated-paras')).toBe(true)
       const rows = qsa<HTMLTableRowElement>('table tr')
       expect(rows.length).toBe(1)
@@ -65,6 +69,8 @@ describe('AuTableFloat', () => {
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
       expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginBottom).toBe('10px')
       expect(paras.classList.contains('au-floated-paras')).toBe(true)
       const rows = qsa<HTMLTableRowElement>('table tr')
       expect(rows.length).toBe(1)
@@ -102,7 +108,7 @@ describe('AuTableFloat', () => {
       expect(paras.firstElementChild).toBeNull()
     })
 
-    it('should skip partial matches', () => {
+    it('should trigger with extra parameters and default to right', () => {
       const paras = createWikiViewWithParas()
       createTable(`
         <tr><td>au-table-float extra</td></tr>
@@ -110,11 +116,13 @@ describe('AuTableFloat', () => {
       `)
       run()
       const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.classList.contains('au-floated-paras')).toBe(false)
-      expect(qsa<HTMLTableRowElement>('table tr').length).toBe(2)
-      expect(paras.firstElementChild).toBeNull()
+      expect(table.style.float).toBe('right')
+      expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(paras.classList.contains('au-floated-paras')).toBe(true)
+      expect(qsa<HTMLTableRowElement>('table tr').length).toBe(1)
+      expect(paras.firstElementChild).toBe(table)
     })
 
     it('should handle trigger with surrounding whitespace', () => {
@@ -141,6 +149,8 @@ describe('AuTableFloat', () => {
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
       expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginBottom).toBe('10px')
       expect(qsa<HTMLTableRowElement>('table tr').length).toBe(1)
       const error = table.nextElementSibling as HTMLElement
       expect(error).not.toBeNull()
@@ -177,6 +187,68 @@ describe('AuTableFloat', () => {
     })
   })
 
+  describe('float direction parameter', () => {
+    it('should float left when left is specified', () => {
+      const paras = createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float left</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.float).toBe('left')
+      expect(table.style.marginRight).toBe('10px')
+      expect(table.style.marginLeft).toBe('')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(table.style.marginTop).toBe('')
+      expect(paras.firstElementChild).toBe(table)
+    })
+
+    it('should float right when right is specified', () => {
+      const paras = createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float right</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.float).toBe('right')
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginRight).toBe('')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(table.style.marginTop).toBe('')
+      expect(paras.firstElementChild).toBe(table)
+    })
+
+    it('should handle left in mixed case', () => {
+      const paras = createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float LEFT</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.float).toBe('left')
+      expect(table.style.marginRight).toBe('10px')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(paras.firstElementChild).toBe(table)
+    })
+
+    it('should ignore non-direction words', () => {
+      const paras = createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float something else</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.float).toBe('right')
+      expect(table.style.marginLeft).toBe('10px')
+      expect(table.style.marginBottom).toBe('10px')
+      expect(paras.firstElementChild).toBe(table)
+    })
+  })
+
   describe('styles injection', () => {
     it('should inject style tag into head on first run', () => {
       createWikiViewWithParas()
@@ -188,8 +260,8 @@ describe('AuTableFloat', () => {
       const style = document.getElementById('au-table-float-styles') as HTMLStyleElement
       expect(style).not.toBeNull()
       expect(style.parentElement).toBe(document.head)
-      expect(style.textContent).toContain('.au-floated-table')
-      expect(style.textContent).toContain('margin: 10px !important')
+      expect(style.textContent).not.toContain('.au-floated-table')
+      expect(style.textContent).not.toContain('margin')
       expect(style.textContent).toContain('.au-floated-paras .para')
       expect(style.textContent).toContain('.au-floated-paras .indent')
       expect(style.textContent).toContain('overflow-x: unset')
@@ -226,7 +298,7 @@ describe('AuTableFloat', () => {
       createTable(`
         <tr><td>au-table-float</td></tr>
         <tr><td>数据1</td></tr>
-        <tr><td>au-table-float</td></tr>
+        <tr><td>au-table-float left</td></tr>
         <tr><td>数据2</td></tr>
       `)
       run()
@@ -258,7 +330,7 @@ describe('AuTableFloat', () => {
     it('should process multiple tables independently', () => {
       const paras = createWikiViewWithParas()
       createTable(`
-        <tr><td>au-table-float</td></tr>
+        <tr><td>au-table-float left</td></tr>
         <tr><td>表1数据</td></tr>
       `)
       createTable(`
@@ -268,8 +340,10 @@ describe('AuTableFloat', () => {
       run()
       const tables = qsa<HTMLTableElement>('table')
       expect(tables.length).toBe(2)
-      expect(tables[0].style.float).toBe('right')
+      expect(tables[0].style.float).toBe('left')
       expect(tables[0].classList.contains('au-floated-table')).toBe(true)
+      expect(tables[0].style.marginRight).toBe('10px')
+      expect(tables[0].style.marginBottom).toBe('10px')
       expect(tables[1].style.float).toBe('')
       expect(tables[1].classList.contains('au-floated-table')).toBe(false)
       expect(tables[0].querySelectorAll('tr').length).toBe(1)
