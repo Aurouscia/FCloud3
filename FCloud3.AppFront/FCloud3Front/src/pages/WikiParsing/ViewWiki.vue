@@ -471,38 +471,40 @@ onUnmounted(()=>{
             </div>
         </div>
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
-        <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
-            <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
-                <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
-                    <span v-html="sanitizeWikiHtml(p.Title)" class="paraTitleText"></span>
-                    <div class="paraTitleSep"></div>
-                    <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
-                        <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+        <div class="paras">
+            <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
+                <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
+                    <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
+                        <span v-html="sanitizeWikiHtml(p.Title)" class="paraTitleText"></span>
+                        <div class="paraTitleSep"></div>
+                        <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
+                            <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+                        </div>
+                        <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
+                            <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                        </div>
+                        <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
+                        <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
+                        <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    </h1>
+                    <div class="indent" v-html="sanitizeWikiHtml(p.Content)">
                     </div>
-                    <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
-                        <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                </div>
+                <div v-if="p.ParaType==WikiParaType.File && p.Content">
+                    <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
+                        <img :src="p.Content" :alt="p.Title" loading="lazy"/>
+                        <div>{{ p.Title }}</div>
                     </div>
-                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
-                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
-                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
-                </h1>
-                <div class="indent" v-html="sanitizeWikiHtml(p.Content)">
-                </div>
-            </div>
-            <div v-if="p.ParaType==WikiParaType.File && p.Content">
-                <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
-                    <img :src="p.Content" :alt="p.Title" loading="lazy"/>
-                    <div>{{ p.Title }}</div>
-                </div>
-                <div v-else-if="getFileType(p.Content)=='audio'">
-                    <audio :src="p.Content" controls loading="lazy" ></audio>
-                </div>
-                <div v-else-if="getFileType(p.Content)=='video'">
-                    <video :src="p.Content" controls loading="lazy" ></video>
-                </div>
-                <div v-else class="filePara">
-                    <span class="fileHint">点击下载文件：</span>
-                    <a :href="p.Content" target="_blank">{{ p.Title }}</a>
+                    <div v-else-if="getFileType(p.Content)=='audio'">
+                        <audio :src="p.Content" controls loading="lazy" ></audio>
+                    </div>
+                    <div v-else-if="getFileType(p.Content)=='video'">
+                        <video :src="p.Content" controls loading="lazy" ></video>
+                    </div>
+                    <div v-else class="filePara">
+                        <span class="fileHint">点击下载文件：</span>
+                        <a :href="p.Content" target="_blank">{{ p.Title }}</a>
+                    </div>
                 </div>
             </div>
         </div>
