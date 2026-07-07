@@ -1,0 +1,6 @@
+{
+    "displayName": "表格浮动器",
+    "triggers": ["au-table-float"],
+    "priority": 2,
+    "description": "将包含触发词的表格行移除，并使表格浮动到右侧"
+}

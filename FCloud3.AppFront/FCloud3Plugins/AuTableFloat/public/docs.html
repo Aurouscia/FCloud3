@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuTableFloat 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuTableFloat 表格浮动插件</h1>
+    <p>在表格的任意单元格中写入触发词，即可让该表格浮动到右侧，并自动移除包含触发词的那一行。</p>
+
+    <h2>触发词</h2>
+    <ul>
+        <li><code class="trigger">au-table-float</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在表格<strong>任意单元格</strong>中填入触发词：</p>
+    <table>
+        <tr><td>au-table-float</td><td></td></tr>
+        <tr><td>第一列数据</td><td>第二列数据</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>包含触发词的行会在页面渲染后被自动移除，用户看不到这一行。
+    </div>
+
+    <h2>效果</h2>
+    <ul>
+        <li>触发词所在的整行会被移除。</li>
+        <li>触发词所在的 <code>&lt;table&gt;</code> 元素会被设置为 <code>float: right</code>，并添加类名 <code>au-floated-table</code>。</li>
+        <li>表格会被移动到当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置。</li>
+        <li>被移动到其前面的 <code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>。</li>
+        <li>插件运行时会自动向 <code>&lt;head&gt;</code> 末尾插入 <code>&lt;style id="au-table-float-styles"&gt;</code>，为上述类名提供默认样式；多次运行不会重复插入。</li>
+    </ul>
+
+    <h2>注入样式</h2>
+    <pre><code>&lt;style id="au-table-float-styles"&gt;
+    .au-floated-table {
+        margin: 10px !important;
+    }
+    .au-floated-paras .para,
+    .au-floated-paras .indent {
+        overflow-x: unset;
+    }
+&lt;/style&gt;</code></pre>
+
+    <h2>错误处理</h2>
+    <p>如果页面中不存在 <code>.wikiView .paras</code> 元素，表格仍会被移除触发行并设置浮动样式，同时会在表格后方显示红色错误文本：<b style="color:red">找不到.paras元素</b>。</p>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>触发词需要独占单元格内容（去除前后空白后完全匹配）。</li>
+        <li>如果一行中有多个单元格包含触发词，该行也只会被移除一次。</li>
+        <li>如果同一个表格中有多个行包含触发词，这些行都会被移除。</li>
+        <li>插件按表格独立处理，多个表格互不干扰。</li>
+        <li>只使用页面中第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素。</li>
+        <li>触发词区分大小写，必须使用 <code>au-table-float</code>。</li>
+    </ul>
+</body>
+</html>
