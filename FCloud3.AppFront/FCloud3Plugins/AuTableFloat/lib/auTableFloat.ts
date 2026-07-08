@@ -52,7 +52,7 @@ interface MobileConfig {
     buttonText: string
 }
 
-const defaultMobileConfig: MobileConfig = { strategy: 'asis', threshold: 500, buttonText: '打开表格' }
+const defaultMobileConfig: MobileConfig = { strategy: 'asis', threshold: 800, buttonText: '打开表格' }
 
 interface TableState {
     table: HTMLTableElement

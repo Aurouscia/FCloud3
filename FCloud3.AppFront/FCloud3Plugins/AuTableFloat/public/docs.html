@@ -38,10 +38,10 @@
     <p>可指定在移动端（屏幕宽度小于阈值）时的处理策略，语法为 <code>mobile(策略, 阈值, 按钮文本)</code>。</p>
     <ul>
         <li><strong>策略</strong>：可选 <code>asis</code>、<code>enforce</code>、<code>drawer</code>，默认 <code>asis</code>。</li>
-        <li><strong>阈值</strong>：像素值，默认 <code>500px</code>。屏幕宽度小于该值时视为移动端。</li>
+        <li><strong>阈值</strong>：像素值，默认 <code>800px</code>。屏幕宽度小于该值时视为移动端。</li>
         <li><strong>按钮文本</strong>：仅在 <code>drawer</code> 策略下有效，默认 <code>打开表格</code>。</li>
     </ul>
-    <p>不写 <code>mobile(...)</code> 时，依然会有默认行为，相当于 <code>mobile(asis, 500px, 打开表格)</code>。</p>
+    <p>不写 <code>mobile(...)</code> 时，依然会有默认行为，相当于 <code>mobile(asis, 800px, 打开表格)</code>。</p>
 
     <h3>策略说明</h3>
     <table>
@@ -52,12 +52,12 @@
 
     <h3>示例</h3>
     <table>
-        <tr><td>au-table-float mobile(asis, 500px)</td><td>移动端宽度小于 500px 时不移动</td></tr>
+        <tr><td>au-table-float mobile(asis, 800px)</td><td>移动端宽度小于 800px 时不移动</td></tr>
         <tr><td>au-table-float mobile(enforce, 800px)</td><td>无论宽度是否小于 800px，都移动</td></tr>
         <tr><td>au-table-float left mobile(enforce)</td><td>向左浮动，且始终移动</td></tr>
         <tr><td>au-table-float mobile(drawer, 600px)</td><td>宽度小于 600px 时使用侧滑抽屉</td></tr>
         <tr><td>au-table-float mobile(drawer, 600px, 查看详情)</td><td>抽屉按钮显示“查看详情”</td></tr>
-        <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 500px），按钮显示“打开”</td></tr>
+        <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 800px），按钮显示“打开”</td></tr>
     </table>
 
     <h2>响应式切换</h2>
