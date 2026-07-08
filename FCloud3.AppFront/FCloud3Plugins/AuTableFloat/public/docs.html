@@ -8,7 +8,8 @@
 </head>
 <body>
     <h1>AuTableFloat 表格浮动插件</h1>
-    <p>在表格的任意单元格中写入触发词，即可让该表格浮动，并自动移除包含触发词的那一行。</p>
+    <p>在表格的任意单元格中写入触发词，即可让该表格浮动（形成文本环绕表格的效果），并自动移除包含触发词的那一行。</p>
+    <p>推荐搭配“隐藏标题”语法使用</p>
 
     <h2>触发词</h2>
     <ul>
@@ -40,13 +41,13 @@
         <li><strong>阈值</strong>：像素值，默认 <code>500px</code>。屏幕宽度小于该值时视为移动端。</li>
         <li><strong>按钮文本</strong>：仅在 <code>drawer</code> 策略下有效，默认 <code>打开表格</code>。</li>
     </ul>
-    <p>不写 <code>mobile(...)</code> 时，相当于 <code>mobile(asis, 500px, 打开表格)</code>。</p>
+    <p>不写 <code>mobile(...)</code> 时，依然会有默认行为，相当于 <code>mobile(asis, 500px, 打开表格)</code>。</p>
 
     <h3>策略说明</h3>
     <table>
-        <tr><td>asis</td><td>在移动端<strong>不移动</strong>表格、不加类名，仅移除触发行；在桌面端正常执行移动。</td></tr>
+        <tr><td>asis</td><td>在移动端<strong>不移动</strong>表格、不加类名，仅移除触发行；在桌面端正常执行移动。屏幕宽度变化时会自动切换。</td></tr>
         <tr><td>enforce</td><td>无论当前屏幕宽度，都执行移动。</td></tr>
-        <tr><td>drawer</td><td>在移动端将表格放入侧滑抽屉，原位置保留一个打开按钮；在桌面端正常执行移动。</td></tr>
+        <tr><td>drawer</td><td>在移动端将表格放入侧滑抽屉，原位置保留一个打开按钮；在桌面端正常执行移动。屏幕宽度变化时会自动切换。</td></tr>
     </table>
 
     <h3>示例</h3>
@@ -59,8 +60,15 @@
         <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 500px），按钮显示“打开”</td></tr>
     </table>
 
+    <h2>响应式切换</h2>
+    <p>插件会监听窗口大小变化。当屏幕宽度跨越阈值时：</p>
+    <ul>
+        <li><code>asis</code> 策略：从桌面端变窄到移动端时，表格从 <code>.paras</code> 回到原位置；从移动端变宽到桌面端时，表格移动到 <code>.paras</code> 内。</li>
+        <li><code>drawer</code> 策略：从桌面端变窄到移动端时，表格进入侧滑抽屉并生成打开按钮；从移动端变宽到桌面端时，抽屉和按钮被移除，表格移动到 <code>.paras</code> 内。</li>
+    </ul>
+
     <h2>侧滑抽屉（drawer 策略）</h2>
-    <p>当 <code>drawer</code> 策略生效时：</p>
+    <p>当 <code>drawer</code> 策略在移动端生效时：</p>
     <ul>
         <li>在原表格位置插入一个 <code>&lt;button&gt;</code>，样式为 <code>display: block; margin: 10px auto;</code>。</li>
         <li>页面中新增两层元素：
@@ -88,10 +96,14 @@
     </ul>
 
     <h2>注入样式</h2>
+    <p>本插件启动时，会略微改变页面原有行为，水平方向滚动条将不会再出现，以下是将会注入的样式：</p>
     <pre><code>&lt;style id="au-table-float-styles"&gt;
     .au-floated-paras .para,
     .au-floated-paras .indent {
-        overflow-x: unset;
+        overflow-x: initial !important;
+    }
+    .indent.indentFolded {
+        display: none !important
     }
     .au-table-float-drawer {
         padding: 6px;

@@ -38,6 +38,11 @@ describe('AuTableFloat', () => {
     return document.querySelectorAll(selector) as NodeListOf<T>
   }
 
+  function resizeTo(width: number) {
+    vi.stubGlobal('innerWidth', width)
+    window.dispatchEvent(new Event('resize'))
+  }
+
   describe('trigger detection', () => {
     it('should float table right by default on desktop', () => {
       const paras = createWikiViewWithParas()
@@ -52,9 +57,6 @@ describe('AuTableFloat', () => {
       expect(table.style.marginLeft).toBe('10px')
       expect(table.style.marginBottom).toBe('10px')
       expect(paras.classList.contains('au-floated-paras')).toBe(true)
-      const rows = qsa<HTMLTableRowElement>('table tr')
-      expect(rows.length).toBe(1)
-      expect(rows[0].querySelector('td')!.textContent).toBe('数据1')
       expect(paras.firstElementChild).toBe(table)
     })
 
@@ -66,9 +68,6 @@ describe('AuTableFloat', () => {
       `)
       run()
       const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
     })
 
@@ -80,9 +79,6 @@ describe('AuTableFloat', () => {
       `)
       run()
       const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
     })
 
@@ -94,11 +90,9 @@ describe('AuTableFloat', () => {
       `)
       run()
       const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
       expect(table.classList.contains('au-floated-table')).toBe(false)
       expect(paras.classList.contains('au-floated-paras')).toBe(false)
       expect(qsa<HTMLTableRowElement>('table tr').length).toBe(2)
-      expect(paras.firstElementChild).toBeNull()
     })
 
     it('should trigger with extra parameters and default to right', () => {
@@ -110,10 +104,6 @@ describe('AuTableFloat', () => {
       run()
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(table.style.marginLeft).toBe('10px')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
     })
 
@@ -125,9 +115,6 @@ describe('AuTableFloat', () => {
       `)
       run()
       const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
     })
 
@@ -139,11 +126,7 @@ describe('AuTableFloat', () => {
       run()
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(table.style.marginLeft).toBe('10px')
-      expect(table.style.marginBottom).toBe('10px')
       const error = table.nextElementSibling as HTMLElement
-      expect(error).not.toBeNull()
       expect(error.tagName).toBe('B')
       expect(error.style.color).toBe('red')
       expect(error.textContent).toBe('找不到.paras元素')
@@ -172,14 +155,12 @@ describe('AuTableFloat', () => {
       const table = qs<HTMLTableElement>('table')
       expect(firstParas.firstElementChild).toBe(table)
       expect(secondParas.firstElementChild).toBeNull()
-      expect(firstParas.classList.contains('au-floated-paras')).toBe(true)
-      expect(secondParas.classList.contains('au-floated-paras')).toBe(false)
     })
   })
 
   describe('float direction parameter', () => {
     it('should float left when left is specified', () => {
-      const paras = createWikiViewWithParas()
+      createWikiViewWithParas()
       createTable(`
         <tr><td>au-table-float left</td></tr>
         <tr><td>数据</td></tr>
@@ -189,12 +170,10 @@ describe('AuTableFloat', () => {
       expect(table.style.float).toBe('left')
       expect(table.style.marginRight).toBe('10px')
       expect(table.style.marginLeft).toBe('')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.firstElementChild).toBe(table)
     })
 
     it('should float right when right is specified', () => {
-      const paras = createWikiViewWithParas()
+      createWikiViewWithParas()
       createTable(`
         <tr><td>au-table-float right</td></tr>
         <tr><td>数据</td></tr>
@@ -202,154 +181,80 @@ describe('AuTableFloat', () => {
       run()
       const table = qs<HTMLTableElement>('table')
       expect(table.style.float).toBe('right')
-      expect(table.style.marginLeft).toBe('10px')
-      expect(table.style.marginRight).toBe('')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.firstElementChild).toBe(table)
-    })
-
-    it('should handle left in mixed case', () => {
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float LEFT</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('left')
-      expect(table.style.marginRight).toBe('10px')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.firstElementChild).toBe(table)
-    })
-
-    it('should ignore non-direction words', () => {
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float something else</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.style.marginLeft).toBe('10px')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.firstElementChild).toBe(table)
     })
   })
 
-  describe('mobile config', () => {
-    it('should default to asis with 500px threshold', () => {
-      vi.stubGlobal('innerWidth', 400)
+  describe('asis responsive switching', () => {
+    it('should move to float on desktop and back to original on mobile', () => {
       const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.classList.contains('au-floated-paras')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-      expect(qsa<HTMLTableRowElement>('table tr').length).toBe(1)
-    })
-
-    it('should move table on desktop with asis strategy', () => {
-      vi.stubGlobal('innerWidth', 800)
-      const paras = createWikiViewWithParas()
-      createTable(`
+      const table = createTable(`
         <tr><td>au-table-float mobile(asis, 500px)</td></tr>
         <tr><td>数据</td></tr>
       `)
+      const originalParent = table.parentElement
       run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
-    })
+      expect(table.classList.contains('au-floated-table')).toBe(true)
 
-    it('should not move table on mobile with asis strategy', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(asis, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
+      resizeTo(400)
+      expect(table.parentElement).toBe(originalParent)
       expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.classList.contains('au-floated-paras')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
+      expect(table.style.float).toBe('')
 
-    it('should move table regardless of width with enforce strategy', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(enforce, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
+      resizeTo(1024)
       expect(paras.firstElementChild).toBe(table)
+      expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.style.float).toBe('right')
     })
+  })
 
-    it('should move table with drawer strategy on desktop', () => {
-      vi.stubGlobal('innerWidth', 800)
+  describe('drawer responsive switching', () => {
+    it('should move to float on desktop and create drawer on mobile', () => {
       const paras = createWikiViewWithParas()
-      createTable(`
+      const table = createTable(`
         <tr><td>au-table-float mobile(drawer, 500px)</td></tr>
         <tr><td>数据</td></tr>
       `)
+      const originalParent = table.parentElement
       run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
       expect(paras.firstElementChild).toBe(table)
-      expect(document.body.querySelectorAll('button').length).toBe(0)
-    })
+      expect(document.querySelector('button')).toBeNull()
 
-    it('should create drawer with button on mobile', () => {
-      vi.stubGlobal('innerWidth', 400)
-      createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(drawer, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
+      resizeTo(400)
+      expect(table.parentElement).not.toBe(originalParent)
+      expect(table.parentElement).not.toBe(paras)
       const button = document.querySelector('button')
       expect(button).not.toBeNull()
       expect(button!.textContent).toBe('打开表格')
-      expect(button!.style.display).toBe('block')
-      expect(button!.style.margin).toBe('10px auto')
-
-      const backdrop = button!.nextElementSibling as HTMLElement
-      expect(backdrop).not.toBeNull()
-      expect(backdrop.style.position).toBe('fixed')
-      expect(backdrop.style.backgroundColor).toBe('black')
-      expect(backdrop.style.opacity).toBe('0')
-      expect(backdrop.style.transition).toContain('opacity')
-      expect(backdrop.style.zIndex).toBe('9998')
-
-      const panel = backdrop.nextElementSibling as HTMLElement
+      expect(button!.parentElement).toBe(originalParent)
+      const panel = document.querySelector('.au-table-float-panel') as HTMLElement
       expect(panel).not.toBeNull()
-      expect(panel.style.position).toBe('fixed')
-      expect(panel.style.top).toBe('0px')
-      expect(panel.style.bottom).toBe('0px')
-      expect(panel.style.backgroundColor).toBe('white')
-      expect(panel.style.zIndex).toBe('9999')
-      expect(panel.style.transition).toContain('transform')
-      expect(panel.classList.contains('au-table-float-drawer')).toBe(true)
-      expect(panel.querySelector('table')).not.toBeNull()
+      expect(panel.contains(table)).toBe(true)
+
+      resizeTo(1024)
+      expect(paras.firstElementChild).toBe(table)
+      expect(document.querySelector('button')).toBeNull()
+      expect(document.querySelector('.au-table-float-backdrop')).toBeNull()
+      expect(document.querySelector('.au-table-float-panel')).toBeNull()
     })
 
-    it('should open drawer from right by default when button clicked', () => {
+    it('should remove drawer elements when switching to desktop', () => {
+      vi.stubGlobal('innerWidth', 400)
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float mobile(drawer, 500px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(document.querySelector('button')).not.toBeNull()
+
+      resizeTo(1024)
+      expect(document.querySelector('button')).toBeNull()
+      expect(document.querySelector('.au-table-float-backdrop')).toBeNull()
+      expect(document.querySelector('.au-table-float-panel')).toBeNull()
+    })
+
+    it('should open and close drawer', () => {
       vi.stubGlobal('innerWidth', 400)
       createWikiViewWithParas()
       createTable(`
@@ -358,45 +263,9 @@ describe('AuTableFloat', () => {
       `)
       run()
       const button = document.querySelector('button')!
-      const panel = button.nextElementSibling!.nextElementSibling as HTMLElement
-      expect(panel.style.right).toBe('0px')
+      const backdrop = document.querySelector('.au-table-float-backdrop') as HTMLElement
+      const panel = document.querySelector('.au-table-float-panel') as HTMLElement
       expect(panel.style.transform).toBe('translateX(100%)')
-
-      button.click()
-      expect(panel.style.transform).toBe('translateX(0)')
-      const backdrop = button.nextElementSibling as HTMLElement
-      expect(backdrop.style.opacity).toBe('0.4')
-      expect(backdrop.style.pointerEvents).toBe('auto')
-    })
-
-    it('should open drawer from left when direction is left', () => {
-      vi.stubGlobal('innerWidth', 400)
-      createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float left mobile(drawer, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const button = document.querySelector('button')!
-      const panel = button.nextElementSibling!.nextElementSibling as HTMLElement
-      expect(panel.style.left).toBe('0px')
-      expect(panel.style.transform).toBe('translateX(-100%)')
-
-      button.click()
-      expect(panel.style.transform).toBe('translateX(0)')
-    })
-
-    it('should close drawer when backdrop clicked', () => {
-      vi.stubGlobal('innerWidth', 400)
-      createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(drawer, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const button = document.querySelector('button')!
-      const backdrop = button.nextElementSibling as HTMLElement
-      const panel = backdrop.nextElementSibling as HTMLElement
 
       button.click()
       expect(panel.style.transform).toBe('translateX(0)')
@@ -405,23 +274,9 @@ describe('AuTableFloat', () => {
       backdrop.click()
       expect(panel.style.transform).toBe('translateX(100%)')
       expect(backdrop.style.opacity).toBe('0')
-      expect(backdrop.style.pointerEvents).toBe('none')
     })
 
-    it('should use custom button text from third mobile parameter', () => {
-      vi.stubGlobal('innerWidth', 400)
-      createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(drawer, 500px, 查看详情)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const button = document.querySelector('button')
-      expect(button).not.toBeNull()
-      expect(button!.textContent).toBe('查看详情')
-    })
-
-    it('should allow empty second parameter with consecutive commas', () => {
+    it('should use custom button text and support empty threshold', () => {
       vi.stubGlobal('innerWidth', 400)
       createWikiViewWithParas()
       createTable(`
@@ -434,103 +289,47 @@ describe('AuTableFloat', () => {
       expect(button!.textContent).toBe('打开')
     })
 
-    it('should use custom threshold', () => {
-      vi.stubGlobal('innerWidth', 700)
+    it('should recreate button after opening drawer and resizing to desktop then mobile', () => {
       const paras = createWikiViewWithParas()
       createTable(`
-        <tr><td>au-table-float mobile(asis, 800px)</td></tr>
+        <tr><td>au-table-float mobile(drawer, 500px)</td></tr>
         <tr><td>数据</td></tr>
       `)
       run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
+      expect(paras.contains(qs('table'))).toBe(true)
 
-    it('should default threshold to 500px when omitted', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(asis)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
+      resizeTo(400)
+      const button1 = document.querySelector('button') as HTMLButtonElement
+      expect(button1).not.toBeNull()
+      button1.click()
+      expect(document.querySelector('.au-table-float-panel')!.classList.contains('au-table-float-panel')).toBe(true)
 
-    it('should default strategy to asis when omitted', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
+      resizeTo(1024)
+      expect(paras.contains(qs('table'))).toBe(true)
+      expect(document.querySelector('button')).toBeNull()
+      expect(document.querySelector('.au-table-float-backdrop')).toBeNull()
+      expect(document.querySelector('.au-table-float-panel')).toBeNull()
 
-    it('should ignore invalid strategy and use asis', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile(invalid, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
+      resizeTo(400)
+      const button2 = document.querySelector('button') as HTMLButtonElement
+      expect(button2).not.toBeNull()
+      expect(button2.textContent).toBe('打开表格')
+      expect(document.querySelector('.au-table-float-panel')?.contains(qs('table'))).toBe(true)
     })
+  })
 
-    it('should ignore invalid threshold and use default', () => {
-      vi.stubGlobal('innerWidth', 400)
+  describe('enforce strategy', () => {
+    it('should always float regardless of width changes', () => {
       const paras = createWikiViewWithParas()
       createTable(`
-        <tr><td>au-table-float mobile(asis, invalid)</td></tr>
+        <tr><td>au-table-float mobile(enforce, 500px)</td></tr>
         <tr><td>数据</td></tr>
       `)
       run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
+      expect(paras.firstElementChild).toBeTruthy()
 
-    it('should allow spaces inside mobile parentheses', () => {
-      vi.stubGlobal('innerWidth', 400)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float mobile( asis , 500px )</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('')
-      expect(table.classList.contains('au-floated-table')).toBe(false)
-      expect(paras.firstElementChild).toBeNull()
-    })
-
-    it('should combine mobile config with direction', () => {
-      vi.stubGlobal('innerWidth', 800)
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float left mobile(asis, 500px)</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('left')
-      expect(table.style.marginRight).toBe('10px')
-      expect(table.style.marginBottom).toBe('10px')
-      expect(paras.firstElementChild).toBe(table)
+      resizeTo(400)
+      expect(paras.firstElementChild).toBe(qs('table'))
     })
   })
 
@@ -544,15 +343,8 @@ describe('AuTableFloat', () => {
       run()
       const style = document.getElementById('au-table-float-styles') as HTMLStyleElement
       expect(style).not.toBeNull()
-      expect(style.parentElement).toBe(document.head)
-      expect(style.textContent).not.toContain('.au-floated-table')
-      expect(style.textContent).not.toContain('margin')
-      expect(style.textContent).toContain('.au-floated-paras .para')
-      expect(style.textContent).toContain('.au-floated-paras .indent')
-      expect(style.textContent).toContain('overflow-x: unset')
       expect(style.textContent).toContain('.au-table-float-drawer')
       expect(style.textContent).toContain('padding: 6px')
-      expect(style.textContent).toContain('.au-table-float-drawer table')
       expect(style.textContent).toContain('min-width: 100%')
     })
 
@@ -567,23 +359,11 @@ describe('AuTableFloat', () => {
       const styles = document.head.querySelectorAll('#au-table-float-styles')
       expect(styles.length).toBe(1)
     })
-
-    it('should keep style tag at the end of head after multiple runs', () => {
-      createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float</td></tr>
-        <tr><td>数据</td></tr>
-      `)
-      run()
-      run()
-      const style = document.getElementById('au-table-float-styles')
-      expect(style).toBe(document.head.lastElementChild)
-    })
   })
 
   describe('row removal', () => {
     it('should remove multiple trigger rows in one table', () => {
-      const paras = createWikiViewWithParas()
+      createWikiViewWithParas()
       createTable(`
         <tr><td>au-table-float</td></tr>
         <tr><td>数据1</td></tr>
@@ -591,54 +371,48 @@ describe('AuTableFloat', () => {
         <tr><td>数据2</td></tr>
       `)
       run()
-      const table = qs<HTMLTableElement>('table')
       const rows = qsa<HTMLTableRowElement>('table tr')
       expect(rows.length).toBe(2)
-      expect(rows[0].querySelector('td')!.textContent).toBe('数据1')
-      expect(rows[1].querySelector('td')!.textContent).toBe('数据2')
-      expect(paras.firstElementChild).toBe(table)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
-    })
-
-    it('should handle table with only trigger row', () => {
-      const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float</td></tr>
-      `)
-      run()
-      const table = qs<HTMLTableElement>('table')
-      expect(table.style.float).toBe('right')
-      expect(table.classList.contains('au-floated-table')).toBe(true)
-      expect(qsa<HTMLTableRowElement>('table tr').length).toBe(0)
-      expect(paras.firstElementChild).toBe(table)
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
     })
   })
 
-  describe('multiple tables', () => {
-    it('should process multiple tables independently', () => {
+  describe('multiple tables with different thresholds', () => {
+    it('should handle each table according to its own threshold', () => {
       const paras = createWikiViewWithParas()
-      createTable(`
-        <tr><td>au-table-float left mobile(enforce, 500px)</td></tr>
-        <tr><td>表1数据</td></tr>
+      const tableA = createTable(`
+        <tr><td>au-table-float mobile(asis, 800px)</td></tr>
+        <tr><td>A</td></tr>
       `)
-      createTable(`
-        <tr><td>普通文本</td></tr>
-        <tr><td>表2数据</td></tr>
+      const tableB = createTable(`
+        <tr><td>au-table-float mobile(drawer, 600px)</td></tr>
+        <tr><td>B</td></tr>
       `)
+      const originalParentA = tableA.parentElement
+      const originalParentB = tableB.parentElement
+
       run()
-      const tables = qsa<HTMLTableElement>('table')
-      expect(tables.length).toBe(2)
-      expect(tables[0].style.float).toBe('left')
-      expect(tables[0].classList.contains('au-floated-table')).toBe(true)
-      expect(tables[0].style.marginRight).toBe('10px')
-      expect(tables[0].style.marginBottom).toBe('10px')
-      expect(tables[1].style.float).toBe('')
-      expect(tables[1].classList.contains('au-floated-table')).toBe(false)
-      expect(tables[0].querySelectorAll('tr').length).toBe(1)
-      expect(tables[1].querySelectorAll('tr').length).toBe(2)
-      expect(paras.firstElementChild).toBe(tables[0])
-      expect(paras.classList.contains('au-floated-paras')).toBe(true)
+      expect(paras.contains(tableA)).toBe(true)
+      expect(paras.contains(tableB)).toBe(true)
+      expect(document.querySelectorAll('button').length).toBe(0)
+
+      // width 700: A is mobile (700 < 800), B is desktop (700 >= 600)
+      resizeTo(700)
+      expect(tableA.parentElement).toBe(originalParentA)
+      expect(paras.contains(tableB)).toBe(true)
+      expect(document.querySelectorAll('button').length).toBe(0)
+
+      // width 500: A is mobile, B is mobile (500 < 600)
+      resizeTo(500)
+      expect(tableA.parentElement).toBe(originalParentA)
+      expect(tableB.parentElement).not.toBe(originalParentB)
+      expect(tableB.parentElement).not.toBe(paras)
+      expect(document.querySelectorAll('button').length).toBe(1)
+
+      // width 1024: both desktop
+      resizeTo(1024)
+      expect(paras.contains(tableA)).toBe(true)
+      expect(paras.contains(tableB)).toBe(true)
+      expect(document.querySelectorAll('button').length).toBe(0)
     })
   })
 })

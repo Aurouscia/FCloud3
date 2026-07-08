@@ -11,8 +11,12 @@ interface Drawer {
     close: () => void
 }
 
-export function createDrawer(table: HTMLTableElement, direction: 'left' | 'right'): Drawer {
+let drawerIdCounter = 0
+
+function createDrawer(table: HTMLTableElement, direction: 'left' | 'right', id: string): Drawer {
     const backdrop = document.createElement('div')
+    backdrop.classList.add('au-table-float-backdrop')
+    backdrop.dataset.auTableFloatDrawerId = id
     backdrop.style.position = 'fixed'
     backdrop.style.inset = '0'
     backdrop.style.backgroundColor = 'black'
@@ -22,6 +26,9 @@ export function createDrawer(table: HTMLTableElement, direction: 'left' | 'right
     backdrop.style.pointerEvents = 'none'
 
     const panel = document.createElement('div')
+    panel.classList.add('au-table-float-panel')
+    panel.classList.add('au-table-float-drawer')
+    panel.dataset.auTableFloatDrawerId = id
     panel.style.position = 'fixed'
     panel.style.top = '0'
     panel.style.bottom = '0'
@@ -31,7 +38,6 @@ export function createDrawer(table: HTMLTableElement, direction: 'left' | 'right
     panel.style.zIndex = '9999'
     panel.style.transition = 'transform 0.3s'
     panel.style.overflow = 'auto'
-    panel.classList.add('au-table-float-drawer')
 
     if (direction === 'right') {
         panel.style.right = '0'
@@ -64,7 +70,12 @@ export function createDrawer(table: HTMLTableElement, direction: 'left' | 'right
 }
 
 export function applyDrawer(table: HTMLTableElement, direction: 'left' | 'right', buttonText: string): void {
+    const id = `au-table-float-drawer-${++drawerIdCounter}`
+    table.dataset.auTableFloatDrawerId = id
+
     const button = createDrawerButton(buttonText)
+    button.dataset.auTableFloatDrawerId = id
+
     const parent = table.parentElement
     if (parent) {
         parent.insertBefore(button, table)
@@ -72,6 +83,20 @@ export function applyDrawer(table: HTMLTableElement, direction: 'left' | 'right'
     else {
         document.body.appendChild(button)
     }
-    const drawer = createDrawer(table, direction)
+
+    const drawer = createDrawer(table, direction, id)
     button.addEventListener('click', drawer.open)
+}
+
+export function removeDrawer(table: HTMLTableElement): void {
+    const id = table.dataset.auTableFloatDrawerId
+    if (!id) {
+        return
+    }
+    delete table.dataset.auTableFloatDrawerId
+
+    const selector = `[data-au-table-float-drawer-id="${id}"]`
+    document.querySelector(`button${selector}`)?.remove()
+    document.querySelector(`div${selector}.au-table-float-backdrop`)?.remove()
+    document.querySelector(`div${selector}.au-table-float-panel`)?.remove()
 }
