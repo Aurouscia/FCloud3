@@ -136,6 +136,33 @@ function createDrawer(table: HTMLTableElement, direction: 'left' | 'right', id: 
 
     backdrop.addEventListener('click', close)
 
+    // 触摸滑动关闭：在蒙层或 drawer 本体上横向滑动，
+    // 左侧 drawer 向左滑、右侧 drawer 向右滑超过阈值时触发 close()。
+    const swipeThreshold = 80
+    let touchStartX: number | null = null
+
+    function onTouchStart(e: TouchEvent) {
+        touchStartX = e.touches[0].clientX
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+        if (touchStartX === null) {
+            return
+        }
+        const dx = e.changedTouches[0].clientX - touchStartX
+        const shouldClose = direction === 'left' ? dx < -swipeThreshold : dx > swipeThreshold
+        if (shouldClose) {
+            close()
+        }
+        touchStartX = null
+    }
+
+    const touchOptions: AddEventListenerOptions = { passive: true }
+    backdrop.addEventListener('touchstart', onTouchStart, touchOptions)
+    backdrop.addEventListener('touchend', onTouchEnd)
+    panel.addEventListener('touchstart', onTouchStart, touchOptions)
+    panel.addEventListener('touchend', onTouchEnd)
+
     // 注册当前 drawer 的销毁回调，地址变化时自动 dispose。
     ensureHistoryPatch()
     const locationChangeHandler = () => dispose()
