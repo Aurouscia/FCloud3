@@ -30,6 +30,9 @@ function ensureStyles() {
         .au-floated-paras .indent {
             overflow-x: initial !important;
         }
+        .au-floated-paras .para .quote {
+            overflow: hidden; /*确保创建BFC，避免quote占满整行（它需要被压缩）*/
+        }
         .indent.indentFolded {
             display: none !important
         }
@@ -116,6 +119,7 @@ function parseTriggerCell(text: string): { triggered: boolean; direction: 'left'
 
 function clearFloatStyles(table: HTMLTableElement) {
     table.style.float = ''
+    table.style.clear = ''
     table.style.marginLeft = ''
     table.style.marginRight = ''
     table.style.marginBottom = ''
@@ -124,6 +128,7 @@ function clearFloatStyles(table: HTMLTableElement) {
 
 function applyFloatStyles(table: HTMLTableElement, direction: 'left' | 'right') {
     table.style.float = direction
+    table.style.clear = direction
     if (direction === 'right') {
         table.style.marginLeft = '10px'
         table.style.marginRight = ''
