@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - '@fickit/article@1.1.5'
+  - '@aurouscia/au-table-editor@0.7.0'
+  - '@aurouscia/vite-app-version@1.0.1'
