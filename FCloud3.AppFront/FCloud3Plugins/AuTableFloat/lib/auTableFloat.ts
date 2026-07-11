@@ -65,12 +65,18 @@ interface CssStyles {
     width?: string
 }
 
+interface TargetConfig {
+    keyword: string
+    position: 'before' | 'after'
+}
+
 interface TableState {
     table: HTMLTableElement
     placeholder: Comment
     direction: 'left' | 'right'
     mobile: MobileConfig
     cssStyles: CssStyles
+    target: TargetConfig | null
     currentMode: DisplayMode
 }
 
@@ -146,17 +152,49 @@ function applyCssStyles(table: HTMLTableElement, styles: CssStyles) {
     }
 }
 
-function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig; cssStyles: CssStyles } {
+function parseTargetConfig(text: string): TargetConfig | null {
+    const match = /target\(([^)]*)\)/i.exec(text)
+    if (!match) {
+        return null
+    }
+    const inner = match[1].trim()
+    if (!inner) {
+        return null
+    }
+    const parts = inner.split(',').map(s => s.trim())
+    const keyword = parts[0]
+    if (!keyword) {
+        return null
+    }
+    const position = parts[1]?.toLowerCase()
+    return {
+        keyword,
+        position: position === 'after' ? 'after' : 'before'
+    }
+}
+
+function findTargetElement(keyword: string): HTMLElement | null {
+    const h1s = document.querySelectorAll('h1')
+    for (const h1 of Array.from(h1s)) {
+        if (h1.textContent?.includes(keyword)) {
+            return h1
+        }
+    }
+    return null
+}
+
+function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig; cssStyles: CssStyles; target: TargetConfig | null } {
     const parts = text.split(/\s+/).filter(Boolean)
     if (parts.length === 0 || !getTriggerPattern().test(parts[0])) {
-        return { triggered: false, direction: 'right', mobile: defaultMobileConfig, cssStyles: {} }
+        return { triggered: false, direction: 'right', mobile: defaultMobileConfig, cssStyles: {}, target: null }
     }
     const rest = parts.slice(1).join(' ')
     return {
         triggered: true,
         direction: parseFloatDirection(rest),
         mobile: parseMobileConfig(rest),
-        cssStyles: parseCssStyles(rest)
+        cssStyles: parseCssStyles(rest),
+        target: parseTargetConfig(rest)
     }
 }
 
@@ -200,6 +238,22 @@ function moveToFloat(state: TableState, paras: Element | null): boolean {
     }
     state.table.classList.add('au-floated-table')
     applyFloatStyles(state.table, state.direction)
+
+    if (state.target) {
+        const target = findTargetElement(state.target.keyword)
+        if (!target) {
+            return false
+        }
+        if (state.target.position === 'before') {
+            target.parentElement?.insertBefore(state.table, target)
+        }
+        else {
+            target.after(state.table)
+        }
+        state.currentMode = 'float'
+        return true
+    }
+
     if (!paras) {
         return false
     }
@@ -213,7 +267,7 @@ function moveToDrawer(state: TableState) {
     if (state.currentMode === 'float') {
         state.table.classList.remove('au-floated-table')
         clearFloatStyles(state.table)
-        // 先移回原始位置，确保按钮出现在表格初始位置而非 .paras 顶部
+        // 先移回原始位置，确保按钮出现在表格初始位置而非 .paras 或 target 元素旁边
         state.placeholder.parentElement?.insertBefore(state.table, state.placeholder)
     }
     applyDrawer(state.table, state.direction, state.mobile.buttonText)
@@ -237,7 +291,10 @@ function updateTablePosition(state: TableState, paras: Element | null) {
         else if (!nowMobile && state.currentMode !== 'float') {
             const moved = moveToFloat(state, paras)
             if (!moved) {
-                showErrorAfter(state.table, '找不到.paras元素')
+                const message = state.target
+                    ? `找不到包含"${state.target.keyword}"的h1元素`
+                    : '找不到.paras元素'
+                showErrorAfter(state.table, message)
             }
         }
         return
@@ -250,7 +307,10 @@ function updateTablePosition(state: TableState, paras: Element | null) {
     else if (!nowMobile && state.currentMode !== 'float') {
         const moved = moveToFloat(state, paras)
         if (!moved) {
-            showErrorAfter(state.table, '找不到.paras元素')
+            const message = state.target
+                ? `找不到包含"${state.target.keyword}"的h1元素`
+                : '找不到.paras元素'
+            showErrorAfter(state.table, message)
         }
     }
 }
@@ -288,6 +348,7 @@ export function run() {
         let direction: 'left' | 'right' = 'right'
         let mobile = defaultMobileConfig
         let cssStyles: CssStyles = {}
+        let target: TargetConfig | null = null
 
         for (const row of Array.from(table.rows)) {
             for (const cell of Array.from(row.cells)) {
@@ -298,6 +359,7 @@ export function run() {
                     direction = result.direction
                     mobile = result.mobile
                     cssStyles = result.cssStyles
+                    target = result.target
                     row.remove()
                     break
                 }
@@ -316,6 +378,7 @@ export function run() {
                 direction,
                 mobile,
                 cssStyles,
+                target,
                 currentMode: 'original'
             }
             tableStates.set(table, state)

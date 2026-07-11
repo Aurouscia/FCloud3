@@ -43,6 +43,13 @@ describe('AuTableFloat', () => {
     window.dispatchEvent(new Event('resize'))
   }
 
+  function createH1(text: string): HTMLHeadingElement {
+    const h1 = document.createElement('h1')
+    h1.textContent = text
+    document.body.appendChild(h1)
+    return h1
+  }
+
   describe('trigger detection', () => {
     it('should float table right by default on desktop', () => {
       const paras = createWikiViewWithParas()
@@ -445,6 +452,111 @@ describe('AuTableFloat', () => {
       const table = qs<HTMLTableElement>('table')
       expect(table.style.fontSize).toBe('16px')
       expect(table.style.maxWidth).toBe('400px')
+    })
+  })
+
+  describe('target parameter', () => {
+    it('should move table before matching h1 by default', () => {
+      const h1 = createH1('章节一')
+      const table = createTable(`
+        <tr><td>au-table-float target(章节一)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1.previousElementSibling).toBe(table)
+      expect(table.style.float).toBe('right')
+      expect(table.classList.contains('au-floated-table')).toBe(true)
+    })
+
+    it('should move table before matching h1 explicitly', () => {
+      const h1 = createH1('章节二')
+      const table = createTable(`
+        <tr><td>au-table-float target(章节二, before)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1.previousElementSibling).toBe(table)
+    })
+
+    it('should move table after matching h1', () => {
+      const h1 = createH1('章节三')
+      const table = createTable(`
+        <tr><td>au-table-float target(章节三, after)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1.nextElementSibling).toBe(table)
+    })
+
+    it('should find first h1 whose text contains keyword', () => {
+      const h1First = createH1('引言')
+      createH1('正文')
+      const table = createTable(`
+        <tr><td>au-table-float target(言)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1First.previousElementSibling).toBe(table)
+    })
+
+    it('should show error when no matching h1 found', () => {
+      createH1('存在的标题')
+      const table = createTable(`
+        <tr><td>au-table-float target(不存在的标题)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const error = table.nextElementSibling as HTMLElement
+      expect(error.tagName).toBe('B')
+      expect(error.textContent).toBe('找不到包含"不存在的标题"的h1元素')
+    })
+
+    it('should not move to .paras when target is specified', () => {
+      const paras = createWikiViewWithParas()
+      const h1 = createH1('目标章节')
+      const table = createTable(`
+        <tr><td>au-table-float target(目标章节)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1.previousElementSibling).toBe(table)
+      expect(paras.contains(table)).toBe(false)
+      expect(paras.classList.contains('au-floated-paras')).toBe(false)
+    })
+
+    it('should use target on desktop and drawer on mobile', () => {
+      const h1 = createH1('响应章节')
+      const table = createTable(`
+        <tr><td>au-table-float target(响应章节) mobile(drawer, 500px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      const originalParent = table.parentElement
+      run()
+      expect(h1.previousElementSibling).toBe(table)
+      expect(document.querySelector('button')).toBeNull()
+
+      resizeTo(400)
+      const button = document.querySelector('button')
+      expect(button).not.toBeNull()
+      expect(button!.parentElement).toBe(originalParent)
+      expect(document.querySelector('.au-table-float-panel')?.contains(table)).toBe(true)
+
+      resizeTo(1024)
+      expect(h1.previousElementSibling).toBe(table)
+      expect(document.querySelector('button')).toBeNull()
+      expect(document.querySelector('.au-table-float-panel')).toBeNull()
+    })
+
+    it('should support target with direction and css styles', () => {
+      const h1 = createH1('综合章节')
+      const table = createTable(`
+        <tr><td>au-table-float left target(综合章节) font-size(12px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(h1.previousElementSibling).toBe(table)
+      expect(table.style.float).toBe('left')
+      expect(table.style.fontSize).toBe('12px')
     })
   })
 

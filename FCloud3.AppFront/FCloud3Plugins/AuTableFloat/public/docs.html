@@ -81,6 +81,27 @@
         <strong>注意：</strong>空值（如 <code>font-size()</code>）会被忽略，不会设置到表格样式上。
     </div>
 
+    <h2>目标定位参数 <code>target(...)</code></h2>
+    <p>默认情况下，浮动后的表格会移动到全文开头。如果希望把表格放到某个段落标题附近，可以使用 <code>target(...)</code> 参数。</p>
+    <p>语法：<code>target(关键词, 位置)</code></p>
+    <ul>
+        <li><strong>关键词</strong>：必填。插件会搜索页面内所有 <code>&lt;h1&gt;</code> 段落标题，找到第一个标题文本中包含该关键词的标题。</li>
+        <li><strong>位置</strong>：可选，<code>before</code>（标题之前）或 <code>after</code>（标题之后）。省略时默认为 <code>before</code>。</li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float target(参考资料)</td><td>将表格移动到第一个标题文本包含“参考资料”的段落标题之前</td></tr>
+        <tr><td>au-table-float target(参考资料, before)</td><td>同上，显式指定 before</td></tr>
+        <tr><td>au-table-float target(参考资料, after)</td><td>将表格移动到第一个标题文本包含“参考资料”的段落标题之后</td></tr>
+        <tr><td>au-table-float left target(章节一)</td><td>向左浮动，并定位到标题文本包含“章节一”的段落标题之前</td></tr>
+        <tr><td>au-table-float target(章节一) mobile(drawer,600px)</td><td>桌面端定位到段落标题之前，移动端使用抽屉</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>使用 <code>target(...)</code> 后，桌面端（及 <code>enforce</code> 策略）表格将不再移动到全文开头，而是直接插入到目标段落标题之前或之后；移动端 <code>drawer</code> 策略仍然会在表格原始位置生成打开按钮。
+    </div>
+
     <h2>响应式切换</h2>
     <p>插件会监听窗口大小变化。当屏幕宽度跨越阈值时：</p>
     <ul>
@@ -105,7 +126,7 @@
     <h2>效果</h2>
     <ul>
         <li>触发词所在的整行会被移除。</li>
-        <li>在桌面端（或 <code>enforce</code> 策略下，或 <code>drawer</code> 策略下），触发词所在的 <code>&lt;table&gt;</code> 元素会被设置浮动方向，并添加类名 <code>au-floated-table</code>；表格会被移动到当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置；<code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>。</li>
+        <li>在桌面端（或 <code>enforce</code> 策略下，或 <code>drawer</code> 策略下），触发词所在的 <code>&lt;table&gt;</code> 元素会被设置浮动方向，并添加类名 <code>au-floated-table</code>；未指定 <code>target(...)</code> 时，表格会被移动到全文开头（当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置），<code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>；指定 <code>target(...)</code> 时，表格会被移动到目标段落标题之前或之后。</li>
         <li>在移动端使用 <code>drawer</code> 策略时，表格会被放入侧滑抽屉，原位置保留一个按钮，点击按钮打开抽屉。</li>
         <li>表格的 <code>style</code> 属性会根据方向设置外边距（桌面端或 enforce 策略下）：
             <ul>
@@ -119,19 +140,23 @@
     <h2>注入样式</h2>
     <p>本插件启动时，会略微改变页面原有行为，水平方向滚动条将不会再出现，以下是将会注入的样式：</p>
     <pre><code>&lt;style id="au-table-float-styles"&gt;
-    .au-floated-paras .para,
-    .au-floated-paras .indent {
-        overflow-x: initial !important;
-    }
-    .indent.indentFolded {
-        display: none !important
-    }
-    .au-table-float-drawer {
-        padding: 6px;
-    }
-    .au-table-float-drawer table {
-        min-width: 100%;
-    }
+        .wikiView .au-floated-paras .para,
+        .wikiView .au-floated-paras .para .indent {
+            overflow-x: initial;
+        }
+        .wikiView .au-floated-paras .para .quote {
+            overflow: hidden; /*确保创建BFC，避免quote占满整行（它需要被压缩）*/
+        }
+        .indent.indentFolded {
+            display: none !important
+        }
+        .au-table-float-drawer {
+            padding: 6px;
+        }
+        .au-table-float-drawer table {
+            min-width: 100%;
+            font-size: 14px
+        }
 &lt;/style&gt;</code></pre>
 
     <h2>错误处理</h2>
