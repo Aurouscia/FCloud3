@@ -26,11 +26,11 @@ function ensureStyles() {
     const style = document.createElement('style')
     style.id = styleElementId
     style.textContent = `
-        .au-floated-paras .para,
-        .au-floated-paras .indent {
-            overflow-x: initial !important;
+        .wikiView .au-floated-paras .para,
+        .wikiView .au-floated-paras .para .indent {
+            overflow-x: initial;
         }
-        .au-floated-paras .para .quote {
+        .wikiView .au-floated-paras .para .quote {
             overflow: hidden; /*确保创建BFC，避免quote占满整行（它需要被压缩）*/
         }
         .indent.indentFolded {
