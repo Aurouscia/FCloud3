@@ -41,6 +41,7 @@ function ensureStyles() {
         }
         .au-table-float-drawer table {
             min-width: 100%;
+            font-size: 14px
         }
     `
     document.head.appendChild(style)
@@ -57,11 +58,19 @@ interface MobileConfig {
 
 const defaultMobileConfig: MobileConfig = { strategy: 'asis', threshold: 800, buttonText: '打开表格' }
 
+interface CssStyles {
+    fontSize?: string
+    maxWidth?: string
+    minWidth?: string
+    width?: string
+}
+
 interface TableState {
     table: HTMLTableElement
     placeholder: Comment
     direction: 'left' | 'right'
     mobile: MobileConfig
+    cssStyles: CssStyles
     currentMode: DisplayMode
 }
 
@@ -104,16 +113,50 @@ function parseFloatDirection(text: string): 'left' | 'right' {
     return 'right'
 }
 
-function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig } {
+function parseCssStyles(text: string): CssStyles {
+    const styles: CssStyles = {}
+    const mappings: { key: keyof CssStyles; prefix: string }[] = [
+        { key: 'fontSize', prefix: 'font-size' },
+        { key: 'maxWidth', prefix: 'max-width' },
+        { key: 'minWidth', prefix: 'min-width' },
+        { key: 'width', prefix: 'width' }
+    ]
+    for (const { key, prefix } of mappings) {
+        const match = new RegExp(`\\b${prefix}\\(([^)]*)\\)`, 'i').exec(text)
+        const value = match?.[1].trim()
+        if (value) {
+            styles[key] = value
+        }
+    }
+    return styles
+}
+
+function applyCssStyles(table: HTMLTableElement, styles: CssStyles) {
+    if (styles.fontSize) {
+        table.style.fontSize = styles.fontSize
+    }
+    if (styles.maxWidth) {
+        table.style.maxWidth = styles.maxWidth
+    }
+    if (styles.minWidth) {
+        table.style.minWidth = styles.minWidth
+    }
+    if (styles.width) {
+        table.style.width = styles.width
+    }
+}
+
+function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig; cssStyles: CssStyles } {
     const parts = text.split(/\s+/).filter(Boolean)
     if (parts.length === 0 || !getTriggerPattern().test(parts[0])) {
-        return { triggered: false, direction: 'right', mobile: defaultMobileConfig }
+        return { triggered: false, direction: 'right', mobile: defaultMobileConfig, cssStyles: {} }
     }
     const rest = parts.slice(1).join(' ')
     return {
         triggered: true,
         direction: parseFloatDirection(rest),
-        mobile: parseMobileConfig(rest)
+        mobile: parseMobileConfig(rest),
+        cssStyles: parseCssStyles(rest)
     }
 }
 
@@ -244,6 +287,7 @@ export function run() {
         let triggered = false
         let direction: 'left' | 'right' = 'right'
         let mobile = defaultMobileConfig
+        let cssStyles: CssStyles = {}
 
         for (const row of Array.from(table.rows)) {
             for (const cell of Array.from(row.cells)) {
@@ -253,6 +297,7 @@ export function run() {
                     triggered = true
                     direction = result.direction
                     mobile = result.mobile
+                    cssStyles = result.cssStyles
                     row.remove()
                     break
                 }
@@ -263,11 +308,14 @@ export function run() {
             const placeholder = document.createComment('au-table-float-placeholder')
             table.parentElement?.insertBefore(placeholder, table)
 
+            applyCssStyles(table, cssStyles)
+
             const state: TableState = {
                 table,
                 placeholder,
                 direction,
                 mobile,
+                cssStyles,
                 currentMode: 'original'
             }
             tableStates.set(table, state)

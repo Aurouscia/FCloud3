@@ -376,6 +376,78 @@ describe('AuTableFloat', () => {
     })
   })
 
+  describe('css style parameters', () => {
+    it('should apply font-size to table style', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float font-size(14px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.fontSize).toBe('14px')
+    })
+
+    it('should apply width to table style', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float width(50%)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.width).toBe('50%')
+    })
+
+    it('should apply max-width and min-width to table style', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float max-width(300px) min-width(100px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.maxWidth).toBe('300px')
+      expect(table.style.minWidth).toBe('100px')
+    })
+
+    it('should apply multiple css styles together with direction and mobile', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float left mobile(enforce) font-size(12px) width(200px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.float).toBe('left')
+      expect(table.style.fontSize).toBe('12px')
+      expect(table.style.width).toBe('200px')
+    })
+
+    it('should ignore empty css style values', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float font-size()</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.fontSize).toBe('')
+    })
+
+    it('should be case-insensitive for css property names', () => {
+      createWikiViewWithParas()
+      createTable(`
+        <tr><td>au-table-float FONT-SIZE(16px) Max-Width(400px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const table = qs<HTMLTableElement>('table')
+      expect(table.style.fontSize).toBe('16px')
+      expect(table.style.maxWidth).toBe('400px')
+    })
+  })
+
   describe('multiple tables with different thresholds', () => {
     it('should handle each table according to its own threshold', () => {
       const paras = createWikiViewWithParas()

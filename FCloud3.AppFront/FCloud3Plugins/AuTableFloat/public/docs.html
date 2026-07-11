@@ -60,6 +60,27 @@
         <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 800px），按钮显示“打开”</td></tr>
     </table>
 
+    <h2>CSS 样式参数</h2>
+    <p>可在触发词后追加以下 CSS 样式参数，直接赋值到表格的 <code>style</code> 属性上。参数不区分大小写，可与其他参数混用。</p>
+    <ul>
+        <li><code>font-size(xxx)</code>：设置表格字体大小，例如 <code>font-size(14px)</code></li>
+        <li><code>max-width(xxx)</code>：设置表格最大宽度，例如 <code>max-width(300px)</code></li>
+        <li><code>min-width(xxx)</code>：设置表格最小宽度，例如 <code>min-width(100px)</code></li>
+        <li><code>width(xxx)</code>：设置表格宽度，例如 <code>width(50%)</code></li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float font-size(14px)</td><td>表格字体大小设为 14px</td></tr>
+        <tr><td>au-table-float left width(200px)</td><td>向左浮动，表格宽度 200px</td></tr>
+        <tr><td>au-table-float mobile(drawer,600px) max-width(100%)</td><td>移动端抽屉，最大宽度 100%</td></tr>
+        <tr><td>au-table-float FONT-SIZE(16px) Min-Width(120px)</td><td>参数名大小写不敏感</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>空值（如 <code>font-size()</code>）会被忽略，不会设置到表格样式上。
+    </div>
+
     <h2>响应式切换</h2>
     <p>插件会监听窗口大小变化。当屏幕宽度跨越阈值时：</p>
     <ul>
