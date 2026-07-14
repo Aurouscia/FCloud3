@@ -93,6 +93,24 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
     },
 ]
 
+export const grammarHelpsRendering:GrammarHelpItem[] = [
+    {
+        title:"Mermaid 图表",
+        desc:"使用围栏代码块并指定语言为 mermaid，可在词条中插入流程图、时序图、类图等图表。",
+        code:"```mermaid\ngraph TD;\n    A[开始] --> B{判断};\n    B -->|条件1| C[处理1];\n    B -->|条件2| D[处理2];\n```"
+    },
+    {
+        title:"代码块高亮",
+        desc:"使用围栏代码块并指定语言名称，可对代码进行语法高亮。支持 js、ts、cpp、csharp、python、java 等常见语言。",
+        code:"```javascript\nfunction hello() {\n    console.log('Hello World');\n}\n```"
+    },
+    {
+        title:"LaTeX 数学公式",
+        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。",
+        code:"行内公式：$E=mc^2$\n\n块级公式：\n$$\\sum_{i=1}^{n} x_i = x_1 + x_2 + \\cdots + x_n$$"
+    }
+]
+
 export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"标题默认折起",

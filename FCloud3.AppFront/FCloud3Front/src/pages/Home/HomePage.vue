@@ -32,7 +32,9 @@ onMounted(async()=>{
     <h1>欢迎</h1>
     <div class="welcome">
         {{ guideInfo.welcome }}
-        <RouterLink v-if="introPathName" :to="jumpToViewWikiRoute(introPathName)">平台介绍</RouterLink>
+        <RouterLink v-if="introPathName" :to="jumpToViewWikiRoute(introPathName)">查看平台介绍</RouterLink>
+        -
+        <a href="http://wiki.jowei19.com/#/w/mermaid-latex-code" style="color:green">最新高级功能</a>
     </div>
     <div class="search">
         <Search :source="api.etc.quickSearch.wikiItem" @done="(_v,_i,u)=>jumpToViewWiki(u)" :placeholder="'搜索站内词条'"></Search>
