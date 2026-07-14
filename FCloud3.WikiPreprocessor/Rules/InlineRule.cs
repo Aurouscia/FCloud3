@@ -474,7 +474,7 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
-                new CustomInlineRule("`", "`", "<code>", "</code>", "行内代码块"),
+                new CustomInlineRule("`", "`", "<code class=\"inline-code\">", "</code>", "行内代码块"),
 
                 new CustomInlineRule("_(", ")", "<sub>", "</sub>", "下角标"),
                 new CustomInlineRule("^(", ")", "<sup>", "</sup>", "上角标"),

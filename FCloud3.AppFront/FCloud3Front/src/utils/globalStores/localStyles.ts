@@ -20,7 +20,7 @@ export const useLocalStylesStore = defineStore('localStyles', ()=>{
     }
     function getStyleString(){
         const res:string[] = []
-        res.push('.wikiView .indent * {')
+        res.push('.wikiView .indent {')
         if(fontSizeRem.value)
             res.push(`font-size: ${fontSizeRem.value}rem;`)
         if(lineHeightRem.value)

@@ -6,6 +6,17 @@
         white-space: pre-wrap;
         transition: 0.2s;
     }
+    .katex, .katex * {
+        word-break: normal;
+        white-space: nowrap;
+    }
+    .mermaid p {
+        text-indent: 0;
+    }
+    pre.mermaid {
+        display: flex;
+        justify-content: center;
+    }
 
     .masterTitle{
         font-size: 180%;
@@ -336,8 +347,8 @@
         text-decoration: underline;
     }
 
-    code{
-        font-family: consolas, menlo, mono;
+    code.inline-code{
+        font-family: consolas, menlo, mono !important;
         background-color: #eee;
         margin: 1px;
         padding: 1px;

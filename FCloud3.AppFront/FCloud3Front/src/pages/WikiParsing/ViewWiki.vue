@@ -45,6 +45,7 @@ import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableR
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
 import { useAllowCopy } from '@/utils/wikiView/allowCopy';
+import { renderWikiSpecialElements } from '@/utils/wikiView/renderWikiContent';
 import PolysemySelector from '@/components/Wiki/PolysemySelector.vue';
 import copy from 'copy-to-clipboard'
 
@@ -407,6 +408,7 @@ async function init(changedPathName?:boolean){
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
     samePageTitleLinkClick.listen(wikiViewArea.value);//开始监听“同页面跳转”
     startLazyImgWatcher();
+    await renderWikiSpecialElements(wikiViewArea.value);
 
     const titleQuery = route.query['title'];
     if(typeof titleQuery === 'string' && titleQuery){
