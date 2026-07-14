@@ -7,13 +7,21 @@ const nextIdentifyClass = 'indent'
 const nextFoldedClass = 'indentFolded'
 export const hiddenSubClassName = 'hiddenSub'
 
+type FoldInfo = {
+    target: Element;
+    subs: Element[];
+}
+
 export class TitleClickFold{
     clickHandlerBinded:(e:MouseEvent)=>void;
+    private foldInfos:Map<HTMLElement, FoldInfo>;
     constructor(){
         this.clickHandlerBinded = this.clickHandler.bind(this)
+        this.foldInfos = new Map();
     }
     listen(target?:HTMLDivElement|null){
         window.addEventListener("click",this.clickHandlerBinded);
+        this.foldInfos.clear();
         if(!target)return [];
         const titles:HTMLElement[] = [];
         const needProcessDefaultFold:{h:Element, text:ChildNode}[] = []
@@ -21,7 +29,13 @@ export class TitleClickFold{
             const hs = target.getElementsByTagName(tag);
             for(const h of hs){
                 if(!isClickableTitle(h)){continue;}
+                const next = h.nextSibling as Element;
+                if(!next){continue;}
                 titles.push(h as HTMLElement);
+                this.foldInfos.set(h as HTMLElement, {
+                    target: next,
+                    subs: collectSubHeadings(next)
+                });
                 const img = document.createElement('img');
                 img.src = foldImg;
                 img.classList.add('foldImg');
@@ -53,31 +67,27 @@ export class TitleClickFold{
     }
     dispose(){
         window.removeEventListener("click",this.clickHandlerBinded)
+        this.foldInfos.clear();
     }
     clickHandler(e:MouseEvent){
         let ele = e.target as HTMLElement;
         this.tryToggleElement(ele)
     }
     tryToggleElement(ele:HTMLElement) {
+        let title = ele;
         if(ele.tagName == "IMG" || ele.tagName == "SPAN" || ele.tagName == "DIV"){
-            ele = ele.parentElement as HTMLElement;
+            title = ele.parentElement as HTMLElement;
         }
-        if(isClickableTitle(ele)){
-            const currentStatus = ele.classList.contains(clickableFoldedClass);
-            const setToStatus = !currentStatus;
-            const next = ele.nextSibling as Element
-            next.classList.toggle(nextFoldedClass, setToStatus);
-            ele.classList.toggle(clickableFoldedClass, setToStatus);
-            recursiveSetHiddenSub(next, setToStatus)
-        }
-        function recursiveSetHiddenSub(ele:Element, hiddenSub:boolean){
-            for(const e of ele.children){
-                if(clickables.includes(e.tagName))
-                    e.classList.toggle(hiddenSubClassName, hiddenSub)
-                else
-                    recursiveSetHiddenSub(e, hiddenSub)
-            }
-        }
+        if(!title){return;}
+        const info = this.foldInfos.get(title);
+        if(!info){return;}
+        const currentStatus = title.classList.contains(clickableFoldedClass);
+        const setToStatus = !currentStatus;
+        info.target.classList.toggle(nextFoldedClass, setToStatus);
+        title.classList.toggle(clickableFoldedClass, setToStatus);
+        info.subs.forEach(sub=>{
+            sub.classList.toggle(hiddenSubClassName, setToStatus)
+        })
     }
 }
 
@@ -92,6 +102,20 @@ function isClickableTitle(ele:Element):boolean{
         return false;
     }
     return true;
+}
+
+function collectSubHeadings(ele:Element):Element[]{
+    const subs:Element[] = [];
+    function collect(e:Element){
+        for(const c of e.children){
+            if(clickables.includes(c.tagName))
+                subs.push(c);
+            else
+                collect(c);
+        }
+    }
+    collect(ele);
+    return subs;
 }
 
 export function isDefaultFolded(title:string){
