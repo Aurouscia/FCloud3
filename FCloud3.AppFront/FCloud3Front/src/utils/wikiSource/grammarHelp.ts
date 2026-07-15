@@ -96,7 +96,7 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
 export const grammarHelpsRendering:GrammarHelpItem[] = [
     {
         title:"Mermaid 图表",
-        desc:"使用围栏代码块并指定语言为 mermaid，可在词条中插入流程图、时序图、类图等图表。",
+        desc:"使用围栏代码块并指定语言为 mermaid，可在词条中插入流程图、时序图、类图等图表。详细语法可参考<a href=\"https://mermaid.js.org/\" target=\"_blank\">Mermaid 文档</a>，也可在<a href=\"https://mermaid.live/\" target=\"_blank\">Mermaid Live Editor</a>中在线尝试。",
         code:"```mermaid\ngraph TD;\n    A[开始] --> B{判断};\n    B -->|条件1| C[处理1];\n    B -->|条件2| D[处理2];\n```"
     },
     {
@@ -106,7 +106,7 @@ export const grammarHelpsRendering:GrammarHelpItem[] = [
     },
     {
         title:"LaTeX 数学公式",
-        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。",
+        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。详细语法请参考<a href=\"https://www.latex-project.org/help/documentation\" target=\"_blank\">LaTeX 文档</a>。",
         code:"行内公式：$E=mc^2$\n\n块级公式：\n$$\\sum_{i=1}^{n} x_i = x_1 + x_2 + \\cdots + x_n$$"
     }
 ]
