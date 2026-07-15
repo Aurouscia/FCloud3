@@ -11,6 +11,7 @@ RUN node buildPlugins.mjs
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/pnpm-lock.yaml" "./pnpm-lock.yaml"
+COPY "./FCloud3.AppFront/FCloud3Front/pnpm-workspace.yaml" "./pnpm-workspace.yaml"
 RUN pnpm install --frozen-lockfile
 COPY "./FCloud3.AppFront/FCloud3Front" "."
 RUN npm run build-here
@@ -18,6 +19,7 @@ RUN npm run build-here
 # 构建.net后端
 FROM mcr.azure.cn/dotnet/sdk:10.0 AS bebuild
 WORKDIR "/src"
+COPY "./FCloud3.Sso/FCloud3.Sso.csproj" "./FCloud3.Sso/FCloud3.Sso.csproj"
 COPY "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj" "./FCloud3.WikiPreprocessor/FCloud3.WikiPreprocessor.csproj"
 COPY "./FCloud3.Diff/FCloud3.Diff.csproj" "./FCloud3.Diff/FCloud3.Diff.csproj"
 COPY "./FCloud3.Entities/FCloud3.Entities.csproj" "./FCloud3.Entities/FCloud3.Entities.csproj"
@@ -28,6 +30,7 @@ COPY "./FCloud3.App/FCloud3.App.csproj" "./FCloud3.App/FCloud3.App.csproj"
 WORKDIR "/src/FCloud3.App"
 RUN dotnet restore
 WORKDIR "/src"
+COPY "./FCloud3.Sso" "./FCloud3.Sso"
 COPY "./FCloud3.WikiPreprocessor" "./FCloud3.WikiPreprocessor"
 COPY "./FCloud3.Diff" "./FCloud3.Diff"
 COPY "./FCloud3.Entities" "./FCloud3.Entities"
@@ -37,7 +40,7 @@ COPY "./FCloud3.Services" "./FCloud3.Services"
 COPY "./FCloud3.App" "./FCloud3.App"
 RUN dotnet publish "./FCloud3.App/FCloud3.App.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# 组合进.net9.0运行环境
+# 组合进.net运行环境
 FROM mcr.azure.cn/dotnet/aspnet:10.0 AS final
 # 设置系统时区为上海
 ENV TZ=Asia/Shanghai
