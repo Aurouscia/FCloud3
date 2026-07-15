@@ -26,3 +26,31 @@ VITE_ApiUrlBase = "http://wiki.jowei19.com"
 
 ## 插件
 见`../FCloud3Plugins`目录的README.md
+
+## 渲染器资源自托管
+Wiki 内容中的代码高亮、数学公式、Mermaid 图表依赖 KaTeX、PrismJS、Mermaid 三个外部库。生产环境为了避免依赖 unpkg 等公共 CDN，这些资源通过脚本下载到 `public/renderers/` 下，由后端直接提供静态文件服务。
+
+### 生成自托管资源
+```
+pnpm collect-renderers
+```
+
+该脚本会：
+- 从 npm registry / unpkg 下载对应版本的资源
+- 输出到 `public/renderers/`，目录名包含版本号，例如：
+  - `katex@0.17.0/`
+  - `mermaid@11.15.0/`
+  - `prismjs@1.30.0/`
+
+### 版本号与缓存
+目录名中的版本号用于防止客户端缓存旧资源。升级版本时，旧的版本目录不会自动删除，可以手动清理；新版本的目录路径不同，浏览器会重新请求。
+
+### 引用位置
+生成后，前端通过以下位置引用本地资源：
+- `index.html`：KaTeX、PrismJS 的 CSS
+- `src/utils/wikiView/renderWikiContent.ts`：三个库的 JS
+
+升级版本时，需要同步更新上述文件中的版本号。
+
+### Git
+`public/renderers/` 下的版本化资源目录已加入 `.gitignore`，不会被提交；只有 `public/renderers/collect-renderers.ts` 脚本本身会随仓库维护。

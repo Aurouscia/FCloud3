@@ -11,10 +11,10 @@ function ensureMermaidInit(): void {
     mermaidInitialized = true;
 }
 
-const cdnBase = {
-    katex: 'https://unpkg.com/katex@0.17.0/dist/katex.min.js',
-    mermaid: 'https://unpkg.com/mermaid@11.15.0/dist/mermaid.min.js',
-    prism: 'https://unpkg.com/prismjs@1.30.0',
+const rendererBase = {
+    katex: '/renderers/katex@0.17.0/katex.min.js',
+    mermaid: '/renderers/mermaid@11.15.0/mermaid.min.js',
+    prism: '/renderers/prismjs@1.30.0',
 };
 
 const loadedResources = new Map<string, Promise<void>>();
@@ -37,12 +37,12 @@ function loadScript(src: string): Promise<void> {
 
 async function ensureKatex(): Promise<void> {
     if (window.katex) return;
-    await loadScript(cdnBase.katex);
+    await loadScript(rendererBase.katex);
 }
 
 async function ensureMermaid(): Promise<void> {
     if (window.mermaid) return;
-    await loadScript(cdnBase.mermaid);
+    await loadScript(rendererBase.mermaid);
 }
 
 // PrismJS 语言组件依赖关系（按需加载时必须先加载依赖）
@@ -75,14 +75,14 @@ const prismLangAliases: Record<string, string> = {
 
 async function ensurePrismCore(): Promise<void> {
     if (window.Prism) return;
-    await loadScript(`${cdnBase.prism}/components/prism-core.min.js`);
+    await loadScript(`${rendererBase.prism}/components/prism-core.min.js`);
 }
 
 async function ensurePrismPlugins(): Promise<void> {
     await ensurePrismCore();
-    await loadScript(`${cdnBase.prism}/plugins/line-numbers/prism-line-numbers.min.js`);
-    await loadScript(`${cdnBase.prism}/plugins/toolbar/prism-toolbar.min.js`);
-    await loadScript(`${cdnBase.prism}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js`);
+    await loadScript(`${rendererBase.prism}/plugins/line-numbers/prism-line-numbers.min.js`);
+    await loadScript(`${rendererBase.prism}/plugins/toolbar/prism-toolbar.min.js`);
+    await loadScript(`${rendererBase.prism}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js`);
 }
 
 async function loadPrismLanguage(lang: string): Promise<void> {
@@ -95,7 +95,7 @@ async function loadPrismLanguage(lang: string): Promise<void> {
         const deps = prismLangDeps[lang] ?? [];
         await Promise.all(deps.map(loadPrismLanguage));
         try {
-            await loadScript(`${cdnBase.prism}/components/prism-${lang}.min.js`);
+            await loadScript(`${rendererBase.prism}/components/prism-${lang}.min.js`);
         } catch (e) {
             console.warn(`Prism 语言组件加载失败：${lang}`, e);
         }
