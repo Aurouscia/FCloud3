@@ -87,9 +87,18 @@ export async function getTopbarModel(): Promise<TopbarModel> {
         ]
     }
     if(import.meta.env.VITE_ShowTopbarTools === 'true'){
-        model.Items.push(            {
-            Title: "工具",
-            Link: "/Tools"
+        model.Items.push({
+            Title: "更多+",
+            SubItems: [
+                {
+                    Title: "工具",
+                    Link: "/Tools"
+                },
+                {
+                    Title: "私服",
+                    Link: "/Fork"
+                }
+            ]
         })
     }
     return model;
