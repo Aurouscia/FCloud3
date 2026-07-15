@@ -12,8 +12,8 @@ function ensureMermaidInit(): void {
 }
 
 const rendererBase = {
-    katex: '/renderers/katex@0.17.0/katex.min.js',
-    mermaid: '/renderers/mermaid@11.15.0/mermaid.min.js',
+    katex: '/renderers/katex@0.17.0',
+    mermaid: '/renderers/mermaid@11.15.0',
     prism: '/renderers/prismjs@1.30.0',
 };
 
@@ -35,14 +35,82 @@ function loadScript(src: string): Promise<void> {
     return promise;
 }
 
+function loadStyle(href: string): Promise<void> {
+    const existing = loadedResources.get(href);
+    if (existing) return existing;
+    const promise = new Promise<void>((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.crossOrigin = 'anonymous';
+        link.referrerPolicy = 'no-referrer';
+        link.onload = () => resolve();
+        link.onerror = () => reject(new Error(`样式加载失败：${href}`));
+        document.head.appendChild(link);
+    });
+    loadedResources.set(href, promise);
+    return promise;
+}
+
+interface LoadingState {
+    element: HTMLElement;
+    originalHTML: string;
+    loadingShown: boolean;
+}
+
+/**
+ * 在渲染库未加载时，延迟 100ms 将目标元素显示为加载提示，加载完成后恢复原内容。
+ * 如果 100ms 内库已加载完成，则不会显示加载提示。
+ */
+async function withLoadingState(
+    elements: HTMLElement[],
+    isLoaded: () => boolean,
+    loadLibrary: () => Promise<void>,
+    loadingText: string
+): Promise<void> {
+    if (elements.length === 0 || isLoaded()) {
+        return;
+    }
+
+    const states: LoadingState[] = elements.map(el => ({
+        element: el,
+        originalHTML: el.innerHTML,
+        loadingShown: false,
+    }));
+
+    const timeoutId = window.setTimeout(() => {
+        if (isLoaded()) return;
+        for (const s of states) {
+            s.element.innerHTML = `<span style="display:inline-block;margin:20px 0">${loadingText}</span>`;
+            s.loadingShown = true;
+        }
+    }, 100);
+
+    try {
+        await loadLibrary();
+    } finally {
+        window.clearTimeout(timeoutId);
+        for (const s of states) {
+            if (s.loadingShown) {
+                s.element.innerHTML = s.originalHTML;
+            }
+        }
+    }
+}
+
 async function ensureKatex(): Promise<void> {
-    if (window.katex) return;
-    await loadScript(rendererBase.katex);
+    await Promise.all([
+        (async () => {
+            if (window.katex) return;
+            await loadScript(`${rendererBase.katex}/katex.min.js`);
+        })(),
+        loadStyle(`${rendererBase.katex}/katex.min.css`),
+    ]);
 }
 
 async function ensureMermaid(): Promise<void> {
     if (window.mermaid) return;
-    await loadScript(rendererBase.mermaid);
+    await loadScript(`${rendererBase.mermaid}/mermaid.min.js`);
 }
 
 // PrismJS 语言组件依赖关系（按需加载时必须先加载依赖）
@@ -74,15 +142,24 @@ const prismLangAliases: Record<string, string> = {
 };
 
 async function ensurePrismCore(): Promise<void> {
-    if (window.Prism) return;
-    await loadScript(`${rendererBase.prism}/components/prism-core.min.js`);
+    await Promise.all([
+        (async () => {
+            if (window.Prism) return;
+            await loadScript(`${rendererBase.prism}/components/prism-core.min.js`);
+        })(),
+        loadStyle(`${rendererBase.prism}/themes/prism-tomorrow.min.css`),
+    ]);
 }
 
 async function ensurePrismPlugins(): Promise<void> {
     await ensurePrismCore();
-    await loadScript(`${rendererBase.prism}/plugins/line-numbers/prism-line-numbers.min.js`);
-    await loadScript(`${rendererBase.prism}/plugins/toolbar/prism-toolbar.min.js`);
-    await loadScript(`${rendererBase.prism}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js`);
+    await Promise.all([
+        loadScript(`${rendererBase.prism}/plugins/line-numbers/prism-line-numbers.min.js`),
+        loadStyle(`${rendererBase.prism}/plugins/line-numbers/prism-line-numbers.min.css`),
+        loadScript(`${rendererBase.prism}/plugins/toolbar/prism-toolbar.min.js`),
+        loadStyle(`${rendererBase.prism}/plugins/toolbar/prism-toolbar.min.css`),
+        loadScript(`${rendererBase.prism}/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js`),
+    ]);
 }
 
 async function loadPrismLanguage(lang: string): Promise<void> {
@@ -113,6 +190,9 @@ export async function renderCodeHighlight(container?: HTMLElement | null): Promi
     const codes = scope.querySelectorAll('code[class^="language-"]');
     if (codes.length === 0) return;
 
+    const codeElements = [...codes] as HTMLElement[];
+    await withLoadingState(codeElements, () => !!window.Prism, ensurePrismPlugins, '代码块加载中，请稍候');
+
     const languages = new Set<string>();
     for (const el of codes) {
         const match = el.className.match(/language-([\w-]+)/);
@@ -136,10 +216,12 @@ export async function renderCodeHighlight(container?: HTMLElement | null): Promi
  * 处理 <pre class="mermaid"> 元素
  */
 export async function renderMermaid(container?: HTMLElement | null): Promise<void> {
-    await ensureMermaid();
-    ensureMermaidInit();
     const scope = container ?? document;
     const elements = scope.querySelectorAll('pre.mermaid:not([data-processed])');
+    const elArray = [...elements] as HTMLElement[];
+
+    await withLoadingState(elArray, () => !!window.mermaid, ensureMermaid, '图表加载中，请稍候');
+    ensureMermaidInit();
 
     for (const el of elements) {
         const graphDefinition = el.textContent || '';
@@ -160,10 +242,14 @@ export async function renderMermaid(container?: HTMLElement | null): Promise<voi
  * 处理 <pre class="latex">（块级）和 <span class="latex-inline">（行内）
  */
 export async function renderLatex(container?: HTMLElement | null): Promise<void> {
-    await ensureKatex();
     const scope = container ?? document;
 
     const blockElements = scope.querySelectorAll('pre.latex:not([data-processed])');
+    const inlineElements = scope.querySelectorAll('span.latex-inline:not([data-processed])');
+    const allElements = [...blockElements, ...inlineElements] as HTMLElement[];
+
+    await withLoadingState(allElements, () => !!window.katex, ensureKatex, '公式加载中，请稍候');
+
     for (const el of blockElements) {
         const latexSource = el.textContent || '';
         try {
@@ -179,7 +265,6 @@ export async function renderLatex(container?: HTMLElement | null): Promise<void>
         }
     }
 
-    const inlineElements = scope.querySelectorAll('span.latex-inline:not([data-processed])');
     for (const el of inlineElements) {
         const latexSource = el.textContent || '';
         try {
