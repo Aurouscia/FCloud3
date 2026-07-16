@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Util;
 using System;
@@ -60,6 +60,10 @@ namespace FCloud3.WikiPreprocessor.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts()=>string.Empty;
         public virtual string GetPostScripts()=>string.Empty;
+        /// <summary>
+        /// 验证该标记在原文中的边界是否允许。默认不做限制。
+        /// </summary>
+        public virtual bool ValidateBoundary(string input, int leftIndex, int rightIndex) => true;
         public virtual IHtmlable MakeElementFromSpan(string span, 
             InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
@@ -450,6 +454,15 @@ namespace FCloud3.WikiPreprocessor.Rules
                     return false;
             }
             return true;
+        }
+
+        public override bool ValidateBoundary(string input, int leftIndex, int rightIndex)
+        {
+            // 行内公式前后必须有空白，位于开头/末尾时除外
+            bool leftBoundary = leftIndex == 0 || char.IsWhiteSpace(input[leftIndex - 1]);
+            bool rightBoundary = rightIndex + MarkRight.Length >= input.Length
+                                 || char.IsWhiteSpace(input[rightIndex + MarkRight.Length]);
+            return leftBoundary && rightBoundary;
         }
 
         public override IHtmlable MakeElementFromSpan(string span,

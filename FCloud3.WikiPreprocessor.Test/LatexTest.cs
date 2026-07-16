@@ -1,8 +1,21 @@
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
+using FCloud3.WikiPreprocessor.ConvertingProvider;
+using FCloud3.WikiPreprocessor.ConvertingProvider.Models;
+using FCloud3.WikiPreprocessor.Test.Support;
 
 namespace FCloud3.WikiPreprocessor.Test
 {
+    internal class ConvertingProviderForLatexTest : ConvertingProviderBase
+    {
+        public override string? Implant(string implantSpan)
+        {
+            if (implantSpan == "implant")
+                return "<span class=\"implanted\">implanted</span>";
+            return null;
+        }
+    }
+
     [TestClass]
     public class LatexTest
     {
@@ -192,6 +205,123 @@ namespace FCloud3.WikiPreprocessor.Test
                 "<p><pre><code class=\"language-csharp\">int x = 1;</code></pre></p>" +
                 "<p><pre class=\"mermaid\">graph TD;\nA-->B;</pre></p>" +
                 "<pre class=\"latex\">E = mc^2</pre>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexBoundaryLeftRejected()
+        {
+            // 开始 $ 前面紧挨非空白字符，不识别为 LaTeX
+            string input = "a$x = b$";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual("<p>a$x = b$</p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexBoundaryRightRejected()
+        {
+            // 结束 $ 后面紧挨非空白字符，不识别为 LaTeX
+            string input = "$x = b$c";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual("<p>$x = b$c</p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexBoundaryBothEndsAllowed()
+        {
+            // 开头/末尾的 $ 无需外部空白
+            string input = "$x = b$";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p><span class=\"latex-inline\">x = b</span></p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexBoundaryWithWhitespace()
+        {
+            // 前后都有空白时正常识别
+            string input = "公式 $x=\\frac{a}{b}$ 结束";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p>公式 <span class=\"latex-inline\">x=\\frac{a}{b}</span> 结束</p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexBoundaryMultipleMixed()
+        {
+            // 多个公式，只有满足边界条件的才识别
+            string input = "$a$ 和 $b$c 以及 d$e$";
+            var res = _parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p><span class=\"latex-inline\">a</span>" +
+                " 和 $b$c 以及 d$e$</p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexWithImplantStyleBraces()
+        {
+            // LaTeX 公式内部的大括号不应被 Template/Implant 机制切开
+            var builder = new ParserBuilder();
+            var parser = builder.BuildParser();
+            parser.SetConvertingProvider(new ConvertingProviderForLatexTest());
+
+            string input = "行内公式 $x = \\frac{a}{b}$ 结束";
+            string res = parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p>行内公式 <span class=\"latex-inline\">x = \\frac{a}{b}</span> 结束</p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexWithSqrt()
+        {
+            var builder = new ParserBuilder();
+            var parser = builder.BuildParser();
+            parser.SetConvertingProvider(new ConvertingProviderForLatexTest());
+
+            string input = "$\\sqrt{x^2 + y^2}$";
+            string res = parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p><span class=\"latex-inline\">\\sqrt{x^2 + y^2}</span></p>", res);
+        }
+
+        [TestMethod]
+        public void InlineLatexAndImplantMixed()
+        {
+            // LaTeX 公式和真正的 Implant 调用共存
+            var builder = new ParserBuilder();
+            var parser = builder.BuildParser();
+            parser.SetConvertingProvider(new ConvertingProviderForLatexTest());
+
+            string input = "{implant} 和 $x = \\frac{a}{b}$";
+            string res = parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p><span class=\"implanted\">implanted</span> 和 " +
+                "<span class=\"latex-inline\">x = \\frac{a}{b}</span></p>", res);
+        }
+
+        [TestMethod]
+        public void MultipleInlineLatexWithBraces()
+        {
+            var builder = new ParserBuilder();
+            var parser = builder.BuildParser();
+            parser.SetConvertingProvider(new ConvertingProviderForLatexTest());
+
+            string input = "$\\frac{a}{b}$ 和 $\\sqrt{c}$";
+            string res = parser.RunToPlain(input);
+            Assert.AreEqual(
+                "<p><span class=\"latex-inline\">\\frac{a}{b}</span>" +
+                " 和 <span class=\"latex-inline\">\\sqrt{c}</span></p>", res);
+        }
+
+        [TestMethod]
+        public void BlockLatexStillWorksWithImplantProvider()
+        {
+            var builder = new ParserBuilder();
+            var parser = builder.BuildParser();
+            parser.SetConvertingProvider(new ConvertingProviderForLatexTest());
+
+            string input = "$$x = \\frac{a}{b}$$";
+            string res = parser.RunToPlain(input);
+            Assert.AreEqual("<pre class=\"latex\">x = \\frac{a}{b}</pre>", res);
         }
     }
 }

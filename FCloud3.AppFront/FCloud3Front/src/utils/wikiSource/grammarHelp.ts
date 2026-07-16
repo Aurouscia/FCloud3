@@ -106,7 +106,10 @@ export const grammarHelpsRendering:GrammarHelpItem[] = [
     },
     {
         title:"LaTeX 数学公式",
-        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。详细语法请参考<a href=\"https://www.latex-project.org/help/documentation\" target=\"_blank\">LaTeX 文档</a>。",
+        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。"+
+        "<b>注意：行内公式必须前后都有空白字符</b>（位于行首或行末时除外），即开始和结束的 $ 不能紧挨着其他非空白字符。"+
+        "例如：$E=mc^2$ 是有效的，a$x=b$ 和 $x=b$c 都是无效的。"+
+        "详细语法请参考<a href=\"https://www.latex-project.org/help/documentation\" target=\"_blank\">LaTeX 文档</a>。",
         code:"行内公式：$E=mc^2$\n\n块级公式：\n$$\\sum_{i=1}^{n} x_i = x_1 + x_2 + \\cdots + x_n$$"
     }
 ]

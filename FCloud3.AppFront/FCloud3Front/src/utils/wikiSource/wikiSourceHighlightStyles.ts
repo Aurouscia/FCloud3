@@ -59,6 +59,9 @@ const wikiSourceStyles = `
 ::highlight(subsupscript){
     color: rgb(155, 141, 219);
 }
+::highlight(latexInline){
+    color: rgb(155, 141, 219);
+}
 ::highlight(inlineCode){
     color: rgb(155, 141, 219);
 }

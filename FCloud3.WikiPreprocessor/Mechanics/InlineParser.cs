@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
@@ -161,6 +161,11 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                     {
                         InlineMark m = new(r, left, right);
                         string span = input.Substring(m.LeftIndex + m.LeftMarkLength, m.ContentLength);
+                        if (r is InlineRule ir && !ir.ValidateBoundary(input, left, right))
+                        {
+                            pointer += 1;
+                            continue;
+                        }
                         if (r.FulFill(span))
                         {
                             res.Add(m);
