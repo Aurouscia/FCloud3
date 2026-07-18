@@ -121,11 +121,11 @@ function collectSubHeadings(ele:Element):Element[]{
 export function isDefaultFolded(title:string){
     return title.startsWith("^");
 }
+export function isDoubleFolded(title:string){
+    return title.startsWith("^^");
+}
 export function removeDefaultFoldedMark(title:string):string{
-    if(!isDefaultFolded(title)){
-        return title;
-    }
-    return title.slice(1);
+    return title.replace(/^\^+/, '');
 }
 
 export function findNearestUnhiddenAnces(ele:Element):{ances:Element, text:string}|undefined{
