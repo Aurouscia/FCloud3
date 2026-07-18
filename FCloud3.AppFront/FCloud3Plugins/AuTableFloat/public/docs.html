@@ -102,6 +102,27 @@
         <strong>注意：</strong>使用 <code>target(...)</code> 后，桌面端（及 <code>enforce</code> 策略）表格将不再移动到全文开头，而是直接插入到目标段落标题之前或之后；移动端 <code>drawer</code> 策略仍然会在表格原始位置生成打开按钮。
     </div>
 
+    <h2>段落内定位参数 <code>target-p(...)</code></h2>
+    <p>如果希望表格插入到某个普通段落中的指定位置，可以使用 <code>target-p(...)</code> 参数。插件会搜索页面内所有 <code>&lt;p&gt;</code> 段落，找到第一个文本内容中包含该关键词的段落，并在该关键词所在位置将表格插入到段落内部。</p>
+    <p>语法：<code>target-p(关键词, 位置)</code></p>
+    <ul>
+        <li><strong>关键词</strong>：必填。插件会搜索页面内所有 <code>&lt;p&gt;</code> 段落，找到第一个文本内容中包含该关键词的段落。</li>
+        <li><strong>位置</strong>：可选，<code>before</code>（关键词之前）或 <code>after</code>（关键词之后）。省略时默认为 <code>after</code>。</li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float target-p(关键词)</td><td>将表格插入到第一个包含“关键词”的段落中，且位于“关键词”之后</td></tr>
+        <tr><td>au-table-float target-p(关键词, before)</td><td>将表格插入到“关键词”之前</td></tr>
+        <tr><td>au-table-float target-p(关键词, after)</td><td>显式指定在“关键词”之后插入</td></tr>
+        <tr><td>au-table-float left target-p(关键词)</td><td>向左浮动，并在包含“关键词”的段落中定位</td></tr>
+        <tr><td>au-table-float target-p(关键词) mobile(drawer,600px)</td><td>桌面端插入到段落中，移动端使用抽屉</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>使用 <code>target-p(...)</code> 后，桌面端（及 <code>enforce</code> 策略）表格不再移动到全文开头，而是直接插入到匹配的 <code>&lt;p&gt;</code> 段落内部指定位置；移动端 <code>drawer</code> 策略仍然会在表格原始位置生成打开按钮。若同时指定了 <code>target(...)</code>，则 <code>target(...)</code> 优先生效。
+    </div>
+
     <h2>响应式切换</h2>
     <p>插件会监听窗口大小变化。当屏幕宽度跨越阈值时：</p>
     <ul>

@@ -70,6 +70,11 @@ interface TargetConfig {
     position: 'before' | 'after'
 }
 
+interface TargetPConfig {
+    keyword: string
+    position: 'before' | 'after'
+}
+
 interface TableState {
     table: HTMLTableElement
     placeholder: Comment
@@ -77,6 +82,7 @@ interface TableState {
     mobile: MobileConfig
     cssStyles: CssStyles
     target: TargetConfig | null
+    targetP: TargetPConfig | null
     currentMode: DisplayMode
 }
 
@@ -173,6 +179,27 @@ function parseTargetConfig(text: string): TargetConfig | null {
     }
 }
 
+function parseTargetPConfig(text: string): TargetPConfig | null {
+    const match = /target-p\(([^)]*)\)/i.exec(text)
+    if (!match) {
+        return null
+    }
+    const inner = match[1].trim()
+    if (!inner) {
+        return null
+    }
+    const parts = inner.split(',').map(s => s.trim())
+    const keyword = parts[0]
+    if (!keyword) {
+        return null
+    }
+    const position = parts[1]?.toLowerCase()
+    return {
+        keyword,
+        position: position === 'before' ? 'before' : 'after'
+    }
+}
+
 function findTargetElement(keyword: string): HTMLElement | null {
     const h1s = document.querySelectorAll('h1')
     for (const h1 of Array.from(h1s)) {
@@ -183,10 +210,36 @@ function findTargetElement(keyword: string): HTMLElement | null {
     return null
 }
 
-function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig; cssStyles: CssStyles; target: TargetConfig | null } {
+function findMatchingP(keyword: string): HTMLElement | null {
+    const ps = document.querySelectorAll('p')
+    for (const p of Array.from(ps)) {
+        if (p.textContent?.includes(keyword)) {
+            return p
+        }
+    }
+    return null
+}
+
+function insertTableInsideP(table: HTMLTableElement, p: HTMLElement, keyword: string, position: 'before' | 'after'): boolean {
+    const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null)
+    let currentNode: Text | null
+    while ((currentNode = walker.nextNode() as Text)) {
+        const text = currentNode.textContent || ''
+        const index = text.indexOf(keyword)
+        if (index >= 0) {
+            const offset = position === 'before' ? index : index + keyword.length
+            const afterText = currentNode.splitText(offset)
+            currentNode.parentNode?.insertBefore(table, afterText)
+            return true
+        }
+    }
+    return false
+}
+
+function parseTriggerCell(text: string): { triggered: boolean; direction: 'left' | 'right'; mobile: MobileConfig; cssStyles: CssStyles; target: TargetConfig | null; targetP: TargetPConfig | null } {
     const parts = text.split(/\s+/).filter(Boolean)
     if (parts.length === 0 || !getTriggerPattern().test(parts[0])) {
-        return { triggered: false, direction: 'right', mobile: defaultMobileConfig, cssStyles: {}, target: null }
+        return { triggered: false, direction: 'right', mobile: defaultMobileConfig, cssStyles: {}, target: null, targetP: null }
     }
     const rest = parts.slice(1).join(' ')
     return {
@@ -194,7 +247,8 @@ function parseTriggerCell(text: string): { triggered: boolean; direction: 'left'
         direction: parseFloatDirection(rest),
         mobile: parseMobileConfig(rest),
         cssStyles: parseCssStyles(rest),
-        target: parseTargetConfig(rest)
+        target: parseTargetConfig(rest),
+        targetP: parseTargetPConfig(rest)
     }
 }
 
@@ -254,6 +308,19 @@ function moveToFloat(state: TableState, paras: Element | null): boolean {
         return true
     }
 
+    if (state.targetP) {
+        const p = findMatchingP(state.targetP.keyword)
+        if (!p) {
+            return false
+        }
+        const inserted = insertTableInsideP(state.table, p, state.targetP.keyword, state.targetP.position)
+        if (!inserted) {
+            return false
+        }
+        state.currentMode = 'float'
+        return true
+    }
+
     if (!paras) {
         return false
     }
@@ -291,9 +358,11 @@ function updateTablePosition(state: TableState, paras: Element | null) {
         else if (!nowMobile && state.currentMode !== 'float') {
             const moved = moveToFloat(state, paras)
             if (!moved) {
-                const message = state.target
-                    ? `找不到包含"${state.target.keyword}"的h1元素`
-                    : '找不到.paras元素'
+                const message = state.targetP
+                    ? `找不到包含"${state.targetP.keyword}"的p元素`
+                    : state.target
+                        ? `找不到包含"${state.target.keyword}"的h1元素`
+                        : '找不到.paras元素'
                 showErrorAfter(state.table, message)
             }
         }
@@ -307,9 +376,11 @@ function updateTablePosition(state: TableState, paras: Element | null) {
     else if (!nowMobile && state.currentMode !== 'float') {
         const moved = moveToFloat(state, paras)
         if (!moved) {
-            const message = state.target
-                ? `找不到包含"${state.target.keyword}"的h1元素`
-                : '找不到.paras元素'
+            const message = state.targetP
+                ? `找不到包含"${state.targetP.keyword}"的p元素`
+                : state.target
+                    ? `找不到包含"${state.target.keyword}"的h1元素`
+                    : '找不到.paras元素'
             showErrorAfter(state.table, message)
         }
     }
@@ -349,6 +420,7 @@ export function run() {
         let mobile = defaultMobileConfig
         let cssStyles: CssStyles = {}
         let target: TargetConfig | null = null
+        let targetP: TargetPConfig | null = null
 
         for (const row of Array.from(table.rows)) {
             for (const cell of Array.from(row.cells)) {
@@ -360,6 +432,7 @@ export function run() {
                     mobile = result.mobile
                     cssStyles = result.cssStyles
                     target = result.target
+                    targetP = result.targetP
                     row.remove()
                     break
                 }
@@ -379,6 +452,7 @@ export function run() {
                 mobile,
                 cssStyles,
                 target,
+                targetP,
                 currentMode: 'original'
             }
             tableStates.set(table, state)

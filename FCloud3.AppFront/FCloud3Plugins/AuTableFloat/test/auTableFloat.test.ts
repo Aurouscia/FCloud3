@@ -560,6 +560,127 @@ describe('AuTableFloat', () => {
     })
   })
 
+  describe('target-p parameter', () => {
+    it('should insert table inside matching p after keyword by default', () => {
+      const p = document.createElement('p')
+      p.textContent = '前文关键词后文'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float target-p(关键词)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(table.parentElement).toBe(p)
+      expect(table.style.float).toBe('right')
+      expect(table.classList.contains('au-floated-table')).toBe(true)
+      expect(table.previousSibling?.textContent).toBe('前文关键词')
+      expect(table.nextSibling?.textContent).toBe('后文')
+    })
+
+    it('should insert table inside matching p before keyword', () => {
+      const p = document.createElement('p')
+      p.textContent = '前文关键词后文'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float target-p(关键词, before)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(table.parentElement).toBe(p)
+      expect(table.previousSibling?.textContent).toBe('前文')
+      expect(table.nextSibling?.textContent).toBe('关键词后文')
+    })
+
+    it('should insert table inside matching p after keyword explicitly', () => {
+      const p = document.createElement('p')
+      p.textContent = '前文关键词后文'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float target-p(关键词, after)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(table.parentElement).toBe(p)
+      expect(table.previousSibling?.textContent).toBe('前文关键词')
+      expect(table.nextSibling?.textContent).toBe('后文')
+    })
+
+    it('should find first p whose text contains keyword', () => {
+      const firstP = document.createElement('p')
+      firstP.textContent = '第一个关键词'
+      document.body.appendChild(firstP)
+
+      const secondP = document.createElement('p')
+      secondP.textContent = '第二个关键词'
+      document.body.appendChild(secondP)
+
+      const table = createTable(`
+        <tr><td>au-table-float target-p(关键词)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(table.parentElement).toBe(firstP)
+      expect(firstP.contains(table)).toBe(true)
+      expect(secondP.contains(table)).toBe(false)
+    })
+
+    it('should show error when no matching p found', () => {
+      const p = document.createElement('p')
+      p.textContent = '一些无关文本'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float target-p(不存在的关键词)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      const error = table.nextElementSibling as HTMLElement
+      expect(error.tagName).toBe('B')
+      expect(error.textContent).toBe('找不到包含"不存在的关键词"的p元素')
+    })
+
+    it('should use target-p on desktop and drawer on mobile', () => {
+      const p = document.createElement('p')
+      p.textContent = '响应关键词后文'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float target-p(关键词) mobile(drawer, 500px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      const originalParent = table.parentElement
+      run()
+      expect(table.parentElement).toBe(p)
+      expect(table.previousSibling?.textContent).toBe('响应关键词')
+      expect(document.querySelector('button')).toBeNull()
+
+      resizeTo(400)
+      const button = document.querySelector('button')
+      expect(button).not.toBeNull()
+      expect(button!.parentElement).toBe(originalParent)
+      expect(document.querySelector('.au-table-float-panel')?.contains(table)).toBe(true)
+
+      resizeTo(1024)
+      expect(table.parentElement).toBe(p)
+      expect(table.previousSibling?.textContent).toBe('响应关键词')
+      expect(document.querySelector('button')).toBeNull()
+      expect(document.querySelector('.au-table-float-panel')).toBeNull()
+    })
+
+    it('should support target-p with direction and css styles', () => {
+      const p = document.createElement('p')
+      p.textContent = '综合关键词后文'
+      document.body.appendChild(p)
+      const table = createTable(`
+        <tr><td>au-table-float left target-p(关键词) font-size(12px)</td></tr>
+        <tr><td>数据</td></tr>
+      `)
+      run()
+      expect(table.parentElement).toBe(p)
+      expect(table.style.float).toBe('left')
+      expect(table.style.fontSize).toBe('12px')
+      expect(table.previousSibling?.textContent).toBe('综合关键词')
+    })
+  })
+
   describe('multiple tables with different thresholds', () => {
     it('should handle each table according to its own threshold', () => {
       const paras = createWikiViewWithParas()
