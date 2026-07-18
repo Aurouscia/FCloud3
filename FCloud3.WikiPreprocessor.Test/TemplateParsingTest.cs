@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
@@ -224,12 +224,25 @@ namespace FCloud3.WikiPreprocessor.Test
             TemplateParser parser = new(_ctx);
             string output = parser.Run(input).ToHtml();
             Assert.AreEqual(answer, output);
+        }
+
+        [TestMethod]
+        public void UniqueSlotIncreCrossRun()
+        {
+            string input = "{{唯一id测试}}哼哼哼{{唯一id测试}}";
+            string firstRun = "<div id=\"id_0\"><script>doc.get('id_0')</script>哼哼哼<div id=\"id_1\"><script>doc.get('id_1')</script>";
+            string secondRun = "<div id=\"id_2\"><script>doc.get('id_2')</script>哼哼哼<div id=\"id_3\"><script>doc.get('id_3')</script>";
+
+            _ctx.SetInitialFrameCount();
+            TemplateParser parser = new(_ctx);
+            Assert.AreEqual(firstRun, parser.Run(input).ToHtml());
+
             _ctx.BeforeParsing();
-            string output2 = parser.Run(input).ToHtml();
-            Assert.AreEqual(answer, output2);
+            Assert.AreEqual(secondRun, parser.Run(input).ToHtml());
+
             _ctx.BeforeParsing();
-            string output3 = parser.Run(input).ToHtml();
-            Assert.AreEqual(answer, output3);
+            _ctx.ResetCounters();
+            Assert.AreEqual(firstRun, parser.Run(input).ToHtml());
         }
 
         public static IEnumerable<object[]> ParseImplantTestData()

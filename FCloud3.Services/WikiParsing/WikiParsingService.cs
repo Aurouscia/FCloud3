@@ -315,7 +315,7 @@ namespace FCloud3.Services.WikiParsing
 
             var refs = parser.Context.Ref;
             wikiRefRepo.SetRefs(wiki.Id, refs.Refs);
-            parser.Context.InlineMediaQueryId = 0;
+            parser.Context.ResetCounters();
 
             return result;
         }

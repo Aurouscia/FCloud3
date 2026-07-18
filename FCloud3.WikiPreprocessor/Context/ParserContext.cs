@@ -28,12 +28,12 @@ namespace FCloud3.WikiPreprocessor.Context
         public List<string> InlineMediaQueries { get; } = new();
 
         /// <summary>
-        /// 用于行内媒体对象媒体查询类名的唯一自增 ID，跨多次解析不清空，避免类名冲突
+        /// 用于行内媒体对象媒体查询类名的唯一自增 ID，跨多次解析不清空，避免类名冲突；在整个页面解析完后由 ResetCounters 重置
         /// </summary>
         public int InlineMediaQueryId { get; set; }
 
         /// <summary>
-        /// 用于模板中需要产生唯一标识符处，使用一次自增一次
+        /// 用于模板中需要产生唯一标识符处，使用一次自增一次；跨多次解析不清空，避免同一页面中不同段落的模板 ID 冲突；在整个页面解析完后由 ResetCounters 重置
         /// </summary>
         public int UniqueSlotIncre { get; set; }
         public ParserContext(ParserOptions options)
@@ -76,7 +76,6 @@ namespace FCloud3.WikiPreprocessor.Context
         /// </summary>
         public void BeforeParsing()
         {
-            UniqueSlotIncre = 0;
             InlineMediaQueries.Clear();
             if(!Options.KeepRuleUsage)
                 RuleUsage.Reset();
@@ -84,6 +83,14 @@ namespace FCloud3.WikiPreprocessor.Context
             FootNote.Clear();
             if(!Options.KeepRef)
                 Ref.Clear();
+        }
+        /// <summary>
+        /// 在整个页面Parse完后，重置一些页面全局计数器
+        /// </summary>
+        public void ResetCounters()
+        {
+            InlineMediaQueryId = 0;
+            UniqueSlotIncre = 0;
         }
         /// <summary>
         /// 在Parser对象运行之后，抛弃Scoped数据源，确保每次拿到的都是新的
