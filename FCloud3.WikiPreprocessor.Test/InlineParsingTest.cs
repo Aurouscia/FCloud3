@@ -197,6 +197,21 @@ namespace FCloud3.WikiPreprocessor.Test
             new object[] {
                 "[http://img.png|8|right|abc]",
                 "<p><img src=\"http://img.png\" style=\"float:right;height:8em;\"/></p>"
+            },
+            new object[] {
+                "[http://img.png|||>800]",
+                "<style>@media (max-width: 800px){.wiki-inline-mq-1{display:none !important}}</style>" +
+                "<p><img class=\"wiki-inline-mq-1\" src=\"http://img.png\" style=\"float:right;height:5em;\"/></p>"
+            },
+            new object[] {
+                "[http://img.png||left|>800]",
+                "<style>@media (max-width: 800px){.wiki-inline-mq-1{display:none !important}}</style>" +
+                "<p><img class=\"wiki-inline-mq-1\" src=\"http://img.png\" style=\"float:left;height:5em;\"/></p>"
+            },
+            new object[] {
+                "[http://img.png|8||>800]",
+                "<style>@media (max-width: 800px){.wiki-inline-mq-1{display:none !important}}</style>" +
+                "<p><img class=\"wiki-inline-mq-1\" src=\"http://img.png\" style=\"float:right;height:8em;\"/></p>"
             }
         };
 

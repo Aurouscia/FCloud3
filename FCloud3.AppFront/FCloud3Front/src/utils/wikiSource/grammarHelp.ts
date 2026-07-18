@@ -164,7 +164,8 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         "<u>[xxx|3|left|>800]</u> 表示宽度大于 800px 时显示（也支持全角＞）；\n"+
         "<u>[xxx|3|left|<800]</u> 表示宽度小于 800px 时显示（也支持全角＜）；\n"+
         "<u>[xxx|3|left|800-1200]</u> 表示宽度在 800px 到 1200px 之间显示。\n"+
-        "如果不需要控制位置但要使用媒体查询，第三参数可留空，例如：<u>[xxx|2||>800]</u>",
+        "如果不需要控制位置但要使用媒体查询，可省略第三参数，例如：<u>[xxx|2||>800]</u>；\n"+
+        "如果也不需要控制高度，可一并省略第二参数，例如：<u>[xxx|||>800]</u>。",
         code:"各位女士们先生们，欢迎 [http://wiki.jowei19.com/fcloud.svg|100px|block] 欢迎使用fcloud3内容管理系统。",
         demo:"各位女士们先生们，欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
     },

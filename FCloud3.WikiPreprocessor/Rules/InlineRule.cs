@@ -289,19 +289,25 @@ namespace FCloud3.WikiPreprocessor.Rules
             string height = defaultHeight;
             string? command = null;
             string? mediaQueryClass = null;
-            if(parts.Length >= 1)
+            if (parts.Length >= 1)
             {
                 url = parts[0].Trim();
             }
             if (parts.Length >= 2)
             {
-                height = parts[1].Trim();
-                if(int.TryParse(height,out _))
-                    height += "em";
+                var h = parts[1].Trim();
+                if (!string.IsNullOrEmpty(h))
+                {
+                    height = h;
+                    if (int.TryParse(height, out _))
+                        height += "em";
+                }
             }
             if (parts.Length >= 3)
             {
-                command = parts[2].Trim();
+                var c = parts[2].Trim();
+                if (!string.IsNullOrEmpty(c))
+                    command = c;
             }
             if (parts.Length >= 4)
             {
