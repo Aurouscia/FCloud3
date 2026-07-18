@@ -157,7 +157,10 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"网络资源",
         desc:"如果有指向图片/视频/音频文件的链接，可写在中括号内，例如：\n[http://wiki.jowei19.com/fcloud.svg]\n\n"+
-        "如果需要控制资源尺寸，可写<u>[xxx|3]</u>（3倍行高）或<u>[xxx|20px]</u>来指定其高度。\n"+
+        "如果需要控制资源尺寸，可在第二参数指定其高度：\n"+
+        "<u>[xxx|3]</u> 表示 3 倍行高（纯数字会自动补 em）；<u>[xxx|50px]</u> 表示 50 像素；<u>[xxx|10vh]</u> 表示窗口高度的 10%；\n"+
+        "也支持 CSS 复杂表达式，例如 <u>[xxx|max(calc(20vh + 10px), 40px)]</u>，表示“窗口高度的 20% 加上 10 像素”与“40像素”中更大的那一个。\n"+
+        "更复杂的写法可参考 <a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/Guides/Values_and_units\" target=\"_blank\">详细了解该值如何填写</a>。\n\n"+
         "如果需要控制资源位置，可写<u>[xxx|3|left]</u>。注意中括号内三个部分之间的分隔符是竖杠（ | ）\n"+
         "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）\n\n"+
         "还可以使用第四参数控制媒体查询，使资源仅在指定视口宽度下显示：\n"+
