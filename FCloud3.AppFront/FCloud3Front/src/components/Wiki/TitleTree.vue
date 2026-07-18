@@ -46,12 +46,14 @@ defineExpose({
 <template>
 <div class="titleTreeNodes" :class="{master:props.isMaster}">
     <div v-for="t in props.titleTree" :key="t.Id">
-        <div v-if="t.Text && (!isDefaultFolded(t.Text) || t.Level===0)" class="titleTreeNodeText" :class="{master:props.isMaster}" 
-            @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
-            <div class="currentMark"></div>
-            <span v-html="removeDefaultFoldedMark(t.Text)"></span>
-        </div>
-        <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)"></TitleTree>
+        <template v-if="!isDefaultFolded(t.Text) || t.Level===0">
+            <div v-if="t.Text" class="titleTreeNodeText" :class="{master:props.isMaster}" 
+                @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
+                <div class="currentMark"></div>
+                <span v-html="removeDefaultFoldedMark(t.Text)"></span>
+            </div>
+            <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)"></TitleTree>
+        </template>
     </div>
 </div>
 </template>
