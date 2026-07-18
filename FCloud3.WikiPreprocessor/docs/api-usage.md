@@ -22,10 +22,11 @@ var result = parser.RunToParserResult("# 标题\n正文内容");
 
 // 解析为原始结果（含规则使用记录和标题树）
 var raw = parser.RunToParserResultRaw("# 标题\n正文内容");
-// raw.Content    - 主体 HTML
-// raw.UsedRules  - 使用的规则列表
-// raw.FootNotes  - 脚注列表
-// raw.Titles     - 标题树结构
+// raw.Content             - 主体 HTML
+// raw.UsedRules           - 使用的规则列表
+// raw.FootNotes           - 脚注列表
+// raw.Titles              - 标题树结构
+// raw.InlineMediaQueries  - 行内媒体对象使用的媒体查询样式片段
 ```
 
 ## 配置解析器

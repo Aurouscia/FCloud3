@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context.SubContext;
+using FCloud3.WikiPreprocessor.Context.SubContext;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
@@ -143,11 +143,13 @@ namespace FCloud3.WikiPreprocessor.Models
         public string Src { get; }
         public string Height { get; }
         public string? Command { get; }
-        public InlineObjectElement(string src, string height, string? command)
+        public string? MediaQueryClass { get; }
+        public InlineObjectElement(string src, string height, string? command, string? mediaQueryClass = null)
         {
             Src = src;
             Height = height;
             Command = command;
+            MediaQueryClass = mediaQueryClass;
         }
 
         private const string cmdFloatLeft = "left";
@@ -166,15 +168,16 @@ namespace FCloud3.WikiPreprocessor.Models
                     style1 = "display:inline;vertical-align:middle";
             }
             string style2 = $"height:{Height};";
+            string classAttr = MediaQueryClass is not null ? $" class=\"{MediaQueryClass}\"" : "";
 
             if (UrlUtil.IsSvg(Src))
-                return $"<object data=\"{Src}\" type=\"image/svg+xml\" style=\"{style1};{style2}\"></object>";
+                return $"<object{classAttr} data=\"{Src}\" type=\"image/svg+xml\" style=\"{style1};{style2}\"></object>";
             else if (UrlUtil.IsImage(Src))
-                return $"<img src=\"{Src}\" style=\"{style1};{style2}\"/>";
+                return $"<img{classAttr} src=\"{Src}\" style=\"{style1};{style2}\"/>";
             else if (UrlUtil.IsAudio(Src))
-                return $"<audio controls src=\"{Src}\" style=\"{style1};{style2}\"></audio>";
+                return $"<audio{classAttr} controls src=\"{Src}\" style=\"{style1};{style2}\"></audio>";
             else if (UrlUtil.IsVideo(Src))
-                return $"<video controls src=\"{Src}\" style=\"{style1};{style2}\"></video>";
+                return $"<video{classAttr} controls src=\"{Src}\" style=\"{style1};{style2}\"></video>";
             return "";
         }
         public override void WriteHtml(StringBuilder sb)

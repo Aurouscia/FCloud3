@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Context.SubContext;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
@@ -110,7 +110,8 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 content: content,
                 usedRules: _ctx.RuleUsage.GetUsedRules(),
                 footNotes: _ctx.FootNote.AllToString(),
-                titles: htmlable.ContainTitleNodes());
+                titles: htmlable.ContainTitleNodes(),
+                inlineMediaQueries: _ctx.InlineMediaQueries);
             return result;
         }
         public IHtmlable RunToObject(string? input, bool enforceBlock = true)
@@ -137,6 +138,7 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         private void Styles(StringBuilder sb, bool withLabel=true)
         {
             var allStyles = _ctx.RuleUsage.GetUsedRules().Select(x => x.GetStyles()).ToList();
+            allStyles.AddRange(_ctx.InlineMediaQueries);
             if (allStyles.Count == 0 || allStyles.All(s => s == ""))
                 return;
             allStyles = allStyles.Distinct().ToList();
@@ -221,12 +223,14 @@ namespace FCloud3.WikiPreprocessor.Mechanics
         public List<IRule> UsedRules { get; private set; }
         public List<string> FootNotes { get; private set; }
         public List<ParserTitleTreeNode> Titles { get; private set; }
-        public ParserResultRaw(string content="", List<IRule>? usedRules=null, List<string>? footNotes=null, List<ParserTitleTreeNode>? titles=null)
+        public List<string> InlineMediaQueries { get; private set; }
+        public ParserResultRaw(string content="", List<IRule>? usedRules=null, List<string>? footNotes=null, List<ParserTitleTreeNode>? titles=null, List<string>? inlineMediaQueries=null)
         {
             Content = content;
             UsedRules = usedRules ?? new();
             FootNotes = footNotes ?? new();
             Titles = titles ?? new();
+            InlineMediaQueries = inlineMediaQueries is not null ? [..inlineMediaQueries] : new();
         }
         public List<IRule> UsedRulesWithCommons => 
             UsedRules.Where(x =>

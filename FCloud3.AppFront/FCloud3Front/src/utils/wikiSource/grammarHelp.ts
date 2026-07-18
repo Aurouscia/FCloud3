@@ -159,7 +159,12 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
         desc:"如果有指向图片/视频/音频文件的链接，可写在中括号内，例如：\n[http://wiki.jowei19.com/fcloud.svg]\n\n"+
         "如果需要控制资源尺寸，可写<u>[xxx|3]</u>（3倍行高）或<u>[xxx|20px]</u>来指定其高度。\n"+
         "如果需要控制资源位置，可写<u>[xxx|3|left]</u>。注意中括号内三个部分之间的分隔符是竖杠（ | ）\n"+
-        "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）",
+        "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）\n\n"+
+        "还可以使用第四参数控制媒体查询，使资源仅在指定视口宽度下显示：\n"+
+        "<u>[xxx|3|left|>800]</u> 表示宽度大于 800px 时显示（也支持全角＞）；\n"+
+        "<u>[xxx|3|left|<800]</u> 表示宽度小于 800px 时显示（也支持全角＜）；\n"+
+        "<u>[xxx|3|left|800-1200]</u> 表示宽度在 800px 到 1200px 之间显示。\n"+
+        "如果不需要控制位置但要使用媒体查询，第三参数可留空，例如：<u>[xxx|2||>800]</u>",
         code:"各位女士们先生们，欢迎 [http://wiki.jowei19.com/fcloud.svg|100px|block] 欢迎使用fcloud3内容管理系统。",
         demo:"各位女士们先生们，欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
     },

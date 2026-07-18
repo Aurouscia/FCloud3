@@ -288,6 +288,7 @@ namespace FCloud3.WikiPreprocessor.Rules
             string url = "";
             string height = defaultHeight;
             string? command = null;
+            string? mediaQueryClass = null;
             if(parts.Length >= 1)
             {
                 url = parts[0].Trim();
@@ -302,7 +303,67 @@ namespace FCloud3.WikiPreprocessor.Rules
             {
                 command = parts[2].Trim();
             }
-            return new InlineObjectElement(url, height, command);
+            if (parts.Length >= 4)
+            {
+                var mediaQuery = parts[3].Trim();
+                if (TryParseMediaQuery(mediaQuery, out List<string> hideConditions))
+                {
+                    int id = ++context.InlineMediaQueryId;
+                    mediaQueryClass = $"wiki-inline-mq-{id}";
+                    var css = new StringBuilder();
+                    foreach (var condition in hideConditions)
+                    {
+                        css.Append($"@media {condition}{{.{mediaQueryClass}{{display:none !important}}}}");
+                    }
+                    context.InlineMediaQueries.Add(css.ToString());
+                }
+            }
+            return new InlineObjectElement(url, height, command, mediaQueryClass);
+        }
+
+        private static bool TryParseMediaQuery(string input, out List<string> hideConditions)
+        {
+            hideConditions = new List<string>();
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            var trimmed = input.Trim();
+            if (trimmed.Length <= 1) return false;
+
+            // 用户在 wiki 源码中输入 > 和 < 时，经过 HtmlSanitizer 会被编码为 &gt; 和 &lt;
+            // 同时支持全角大于号 ＞ 和全角小于号 ＜
+            // 宽度大于 N px 时显示：>800、&gt;800 或 ＞800
+            // 对应：小于等于 N px 时隐藏，即 max-width: N
+            if (trimmed[0] == '>' || trimmed[0] == '＞' || trimmed.StartsWith("&gt;"))
+            {
+                var numberPart = (trimmed[0] == '>' || trimmed[0] == '＞') ? trimmed[1..] : trimmed[4..];
+                if (int.TryParse(numberPart, out _))
+                {
+                    hideConditions.Add($"(max-width: {numberPart}px)");
+                    return true;
+                }
+            }
+            // 宽度小于 N px 时显示：<800、&lt;800 或 ＜800
+            // 对应：大于等于 N px 时隐藏，即 min-width: N
+            if (trimmed[0] == '<' || trimmed[0] == '＜' || trimmed.StartsWith("&lt;"))
+            {
+                var numberPart = (trimmed[0] == '<' || trimmed[0] == '＜') ? trimmed[1..] : trimmed[4..];
+                if (int.TryParse(numberPart, out _))
+                {
+                    hideConditions.Add($"(min-width: {numberPart}px)");
+                    return true;
+                }
+            }
+            // 宽度在 N1 ~ N2 px 之间显示：800-1200
+            // 对应：小于等于 N1 或 大于等于 N2 时隐藏
+            var rangeParts = trimmed.Split('-');
+            if (rangeParts.Length == 2
+                && int.TryParse(rangeParts[0], out _)
+                && int.TryParse(rangeParts[1], out _))
+            {
+                hideConditions.Add($"(max-width: {rangeParts[0]}px)");
+                hideConditions.Add($"(min-width: {rangeParts[1]}px)");
+                return true;
+            }
+            return false;
         }
     }
 

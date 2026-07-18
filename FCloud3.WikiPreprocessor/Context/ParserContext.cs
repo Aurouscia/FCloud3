@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context.SubContext;
+using FCloud3.WikiPreprocessor.Context.SubContext;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Options;
 using FCloud3.WikiPreprocessor.Util;
@@ -21,6 +21,16 @@ namespace FCloud3.WikiPreprocessor.Context
         public ParserRefContext Ref { get; }
         public AutoReplaceContext AutoReplace { get; }
         public IScopedConvertingProvider? ConvertingProvider { get; private set; }
+
+        /// <summary>
+        /// 用于收集行内媒体对象的媒体查询样式，最终统一输出到 style 标签中
+        /// </summary>
+        public List<string> InlineMediaQueries { get; } = new();
+
+        /// <summary>
+        /// 用于行内媒体对象媒体查询类名的唯一自增 ID，跨多次解析不清空，避免类名冲突
+        /// </summary>
+        public int InlineMediaQueryId { get; set; }
 
         /// <summary>
         /// 用于模板中需要产生唯一标识符处，使用一次自增一次
@@ -67,6 +77,7 @@ namespace FCloud3.WikiPreprocessor.Context
         public void BeforeParsing()
         {
             UniqueSlotIncre = 0;
+            InlineMediaQueries.Clear();
             if(!Options.KeepRuleUsage)
                 RuleUsage.Reset();
             Caches.BeforeParsing();
