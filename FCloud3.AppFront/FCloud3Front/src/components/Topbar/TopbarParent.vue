@@ -157,7 +157,7 @@ function toggleFold(){
     display: none;
     margin-left: 140px;
 }
-@media screen and (min-width: 500px){
+@media screen and (min-width: 600px){
     .foldBtn{
         display: none;
     }

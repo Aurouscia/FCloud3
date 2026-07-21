@@ -122,6 +122,10 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 <style scoped>
 .subdirName{
     font-weight: bold;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .subdirName:hover{
     text-decoration: underline;
@@ -146,6 +150,7 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
 .fileDirChild{
     padding-left: 5px;
     position: relative;
+    min-width: 0;
 }
 .detail{
     display: flex;
@@ -157,6 +162,16 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     margin-left: 11px;
     margin-bottom: 5px;
     padding-left: 4px;
+    min-width: 0;
+}
+.subdir > div:first-child{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    gap:5px;
+    flex: 1;
+    min-width: 0;
 }
 .subdir div{
     display: flex;

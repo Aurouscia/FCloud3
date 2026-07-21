@@ -5,6 +5,8 @@ import WikiTemplateEditor from "../WikiTemplateEditor.vue";
 import ViewWiki from "../ViewWiki.vue";
 import ViewWikiFromId from "../ViewWikiFromId.vue";
 import WikiPlugins from "../WikiPlugins.vue";
+import WikiIframeWhitelist from "../WikiIframeWhitelist.vue";
+import WikiBugHelp from "../WikiBugHelp.vue";
 
 export function addWikiParsing(r:Router){
     addToRouter(r,routes);
@@ -38,6 +40,14 @@ const routes = [
         component:WikiTemplateEditor,
         props:true,
         name:"wikiTemplateEditor"
+    },{
+        path:"/wikiIframeWhitelist",
+        component:WikiIframeWhitelist,
+        name:"wikiIframeWhitelist"
+    },{
+        path:"/wikiBugHelp",
+        component:WikiBugHelp,
+        name:"wikiBugHelp"
     },{
         path:"/wikiPlugins",
         component:WikiPlugins,

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
+import { RouterLink } from 'vue-router';
 import { Api } from '@/utils/com/api';
-import { FileDir } from '@/models/files/fileDir';
+import { FileDir, FileDirShortcut } from '@/models/files/fileDir';
 import Loading from '@/components/Loading.vue';
 import FileUpload from '@/components/FileUpload.vue';
 import Search from '@/components/Search.vue';
@@ -15,6 +16,7 @@ import CreateWiki from '@/components/Wiki/CreateWiki.vue';
 import { injectApi } from '@/provides';
 
 const data = ref<FileDir>();
+const shortcuts = ref<FileDirShortcut[]>([]);
 const props = defineProps<{
     id:number,
     path:string[],
@@ -28,7 +30,7 @@ const tabsTexts = computed<string[]>(()=>{
 })
 
 var api:Api = injectApi()
-const { jumpToDir } = useFilesRoutesJump();
+const { jumpToDir, jumpToDirRoute } = useFilesRoutesJump();
 
 async function saveEdit(){
     if(data.value){
@@ -76,6 +78,7 @@ onMounted(async()=>{
     data.value = await api.files.fileDir.edit(props.id);
     editingDirName.value = data.value?.Name;
     editingDirUrlPathName.value = data.value?.UrlPathName;
+    shortcuts.value = await api.files.fileDir.shortcuts(props.id) || [];
 })
 </script>
 
@@ -127,6 +130,12 @@ onMounted(async()=>{
                                 </td>
                             </tr>
                         </tbody></table>
+                        <div v-if="shortcuts.length > 0" class="shortcuts">
+                            <div>本目录的<b>快捷方式</b>：</div>
+                            <div v-for="s in shortcuts" :key="s.Id" class="shortcut-item">
+                                <RouterLink :to="jumpToDirRoute(s.Path)">{{ s.Name }}</RouterLink>
+                            </div>
+                        </div>
                         <div style="text-align: center;margin-top: 20px;">
                             <LongPress :reached="del">长按删除本目录</LongPress>
                         </div>
@@ -139,7 +148,7 @@ onMounted(async()=>{
     <Loading v-else></Loading>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 td{
     white-space: nowrap;
 }
@@ -148,5 +157,19 @@ input{
 }
 table{
     margin: 0px auto 0px auto;
+}
+.shortcuts{
+    margin: 15px 0px;
+    text-align: center;
+    font-size: 14px;
+    div{
+        margin: 4px 0px;
+    }
+    .shortcut-item a{
+        color: cornflowerblue;
+        &:hover{
+            text-decoration: underline;
+        }
+    }
 }
 </style>

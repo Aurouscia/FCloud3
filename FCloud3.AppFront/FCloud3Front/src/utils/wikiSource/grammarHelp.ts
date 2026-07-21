@@ -93,18 +93,45 @@ export const grammarHelpsStandard:GrammarHelpItem[] = [
     },
 ]
 
+export const grammarHelpsRendering:GrammarHelpItem[] = [
+    {
+        title:"Mermaid 图表",
+        desc:"使用围栏代码块并指定语言为 mermaid，可在词条中插入流程图、时序图、类图等图表。详细语法可参考<a href=\"https://mermaid.js.org/\" target=\"_blank\">Mermaid 文档</a>，也可在<a href=\"https://mermaid.live/\" target=\"_blank\">Mermaid Live Editor</a>中在线尝试。",
+        code:"```mermaid\ngraph TD;\n    A[开始] --> B{判断};\n    B -->|条件1| C[处理1];\n    B -->|条件2| D[处理2];\n```"
+    },
+    {
+        title:"代码块高亮",
+        desc:"使用围栏代码块并指定语言名称，可对代码进行语法高亮。支持 js、ts、cpp、csharp、python、java 等常见语言。",
+        code:"```javascript\nfunction hello() {\n    console.log('Hello World');\n}\n```"
+    },
+    {
+        title:"LaTeX 数学公式",
+        desc:"使用一对美元符号($)包围行内公式，或使用一对双美元符号($$)表示整行块级公式。"+
+        "<b>注意：行内公式必须前后都有空白字符</b>（位于行首或行末时除外），即开始和结束的 $ 不能紧挨着其他非空白字符。"+
+        "例如：$E=mc^2$ 是有效的，a$x=b$ 和 $x=b$c 都是无效的。"+
+        "详细语法请参考<a href=\"https://www.latex-project.org/help/documentation\" target=\"_blank\">LaTeX 文档</a>。",
+        code:"行内公式：$E=mc^2$\n\n块级公式：\n$$\\sum_{i=1}^{n} x_i = x_1 + x_2 + \\cdots + x_n$$"
+    }
+]
+
 export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"标题默认折起",
-        desc:"在标题前方添加 ^ 符号可将标题后的段落默认折起。",
+        desc:"在段落内小标题前方添加 ^ 符号可将标题后的段落默认折起，但仍会在目录中显示（父级标题未默认折起时才会显示）。",
+        code:"## ^历史沿革"
+    },
+    {
+        title:"标题默认折起且不保留目录",
+        desc:"在段落内小标题前方添加 ^^ 符号可将标题后的段落默认折起，且不会显示在目录中。",
+        code:"## ^^历史沿革"
     },
     {
         title:"标题隐藏(1)",
-        desc:"将标题设为两个斜杠 // 可将该标题隐藏（仅限段落的大标题）。",
+        desc:"将标题以两个斜杠 // 开头可将该标题隐藏（仅限段落的大标题）注意：不可搭配“默认折起”使用。",
     },
     {
         title:"标题隐藏(2)",
-        desc:"将标题设为三个斜杠 /// 可将该标题隐藏，并保留段落上方的空隙（仅限段落的大标题）。",
+        desc:"将标题以三个斜杠 /// 开头可将该标题隐藏，并保留段落上方的空隙（仅限段落的大标题）注意：不可搭配“默认折起”使用。",
     },
     {
         title:"居中和靠右",
@@ -130,9 +157,19 @@ export const grammarHelpsExtended:GrammarHelpItem[] = [
     {
         title:"网络资源",
         desc:"如果有指向图片/视频/音频文件的链接，可写在中括号内，例如：\n[http://wiki.jowei19.com/fcloud.svg]\n\n"+
-        "如果需要控制资源尺寸，可写<u>[xxx|3]</u>（3倍行高）或<u>[xxx|20px]</u>来指定其高度。\n"+
+        "如果需要控制资源尺寸，可在第二参数指定其高度：\n"+
+        "<u>[xxx|3]</u> 表示 3 倍行高（纯数字会自动补 em）；<u>[xxx|50px]</u> 表示 50 像素；<u>[xxx|10vh]</u> 表示窗口高度的 10%；\n"+
+        "也支持 CSS 复杂表达式，例如 <u>[xxx|max(calc(20vh + 10px), 40px)]</u>，表示“窗口高度的 20% 加上 10 像素”与“40像素”中更大的那一个。\n"+
+        "更复杂的写法可参考 <a href=\"https://developer.mozilla.org/zh-CN/docs/Web/CSS/Guides/Values_and_units\" target=\"_blank\">详细了解该值如何填写</a>。\n\n"+
         "如果需要控制资源位置，可写<u>[xxx|3|left]</u>。注意中括号内三个部分之间的分隔符是竖杠（ | ）\n"+
-        "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）",
+        "（其中<u>left</u>表示靠左浮动，<u>right</u>表示靠右浮动(默认)，<u>block</u>表示占整行并居中，<u>inline</u>表示行内）\n\n"+
+        "还可以使用第四参数控制媒体查询，使资源仅在指定视口宽度下显示：\n"+
+        "<u>[xxx|3|left|>800]</u> 表示宽度大于 800px 时显示（也支持全角＞）；\n"+
+        "<u>[xxx|3|left|<800]</u> 表示宽度小于 800px 时显示（也支持全角＜）；\n"+
+        "<u>[xxx|3|left|800-1200]</u> 表示宽度在 800px 到 1200px 之间显示。\n"+
+        "借助第四参数，你可以决定某图片在手机上占满宽度，而在电脑上浮动（分别写两个条件不同的即可）\n"+
+        "如果不需要控制位置但要使用媒体查询，可省略第三参数，例如：<u>[xxx|2||>800]</u>；\n"+
+        "如果也不需要控制高度，可一并省略第二参数，例如：<u>[xxx|||>800]</u>。",
         code:"各位女士们先生们，欢迎 [http://wiki.jowei19.com/fcloud.svg|100px|block] 欢迎使用fcloud3内容管理系统。",
         demo:"各位女士们先生们，欢迎<img src=\"/fcloud.svg\" style=\"display:block;height:100px;margin:auto\"/>欢迎使用fcloud3内容管理系统。"
     },

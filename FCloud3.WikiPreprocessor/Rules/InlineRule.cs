@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Mechanics;
+using FCloud3.WikiPreprocessor.Mechanics;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Util;
 using System;
@@ -60,6 +60,10 @@ namespace FCloud3.WikiPreprocessor.Rules
         public virtual string GetStyles() => Style;
         public virtual string GetPreScripts()=>string.Empty;
         public virtual string GetPostScripts()=>string.Empty;
+        /// <summary>
+        /// 验证该标记在原文中的边界是否允许。默认不做限制。
+        /// </summary>
+        public virtual bool ValidateBoundary(string input, int leftIndex, int rightIndex) => true;
         public virtual IHtmlable MakeElementFromSpan(string span, 
             InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
@@ -284,21 +288,88 @@ namespace FCloud3.WikiPreprocessor.Rules
             string url = "";
             string height = defaultHeight;
             string? command = null;
-            if(parts.Length >= 1)
+            string? mediaQueryClass = null;
+            if (parts.Length >= 1)
             {
                 url = parts[0].Trim();
             }
             if (parts.Length >= 2)
             {
-                height = parts[1].Trim();
-                if(int.TryParse(height,out _))
-                    height += "em";
+                var h = parts[1].Trim();
+                if (!string.IsNullOrEmpty(h))
+                {
+                    height = h;
+                    if (int.TryParse(height, out _))
+                        height += "em";
+                }
             }
             if (parts.Length >= 3)
             {
-                command = parts[2].Trim();
+                var c = parts[2].Trim();
+                if (!string.IsNullOrEmpty(c))
+                    command = c;
             }
-            return new InlineObjectElement(url, height, command);
+            if (parts.Length >= 4)
+            {
+                var mediaQuery = parts[3].Trim();
+                if (TryParseMediaQuery(mediaQuery, out List<string> hideConditions))
+                {
+                    int id = ++context.InlineMediaQueryId;
+                    mediaQueryClass = $"wiki-inline-mq-{id}";
+                    var css = new StringBuilder();
+                    foreach (var condition in hideConditions)
+                    {
+                        css.Append($"@media {condition}{{.{mediaQueryClass}{{display:none !important}}}}");
+                    }
+                    context.InlineMediaQueries.Add(css.ToString());
+                }
+            }
+            return new InlineObjectElement(url, height, command, mediaQueryClass);
+        }
+
+        private static bool TryParseMediaQuery(string input, out List<string> hideConditions)
+        {
+            hideConditions = new List<string>();
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            var trimmed = input.Trim();
+            if (trimmed.Length <= 1) return false;
+
+            // 用户在 wiki 源码中输入 > 和 < 时，经过 HtmlSanitizer 会被编码为 &gt; 和 &lt;
+            // 同时支持全角大于号 ＞ 和全角小于号 ＜
+            // 宽度大于 N px 时显示：>800、&gt;800 或 ＞800
+            // 对应：小于等于 N px 时隐藏，即 max-width: N
+            if (trimmed[0] == '>' || trimmed[0] == '＞' || trimmed.StartsWith("&gt;"))
+            {
+                var numberPart = (trimmed[0] == '>' || trimmed[0] == '＞') ? trimmed[1..] : trimmed[4..];
+                if (int.TryParse(numberPart, out _))
+                {
+                    hideConditions.Add($"(max-width: {numberPart}px)");
+                    return true;
+                }
+            }
+            // 宽度小于 N px 时显示：<800、&lt;800 或 ＜800
+            // 对应：大于等于 N px 时隐藏，即 min-width: N
+            if (trimmed[0] == '<' || trimmed[0] == '＜' || trimmed.StartsWith("&lt;"))
+            {
+                var numberPart = (trimmed[0] == '<' || trimmed[0] == '＜') ? trimmed[1..] : trimmed[4..];
+                if (int.TryParse(numberPart, out _))
+                {
+                    hideConditions.Add($"(min-width: {numberPart}px)");
+                    return true;
+                }
+            }
+            // 宽度在 N1 ~ N2 px 之间显示：800-1200
+            // 对应：小于等于 N1 或 大于等于 N2 时隐藏
+            var rangeParts = trimmed.Split('-');
+            if (rangeParts.Length == 2
+                && int.TryParse(rangeParts[0], out _)
+                && int.TryParse(rangeParts[1], out _))
+            {
+                hideConditions.Add($"(max-width: {rangeParts[0]}px)");
+                hideConditions.Add($"(min-width: {rangeParts[1]}px)");
+                return true;
+            }
+            return false;
         }
     }
 
@@ -452,6 +523,15 @@ namespace FCloud3.WikiPreprocessor.Rules
             return true;
         }
 
+        public override bool ValidateBoundary(string input, int leftIndex, int rightIndex)
+        {
+            // 行内公式前后必须有空白，位于开头/末尾时除外
+            bool leftBoundary = leftIndex == 0 || char.IsWhiteSpace(input[leftIndex - 1]);
+            bool rightBoundary = rightIndex + MarkRight.Length >= input.Length
+                                 || char.IsWhiteSpace(input[rightIndex + MarkRight.Length]);
+            return leftBoundary && rightBoundary;
+        }
+
         public override IHtmlable MakeElementFromSpan(string span,
             InlineMarkList marks, IInlineParser inlineParser, ParserContext context)
         {
@@ -474,7 +554,7 @@ namespace FCloud3.WikiPreprocessor.Rules
                 new CustomInlineRule("**","**","<b>","</b>","粗体"),
                 new CustomInlineRule("*","*","<i>","</i>","斜体"),
                 new CustomInlineRule("~~","~~","<s>","</s>","删除线"),
-                new CustomInlineRule("`", "`", "<code>", "</code>", "行内代码块"),
+                new CustomInlineRule("`", "`", "<code class=\"inline-code\">", "</code>", "行内代码块"),
 
                 new CustomInlineRule("_(", ")", "<sub>", "</sub>", "下角标"),
                 new CustomInlineRule("^(", ")", "<sup>", "</sup>", "上角标"),

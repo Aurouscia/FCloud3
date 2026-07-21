@@ -7,6 +7,7 @@ import UserCenter from "../UserCenter.vue";
 import Register from "../Register.vue";
 import GlobalAuthGrants from "../GlobalAuthGrants.vue";
 import UserCenterFromId from "../UserCenterFromId.vue";
+import SsoAuthorize from "../SsoAuthorize.vue";
 
 export function addIdentities(r:Router){
     addToRouter(r,routes);
@@ -50,5 +51,10 @@ const routes = [
         path:"/GlobalAuthGrants",
         component:GlobalAuthGrants,
         name:'gag'
+    },
+    {
+        path:"/SsoAuthorize",
+        component:SsoAuthorize,
+        name:'ssoAuthorize'
     }
 ]

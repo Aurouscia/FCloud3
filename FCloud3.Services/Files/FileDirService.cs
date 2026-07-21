@@ -59,6 +59,16 @@ namespace FCloud3.Services.Files
         {
             return _fileDirRepo.GetPathById(id);
         }
+        public List<FileDirShortcutModel> GetShortcuts(int targetDirId)
+        {
+            var dirs = _fileDirRepo.GetByAsDir(targetDirId);
+            return dirs.Select(x => new FileDirShortcutModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Path = _fileDirRepo.GetPathById(x.Id) ?? []
+            }).ToList();
+        }
 
 
         private enum FileDirContentItemType
@@ -502,6 +512,21 @@ namespace FCloud3.Services.Files
                 return false;
             }
 
+            if (asDir > 0)
+            {
+                var targetDir = _fileDirRepo.GetById(asDir);
+                if (targetDir is null)
+                {
+                    errmsg = "找不到目标目录";
+                    return false;
+                }
+                if (targetDir.AsDir > 0)
+                {
+                    errmsg = "不能将快捷方式设置为快捷方式";
+                    return false;
+                }
+            }
+
             int depth = 0;
             if (parent is not null)
                 depth = parent.Depth + 1;
@@ -534,29 +559,39 @@ namespace FCloud3.Services.Files
             var item = _fileDirRepo.GetById(dirId);
             if (item is null)
                 return false;
-            var items = _fileItemRepo.GetByDirId(dirId).Count();
-            if (items > 0) 
+            var shortcuts = _fileDirRepo.GetByAsDir(dirId);
+            if (shortcuts.Count > 0)
             {
-                errmsg = "只能删除空文件夹";
+                errmsg = "请先删除该目录的所有快捷方式";
                 return false;
             }
-            //词条被删除，词条-目录关系仍残留，需要检查所有关系指向的存在的词条数量
-            var wikis =
-                from relation in _wikiToDirRepo.Existing
-                from w in _wikiItemRepo.Existing
-                where relation.DirId == dirId
-                where relation.WikiId == w.Id
-                select w.Id;
-            if (wikis.Count() > 0)
+            //AsDir 不为 0 的目录是映射目录，不检查是否为空
+            if (item.AsDir == 0)
             {
-                errmsg = "只能删除空文件夹";
-                return false;
-            }
-            var subDirs = _fileDirRepo.GetChildrenById(dirId)?.Count() ?? 0;
-            if (subDirs > 0)
-            {
-                errmsg = "只能删除空文件夹";
-                return false;
+                var items = _fileItemRepo.GetByDirId(dirId).Count();
+                if (items > 0) 
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
+                //词条被删除，词条-目录关系仍残留，需要检查所有关系指向的存在的词条数量
+                var wikis =
+                    from relation in _wikiToDirRepo.Existing
+                    from w in _wikiItemRepo.Existing
+                    where relation.DirId == dirId
+                    where relation.WikiId == w.Id
+                    select w.Id;
+                if (wikis.Count() > 0)
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
+                var subDirs = _fileDirRepo.GetChildrenById(dirId)?.Count() ?? 0;
+                if (subDirs > 0)
+                {
+                    errmsg = "只能删除空文件夹";
+                    return false;
+                }
             }
             if(_fileDirRepo.TryRemove(item,out errmsg))
             {
@@ -583,6 +618,12 @@ namespace FCloud3.Services.Files
         } 
     }
 
+    public class FileDirShortcutModel
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public List<string> Path { get; set; } = [];
+    }
     public class FileDirIndexResult
     {
         public required List<FileDirSubDir> SubDirs { get; set; }

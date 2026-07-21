@@ -27,6 +27,13 @@ namespace FCloud3.WikiPreprocessor.Util
         {
             return IsImage(fileName) || IsAudio(fileName) || IsVideo(fileName);
         }
+        public static bool IsSvg(string? fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return false;
+            string trimmed = fileName.Trim();
+            if (trimmed.Length <= 4) return false;
+            return trimmed.EndsWith(".svg") || trimmed.EndsWith(".svgz");
+        }
         public static bool IsImage(string? fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName)) return false;

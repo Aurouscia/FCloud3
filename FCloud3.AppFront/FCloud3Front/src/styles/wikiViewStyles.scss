@@ -6,6 +6,17 @@
         white-space: pre-wrap;
         transition: 0.2s;
     }
+    .katex, .katex * {
+        word-break: normal;
+        white-space: nowrap;
+    }
+    .mermaid p {
+        text-indent: 0;
+    }
+    pre.mermaid {
+        display: flex;
+        justify-content: center;
+    }
 
     .masterTitle{
         font-size: 180%;
@@ -300,6 +311,8 @@
             line-height: 1.5em;
             text-indent: 0px;
         }
+        
+        /* au-table-editor 以及某些插件会把 sticky 设置写入特定的属性中，此处用它们来设置样式 */
         *[data-autb-sticky-top]{
             position: sticky;
             top: 0px;
@@ -334,8 +347,8 @@
         text-decoration: underline;
     }
 
-    code{
-        font-family: consolas, menlo, mono;
+    code.inline-code{
+        font-family: consolas, menlo, mono !important;
         background-color: #eee;
         margin: 1px;
         padding: 1px;

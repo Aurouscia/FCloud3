@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { ParserTitleTreeNode } from '@/models/wikiParsing/wikiParsingResult';
-import { isDefaultFolded, removeDefaultFoldedMark } from '@/utils/wikiView/titleClickFold';
+import { isDefaultFolded, isDoubleFolded, removeDefaultFoldedMark } from '@/utils/wikiView/titleClickFold';
 import { cmtTitleId } from '@/models/messages/comment';
 
 const props = defineProps<{
@@ -46,12 +46,12 @@ defineExpose({
 <template>
 <div class="titleTreeNodes" :class="{master:props.isMaster}">
     <div v-for="t in props.titleTree" :key="t.Id">
-        <div v-if="t.Text && (!isDefaultFolded(t.Text) || t.Level===0)" class="titleTreeNodeText" :class="{master:props.isMaster}" 
+        <div v-if="t.Text && (!isDoubleFolded(t.Text) || t.Level===0)" class="titleTreeNodeText" :class="{master:props.isMaster}" 
             @click="emit('clickTitle',t.Id)" :id="elementId(t.Id)">
             <div class="currentMark"></div>
             <span v-html="removeDefaultFoldedMark(t.Text)"></span>
         </div>
-        <TitleTree v-if="t.Subs" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)"></TitleTree>
+        <TitleTree v-if="t.Subs && !isDefaultFolded(t.Text)" :titleTree="t.Subs" @clickTitle="id=>emit('clickTitle',id)"></TitleTree>
     </div>
 </div>
 </template>

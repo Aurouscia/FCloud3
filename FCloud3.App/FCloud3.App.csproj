@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aurouscia.FicKit.Article" Version="1.0.0" />
+    <PackageReference Include="Aurouscia.FicKit.Article" Version="1.0.1" />
     <PackageReference Include="Aurouscia.FicKit.Currency" Version="1.0.0" />
-    <PackageReference Include="Aurouscia.TableEditor.Core" Version="0.6.2" />
+    <PackageReference Include="Aurouscia.TableEditor.Core" Version="0.6.3" />
     <PackageReference Include="EzPinyin" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
@@ -24,26 +24,23 @@
     <PackageReference Include="MimeMapping" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="RestSharp" Version="114.0.0" />
-    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Logs\" />
+    <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FCloud3.Repos\FCloud3.Repos.csproj" />
     <ProjectReference Include="..\FCloud3.Services\FCloud3.Services.csproj" />
+    <ProjectReference Include="..\FCloud3.Sso\FCloud3.Sso.csproj" />
   </ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
 		<Content Remove="Data\**" />
-		<Content Remove="Logs\**" />
 	</ItemGroup>
 
 </Project>

@@ -88,6 +88,7 @@ function enter(){
 <style scoped>
     .functions{
         position: relative;
+        flex-shrink: 0;
     }
     img.menu{
         position: absolute;

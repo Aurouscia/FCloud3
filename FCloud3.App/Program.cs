@@ -5,6 +5,7 @@ using FCloud3.Services;
 using Serilog;
 using FCloud3.App.Services.Authentication;
 using FCloud3.App.Services.Utils;
+using FCloud3.Sso.Issuer;
 using FCloud3.App.Services.FicKit;
 using Aurouscia.FicKit.Currency;
 using Aurouscia.FicKit.Article;
@@ -55,6 +56,7 @@ try
     app.InitializeFicKitArticleDatabase();
     app.MapFicKitCurrency();
     app.MapFicKitArticle();
+    app.MapF3SsoIssuerEndpoints();
 
     app.MapControllerRoute(
         name: "api",

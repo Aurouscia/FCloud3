@@ -177,11 +177,14 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     flex-grow: 1;
     height: 100%;
     white-space: nowrap;
+    min-width: 0;
 }
 .name{
-    flex-grow: 0;
-    flex-shrink: 0;
+    min-width: 0;
     text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .item:hover{
     background-color: white;
@@ -195,9 +198,12 @@ const { infoType } = storeToRefs(useDirInfoTypeStore())
     padding: 5px;
     transition: 0.3s;
     height: 30px;
+    width: calc(100vw - 62px); /* 位于 dirIndex 内部时，设置宽度避免溢出 */
 }
 .compact .item{
+    /* 位于 dirChild 内部时，不设置宽高 */
     height: unset;
+    width: unset;
 }
 .dirItems{
     margin-top: 0px;

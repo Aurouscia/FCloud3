@@ -39,14 +39,27 @@ export async function getTopbarModel(): Promise<TopbarModel> {
                     {
                         Title: "正文搜索",
                         Link: "/WikiContentSearch"
-                    },
+                    }
+                ]
+            },
+            {
+                Title: "创作",
+                SubItems: [
                     {
                         Title: "语法指南",
                         Link: "/GrammarHelp"
                     },
                     {
-                        Title: "插件",
+                        Title: "插件列表",
                         Link: "/wikiPlugins"
+                    },
+                    {
+                        Title: "嵌入三方",
+                        Link: "/wikiIframeWhitelist"
+                    },
+                    {
+                        Title: "问题反馈",
+                        Link: "/wikiBugHelp"
                     }
                 ]
             },
@@ -74,9 +87,18 @@ export async function getTopbarModel(): Promise<TopbarModel> {
         ]
     }
     if(import.meta.env.VITE_ShowTopbarTools === 'true'){
-        model.Items.push(            {
-            Title: "工具",
-            Link: "/Tools"
+        model.Items.push({
+            Title: "更多+",
+            SubItems: [
+                {
+                    Title: "工具",
+                    Link: "/Tools"
+                },
+                {
+                    Title: "私服",
+                    Link: "/Fork"
+                }
+            ]
         })
     }
     return model;

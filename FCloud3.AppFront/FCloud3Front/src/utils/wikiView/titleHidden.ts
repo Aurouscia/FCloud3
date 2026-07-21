@@ -1,10 +1,10 @@
 export function paraTitleHiddenClass(paraTitle?:string){
     paraTitle = paraTitle?.trim()
-    if(paraTitle === "//"){
-        return "paraTitleHidden"
-    }
-    else if(paraTitle === "///"){
+    if(paraTitle?.startsWith("///")){
         return "paraTitleHiddenKeepingMargin"
+    }
+    else if(paraTitle?.startsWith("//")){
+        return "paraTitleHidden"
     }
     return undefined
 }

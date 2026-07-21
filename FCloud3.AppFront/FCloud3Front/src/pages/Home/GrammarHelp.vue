@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import SwitchingTabs from '@/components/SwitchingTabs.vue';
-import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSource/grammarHelp';
+import { grammarHelpsStandard, grammarHelpsExtended, grammarHelpsRendering } from '../../utils/wikiSource/grammarHelp';
 </script>
 
 <template>
 <div class="wikiView">
-    <SwitchingTabs :texts="['标准md支持','特有扩展']">
+    <SwitchingTabs :texts="['标准md支持','特有扩展','高级渲染']">
         <div class="choose">
             <div v-for="i in grammarHelpsStandard" class="item">
                 <div class="title">{{ i.title }}</div>
@@ -16,6 +16,15 @@ import { grammarHelpsStandard, grammarHelpsExtended } from '../../utils/wikiSour
         </div>
         <div class="choose">
             <div v-for="i in grammarHelpsExtended" class="item">
+                <div class="title">{{ i.title }}</div>
+                <div class="desc" v-html="i.desc"></div>
+                <div v-if="i.code" class="code">{{ i.code }}</div>
+                <div v-if="i.demo" class="demo" v-html="i.demo"></div>
+            </div>
+            <div class="welcome">欢迎提出建议和问题反馈</div>
+        </div>
+        <div class="choose">
+            <div v-for="i in grammarHelpsRendering" class="item">
                 <div class="title">{{ i.title }}</div>
                 <div class="desc" v-html="i.desc"></div>
                 <div v-if="i.code" class="code">{{ i.code }}</div>

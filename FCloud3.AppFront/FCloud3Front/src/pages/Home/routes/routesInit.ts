@@ -5,6 +5,7 @@ import About from "../About.vue"
 import GrammarHelp from "../GrammarHelp.vue";
 import Help from "../Help.vue";
 import Tools from "../Tools.vue";
+import Fork from "../Fork.vue";
 
 export function addHomePage(r:Router){
     addToRouter(r,routes);
@@ -34,5 +35,9 @@ const routes = [
     {
         path:"/Tools",
         component:Tools
+    },
+    {
+        path:"/Fork",
+        component:Fork
     }
 ]

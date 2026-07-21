@@ -106,6 +106,15 @@ importers:
         specifier: ^8.0.16
         version: 8.0.16
 
+  AuTableFloat:
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.0.16
+        version: 8.0.16
+
   AuTimeOffsetRenderer:
     devDependencies:
       typescript:

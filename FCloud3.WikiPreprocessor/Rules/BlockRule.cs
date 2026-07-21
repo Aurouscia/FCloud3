@@ -95,7 +95,13 @@ namespace FCloud3.WikiPreprocessor.Rules
         public override IHtmlable MakeBlockFromLines(IEnumerable<LineAndHash> lines, IInlineParser inlineParser, IRuledBlockParser blockParser, ParserContext context)
         {
             //可以确定lines是没有块标记的，直接分别解析每行
-            var resContent = lines.ToList().ConvertAll(inlineParser.RunForLine);
+            var resContent = lines.ToList().ConvertAll(line =>
+            {
+                // HTML 区域占位符应作为原始元素输出，避免被 inline 解析器包上 <p>
+                if (HtmlAreaExtractor.IsHtmlAreaPlaceholder(line.Text))
+                    return new TextElement(line.Text);
+                return inlineParser.RunForLine(line);
+            });
             if (resContent.Count == 1)
                 return resContent[0];
             else

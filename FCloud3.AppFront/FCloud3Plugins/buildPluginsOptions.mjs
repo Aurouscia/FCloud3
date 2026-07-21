@@ -4,6 +4,7 @@ export const pluginsEnabled = [
     'AuTimeOffsetRenderer',
     'AuParaMover',
     'AuParaLoader',
-    'AuTableConfig'
+    'AuTableConfig',
+    'AuTableFloat'
     //'AuEChartsCaller' 还未开发
 ]

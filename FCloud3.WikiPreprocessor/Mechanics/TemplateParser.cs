@@ -1,4 +1,4 @@
-﻿using FCloud3.WikiPreprocessor.Context;
+using FCloud3.WikiPreprocessor.Context;
 using FCloud3.WikiPreprocessor.Models;
 using FCloud3.WikiPreprocessor.Rules;
 using FCloud3.WikiPreprocessor.Util;
@@ -164,14 +164,49 @@ namespace FCloud3.WikiPreprocessor.Mechanics
                 int pointerB = 0;
                 int layer = 0;
                 bool isInPlain = true;
+                bool inLatexInline = false;
 
                 for (int i = 0; i < input.Length; i++)
                 {
                     char c = input[i];
-                    if (c == Consts.tplt_L)
-                        layer++;
-                    else if (c == Consts.tplt_R)
-                        layer--;
+                    bool escaped = i > 0 && input[i - 1] == Escape.escapeChar;
+
+                    // 切换行内 LaTeX 公式状态；在公式内部不处理大括号
+                    if (c == '$' && !escaped)
+                    {
+                        if (!inLatexInline && isInPlain && layer == 0)
+                        {
+                            // 行内公式起点：开头或前一个字符为空白，且不是块级 $$
+                            bool leftBoundary = i == 0 || char.IsWhiteSpace(input[i - 1]);
+                            bool notBlock = i + 1 >= input.Length || input[i + 1] != '$';
+                            if (leftBoundary && notBlock)
+                            {
+                                inLatexInline = true;
+                                pointerB++;
+                                continue;
+                            }
+                        }
+                        else if (inLatexInline)
+                        {
+                            // 行内公式终点：末尾或后一个字符为空白
+                            bool rightBoundary = i == input.Length - 1 || char.IsWhiteSpace(input[i + 1]);
+                            if (rightBoundary)
+                            {
+                                inLatexInline = false;
+                                pointerB++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (!inLatexInline)
+                    {
+                        if (c == Consts.tplt_L)
+                            layer++;
+                        else if (c == Consts.tplt_R)
+                            layer--;
+                    }
+
                     if (isInPlain)
                     {
                         if (layer >= 1)

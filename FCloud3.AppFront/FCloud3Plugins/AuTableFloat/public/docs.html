@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuTableFloat 使用说明</title>
+    <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+    <h1>AuTableFloat 表格浮动插件</h1>
+    <p>在表格的任意单元格中写入触发词，即可让该表格浮动（形成文本环绕表格的效果），并自动移除包含触发词的那一行。</p>
+    <p>推荐搭配“隐藏标题”语法使用</p>
+
+    <h2>触发词</h2>
+    <ul>
+        <li><code class="trigger">au-table-float</code></li>
+    </ul>
+
+    <h2>基本用法</h2>
+    <p>在表格<strong>任意单元格</strong>中填入触发词，可选后跟方向参数和移动端策略：</p>
+    <table>
+        <tr><td>au-table-float</td><td></td></tr>
+        <tr><td>第一列数据</td><td>第二列数据</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>包含触发词的行会在页面渲染后被自动移除，用户看不到这一行。
+    </div>
+
+    <h2>方向参数</h2>
+    <p>触发词后可跟 <code>left</code> 或 <code>right</code> 控制浮动方向，不区分大小写。不写时默认为 <code>right</code>。</p>
+    <table>
+        <tr><td>au-table-float right</td><td>向右浮动</td></tr>
+        <tr><td>au-table-float left</td><td>向左浮动</td></tr>
+    </table>
+
+    <h2>移动端策略 <code>mobile(...)</code></h2>
+    <p>可指定在移动端（屏幕宽度小于阈值）时的处理策略，语法为 <code>mobile(策略, 阈值, 按钮文本)</code>。</p>
+    <ul>
+        <li><strong>策略</strong>：可选 <code>asis</code>、<code>enforce</code>、<code>drawer</code>，默认 <code>asis</code>。</li>
+        <li><strong>阈值</strong>：像素值，默认 <code>800px</code>。屏幕宽度小于该值时视为移动端。</li>
+        <li><strong>按钮文本</strong>：仅在 <code>drawer</code> 策略下有效，默认 <code>打开表格</code>。</li>
+    </ul>
+    <p>不写 <code>mobile(...)</code> 时，依然会有默认行为，相当于 <code>mobile(asis, 800px, 打开表格)</code>。</p>
+
+    <h3>策略说明</h3>
+    <table>
+        <tr><td>asis</td><td>在移动端<strong>不移动</strong>表格、不加类名，仅移除触发行；在桌面端正常执行移动。屏幕宽度变化时会自动切换。</td></tr>
+        <tr><td>enforce</td><td>无论当前屏幕宽度，都执行移动。</td></tr>
+        <tr><td>drawer</td><td>在移动端将表格放入侧滑抽屉，原位置保留一个打开按钮；在桌面端正常执行移动。屏幕宽度变化时会自动切换。</td></tr>
+    </table>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float mobile(asis, 800px)</td><td>移动端宽度小于 800px 时不移动</td></tr>
+        <tr><td>au-table-float mobile(enforce, 800px)</td><td>无论宽度是否小于 800px，都移动</td></tr>
+        <tr><td>au-table-float left mobile(enforce)</td><td>向左浮动，且始终移动</td></tr>
+        <tr><td>au-table-float mobile(drawer, 600px)</td><td>宽度小于 600px 时使用侧滑抽屉</td></tr>
+        <tr><td>au-table-float mobile(drawer, 600px, 查看详情)</td><td>抽屉按钮显示“查看详情”</td></tr>
+        <tr><td>au-table-float mobile(drawer,,打开)</td><td>省略阈值（默认 800px），按钮显示“打开”</td></tr>
+    </table>
+
+    <h2>CSS 样式参数</h2>
+    <p>可在触发词后追加以下 CSS 样式参数，直接赋值到表格的 <code>style</code> 属性上。参数不区分大小写，可与其他参数混用。</p>
+    <ul>
+        <li><code>font-size(xxx)</code>：设置表格字体大小，例如 <code>font-size(14px)</code></li>
+        <li><code>max-width(xxx)</code>：设置表格最大宽度，例如 <code>max-width(300px)</code></li>
+        <li><code>min-width(xxx)</code>：设置表格最小宽度，例如 <code>min-width(100px)</code></li>
+        <li><code>width(xxx)</code>：设置表格宽度，例如 <code>width(50%)</code></li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float font-size(14px)</td><td>表格字体大小设为 14px</td></tr>
+        <tr><td>au-table-float left width(200px)</td><td>向左浮动，表格宽度 200px</td></tr>
+        <tr><td>au-table-float mobile(drawer,600px) max-width(100%)</td><td>移动端抽屉，最大宽度 100%</td></tr>
+        <tr><td>au-table-float FONT-SIZE(16px) Min-Width(120px)</td><td>参数名大小写不敏感</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>空值（如 <code>font-size()</code>）会被忽略，不会设置到表格样式上。
+    </div>
+
+    <h2>目标定位参数 <code>target(...)</code></h2>
+    <p>默认情况下，浮动后的表格会移动到全文开头。如果希望把表格放到某个段落标题附近，可以使用 <code>target(...)</code> 参数。</p>
+    <p>语法：<code>target(关键词, 位置)</code></p>
+    <ul>
+        <li><strong>关键词</strong>：必填。插件会搜索页面内所有 <code>&lt;h1&gt;</code> 段落标题，找到第一个标题文本中包含该关键词的标题。</li>
+        <li><strong>位置</strong>：可选，<code>before</code>（标题之前）或 <code>after</code>（标题之后）。省略时默认为 <code>before</code>。</li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float target(参考资料)</td><td>将表格移动到第一个标题文本包含“参考资料”的段落标题之前</td></tr>
+        <tr><td>au-table-float target(参考资料, before)</td><td>同上，显式指定 before</td></tr>
+        <tr><td>au-table-float target(参考资料, after)</td><td>将表格移动到第一个标题文本包含“参考资料”的段落标题之后</td></tr>
+        <tr><td>au-table-float left target(章节一)</td><td>向左浮动，并定位到标题文本包含“章节一”的段落标题之前</td></tr>
+        <tr><td>au-table-float target(章节一) mobile(drawer,600px)</td><td>桌面端定位到段落标题之前，移动端使用抽屉</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>使用 <code>target(...)</code> 后，桌面端（及 <code>enforce</code> 策略）表格将不再移动到全文开头，而是直接插入到目标段落标题之前或之后；移动端 <code>drawer</code> 策略仍然会在表格原始位置生成打开按钮。
+    </div>
+
+    <h2>段落内定位参数 <code>target-p(...)</code></h2>
+    <p>如果希望表格插入到某个普通段落中的指定位置，可以使用 <code>target-p(...)</code> 参数。插件会搜索页面内所有 <code>&lt;p&gt;</code> 段落，找到第一个文本内容中包含该关键词的段落，并在该关键词所在位置将表格插入到段落内部。</p>
+    <p>语法：<code>target-p(关键词, 位置)</code></p>
+    <ul>
+        <li><strong>关键词</strong>：必填。插件会搜索页面内所有 <code>&lt;p&gt;</code> 段落，找到第一个文本内容中包含该关键词的段落。</li>
+        <li><strong>位置</strong>：可选，<code>before</code>（关键词之前）或 <code>after</code>（关键词之后）。省略时默认为 <code>after</code>。</li>
+    </ul>
+
+    <h3>示例</h3>
+    <table>
+        <tr><td>au-table-float target-p(关键词)</td><td>将表格插入到第一个包含“关键词”的段落中，且位于“关键词”之后</td></tr>
+        <tr><td>au-table-float target-p(关键词, before)</td><td>将表格插入到“关键词”之前</td></tr>
+        <tr><td>au-table-float target-p(关键词, after)</td><td>显式指定在“关键词”之后插入</td></tr>
+        <tr><td>au-table-float left target-p(关键词)</td><td>向左浮动，并在包含“关键词”的段落中定位</td></tr>
+        <tr><td>au-table-float target-p(关键词) mobile(drawer,600px)</td><td>桌面端插入到段落中，移动端使用抽屉</td></tr>
+    </table>
+
+    <div class="note">
+        <strong>注意：</strong>使用 <code>target-p(...)</code> 后，桌面端（及 <code>enforce</code> 策略）表格不再移动到全文开头，而是直接插入到匹配的 <code>&lt;p&gt;</code> 段落内部指定位置；移动端 <code>drawer</code> 策略仍然会在表格原始位置生成打开按钮。若同时指定了 <code>target(...)</code>，则 <code>target(...)</code> 优先生效。
+    </div>
+
+    <h2>响应式切换</h2>
+    <p>插件会监听窗口大小变化。当屏幕宽度跨越阈值时：</p>
+    <ul>
+        <li><code>asis</code> 策略：从桌面端变窄到移动端时，表格从 <code>.paras</code> 回到原位置；从移动端变宽到桌面端时，表格移动到 <code>.paras</code> 内。</li>
+        <li><code>drawer</code> 策略：从桌面端变窄到移动端时，表格进入侧滑抽屉并生成打开按钮；从移动端变宽到桌面端时，抽屉和按钮被移除，表格移动到 <code>.paras</code> 内。</li>
+    </ul>
+
+    <h2>侧滑抽屉（drawer 策略）</h2>
+    <p>当 <code>drawer</code> 策略在移动端生效时：</p>
+    <ul>
+        <li>在原表格位置插入一个 <code>&lt;button&gt;</code>，样式为 <code>display: block; margin: 10px auto;</code>。</li>
+        <li>页面中新增两层元素：
+            <ul>
+                <li>背景层：黑色半透明（<code>opacity: 0.4</code>），撑满整个视口，点击可关闭抽屉。</li>
+                <li>主体层：白色背景，上下撑满屏幕高度，固定在左侧或右侧。默认从右侧滑出，若指定 <code>left</code> 方向则从左侧滑出。</li>
+            </ul>
+        </li>
+        <li>表格被移动到抽屉主体层内部。</li>
+        <li>打开抽屉时，背景层在 0.3 秒内从透明渐变为半透明，主体层在 0.3 秒内从屏幕外滑入。</li>
+    </ul>
+
+    <h2>效果</h2>
+    <ul>
+        <li>触发词所在的整行会被移除。</li>
+        <li>在桌面端（或 <code>enforce</code> 策略下，或 <code>drawer</code> 策略下），触发词所在的 <code>&lt;table&gt;</code> 元素会被设置浮动方向，并添加类名 <code>au-floated-table</code>；未指定 <code>target(...)</code> 时，表格会被移动到全文开头（当前页面第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素内部的开头位置），<code>.paras</code> 元素会添加类名 <code>au-floated-paras</code>；指定 <code>target(...)</code> 时，表格会被移动到目标段落标题之前或之后。</li>
+        <li>在移动端使用 <code>drawer</code> 策略时，表格会被放入侧滑抽屉，原位置保留一个按钮，点击按钮打开抽屉。</li>
+        <li>表格的 <code>style</code> 属性会根据方向设置外边距（桌面端或 enforce 策略下）：
+            <ul>
+                <li>向右浮动：<code>margin-left: 10px</code>、<code>margin-bottom: 10px</code></li>
+                <li>向左浮动：<code>margin-right: 10px</code>、<code>margin-bottom: 10px</code></li>
+            </ul>
+        </li>
+        <li>插件运行时会自动向 <code>&lt;head&gt;</code> 末尾插入 <code>&lt;style id="au-table-float-styles"&gt;</code>，为 <code>.au-floated-paras</code> 内的元素提供默认样式；多次运行不会重复插入。</li>
+    </ul>
+
+    <h2>注入样式</h2>
+    <p>本插件启动时，会略微改变页面原有行为，水平方向滚动条将不会再出现，以下是将会注入的样式：</p>
+    <pre><code>&lt;style id="au-table-float-styles"&gt;
+        .wikiView .au-floated-paras .para,
+        .wikiView .au-floated-paras .para .indent {
+            overflow-x: initial;
+        }
+        .wikiView .au-floated-paras .para .quote {
+            overflow: hidden; /*确保创建BFC，避免quote占满整行（它需要被压缩）*/
+        }
+        .indent.indentFolded {
+            display: none !important
+        }
+        .au-table-float-drawer {
+            padding: 6px;
+        }
+        .au-table-float-drawer table {
+            min-width: 100%;
+            font-size: 14px
+        }
+&lt;/style&gt;</code></pre>
+
+    <h2>错误处理</h2>
+    <p>如果桌面端（或 <code>enforce</code> 策略下）页面中不存在 <code>.wikiView .paras</code> 元素，表格仍会被移除触发行并设置浮动样式，同时会在表格后方显示红色错误文本：<b style="color:red">找不到.paras元素</b>。</p>
+
+    <h2>注意事项</h2>
+    <ul>
+        <li>触发词应位于单元格内容开头，后跟可选参数。</li>
+        <li>如果一行中有多个单元格包含触发词，该行也只会被移除一次。</li>
+        <li>如果同一个表格中有多个行包含触发词，这些行都会被移除。</li>
+        <li>插件按表格独立处理，多个表格互不干扰。</li>
+        <li>只使用页面中第一个 <code>.wikiView</code> 元素内的第一个 <code>.paras</code> 元素。</li>
+        <li>触发词区分大小写，必须使用 <code>au-table-float</code>；方向参数和策略参数不区分大小写。</li>
+    </ul>
+</body>
+</html>

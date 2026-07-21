@@ -1,4 +1,4 @@
-﻿using Aurouscia.TableEditor.Core;
+using Aurouscia.TableEditor.Core;
 using Aurouscia.TableEditor.Core.Excel;
 using Aurouscia.TableEditor.Core.Html;
 using DotNetColorParser;
@@ -213,6 +213,7 @@ namespace FCloud3.Services.WikiParsing
                 parser.SetConvertingProvider(wikiParserConvertingProvider);
                 var resOft = parser.RunToParserResultRaw(t,false);
                 result.AddRules(resOft.UsedRules);
+                result.AddInlineMediaQueries(resOft.InlineMediaQueries);
                 return resOft.Content;
             }
             paras.ForEach(p =>
@@ -239,6 +240,7 @@ namespace FCloud3.Services.WikiParsing
                     parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
+                    result.AddInlineMediaQueries(resOfP.InlineMediaQueries);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(
                         realTitle, titleId, resOfP.Content, p.Id, p.Type,
@@ -254,6 +256,7 @@ namespace FCloud3.Services.WikiParsing
                     parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
                     result.SubTitles.Add(title);
                     result.AddRules(resOfP.UsedRulesWithCommons);
+                    result.AddInlineMediaQueries(resOfP.InlineMediaQueries);
                     result.FootNotes.AddRange(resOfP.FootNotes);
                     result.Paras.Add(new(
                         realTitle, titleId, resOfP.Content, p.Id, p.Type,
@@ -280,6 +283,7 @@ namespace FCloud3.Services.WikiParsing
                                 parser.WrapSection(realTitle, resOfP.Titles, out var title, out int titleId);
                                 result.SubTitles.Add(title);
                                 result.AddRules(resOfP.UsedRulesWithCommons);
+                                result.AddInlineMediaQueries(resOfP.InlineMediaQueries);
                                 result.FootNotes.AddRange(resOfP.FootNotes);
                                 WikiParsingResult.WikiParsingResultItem para = new(
                                     realTitle, titleId, resOfP.Content, p.Id, WikiParaType.Table,
@@ -311,6 +315,7 @@ namespace FCloud3.Services.WikiParsing
 
             var refs = parser.Context.Ref;
             wikiRefRepo.SetRefs(wiki.Id, refs.Refs);
+            parser.Context.ResetCounters();
 
             return result;
         }
@@ -324,6 +329,7 @@ namespace FCloud3.Services.WikiParsing
         {
             var colorParser = parser.Context.Options.ColorParser;
             List<IRule> usedRules = new();
+            List<string> inlineMediaQueries = [];
             Func<string?, (string tdContent, string tdAttrs)> cellConverter;
             var totalCellCount = data.Cells?.Sum(r => r?.Count ?? 0);
             var totalCharCount = data.Cells?.Sum(r => r?.Sum(c => c?.Length ?? 0) ?? 0) ?? 0;
@@ -337,6 +343,7 @@ namespace FCloud3.Services.WikiParsing
                     parser.SetConvertingProvider(wikiParserConvertingProvider);
                     var res = parser.RunToParserResultRaw(colorRes.s, false);
                     usedRules.AddRange(res.UsedRules);
+                    inlineMediaQueries.AddRange(res.InlineMediaQueries);
                     return (res.Content, colorRes.attrs);
                 };
             else
@@ -345,7 +352,7 @@ namespace FCloud3.Services.WikiParsing
             {
                 CellConverterAttr = cellConverter
             });
-            return new(html, usedRules);
+            return new ParserResultRaw(html, usedRules, inlineMediaQueries: inlineMediaQueries);
         }
         private ParserResultRaw ParseTable(FreeTable model, Parser parser)
         {
@@ -379,6 +386,7 @@ namespace FCloud3.Services.WikiParsing
             public string? PreScripts { get; set; }
             public string? PostScripts { get; set; }
             private List<IRule> UsedRulesBody { get; set; }
+            private List<string> InlineMediaQueries { get; set; }
             public WikiParsingResult()
             {
                 Id = 0;
@@ -390,6 +398,7 @@ namespace FCloud3.Services.WikiParsing
                 SubTitles = [];
                 Paras = [];
                 UsedRulesBody = [];
+                InlineMediaQueries = [];
             }
             public WikiParsingResult(int id, string title, DateTime update, int ownerId)
             {
@@ -402,6 +411,7 @@ namespace FCloud3.Services.WikiParsing
                 SubTitles = [];
                 Paras = [];
                 UsedRulesBody = [];
+                InlineMediaQueries = [];
             }
             public void AddRules(List<IRule> rules)
             {
@@ -414,9 +424,18 @@ namespace FCloud3.Services.WikiParsing
                     }    
                 });
             }
+            public void AddInlineMediaQueries(List<string> queries)
+            {
+                queries.ForEach(q =>
+                {
+                    if (!InlineMediaQueries.Contains(q))
+                        InlineMediaQueries.Add(q);
+                });
+            }
             public void ExtractRulesCommon()
             {
                 var allStyles = UsedRulesBody.ConvertAll(x => x.GetStyles());
+                allStyles.AddRange(InlineMediaQueries);
                 allStyles.RemoveAll(string.IsNullOrWhiteSpace);
                 Styles = string.Join("\n\n", allStyles);
 

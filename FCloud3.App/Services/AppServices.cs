@@ -2,6 +2,8 @@
 using FCloud3.App.Services.Middlewares;
 using FCloud3.App.Services.Utils;
 using FCloud3.App.Utils;
+using FCloud3.Sso;
+using FCloud3.Sso.Issuer;
 using FCloud3.WikiPreprocessor.Util;
 using FCloud3.Services;
 using FCloud3.Services.Ai;
@@ -36,6 +38,8 @@ namespace FCloud3.App.Services
             services.AddScoped<WikiParserProviderService>();
             services.AddScoped<ICommitingUserIdProvider, HttpUserIdProvider>();
             services.AddScoped<IOperatingUserIdProvider, HttpUserIdProvider>();
+            services.AddScoped<IUserInfoProvider, F3SsoUserInfoProvider>();
+            services.AddScoped<F3SsoIssuerService>();
             services.AddSingleton<IFileStreamHasher, FileStreamHasher>();
             services.AddSingleton<IFileItemHash, FileItemHash>();
             services.AddSingleton<IUserPwdEncryption, UserPwdEncryption>();
@@ -48,7 +52,6 @@ namespace FCloud3.App.Services
                     Timeout = TimeSpan.FromSeconds(3)
                 });
             });
-
             return services;
         }
 

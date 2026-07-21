@@ -1,9 +1,12 @@
 .dirSysInfo{
     font-size: 15px;
     color: #666;
-    max-width: 120px;
+    max-width: 30vw;
+    min-width: 0px;
     display: block !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-align: right;
+    flex-shrink: 0;
 }

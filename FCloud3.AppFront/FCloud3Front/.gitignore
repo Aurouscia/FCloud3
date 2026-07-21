@@ -32,3 +32,8 @@ pluginsFound.json
 # 插件编译结果
 public/plugins/*
 !public/plugins/runPlugin.js
+
+# 渲染器资源（通过 collect-renderers 脚本生成，不提交源码）
+public/renderers/katex@*
+public/renderers/mermaid@*
+public/renderers/prismjs@*

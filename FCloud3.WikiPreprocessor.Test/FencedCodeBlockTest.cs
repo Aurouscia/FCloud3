@@ -53,8 +53,8 @@ namespace FCloud3.WikiPreprocessor.Test
             // 未闭合的 fence：opening ``` 被行内代码规则匹配（` 是行内代码标记）
             string input = "```\nint x = 1;\n";
             var res = _parser.RunToPlain(input);
-            // ``` 中的前两个 ` 被匹配为 <code></code>，剩余一个 `
-            Assert.AreEqual("<p><code></code>`</p><p>int x = 1;</p>", res);
+            // ``` 中的前两个 ` 被匹配为 <code class=\"inline-code\"></code>，剩余一个 `
+            Assert.AreEqual("<p><code class=\"inline-code\"></code>`</p><p>int x = 1;</p>", res);
         }
 
         [TestMethod]
@@ -104,7 +104,7 @@ namespace FCloud3.WikiPreprocessor.Test
             // 行内代码 `` ` `` 仍应正常工作
             string input = "`inline code`";
             var res = _parser.RunToPlain(input);
-            Assert.AreEqual("<p><code>inline code</code></p>", res);
+            Assert.AreEqual("<p><code class=\"inline-code\">inline code</code></p>", res);
         }
 
         [TestMethod]

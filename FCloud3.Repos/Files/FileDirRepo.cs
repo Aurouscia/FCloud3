@@ -238,6 +238,11 @@ namespace FCloud3.Repos.Files
             return UpdateDescendantsInfoFor(roots, out errmsg);
         }
 
+        public List<FileDir> GetByAsDir(int asDirId)
+        {
+            return Existing.Where(x => x.AsDir == asDirId).ToList();
+        }
+
         public bool TryRemove(FileDir item, out string? errmsg)
         {
             var userId = _userIdProvider.Get();

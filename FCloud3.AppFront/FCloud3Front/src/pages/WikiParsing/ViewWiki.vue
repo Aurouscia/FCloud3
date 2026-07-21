@@ -11,6 +11,7 @@ import { useFootNoteJump } from '@/utils/wikiView/footNoteJump';
 import { htmlToText } from '@/utils/wikiView/htmlToText'
 import { customScrollTo } from '@/utils/wikiView/customScrollTo'
 import { useLazyImgLoadWatcher } from '@/utils/wikiView/useLazyImgLoadWatcher'
+import { sanitizeWikiHtml } from '@/utils/wikiView/sanitizeWikiHtml'
 import Loading from '@/components/Loading.vue';
 import TitleTree from '@/components/Wiki/TitleTree.vue';
 import Comment from '@/components/Messages/Comment.vue';
@@ -44,6 +45,7 @@ import { stickyContainTableRestrict } from '@/utils/wikiView/stickyContainTableR
 import { paraTitleHiddenClass } from '@/utils/wikiView/titleHidden';
 import Functions from '@/components/Functions.vue';
 import { useAllowCopy } from '@/utils/wikiView/allowCopy';
+import { renderWikiSpecialElements } from '@/utils/wikiView/renderWikiContent';
 import PolysemySelector from '@/components/Wiki/PolysemySelector.vue';
 import copy from 'copy-to-clipboard'
 
@@ -54,6 +56,7 @@ const props = defineProps<{
 watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
     wikiViewScrollMemory.save(oldVal, wikiViewArea.value)
     data.value = undefined;
+    titleTreeReady.value = false;
     commentsLoaded.value = false;
     recommendsLoaded.value = false;
     clickFold?.dispose()
@@ -61,6 +64,7 @@ watch(()=>props.wikiPathName,async(_newVal, oldVal)=>{
 })
 
 const data = ref<WikiParsingResult>();
+const titleTreeReady = ref(false);
 const stylesContent = ref<string>("");
 const preScripts = useTemplateRef('preScripts')
 const postScripts = useTemplateRef('postScripts')
@@ -347,6 +351,7 @@ const wikiViewScrollMemory = injectWikiViewScrollMemory()
 const pop = injectPop()
 
 async function init(changedPathName?:boolean){
+    titleTreeReady.value = false;
     currentUser.value = await iden.getIdentityInfo();
     if(data.value){
         data.value.Paras = []
@@ -399,9 +404,11 @@ async function init(changedPathName?:boolean){
     await runPluginsByWiki(()=>wikiViewArea.value?.innerHTML)
     stickyContainTableRestrict()
     subtitlesClean()
+    titleTreeReady.value = true;
     wikiLinkClick.listen(wikiViewArea.value);//再次转化链接，因为插件可能添加了新的段落
     samePageTitleLinkClick.listen(wikiViewArea.value);//开始监听“同页面跳转”
     startLazyImgWatcher();
+    await renderWikiSpecialElements(wikiViewArea.value);
 
     const titleQuery = route.query['title'];
     if(typeof titleQuery === 'string' && titleQuery){
@@ -466,43 +473,45 @@ onUnmounted(()=>{
             </div>
         </div>
         <div v-if="displayInfo.Sealed" class="sealed">该词条已被隐藏</div>
-        <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
-            <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
-                <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
-                    <span v-html="p.Title" class="paraTitleText"></span>
-                    <div class="paraTitleSep"></div>
-                    <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
-                        <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+        <div class="paras">
+            <div v-for="p, idx in data.Paras" class="para" :class="{allowCopy: allowCopyEachPara.at(idx)}">
+                <div v-if="p.ParaType==WikiParaType.Text || p.ParaType==WikiParaType.Table">
+                    <h1 :id="titleElementId(p.TitleId)" :class="[paraTitleHiddenClass(p.Title)]">
+                        <span v-html="sanitizeWikiHtml(p.Title)" class="paraTitleText"></span>
+                        <div class="paraTitleSep"></div>
+                        <div v-if="p.ParaType == WikiParaType.Table && p.IsFromFile" class="editBtn">
+                            <a :href="fileDownloadLink(p.UnderlyingId)">下载</a>
+                        </div>
+                        <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
+                            <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                        </div>
+                        <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
+                        <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
+                        <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
+                    </h1>
+                    <div class="indent" v-html="sanitizeWikiHtml(p.Content)">
                     </div>
-                    <div v-if="p.Title" class="editBtn" @click.stop="copyTitleUrl(p)">
-                        <img src="@/assets/link.svg" alt="复制链接" class="linkIcon" :class="imgClickJumpExcludeClassName"/>
+                </div>
+                <div v-if="p.ParaType==WikiParaType.File && p.Content">
+                    <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
+                        <img :src="p.Content" :alt="p.Title" loading="lazy"/>
+                        <div>{{ p.Title }}</div>
                     </div>
-                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToViewParaRawContentRoute(p.ParaId)" target="_blank">源码</RouterLink>
-                    <RouterLink v-if="p.HistoryViewable" class="editBtn" :to="jumpToDiffContentHistoryRoute(diffContentTypeFromParaType(p.ParaType),p.UnderlyingId)" target="_blank">历史</RouterLink>
-                    <div v-if="p.Editable && displayInfo.CurrentUserAccess" class="editBtn" @click.stop="enterEdit(p.ParaType,p.UnderlyingId)">编辑</div>
-                </h1>
-                <div class="indent" v-html="p.Content">
-                </div>
-            </div>
-            <div v-if="p.ParaType==WikiParaType.File && p.Content">
-                <div v-if="canDisplayAsImage(p.Content, p.Bytes)" class="imgPara">
-                    <img :src="p.Content" :alt="p.Title" loading="lazy"/>
-                    <div>{{ p.Title }}</div>
-                </div>
-                <div v-else-if="getFileType(p.Content)=='audio'">
-                    <audio :src="p.Content" controls loading="lazy" ></audio>
-                </div>
-                <div v-else-if="getFileType(p.Content)=='video'">
-                    <video :src="p.Content" controls loading="lazy" ></video>
-                </div>
-                <div v-else class="filePara">
-                    <span class="fileHint">点击下载文件：</span>
-                    <a :href="p.Content" target="_blank">{{ p.Title }}</a>
+                    <div v-else-if="getFileType(p.Content)=='audio'">
+                        <audio :src="p.Content" controls loading="lazy" ></audio>
+                    </div>
+                    <div v-else-if="getFileType(p.Content)=='video'">
+                        <video :src="p.Content" controls loading="lazy" ></video>
+                    </div>
+                    <div v-else class="filePara">
+                        <span class="fileHint">点击下载文件：</span>
+                        <a :href="p.Content" target="_blank">{{ p.Title }}</a>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="refbodies" v-if="data.FootNotes.length>0">
-            <div v-for="f in data.FootNotes" v-html="f">
+            <div v-for="f in data.FootNotes" v-html="sanitizeWikiHtml(f)">
             </div>
         </div>
         <div class="invisible" ref="postScripts"></div>
@@ -528,7 +537,7 @@ onUnmounted(()=>{
 
     </div>
     <div class="subTitles" :class="{folded:subtitlesFolded}" ref="subTitles">
-        <TitleTree v-if="data" :title-tree="data?.SubTitles" 
+        <TitleTree v-if="data && titleTreeReady" :title-tree="data?.SubTitles" 
         :isMaster="true" @click-title="moveToTitle" ref="titles"></TitleTree>
         <Loading v-else></Loading>
     </div>
