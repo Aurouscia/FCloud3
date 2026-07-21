@@ -5,5 +5,6 @@ export const guideInfo = {
     createWiki: import.meta.env.VITE_GuideCreateWiki,
     siteIntro: import.meta.env.VITE_SiteIntro,
     siteRegulations: import.meta.env.VITE_SiteRegulations,
-    footerLinks: import.meta.env.VITE_FooterLinks
+    footerLinks: import.meta.env.VITE_FooterLinks,
+    mainRepoOnly: import.meta.env.VITE_MainRepoOnly != "false"
 }
