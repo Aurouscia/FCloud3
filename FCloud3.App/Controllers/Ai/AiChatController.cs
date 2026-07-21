@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Text.Json;
 using FCloud3.App.Models.COM;
 using FCloud3.App.Services.Filters;
 using FCloud3.App.Services.Utils;
@@ -14,14 +14,17 @@ namespace FCloud3.App.Controllers.Ai
     {
         /// <summary>流式获取 AI 建议。conversationId 为 null 时不保存历史。</summary>
         [RateLimited(slidingWindowMs: 5000, maxCountWithin: 2)]
-        public async IAsyncEnumerable<AiChatChunk> GetSuggestions(
+        public async Task GetSuggestions(
             int aiInstanceConfigId, string prompt, int? conversationId, int currentWikiItemId,
-            [EnumeratorCancellation] CancellationToken ct)
+            CancellationToken ct)
         {
+            Response.ContentType = "application/x-ndjson; charset=utf-8";
             await foreach (var chunk in aiChatService.GetSuggestions(
                 aiInstanceConfigId, prompt, conversationId, currentWikiItemId, ct))
             {
-                yield return chunk;
+                var json = JsonSerializer.Serialize(chunk) + "\n";
+                await Response.WriteAsync(json, ct);
+                await Response.Body.FlushAsync(ct);
             }
         }
 

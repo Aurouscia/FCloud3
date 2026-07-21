@@ -79,7 +79,7 @@ namespace FCloud3.App.Controllers.Identities
             var (models, errmsg2) = await chatService.GetAvailableModels(apiBaseUrl, apiKey);
             if (models is null)
                 return this.ApiFailedResp(errmsg2 ?? "无法获取模型列表，请检查 API 地址和 Key");
-            return this.ApiResp(models);
+            return this.ApiResp(new { Models = models });
         }
 
         [UserTypeRestricted]

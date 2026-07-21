@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import { injectApi, injectPop } from '@/provides';
 import { useAiSelectedInstanceStore } from '@/utils/globalStores/aiSelectedInstance';
-import type { AiConversation } from '@/models/ai/aiConversation';
+import type { AiConversation, AiChatChunk } from '@/models/ai/aiConversation';
 import AiChatConversationList from './AiChatConversationList.vue';
 import AiChatMessageArea from './AiChatMessageArea.vue';
 import AiInstanceSelector from './AiInstanceSelector.vue';
@@ -87,25 +87,48 @@ async function fetchStreamSuggestions(userPrompt: string) {
         url.searchParams.set('currentWikiItemId', props.currentWikiItemId.toString());
     }
 
-    const eventSource = new EventSource(url.toString());
-    let result = '';
-
-    return new Promise<void>((resolve, reject) => {
-        eventSource.onmessage = (e) => {
-            if (e.data) {
-                result += e.data;
-                messageAreaRef.value?.appendAssistantMessage(e.data);
-            }
-        };
-        eventSource.onerror = (e) => {
-            eventSource.close();
-            if (result) {
-                resolve();
-            } else {
-                reject(e);
-            }
-        };
+    const token = localStorage.getItem('fcloudAuthToken');
+    const response = await fetch(url.toString(), {
+        headers: {
+            'Authorization': `Bearer ${token ?? ''}`
+        }
     });
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            throw new Error('请登录');
+        }
+        if (response.status === 429) {
+            throw new Error('请求频率过高，请稍后再试');
+        }
+        throw new Error(`请求失败: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+        throw new Error('无法读取响应流');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const chunk = JSON.parse(line) as AiChatChunk;
+            messageAreaRef.value?.appendAssistantMessage(chunk.Text);
+        }
+    }
+
+    if (buffer.trim()) {
+        const chunk = JSON.parse(buffer) as AiChatChunk;
+        messageAreaRef.value?.appendAssistantMessage(chunk.Text);
+    }
 }
 </script>
 

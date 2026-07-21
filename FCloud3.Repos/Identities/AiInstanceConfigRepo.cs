@@ -11,6 +11,9 @@ namespace FCloud3.Repos.Identities
         public AiInstanceConfig? GetByGroupId(int groupId)
             => Existing.FirstOrDefault(x => x.GroupId == groupId);
 
+        public List<AiInstanceConfig> GetByGroupIdAll(int groupId)
+            => Existing.Where(x => x.GroupId == groupId).ToList();
+
         public bool TryAddConfig(AiInstanceConfig config, out string? errmsg)
         {
             errmsg = Validate(config);

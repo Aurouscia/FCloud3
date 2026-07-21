@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using FCloud3.Entities.Ai;
 using FCloud3.Repos.Ai;
+using FCloud3.Repos.Wiki;
 using FCloud3.Services.Identities;
 using Microsoft.Extensions.AI;
 using OpenAI;
@@ -17,6 +18,7 @@ namespace FCloud3.Services.Ai
         AiMessageRepo messageRepo,
         AiUsageRecorder usageRecorder,
         AiUsageService usageService,
+        WikiItemRepo wikiItemRepo,
         IOperatingUserIdProvider userIdProvider)
     {
         private readonly int _userId = userIdProvider.Get();
@@ -460,11 +462,10 @@ namespace FCloud3.Services.Ai
             return Math.Max(0, (int)(charCount * 0.5));
         }
 
-        private static string? GetWikiPathNameById(int wikiItemId)
+        private string? GetWikiPathNameById(int wikiItemId)
         {
-            // TODO: 注入 WikiItemRepo 实现根据 Id 查询 pathName
-            // 临时返回 null，后续需要完善
-            return null;
+            var wiki = wikiItemRepo.GetById(wikiItemId);
+            return wiki?.UrlPathName;
         }
 
         private class StreamingContext

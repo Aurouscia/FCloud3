@@ -49,6 +49,28 @@ namespace FCloud3.Services.Test.Ai
                     CreatorUserId = 1,
                     Created = _baseTime,
                     Updated = _baseTime
+                },
+                new()
+                {
+                    Id = 3,
+                    GroupId = 300,
+                    DefaultModelName = "gpt-3.5",
+                    ApiBaseUrl = "https://api.openai.com/v1",
+                    ApiKey = "key3",
+                    CreatorUserId = 1,
+                    Created = _baseTime,
+                    Updated = _baseTime
+                },
+                new()
+                {
+                    Id = 4,
+                    GroupId = 300,
+                    DefaultModelName = "gpt-4",
+                    ApiBaseUrl = "https://api.openai.com/v1",
+                    ApiKey = "key4",
+                    CreatorUserId = 1,
+                    Created = _baseTime,
+                    Updated = _baseTime
                 }
             });
 
@@ -117,6 +139,43 @@ namespace FCloud3.Services.Test.Ai
                     TotalTokens = 100,
                     ModelName = "claude-3.5",
                     Success = false,
+                    Created = _baseTime,
+                    Updated = _baseTime
+                },
+                // 配置 3 和 4 同属 Group 300，用于测试多实例汇总
+                new()
+                {
+                    UserId = 1,
+                    AiInstanceConfigId = 3,
+                    InputTokens = 40,
+                    OutputTokens = 20,
+                    TotalTokens = 60,
+                    ModelName = "gpt-3.5",
+                    Success = true,
+                    Created = _baseTime,
+                    Updated = _baseTime
+                },
+                new()
+                {
+                    UserId = 2,
+                    AiInstanceConfigId = 3,
+                    InputTokens = 25,
+                    OutputTokens = 15,
+                    TotalTokens = 40,
+                    ModelName = "gpt-3.5",
+                    Success = true,
+                    Created = _baseTime,
+                    Updated = _baseTime
+                },
+                new()
+                {
+                    UserId = 1,
+                    AiInstanceConfigId = 4,
+                    InputTokens = 60,
+                    OutputTokens = 30,
+                    TotalTokens = 90,
+                    ModelName = "gpt-4",
+                    Success = true,
                     Created = _baseTime,
                     Updated = _baseTime
                 }
@@ -218,6 +277,30 @@ namespace FCloud3.Services.Test.Ai
         {
             var ranking = _svc.GetGroupUsageRanking(999, _baseTime.Date);
             Assert.AreEqual(0, ranking.Count);
+        }
+
+        [TestMethod]
+        public void GetGroupUsage_WithMultipleConfigs_SumsAcrossConfigs()
+        {
+            // Group 300 -> Config 3 + Config 4 -> 60 + 40 + 90 = 190
+            var total = _svc.GetGroupUsage(300, _baseTime.Date);
+            Assert.AreEqual(190, total);
+        }
+
+        [TestMethod]
+        public void GetGroupUsageRanking_WithMultipleConfigs_AggregatesByUser()
+        {
+            var ranking = _svc.GetGroupUsageRanking(300, _baseTime.Date);
+
+            Assert.AreEqual(2, ranking.Count);
+            // 用户 1：60 + 90 = 150 tokens，2 次调用
+            Assert.AreEqual(1, ranking[0].UserId);
+            Assert.AreEqual(150, ranking[0].TotalTokens);
+            Assert.AreEqual(2, ranking[0].CallCount);
+            // 用户 2：40 tokens，1 次调用
+            Assert.AreEqual(2, ranking[1].UserId);
+            Assert.AreEqual(40, ranking[1].TotalTokens);
+            Assert.AreEqual(1, ranking[1].CallCount);
         }
 
         [TestMethod]

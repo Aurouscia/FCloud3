@@ -28,10 +28,10 @@ namespace FCloud3.Services.Ai
         public int GetGroupUsage(int groupId, DateTime? since = null)
         {
             since ??= DateTime.Now.Date;
-            var config = configRepo.GetByGroupId(groupId);
-            if (config is null) return 0;
+            var configIds = configRepo.GetByGroupIdAll(groupId).Select(x => x.Id).ToList();
+            if (configIds.Count == 0) return 0;
             return repo.Existing
-                .Where(x => x.AiInstanceConfigId == config.Id && x.Created >= since)
+                .Where(x => configIds.Contains(x.AiInstanceConfigId) && x.Created >= since)
                 .Sum(x => x.TotalTokens);
         }
 
@@ -55,9 +55,17 @@ namespace FCloud3.Services.Ai
         public List<ConfigUsageSummary> GetGroupUsageRanking(int groupId, DateTime? since = null)
         {
             since ??= DateTime.Now.Date;
-            var config = configRepo.GetByGroupId(groupId);
-            if (config is null) return [];
-            return GetConfigUsageRanking(config.Id, since);
+            var configIds = configRepo.GetByGroupIdAll(groupId).Select(x => x.Id).ToList();
+            if (configIds.Count == 0) return [];
+
+            return repo.Existing
+                .Where(x => configIds.Contains(x.AiInstanceConfigId) && x.Created >= since)
+                .GroupBy(x => x.UserId)
+                .Select(g => new { g.Key, Total = g.Sum(x => x.TotalTokens), Count = g.Count() })
+                .ToList()
+                .Select(x => new ConfigUsageSummary(x.Key, x.Total, x.Count))
+                .OrderByDescending(x => x.TotalTokens)
+                .ToList();
         }
     }
 
