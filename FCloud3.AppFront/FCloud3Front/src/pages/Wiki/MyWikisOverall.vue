@@ -4,12 +4,16 @@ import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { injectApi } from '@/provides';
 import { onMounted, ref } from 'vue';
 import Loading from '@/components/Loading.vue';
+import { useHintKnownStore } from '@/utils/globalStores/hintKnownStore';
+import { storeToRefs } from 'pinia';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useWikiRoutesJump } from './routes/routesJump';
 import { watch } from 'vue';
 import Notice from '@/components/Notice.vue';
 
 const api = injectApi()
+const hintKnownStore = useHintKnownStore()
+const { wikiCanBeExported } = storeToRefs(hintKnownStore)
 const props = defineProps<{
     uid?:string
 }>()
@@ -19,6 +23,10 @@ watch(props, ()=>{
 
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 const { jumpToWikiLocationsRoute } = useWikiRoutesJump()
+
+function knowIt(){
+    wikiCanBeExported.value = true;
+}
 
 const data = ref<MyWikisOverallResp>();
 async function load(){
@@ -43,6 +51,12 @@ onMounted(async()=>{
 
 <template>
 <h1>我的词条</h1>
+<div v-if="!wikiCanBeExported">
+    <Notice :type="'info'" :title="'提示'" style="margin-bottom: 10px;">
+        你可以在“个人中心-编辑信息”中导出本账号所有词条，并导入其他同类型网站
+        <button class="lite" @click="knowIt">我知道了</button>
+    </Notice>
+</div>
 <div v-if="data?.TreeView">
     <MyWikisTreeView :item="data?.TreeView"></MyWikisTreeView>
 </div>
