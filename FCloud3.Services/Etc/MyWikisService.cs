@@ -7,7 +7,8 @@ namespace FCloud3.Services.Etc
     public class MyWikisService(
         WikiItemRepo wikiItemRepo,
         WikiToDirRepo wikiToDirRepo,
-        FileDirRepo fileDirRepo)
+        FileDirRepo fileDirRepo,
+        WikiParaRepo wikiParaRepo)
     {
         public MyWikisOverallResp MyWikiOverall(int uid)
         {
@@ -15,6 +16,11 @@ namespace FCloud3.Services.Etc
                 .CachedItemsByPred(x => x.OwnerId == uid)
                 .ToList();
             var allWIds = myAllWs.Select(x => x.Id).ToHashSet();
+            var wikiIdsWithPara = wikiParaRepo.Existing
+                .Where(x => allWIds.Contains(x.WikiItemId))
+                .Select(x => x.WikiItemId)
+                .Distinct()
+                .ToHashSet();
             var wikiToDirs = wikiToDirRepo.Existing
                 .Select(x => new {x.WikiId, x.DirId})
                 .ToList();
@@ -22,12 +28,15 @@ namespace FCloud3.Services.Etc
             List<MyWikisInDir> flatCollection = [];
             List<string?[]> homelessWikis = [];
             List<string?[]> sealedWikis = [];
+            List<string?[]> emptyWikis = [];
             
             //找到所有该用户词条所在的目录，无归属的统一放起来
             foreach (var w in myAllWs)
             {
                 if(w.Sealed)
                     sealedWikis.Add([w.Title, w.UrlPathName]);
+                if(!wikiIdsWithPara.Contains(w.Id))
+                    emptyWikis.Add([w.Title, w.UrlPathName]);
                 var relas = wikiToDirs.FindAll(x => x.WikiId == w.Id);
                 if(relas.Count == 0)
                     homelessWikis.Add([w.Title, w.UrlPathName]);
@@ -111,6 +120,7 @@ namespace FCloud3.Services.Etc
             {
                 HomelessWikis = homelessWikis,
                 SealedWikis = sealedWikis,
+                EmptyWikis = emptyWikis,
                 TreeView = treeView
             };
         }
@@ -120,6 +130,7 @@ namespace FCloud3.Services.Etc
             public MyWikisInDir? TreeView { get; set; }
             public List<string?[]>? HomelessWikis { get; set; }
             public List<string?[]>? SealedWikis { get; set; }
+            public List<string?[]>? EmptyWikis { get; set; }
         }
         public class MyWikisInDir
         {

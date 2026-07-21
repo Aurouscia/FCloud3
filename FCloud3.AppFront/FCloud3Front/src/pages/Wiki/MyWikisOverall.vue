@@ -7,6 +7,7 @@ import Loading from '@/components/Loading.vue';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useWikiRoutesJump } from './routes/routesJump';
 import { watch } from 'vue';
+import Notice from '@/components/Notice.vue';
 
 const api = injectApi()
 const props = defineProps<{
@@ -46,6 +47,19 @@ onMounted(async()=>{
     <MyWikisTreeView :item="data?.TreeView"></MyWikisTreeView>
 </div>
 <Loading v-else></Loading>
+<div v-if="data?.EmptyWikis && data.EmptyWikis.length>0">
+    <h1>
+        空词条
+        <div class="desc">以下词条内容为空</div>
+    </h1>
+    <div class="list">
+        <div v-for="w in data.EmptyWikis">
+            <RouterLink :to="jumpToViewWikiRoute(w[1])" target="_blank">
+                {{ w[0] }}
+            </RouterLink>
+        </div>
+    </div>
+</div>
 <div v-if="data?.HomelessWikis && data.HomelessWikis.length>0">
     <h1>
         无归属词条
