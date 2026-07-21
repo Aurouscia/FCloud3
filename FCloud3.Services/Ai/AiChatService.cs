@@ -53,6 +53,18 @@ namespace FCloud3.Services.Ai
                 }
             }
 
+            // 检查AI实例月限额
+            if (config.MonthlyTokenLimit > 0)
+            {
+                var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                var monthUsage = usageService.GetConfigUsage(config.Id, monthStart);
+                if (monthUsage >= config.MonthlyTokenLimit)
+                {
+                    yield return new AiChatChunk("本AI实例本月用量已达上限，请联系管理员");
+                    yield break;
+                }
+            }
+
             // 构建消息列表
             var messages = new List<ChatMessage>
             {
@@ -192,7 +204,7 @@ namespace FCloud3.Services.Ai
                     var toolCallsJson = streamingContext.ToolCalls.Count > 0
                         ? System.Text.Json.JsonSerializer.Serialize(streamingContext.ToolCalls)
                         : null;
-                    SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
+                    SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse,
                         effectiveModelName, AiMessageStatus.Failed, streamingContext.ErrorMessage,
                         streamingContext.DurationMs, streamingContext.FinishReason,
                         streamingContext.InputTokenCount, streamingContext.OutputTokenCount, toolCallsJson);
@@ -209,7 +221,7 @@ namespace FCloud3.Services.Ai
                 var toolCallsJson = streamingContext.ToolCalls.Count > 0
                     ? System.Text.Json.JsonSerializer.Serialize(streamingContext.ToolCalls)
                     : null;
-                if (!SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse, history.Count,
+                if (!SaveMessages(conversationId.Value, userPrompt, streamingContext.FullResponse,
                     effectiveModelName, AiMessageStatus.Received, null,
                     streamingContext.DurationMs, streamingContext.FinishReason,
                     streamingContext.InputTokenCount, streamingContext.OutputTokenCount, toolCallsJson))
@@ -411,11 +423,12 @@ namespace FCloud3.Services.Ai
             return new ChatMessage(role, msg.Content ?? "");
         }
 
-        private bool SaveMessages(int conversationId, string userPrompt, string aiResponse, int existingCount,
+        private bool SaveMessages(int conversationId, string userPrompt, string aiResponse,
             string modelName, AiMessageStatus aiStatus, string? errorMessage, int durationMs, string? finishReason,
             int inputTokenCount, int outputTokenCount, string? toolCallsJson = null)
         {
-            var baseOrder = existingCount;
+            var baseOrder = messageRepo.GetMaxOrder(conversationId);
+            var addedCount = 0;
 
             // 保存用户消息
             if (!messageRepo.TryAddMessage(new AiMessage
@@ -430,6 +443,7 @@ namespace FCloud3.Services.Ai
                 Order = baseOrder + 1
             }, out _))
                 return false;
+            addedCount++;
 
             // 保存 AI 回复
             if (!messageRepo.TryAddMessage(new AiMessage
@@ -448,10 +462,11 @@ namespace FCloud3.Services.Ai
                 Order = baseOrder + 2
             }, out _))
                 return false;
+            addedCount++;
 
             // 更新对话消息数和更新时间
             var conv = conversationRepo.Existing.First(x => x.Id == conversationId);
-            conv.MessageCount = existingCount + 2;
+            conv.MessageCount += addedCount;
             return conversationRepo.TryUpdateConversation(conv, out _);
         }
 
