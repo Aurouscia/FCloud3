@@ -6,17 +6,17 @@ FROM mcr.azure.cn/azurelinux/base/nodejs:24 AS febuild
 RUN tdnf install -y tar
 RUN npm config set registry https://registry.npmmirror.com
 RUN npm install -g pnpm
-WORKDIR "/app/FCloud3.AppFront/FCloud3Plugins"
-COPY "./FCloud3.AppFront/FCloud3Plugins" "."
-RUN node buildPlugins.mjs
 WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 COPY "./FCloud3.AppFront/FCloud3Front/package.json" "./package.json"
 COPY "./FCloud3.AppFront/FCloud3Front/pnpm-lock.yaml" "./pnpm-lock.yaml"
 COPY "./FCloud3.AppFront/FCloud3Front/pnpm-workspace.yaml" "./pnpm-workspace.yaml"
 RUN pnpm install --frozen-lockfile
-COPY "./FCloud3.AppFront/FCloud3Front/public/renderers/collect-renderers.ts" "./public/renderers/collect-renderers.ts"
-RUN pnpm collect-renderers
 COPY "./FCloud3.AppFront/FCloud3Front" "."
+RUN pnpm collect-renderers
+WORKDIR "/app/FCloud3.AppFront/FCloud3Plugins"
+COPY "./FCloud3.AppFront/FCloud3Plugins" "."
+RUN node buildPlugins.mjs
+WORKDIR "/app/FCloud3.AppFront/FCloud3Front"
 RUN npm run build-here
 
 # 构建.net后端

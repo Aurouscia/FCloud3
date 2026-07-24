@@ -4,11 +4,16 @@ import { MyWikisOverallResp } from '@/models/etc/myWikisOverall';
 import { injectApi } from '@/provides';
 import { onMounted, ref } from 'vue';
 import Loading from '@/components/Loading.vue';
+import { useHintKnownStore } from '@/utils/globalStores/hintKnownStore';
+import { storeToRefs } from 'pinia';
 import { useWikiParsingRoutesJump } from '../WikiParsing/routes/routesJump';
 import { useWikiRoutesJump } from './routes/routesJump';
 import { watch } from 'vue';
+import Notice from '@/components/Notice.vue';
 
 const api = injectApi()
+const hintKnownStore = useHintKnownStore()
+const { wikiCanBeExported } = storeToRefs(hintKnownStore)
 const props = defineProps<{
     uid?:string
 }>()
@@ -18,6 +23,10 @@ watch(props, ()=>{
 
 const { jumpToViewWikiRoute } = useWikiParsingRoutesJump()
 const { jumpToWikiLocationsRoute } = useWikiRoutesJump()
+
+function knowIt(){
+    wikiCanBeExported.value = true;
+}
 
 const data = ref<MyWikisOverallResp>();
 async function load(){
@@ -42,10 +51,29 @@ onMounted(async()=>{
 
 <template>
 <h1>我的词条</h1>
+<div v-if="!wikiCanBeExported">
+    <Notice :type="'info'" :title="'提示'" style="margin-bottom: 10px;">
+        你可以在“个人中心-编辑信息”中导出本账号所有词条，并导入其他同类型网站
+        <button class="lite" @click="knowIt">我知道了</button>
+    </Notice>
+</div>
 <div v-if="data?.TreeView">
     <MyWikisTreeView :item="data?.TreeView"></MyWikisTreeView>
 </div>
 <Loading v-else></Loading>
+<div v-if="data?.EmptyWikis && data.EmptyWikis.length>0">
+    <h1>
+        空词条
+        <div class="desc">以下词条内容为空</div>
+    </h1>
+    <div class="list">
+        <div v-for="w in data.EmptyWikis">
+            <RouterLink :to="jumpToViewWikiRoute(w[1])" target="_blank">
+                {{ w[0] }}
+            </RouterLink>
+        </div>
+    </div>
+</div>
 <div v-if="data?.HomelessWikis && data.HomelessWikis.length>0">
     <h1>
         无归属词条

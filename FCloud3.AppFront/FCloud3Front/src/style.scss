@@ -145,6 +145,11 @@ button.lite{
   &:hover{
     text-decoration: underline;
   }
+  .notice.info &{
+    color: white;
+    font-size: 14px;
+    text-decoration: underline;
+  }
 }
 
 .section{
